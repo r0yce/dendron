@@ -460,18 +460,32 @@ export async function _activate(
       }
       StartupUtils.showUninstallMarkdownLinksExtensionMessage();
       activationTimer.mark("activate:success");
-      activationTimer.finish();
+      logActivationReport(activationTimer);
       return true;
     }
     activationTimer.mark("activate:partial");
-    activationTimer.finish();
+    logActivationReport(activationTimer);
     return false;
   } catch (error) {
     activationTimer.mark("activate:error");
-    activationTimer.finish();
+    logActivationReport(activationTimer);
     Sentry.captureException(error);
     throw error;
   }
+}
+
+function logActivationReport(timer: ActivationTimer) {
+  const isDev = getStage() === "dev" || process.env.DENDRON_PERF === "1" || process.env.LOG_LEVEL === "debug";
+
+  if (!isDev) {
+    timer.finish(); // still call finish for any internal side effects
+    return;
+  }
+
+  const report = timer.getDetailedReport();
+  // Log to both the Debug Console and the Dendron output channel
+  console.log(report);
+  Logger.info({ ctx: "ActivationPerformance", msg: "\n" + report });
 }
 
 function togglePluginActiveContext(enabled: boolean) {

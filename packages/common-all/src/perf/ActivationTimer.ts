@@ -63,4 +63,43 @@ export class ActivationTimer {
     const total = this.marks[this.marks.length - 1]?.ts - this.startTs || 0;
     return { totalMs: Math.round(total) };
   }
+
+  /**
+   * Returns a nicely formatted multi-line string of the activation phases.
+   * Useful for dev commands or logging.
+   */
+  getDetailedReport(): string {
+    if (this.marks.length === 0) {
+      return "No activation timings recorded.";
+    }
+
+    const total = this.marks[this.marks.length - 1].ts - this.startTs;
+    const lines: string[] = [];
+    lines.push("=== Dendron Activation Performance ===");
+    lines.push(`Total: ${total.toFixed(1)}ms`);
+    lines.push("");
+
+    let prev = this.startTs;
+    for (const m of this.marks) {
+      const delta = (m.ts - prev).toFixed(1);
+      const fromStart = (m.ts - this.startTs).toFixed(1);
+      lines.push(`  ${m.name.padEnd(32)} +${delta.padStart(7)}ms   (${fromStart.padStart(7)}ms from start)`);
+      prev = m.ts;
+    }
+    lines.push("");
+    lines.push("======================================");
+    return lines.join("\n");
+  }
+
+  /**
+   * Returns the raw marks for advanced use (e.g. sending to a webview).
+   */
+  getMarks() {
+    return this.marks.map(m => ({
+      name: m.name,
+      ts: m.ts,
+      deltaFromPrevious: m.ts - (this.marks[this.marks.indexOf(m) - 1]?.ts ?? this.startTs),
+      deltaFromStart: m.ts - this.startTs,
+    }));
+  }
 }
