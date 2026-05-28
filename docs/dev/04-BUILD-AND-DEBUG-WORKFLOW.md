@@ -117,13 +117,14 @@ We added high-quality launch configs in `.vscode/launch.json`:
 - Attach to a running Extension Host (advanced)
 - Jest debugging for engine tests
 
-**Recommended daily workflow**:
+**Recommended daily workflow** (see the much more detailed section in `05-GETTING-STARTED-MODERN.md`):
 
-1. Open the repo root or `dendron-plugin.code-workspace` in VS Code Insiders.
-2. Make changes.
-3. Press F5 (or use the command palette "Debug: Select and Start Debugging").
-4. A new window ("Extension Development Host") opens with your modified Dendron loaded.
-5. Set breakpoints in `out/` (or configure source maps — they are there).
+1. **File → Open Workspace from File...** → `dendron-plugin.code-workspace`
+2. In the **Debug** sidebar (Ctrl+Shift+D), use the dropdown at the top and select **"Run Dendron Extension (Desktop)"**.
+3. Press **F5**.
+4. A new "Extension Development Host" window will appear with your local Dendron.
+
+The most common reason "F5 does nothing" is having the wrong folder open as the workspace root (see the Getting Started guide for the exact fix).
 
 The `compile:watch:plugin-core` task exists if you prefer a persistent watch process instead of the preLaunch compile.
 

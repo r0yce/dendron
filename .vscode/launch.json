@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run Dendron Extension (Desktop)",
+      "name": "Run Dendron Extension (Desktop) - [open monorepo root]",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -16,10 +16,13 @@
       "env": {
         "LOG_LEVEL": "debug",
         "DENDRON_DEV_MODE": "1"
+      },
+      "presentation": {
+        "group": "dendron-root"
       }
     },
     {
-      "name": "Run Dendron Extension (Desktop, No Precompile)",
+      "name": "Run Dendron Extension (Desktop, No Precompile) - [open monorepo root]",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -32,6 +35,9 @@
       "env": {
         "LOG_LEVEL": "debug",
         "DENDRON_DEV_MODE": "1"
+      },
+      "presentation": {
+        "group": "dendron-root"
       }
     },
     {

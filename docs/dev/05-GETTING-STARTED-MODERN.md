@@ -51,6 +51,41 @@ yarn workspace @dendronhq/plugin-core watch
 
 Then use the excellent launch configs we added in `.vscode/launch.json`.
 
+## How to Make F5 Actually Work (The #1 Gotcha)
+
+F5 doing "nothing" is extremely common in this monorepo. It almost always comes down to **which folder VS Code thinks is the workspace root**.
+
+### Correct Way (Recommended)
+
+1. In VS Code: **File → Open Workspace from File...**
+2. Choose `dendron-plugin.code-workspace` (this lives in the repo root).
+3. Open the **Debug** view (Ctrl+Shift+D or the bug icon on the left).
+4. In the dropdown at the top of the Debug view, select:
+   - **"Run Dendron Extension (Desktop)"**
+5. Press **F5**.
+
+This should:
+- Run the `compile-plugin-core` task
+- Launch a new VS Code window titled "Extension Development Host"
+- Load your local version of Dendron
+
+### Alternative: Opening the Full Monorepo Root
+
+If you prefer having access to everything:
+- Open the repository **root folder** (the folder containing `package.json`, `yarn.lock`, etc.).
+- In the Debug dropdown you will see the configs that have "- [open monorepo root]" in the name.
+- Use those + F5.
+
+### What NOT to Do
+
+- Do **not** just open the `packages/plugin-core` folder directly via "Open Folder".
+- The old generic "Run Extension" configs are still present but the modern ones above are much better.
+
+If F5 still does nothing after following the steps above:
+- Make sure you selected a configuration in the Debug dropdown **before** pressing F5.
+- Check the "Problems" panel and the integrated Terminal for preLaunchTask errors.
+- Try the "No Precompile" variant first (it skips the compile step).
+
 ## Common Commands Reference
 
 | Goal                                         | Command |
