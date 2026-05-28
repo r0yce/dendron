@@ -286,6 +286,10 @@ Notable external deps: `unified`/`remark`/`rehype` family, `sqlite3` (engine cac
 - The unified/remark/rehype stack pinned in `packages/unified` is the **last CJS-compatible** generation. All modern versions are ESM-only — any bump must go with full ESM migration of `engine-server`.
 - `@types/node` is pinned to `17.0.18` via root `resolutions`. Newer minor versions (16.18.x, 18.x) ship `.d.ts` files with TS syntax that **TypeScript 4.6 can't parse** (trailing-comma generic param defaults in `http.d.ts`). Don't bump it without also bumping TypeScript (Phase 2).
 - `fs-extra` is stuck at **9.x** for the same reason — `@types/fs-extra@^10+` transitively requires `@types/node@^16+`.
+- `execa 6+` is **ESM-only**; this repo is held at `^5.1.1` across all packages until the Phase 3 ESM cliff.
+- `chokidar 4+` is **ESM-only**; held at `^3.x` (same constraint as execa).
+- `axios 1.x` types `error.response.data` as `unknown` (was `any` in 0.x). Adapter code that touches `error.response.data` shape must cast through `unknown` or `any` for third-party error envelopes (e.g. AirtablePod).
+- `sinon 19` + `@types/sinon 17` — keep both in lock-step. `useFakeTimers` returns the new `InstalledClock` whose `tick(ms)` signature unchanged but `setSystemTime` now requires `Date | number`.
 
 ## 15. Quick Reference
 

@@ -9,6 +9,18 @@ Format: newest entries first. Each entry = scope + what + why + verification.
 
 ## Phase 5 (in progress) — Test compat for Node 22+
 
+### `pino 6` → `pino 9` (common-server)
+- **File**: `packages/common-server/package.json` (`^6.3.2` → `^9.5.0`).
+- **Why**: pino 6 is EOL; pino 9 patches multiple CVEs in transitive deps.
+- **API risk**: zero — `packages/common-server/src/logger.ts` only uses `pino(opts)`, `pino.destination(path)`, `.child()`, `destination.destroy()`, all preserved across v6→v9.
+- **Result**: typecheck, build, tests 1455/1456 unchanged.
+
+### `execa` → `^5.1.1` alignment (plugin-core, engine-server)
+- **Files**: `packages/plugin-core/package.json` (`4.0.2` → `^5.1.1`), `packages/engine-server/package.json` (`^4.0.3` → `^5.1.1`). `common-server` already on `^5.0.0`.
+- **Why**: Consistency + multiple security patches. Held at 5.x because **execa 6+ is ESM-only** — will revisit at Phase 3 ESM cliff.
+- **Source change**: `packages/plugin-core/src/test/suite-integ/Extension.test.ts` — added `escapedCommand` field to two `execa.command` stub return values (execa 5 added this required field to `ExecaReturnValue`).
+- **Result**: typecheck, build, tests 1455/1456 unchanged.
+
 ### CVE root-resolutions sweep
 - **Why**: `yarn audit --level critical` showed 139 critical advisories, mostly in transitive deps. Forcing patched versions via root `resolutions` does not require any source changes.
 - **Resolutions added** to root `package.json`:
