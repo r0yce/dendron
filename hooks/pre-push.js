@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
 /**
- * NOTE: In the go-to-work personal fork, husky pre-push is also disabled
- * (see root package.json). This file is kept for manual / future CI use.
+ * Pre-push hook kept for manual use / future CI.
+ * The husky v4 configuration was removed in the go-to-work fork
+ * because it was too brittle on Node 26+.
  */
 const { checkToken } = require("./common");
 const { exec } = require("./exec");
