@@ -9,6 +9,12 @@ Format: newest entries first. Each entry = scope + what + why + verification.
 
 ## Phase 5 (in progress) — Test compat for Node 22+
 
+### `axios 0.21` → `axios 1.7.7`
+- **Files**: `packages/common-all/package.json`, `packages/engine-server/package.json`.
+- **Why**: axios 0.21.x has multiple CVEs (CVE-2023-45857, CVE-2024-39338). 1.x is a major bump but the public API used in this repo (`axios`, `AxiosInstance`, `AxiosError`, `error.toJSON()`, `error.response.data`) is source-compatible.
+- **Fallout**: One TS error — in axios 1.x `error.response.data` is typed `unknown` (was `any`). Patched `packages/pods-core/src/builtin/AirtablePod.ts:182` to cast the Airtable error payload to `any` (the runtime shape is owned by Airtable, not by us).
+- **Verification**: Build ✅, typecheck ✅, `yarn test:cli` 1455/1456 ✅.
+
 ### `@types/node` pinned to `17.0.18` via root resolution
 - **Why**: After Phase 5 sinon install, yarn re-resolved the `@types/node@*` constraint downward to `16.18.126`, which contains TS syntax (trailing commas in generic param lists with defaults) that **TypeScript 4.6 can't parse** in `http.d.ts`. Pinning back to the original `17.0.18` keeps the build green.
 - **Side effect**: One narrow typing fix in `packages/api-server/src/utils.ts` — `subprocess.pid` is now typed `number | undefined`, so `process.kill()` got an `if (subprocess.pid !== undefined)` guard.

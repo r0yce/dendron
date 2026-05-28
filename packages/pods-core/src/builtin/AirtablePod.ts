@@ -177,9 +177,10 @@ export class AirtableUtils {
               error.response?.data &&
               error.response.status === StatusCodes.UNPROCESSABLE_ENTITY
             ) {
-              payload = _.merge(payload, error.response.data);
+              const responseData = error.response.data as any;
+              payload = _.merge(payload, responseData);
               _error = new DendronError({
-                message: error.response.data.message,
+                message: responseData.message,
                 payload,
                 severity: ERROR_SEVERITY.MINOR,
               });
