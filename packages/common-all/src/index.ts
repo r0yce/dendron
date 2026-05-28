@@ -45,3 +45,5 @@ export { axios, AxiosError };
 export { DateTime };
 
 export { minimatch };
+
+export * from "./perf/ActivationTimer";

@@ -151,6 +151,7 @@ If you want back some enforcement later, we can add a lightweight lefthook or si
 - `vsce` / `vscode-test` deprecated — we have started the transition to `@vscode/vsce` + `@vscode/test-electron` (both now declared).
 - Many peer dependency warnings (normal for this age of monorepo).
 - The old `shell/setup.sh` tells you to use Node 16 — ignore it.
+- When bumping `engines.vscode` + `@types/vscode`, test files that mock `showQuickPick` etc. can produce new strict `Thenable` errors (we saw this in `DoctorCommand.test.ts`). Fixed with `as unknown as ...` casts. Re-run full bootstrap after any types bumps.
 
 ---
 

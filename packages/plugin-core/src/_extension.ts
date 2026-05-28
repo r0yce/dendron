@@ -78,7 +78,7 @@ import { CreateScratchNoteKeybindingTip } from "./showcase/CreateScratchNoteKeyb
 import semver from "semver";
 import _ from "lodash";
 import { GotoNoteCommand } from "./commands/GotoNote";
-import { ActivationTimer } from "@dendronhq/common-all/src/perf/ActivationTimer";
+import { ActivationTimer } from "@dendronhq/common-all";
 
 const MARKDOWN_WORD_PATTERN = new RegExp("([\\w\\.]+)");
 // === Main

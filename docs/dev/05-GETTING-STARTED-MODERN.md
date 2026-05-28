@@ -70,6 +70,12 @@ Then use the excellent launch configs we added in `.vscode/launch.json`.
 ### "Yarn cannot parse package.json"
 You accidentally put comments or trailing commas in a top-level `package.json`. Yarn 1 is strict JSON only.
 
+### Noisy "npm warn Unknown env config ..." during builds
+You will see many lines like:
+`npm warn Unknown env config "version-git-message"`
+
+**Harmless.** These come from your global `~/.npmrc` having newer npm `version-*` keys that Yarn 1 doesn't recognize. They do not break anything.
+
 ### "Cannot find module 'node_sqlite3.node'" or similar at runtime
 Run `yarn workspace @dendronhq/plugin-core download-sqlite-binary` again.
 Check that `packages/plugin-core/lib/binding/.../node_sqlite3.node` exists for your platform + N-API version.
