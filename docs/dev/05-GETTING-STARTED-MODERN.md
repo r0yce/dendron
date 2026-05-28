@@ -86,6 +86,24 @@ If F5 still does nothing after following the steps above:
 - Check the "Problems" panel and the integrated Terminal for preLaunchTask errors.
 - Try the "No Precompile" variant first (it skips the compile step).
 
+### Cleaning up noisy console output in the Extension Development Host
+
+When the dev host opens, you will often see errors from other extensions (themes with bad JSON, Continue.dev, Mermaid, etc.). These are **not** caused by Dendron.
+
+Quick ways to get a cleaner console:
+
+- In the Extension Development Host window: Command Palette → **Preferences: Color Theme** → pick "Dark Modern" or "Light Modern".
+- Add this to your launch config `args` if you want a very quiet host:
+  ```json
+  "--disable-extensions"   // disables ALL other extensions
+  ```
+  (We have a "No Precompile" variant you can duplicate and modify.)
+
+The most common one you'll see right now is:
+`Error loading color theme: SyntaxError: Expected double-quoted property name in JSON...`
+
+This means one of your custom color themes has invalid JSON (comments or trailing commas). Switching themes in the dev host stops the spam.
+
 ## Common Commands Reference
 
 | Goal                                         | Command |
