@@ -78,6 +78,7 @@ import { CreateScratchNoteKeybindingTip } from "./showcase/CreateScratchNoteKeyb
 import semver from "semver";
 import _ from "lodash";
 import { GotoNoteCommand } from "./commands/GotoNote";
+import { ActivationTimer } from "@dendronhq/common-all/src/perf/ActivationTimer";
 
 const MARKDOWN_WORD_PATTERN = new RegExp("([\\w\\.]+)");
 // === Main
@@ -134,6 +135,10 @@ export async function _activate(
   const isDebug = VSCodeUtils.isDevMode();
   const ctx = "_activate";
   const stage = getStage();
+
+  // Performance instrumentation (go-to-work fork)
+  const activationTimer = new ActivationTimer();
+  activationTimer.mark("after:env-setup");
   const { workspaceFile, workspaceFolders } = vscode.workspace;
   const logLevel = process.env["LOG_LEVEL"];
   const { extensionPath, extensionUri, logUri } = context;
@@ -379,6 +384,7 @@ export async function _activate(
         wsService,
         opts,
       });
+      activationTimer.mark("after:workspace-activator");
       if (respActivate.error) {
         return false;
       }
@@ -453,10 +459,16 @@ export async function _activate(
         await PreviewPanelFactory.create(getExtension()).show(note);
       }
       StartupUtils.showUninstallMarkdownLinksExtensionMessage();
+      activationTimer.mark("activate:success");
+      activationTimer.finish();
       return true;
     }
+    activationTimer.mark("activate:partial");
+    activationTimer.finish();
     return false;
   } catch (error) {
+    activationTimer.mark("activate:error");
+    activationTimer.finish();
     Sentry.captureException(error);
     throw error;
   }
