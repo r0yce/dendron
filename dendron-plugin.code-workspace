@@ -4,9 +4,9 @@
       "name": "plugin-core (extension)",
       "path": "packages/plugin-core"
     },
-    // Uncomment the line below if you want access to root-level tasks,
-    // docs, and other packages while still focusing on the extension.
-    // { "name": "dendron-root", "path": "." }
+    {
+      "path": "."
+    }
   ],
   "settings": {
     "files.exclude": {
@@ -14,7 +14,7 @@
       "profile": true
     },
     "editor.codeActionsOnSave": {
-      "source.organizeImports": true
+      "source.organizeImports": "explicit"
     },
     "search.exclude": {
       "**/node_modules": true,
@@ -23,7 +23,7 @@
       "CHANGELOG.md": true
     },
     "editor.formatOnSave": false,
-    "workbench.editor.showTabs": true,
+    "workbench.editor.showTabs": "multiple",
     "editor.snippetSuggestions": "none"
   },
   "extensions": {
