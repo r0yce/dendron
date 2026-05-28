@@ -1050,6 +1050,11 @@ export const DENDRON_COMMANDS: { [key: string]: CommandEntry } = {
     title: `${CMD_PREFIX}Dev: Dev Trigger`,
     when: DendronContext.DEV_MODE,
   },
+  DEV_SHOW_ACTIVATION_REPORT: {
+    key: "dendron.dev.showActivationReport",
+    title: `${CMD_PREFIX}Dev: Show Last Activation Timings`,
+    when: DendronContext.DEV_MODE,
+  },
   RESET_CONFIG: {
     key: "dendron.dev.resetConfig",
     title: `${CMD_PREFIX}Dev: Reset Config`,

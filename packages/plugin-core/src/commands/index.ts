@@ -27,6 +27,7 @@ import { CreateTaskCommand } from "./CreateTask";
 import { DeleteHookCommand } from "./DeleteHookCommand";
 import { DeleteCommand } from "./DeleteCommand";
 import { DevTriggerCommand } from "./DevTriggerCommand";
+import { DevShowActivationReport } from "./DevShowActivationReport";
 import { DiagnosticsReportCommand } from "./DiagnosticsReport";
 import { DisableTelemetryCommand } from "./DisableTelemetry";
 import { DoctorCommand } from "./Doctor";
@@ -119,6 +120,7 @@ const ALL_COMMANDS = [
   DiagnosticsReportCommand,
   DisableTelemetryCommand,
   DevTriggerCommand,
+  DevShowActivationReport,
   EnableTelemetryCommand,
   DoctorCommand,
   ExportPodCommand,

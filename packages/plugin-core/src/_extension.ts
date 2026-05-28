@@ -79,6 +79,7 @@ import semver from "semver";
 import _ from "lodash";
 import { GotoNoteCommand } from "./commands/GotoNote";
 import { ActivationTimer } from "@dendronhq/common-all";
+import { getDevOutputChannel, setLastActivationReport } from "./utils/dev";
 
 const MARKDOWN_WORD_PATTERN = new RegExp("([\\w\\.]+)");
 // === Main
@@ -484,15 +485,28 @@ export async function _activate(
 function logActivationReport(timer: ActivationTimer) {
   const isDev = getStage() === "dev" || process.env.DENDRON_PERF === "1" || process.env.LOG_LEVEL === "debug";
 
+  timer.finish(); // always call finish
+
   if (!isDev) {
-    timer.finish(); // still call finish for any internal side effects
     return;
   }
 
   const report = timer.getDetailedReport();
-  // Log to both the Debug Console and the Dendron output channel
+
+  // Store for the new dev command
+  setLastActivationReport(report);
+
+  // 1. Debug Console (what the user sees when attached)
   console.log(report);
-  Logger.info({ ctx: "ActivationPerformance", msg: "\n" + report });
+
+  // 2. Clean dedicated "Dendron Dev" output channel (much nicer to read)
+  const devChannel = getDevOutputChannel();
+  devChannel.clear();
+  devChannel.appendLine(report);
+  devChannel.show(true); // show but don't steal focus
+
+  // 3. Also keep a compact version in the main Dendron channel
+  Logger.info({ ctx: "ActivationPerformance", totalMs: report.match(/Total: ([\d.]+)ms/)?.[1] ?? "unknown" });
 }
 
 function togglePluginActiveContext(enabled: boolean) {
