@@ -148,7 +148,7 @@ If you want back some enforcement later, we can add a lightweight lefthook or si
 - Root `package.json` must remain strict JSON (no comments, no trailing commas).
 - `yarn add` inside workspaces often blows up due to the complex nohoist + resolutions setup.
 - Old `@types/node@^13` in plugin-core (we have not bumped it yet in the installed tree).
-- `vsce` and `vscode-test` are deprecated names/paths.
+- `vsce` / `vscode-test` deprecated — we have started the transition to `@vscode/vsce` + `@vscode/test-electron` (both now declared).
 - Many peer dependency warnings (normal for this age of monorepo).
 - The old `shell/setup.sh` tells you to use Node 16 — ignore it.
 
