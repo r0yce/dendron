@@ -50,23 +50,20 @@ A blind `yarn upgrade --latest` will brick the repo. The hard blockers:
 
 Each phase is a self-contained PR. Verify with `yarn install` + `yarn lerna:typecheck` + `yarn test:cli` at minimum; `yarn ci:test:plugin` for any change touching plugin-core, plugin-views, or engine-server.
 
-### Phase 0 — Foundation (this branch)
-*Goal: get the repo installable on Node 20 LTS with the same lockfile semantics. Zero behavior change.*
+### Phase 0 + critical Phase 1 — DONE (commit `ff96ff2cc`)
+*Result: monorepo installs, builds, and typechecks cleanly on Node 20/26.*
 
-- [ ] Add `.nvmrc` pinning Node 20 LTS.
-- [ ] Normalize `engines.node` to `>=18.0.0` across all `packages/*/package.json` and root.
-- [ ] Update `shell/_verify_node_version.sh` `MIN_VERSION` to `18.0.0`.
-- [ ] Tighten root `resolutions`/`overrides` to known-safe minor pins:
-  - `lodash: ^4.17.21`
-  - `semver: ^7.5.4`
-  - `minimatch: ^3.1.2`
-  - `json5: ^2.2.3`
-  - `tough-cookie: ^4.1.3`
-- [ ] Verify `yarn install --frozen-lockfile` still resolves.
-- [ ] Verify `yarn lerna:typecheck` still passes.
-- [ ] Commit on `chore/deps-upgrade-2026-05`.
+- [x] `.nvmrc` pins Node 20 LTS.
+- [x] `engines.node` normalized to `>=18.0.0` in all 14 package manifests and root.
+- [x] `shell/_verify_node_version.sh` `MIN_VERSION` → `18.0.0`.
+- [x] Replaced `node-sass@^7.0.0` → `sass@^1.77.8` in `dendron-plugin-views` (node-sass is EOL, fails to compile against Node 18+/Python 3.12+ due to missing `distutils`).
+- [x] Bumped `sqlite3@^5.1.2` → `^5.1.7` in `engine-server` (prebuilt binaries for Node 18/20/22+).
+- [x] Added `NODE_OPTIONS=--openssl-legacy-provider` to `dendron-plugin-views` webpack 4 build scripts (workaround until webpack 4 → 5 in Phase 1).
+- [x] Added root `resolutions` for CVE-prone transitives: `lodash@^4.17.21`, `semver@^7.5.4`, `minimatch@^3.1.2`, `json5@^2.2.3`, `tough-cookie@^4.1.3`.
+- [x] `yarn install` ✅ / `yarn bootstrap:build` ✅ (68s) / `yarn lerna:typecheck` ✅ (7s, 13 packages).
+- [x] `yarn test:cli`: **1431 / 1456 pass**. 25 fails are pre-existing Node 22+ incompat in old `sinon` (`Cannot assign to read only property 'performance'`) — see Phase 5.
 
-### Phase 1 — Make it build on Node 20 (Native + EOL replacements)
+### Phase 1 (remaining) — Native + EOL replacements
 - Replace `node-sass` → `sass` in `dendron-plugin-views`; rewire `sass-loader` config (already `^10`, supports both).
 - Bump `sqlite3` `^5.1.2` → `^5.1.7` in `engine-server` (binary availability for Node 18+/20+).
 - Bump `webpack` 4.44.2 → 5.x in `dendron-plugin-views`; update loaders (`css-loader`, `file-loader` → `asset/resource`, `terser-webpack-plugin`, `mini-css-extract-plugin`, etc.).
@@ -104,6 +101,7 @@ Each phase is a self-contained PR. Verify with `yarn install` + `yarn lerna:type
 - VS Code engine bump (if needed for Antd 5 runtime in webview Electron).
 
 ### Phase 5 — Misc / hygiene
+- **`sinon` upgrade** — current pin breaks on Node 22+ (`performance` is now read-only). Causes the 25 failing tests in `template.spec.ts`, `MarkdownPod.spec.ts`, `MarkdownExportPodV2.spec.ts`, `segmentClient.spec.ts`. Bump `sinon` to ≥15 and re-run snapshots.
 - `verdaccio` ^5 → ^6 + `verdaccio-auth-memory`, `verdaccio-memory` peers.
 - `axios` 0.21 → 1.x (audit response interceptors).
 - `chokidar` 3 → 4.
