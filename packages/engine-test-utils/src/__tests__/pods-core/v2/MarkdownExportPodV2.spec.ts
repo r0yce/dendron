@@ -530,7 +530,7 @@ describe("GIVEN a Markdown Export Pod with a particular config", () => {
 
     afterEach(() => {
       // clean up the export directory after each test.
-      fs.rmSync(exportDest, { recursive: true, force: true });
+      fs.removeSync(exportDest);
     });
     describe("WHEN exporting a note", () => {
       test("THEN expect note to be exported", async () => {

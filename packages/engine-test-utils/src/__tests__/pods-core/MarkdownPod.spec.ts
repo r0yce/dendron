@@ -690,7 +690,7 @@ describe("markdown export pod", () => {
 
   afterEach(() => {
     // clean up the export directory after each test.
-    fs.rmSync(exportDest, { recursive: true, force: true });
+    fs.removeSync(exportDest);
   });
 
   test("test nested directory output", async () => {

@@ -9,6 +9,14 @@ Format: newest entries first. Each entry = scope + what + why + verification.
 
 ## Phase 5 (in progress) — Test compat for Node 22+
 
+### `@types/node` pinned to `17.0.18` via root resolution
+- **Why**: After Phase 5 sinon install, yarn re-resolved the `@types/node@*` constraint downward to `16.18.126`, which contains TS syntax (trailing commas in generic param lists with defaults) that **TypeScript 4.6 can't parse** in `http.d.ts`. Pinning back to the original `17.0.18` keeps the build green.
+- **Side effect**: One narrow typing fix in `packages/api-server/src/utils.ts` — `subprocess.pid` is now typed `number | undefined`, so `process.kill()` got an `if (subprocess.pid !== undefined)` guard.
+
+### Blocked attempt: `fs-extra 9 → 11`
+- Bumping fs-extra to 11 (with `@types/fs-extra@^11`) requires `@types/node@^16`, whose `.d.ts` files use TS 4.x+ syntax that TS 4.6 chokes on.
+- Decision: **defer fs-extra 11 to Phase 2** (alongside TypeScript 5 bump). Reverted root resolution. Recorded as "blocked-pending-TS-bump" in plan.
+
 ### `@sinonjs/fake-timers` pinned to `^13.0.5` + sinon bumped to `^19.0.2`
 - **Files**: root `package.json` (`resolutions`), `packages/engine-test-utils/package.json`, `packages/common-test-utils/package.json`.
 - **Why**: Old sinon 9 pulled fake-timers 6 which crashed on Node 22+ trying to hijack a read-only `globalThis.performance`. Even with fake-timers 13, the bare-date shorthand still falls through to the writable-data branch.

@@ -284,6 +284,8 @@ Notable external deps: `unified`/`remark`/`rehype` family, `sqlite3` (engine cac
 - `yarn 1.x` is still required (project uses workspaces v1 + lerna 3); installing yarn 4 will break `lerna bootstrap`.
 - `lerna 3.22.1` is end-of-life; `lerna bootstrap` was removed in lerna 7. Migration to lerna 8 will require rewriting `bootstrap/scripts/*` (Phase 2).
 - The unified/remark/rehype stack pinned in `packages/unified` is the **last CJS-compatible** generation. All modern versions are ESM-only — any bump must go with full ESM migration of `engine-server`.
+- `@types/node` is pinned to `17.0.18` via root `resolutions`. Newer minor versions (16.18.x, 18.x) ship `.d.ts` files with TS syntax that **TypeScript 4.6 can't parse** (trailing-comma generic param defaults in `http.d.ts`). Don't bump it without also bumping TypeScript (Phase 2).
+- `fs-extra` is stuck at **9.x** for the same reason — `@types/fs-extra@^10+` transitively requires `@types/node@^16+`.
 
 ## 15. Quick Reference
 
