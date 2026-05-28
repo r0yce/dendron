@@ -43,6 +43,11 @@ function checkVSCodeCompatibilityVersion() {
 }
 
 function main() {
+  console.log("[go-to-work fork] hooks/pre-commit.js called.");
+  console.log("Husky pre-commit hook is DISABLED in this personal fork (see root package.json).");
+  console.log("The token/import checks below are available for manual runs if you want them.");
+
+  // Original logic kept for manual invocation: node hooks/pre-commit.js
   // checkVSCodeCompatibilityVersion();
 
   const gitCommand = `git diff --staged --name-only`;

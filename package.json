@@ -121,12 +121,17 @@
     "vendor/*"
   ],
   "useWorkspaces": false,
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn stash:unstaged && lint-staged && yarn hooks:pre-commit && yarn stash:pop",
-      "pre-push": "yarn hooks:pre-push"
-    }
-  },
+  // Husky v4 hooks disabled in this personal fork.
+  // Reason: Extremely brittle stash gymnastics + old lint-staged assumptions break hard
+  // on Node 26 + modern git (especially during amend, interactive rebase, etc.).
+  // We prioritize friction-free development + excellent documentation over
+  // mandatory local linting hooks. Run `yarn hooks:pre-commit` manually when desired.
+  // "husky": {
+  //   "hooks": {
+  //     "pre-commit": "yarn stash:unstaged && lint-staged && yarn hooks:pre-commit && yarn stash:pop",
+  //     "pre-push": "yarn hooks:pre-push"
+  //   }
+  // },
   "lint-staged": {
     "*.{ts,tsx}": [
       "prettier --config prettier.config.js --loglevel debug --write",

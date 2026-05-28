@@ -1,4 +1,8 @@
 /* eslint-disable no-console */
+/**
+ * NOTE: In the go-to-work personal fork, husky pre-push is also disabled
+ * (see root package.json). This file is kept for manual / future CI use.
+ */
 const { checkToken } = require("./common");
 const { exec } = require("./exec");
 const madge = require("madge");
