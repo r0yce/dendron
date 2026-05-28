@@ -139,6 +139,9 @@ export async function _activate(
   // Performance instrumentation (go-to-work fork)
   const activationTimer = new ActivationTimer();
   activationTimer.mark("after:env-setup");
+
+  // Telemetry / Segment unlock
+  activationTimer.mark("before:telemetry-setup");
   const { workspaceFile, workspaceFolders } = vscode.workspace;
   const logLevel = process.env["LOG_LEVEL"];
   const { extensionPath, extensionUri, logUri } = context;
@@ -161,6 +164,8 @@ export async function _activate(
   // At this point, the segment client has not been created yet.
   // We need to check here if the uuid has been set for future references
   // because the Segment client constructor will go ahead and create one if it doesn't exist.
+  activationTimer.mark("after:telemetry-setup");
+
   const maybeUUIDPath = path.join(os.homedir(), CONSTANTS.DENDRON_ID);
   const UUIDPathExists = await fs.pathExists(maybeUUIDPath);
 
@@ -215,6 +220,8 @@ export async function _activate(
     const ws = await DendronExtension.getOrCreate(context, {
       skipSetup: stage === "test",
     });
+    activationTimer.mark("after:extension-singleton");
+
     const existingCommands = await vscode.commands.getCommands();
 
     // Setup the commands
