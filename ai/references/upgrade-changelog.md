@@ -9,6 +9,21 @@ Format: newest entries first. Each entry = scope + what + why + verification.
 
 ## Phase 5 (in progress) — Test compat for Node 22+
 
+### CVE root-resolutions sweep
+- **Why**: `yarn audit --level critical` showed 139 critical advisories, mostly in transitive deps. Forcing patched versions via root `resolutions` does not require any source changes.
+- **Resolutions added** to root `package.json`:
+  - `@babel/traverse: ^7.23.2` (CVE-2023-45133 RCE in transformed code)
+  - `form-data: ^4.0.4` (CVE-2025-7783 unsafe random boundary)
+  - `handlebars: ^4.7.9` (RCE via prototype pollution)
+  - `shell-quote: ^1.8.1` (CVE-2021-42740 ARG injection)
+  - `simple-git: ^3.27.0` (CVE-2022-24433, CVE-2025-22871 RCE)
+  - `loader-utils: ^2.0.4` (CVE-2022-37601 prototype pollution)
+  - `ejs: ^3.1.10` (CVE-2024-33883 server-side template injection)
+  - `dompurify: ^2.5.7` (mXSS, prototype pollution)
+  - `immer: ^9.0.21` (prototype pollution)
+- Also bumped direct dep `simple-git ^3.3.0` → `^3.27.0` in `packages/common-server/package.json`.
+- **Result**: `yarn audit --level critical`: **139 → 34** (105 critical CVEs fixed). Build/tests unchanged at 1455/1456.
+
 ### `axios 0.21` → `axios 1.7.7`
 - **Files**: `packages/common-all/package.json`, `packages/engine-server/package.json`.
 - **Why**: axios 0.21.x has multiple CVEs (CVE-2023-45857, CVE-2024-39338). 1.x is a major bump but the public API used in this repo (`axios`, `AxiosInstance`, `AxiosError`, `error.toJSON()`, `error.response.data`) is source-compatible.
