@@ -12,7 +12,7 @@ This is a personal fork of Dendron, the best local-first, hierarchical, markdown
 2. **Deeply understand every part** of the system so it can be maintained, debugged, and extended confidently.
 3. **Improve performance** with measurable baselines and targeted optimizations.
 4. **Add high-value features** that make it even more powerful for personal note-taking.
-5. **Produce world-class documentation** so knowledge is not lost (unlike the upstream).
+5. **Produce world-class documentation** so knowledge is not lost (unlike the upstream). This includes a full archive + explanation of the original `.github/` setup (now living in `github-archive/`).
 
 This document + the rest of `docs/dev/` is the living bible for this fork.
 

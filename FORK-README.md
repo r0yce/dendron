@@ -70,6 +70,7 @@ These documents are **not** aspirational. They are written to the same standard 
 - Telemetry that still phones home to upstream Segment/Sentry by default
 - The monorepo bootstrap scripts are custom and old
 - No one has been running the full test suite on Node 22+ / VSCode 1.90+ for a long time
+- **Archived CI/CD**: The original `.github/` (15+ workflows + issue automation) lives in `github-archive/`. See `github-archive/README.md` for complete documentation of every file. This prevents Actions from firing on pushes while preserving history.
 
 ## How to Help Yourself Learn This Codebase
 
