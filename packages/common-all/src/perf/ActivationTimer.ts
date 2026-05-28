@@ -38,31 +38,29 @@ export class ActivationTimer {
     this.mark("finish");
     const total = this.marks[this.marks.length - 1].ts - this.startTs;
 
-    const shouldLog =
-      process.env.DENDRON_PERF === "1" ||
-      process.env.LOG_LEVEL === "debug" ||
-      process.env.LOG_LEVEL === "info";
-
-    if (!shouldLog) {
-      return { total, marks: this.marks };
+    // Only do our nice formatted output when explicitly requested.
+    // This prevents raw arrays/objects from being accidentally logged
+    // by other loggers in the activation path.
+    if (process.env.DENDRON_PERF === "1") {
+      console.log("\n=== Dendron Activation Performance ===");
+      console.log(`Total activation time: ${total.toFixed(1)}ms`);
+      let prev = this.startTs;
+      for (const m of this.marks) {
+        const delta = (m.ts - prev).toFixed(1);
+        const fromStart = (m.ts - this.startTs).toFixed(1);
+        console.log(`  ${m.name.padEnd(30)} +${delta}ms   (${fromStart}ms from start)`);
+        prev = m.ts;
+      }
+      console.log("======================================\n");
     }
 
-    console.log("\n=== Dendron Activation Performance ===");
-    console.log(`Total activation time: ${total.toFixed(1)}ms`);
-    let prev = this.startTs;
-    for (const m of this.marks) {
-      const delta = (m.ts - prev).toFixed(1);
-      const fromStart = (m.ts - this.startTs).toFixed(1);
-      console.log(`  ${m.name.padEnd(30)} +${delta}ms   (${fromStart}ms from start)`);
-      prev = m.ts;
-    }
-    console.log("======================================\n");
-
-    return { total, marks: this.marks };
+    // Return a minimal value to avoid dumping large arrays of objects
+    // if any logger happens to log the return value of finish().
+    return { totalMs: Math.round(total) };
   }
 
   getReport() {
     const total = this.marks[this.marks.length - 1]?.ts - this.startTs || 0;
-    return { total, marks: this.marks };
+    return { totalMs: Math.round(total) };
   }
 }
