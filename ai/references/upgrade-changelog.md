@@ -9,6 +9,12 @@ Format: newest entries first. Each entry = scope + what + why + verification.
 
 ## Phase 5 (in progress) — Test compat for Node 22+
 
+### `@sentry/node` + `@sentry/integrations` `7.11.1` → `^7.114.0`
+- **Files**: `packages/{common-server,api-server,plugin-core}/package.json`.
+- **Why**: 7.11.1 was a pinned-exact version with multiple CVEs since patched in later 7.x. Staying within `7.x` avoids the v8 breaking-API migration (`Sentry.Handlers.*` removed → `Sentry.setupExpressErrorHandler`, etc.) — deferred to Phase 4.
+- **Source change**: `packages/common-server/src/errorReporting.ts:99` — `hint?.originalException` is now typed `unknown` in newer 7.x typings, so cast to the previously-implicit `string | Error | { message: string } | null | undefined` union expected by `isBadErrorThatShouldBeSampled`.
+- **Result**: typecheck, build, tests 1455/1456 unchanged.
+
 ### `pino 6` → `pino 9` (common-server)
 - **File**: `packages/common-server/package.json` (`^6.3.2` → `^9.5.0`).
 - **Why**: pino 6 is EOL; pino 9 patches multiple CVEs in transitive deps.

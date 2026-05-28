@@ -98,7 +98,12 @@ export function eventModifier(
   event: Sentry.Event,
   hint: Sentry.EventHint | undefined
 ): Sentry.Event | PromiseLike<Sentry.Event | null> | null {
-  const error = hint?.originalException;
+  const error = hint?.originalException as
+    | string
+    | Error
+    | { message: string }
+    | null
+    | undefined;
 
   if (
     isBadErrorThatShouldBeSampled(error) &&
