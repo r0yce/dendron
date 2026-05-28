@@ -1,5 +1,5 @@
 main() {
-  MIN_VERSION="14.0.0"
+  MIN_VERSION="18.0.0"
 
   # Get the current Node.js version
   CURRENT_VERSION=$(node -v | sed 's/v//') # Removes the 'v' prefix from version
