@@ -21,8 +21,9 @@ Format: newest entries first. Each entry = scope + what + why + verification.
   - `ejs: ^3.1.10` (CVE-2024-33883 server-side template injection)
   - `dompurify: ^2.5.7` (mXSS, prototype pollution)
   - `immer: ^9.0.21` (prototype pollution)
+  - `cipher-base: ^1.0.5`, `elliptic: ^6.6.1`, `pbkdf2: ^3.1.3`, `sha.js: ^2.4.12`, `parse-url: ^8.1.0` (browserify crypto polyfill chain — affects `plugin-core` browserified bundles)
 - Also bumped direct dep `simple-git ^3.3.0` → `^3.27.0` in `packages/common-server/package.json`.
-- **Result**: `yarn audit --level critical`: **139 → 34** (105 critical CVEs fixed). Build/tests unchanged at 1455/1456.
+- **Result**: `yarn audit --level critical`: **139 → 2**. Remaining: `next < 12.3.5` (in `nextjs-template`, needs Phase 4 framework bump) and `webpack < 5.76.0` (in `dendron-plugin-views`, needs Phase 1 Webpack 4→5 migration). Build/tests unchanged at 1455/1456.
 
 ### `axios 0.21` → `axios 1.7.7`
 - **Files**: `packages/common-all/package.json`, `packages/engine-server/package.json`.
