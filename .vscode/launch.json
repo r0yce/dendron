@@ -1,27 +1,89 @@
 {
-	"version": "0.2.0",
-	"configurations": [
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "debug one test",
-			"program": "${workspaceFolder:root}/node_modules/jest/bin/jest.js",
-			"sourceMaps": true,
-			"smartStep": true,
-			// "cwd": "${workspaceFolder:engine-test-utils}",
-			"env": {
-				"LOG_LEVEL": "info",
-				"LOG_DST": "${workspaceFolder}/engine-test-utils-debug.log",
-			},
-			"args": [
-				"--findRelatedTests",
-				"--runInBand",
-				"${relativeFile}",
-				"-u"
-			],
-			"outFiles": [
-				"${workspaceFolder:engine-test-utils}/lib/**/*.js"
-			]
-		}
-	]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Dendron Extension (Desktop)",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/plugin-core"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/packages/plugin-core/out/**/*.js"
+      ],
+      "preLaunchTask": "compile:plugin-core",
+      "env": {
+        "LOG_LEVEL": "debug",
+        "DENDRON_DEV_MODE": "1"
+      }
+    },
+    {
+      "name": "Run Dendron Extension (Desktop, No Precompile)",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/plugin-core"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/packages/plugin-core/out/**/*.js"
+      ],
+      "env": {
+        "LOG_LEVEL": "debug",
+        "DENDRON_DEV_MODE": "1"
+      }
+    },
+    {
+      "name": "Debug Dendron Extension Tests (Integration)",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/plugin-core",
+        "--extensionTestsPath=${workspaceFolder}/packages/plugin-core/out/src/test/suite-integ/index"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/packages/plugin-core/out/**/*.js"
+      ],
+      "preLaunchTask": "compile:plugin-core"
+    },
+    {
+      "name": "Debug Current Test File (Jest, engine-test-utils)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
+      "sourceMaps": true,
+      "smartStep": true,
+      "env": {
+        "LOG_LEVEL": "info",
+        "LOG_DST": "${workspaceFolder}/engine-test-utils-debug.log"
+      },
+      "args": [
+        "--findRelatedTests",
+        "--runInBand",
+        "${relativeFile}",
+        "-u"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/packages/engine-test-utils/lib/**/*.js"
+      ]
+    },
+    {
+      "name": "Attach to Running Extension Host",
+      "type": "extensionHost",
+      "request": "attach",
+      "port": 9229,
+      "restart": true,
+      "outFiles": [
+        "${workspaceFolder}/packages/plugin-core/out/**/*.js"
+      ]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Dendron: Full Debug (Extension + Engine Tests)",
+      "configurations": ["Run Dendron Extension (Desktop)", "Debug Current Test File (Jest, engine-test-utils)"]
+    }
+  ]
 }
