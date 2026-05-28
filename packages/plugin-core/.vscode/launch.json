@@ -1,32 +1,78 @@
-// A launch configuration that compiles the extension and then opens it inside a new window
-// Use IntelliSense to learn about possible attributes.
-// Hover to view descriptions of existing attributes.
-// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+// Launch configurations for developing the Dendron VS Code extension.
+// 
+// IMPORTANT: These configs assume you have the `packages/plugin-core` folder
+// (or dendron-plugin.code-workspace) open as your VS Code workspace root.
+//
+// Recommended usage:
+//   1. File → Open Workspace from File... → dendron-plugin.code-workspace
+//   2. In the Debug view (Ctrl+Shift+D), select "Run Dendron Extension (Desktop)"
+//   3. Press F5 (or green play button)
+//
+// This will compile the extension and launch a new Extension Development Host window.
 {
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run Extension",
+      "name": "Run Dendron Extension (Desktop)",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
-        "--disable-extensions",
         "--extensionDevelopmentPath=${workspaceFolder}"
       ],
       "outFiles": [
-        "${workspaceFolder:plugin-core}/out/**/*.js"
+        "${workspaceFolder}/out/**/*.js"
       ],
-      "skipFiles": [
-        "<node_internals>/**/*.js",
-        "${workspaceFolder}/**/node_modules/mocha/**/*.js",
-        "**/extension.js",
-        "**/extensionHostProcess.js"
+      "preLaunchTask": "compile-plugin-core",
+      "env": {
+        "LOG_LEVEL": "debug",
+        "DENDRON_DEV_MODE": "1"
+      },
+      "presentation": {
+        "group": "dendron",
+        "order": 1
+      }
+    },
+    {
+      "name": "Run Dendron Extension (Desktop, No Precompile)",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
       ],
       "env": {
-        "STAGE": "dev",
-        "VSCODE_DEBUGGING_EXTENSION": "dendron",
-        "LOG_LEVEL": "debug"
+        "LOG_LEVEL": "debug",
+        "DENDRON_DEV_MODE": "1"
+      },
+      "presentation": {
+        "group": "dendron",
+        "order": 2
+      }
+    },
+    {
+      "name": "Run Dendron Extension (Clean Host - disable all other extensions)",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--disable-extensions"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ],
+      "preLaunchTask": "compile-plugin-core",
+      "env": {
+        "LOG_LEVEL": "debug",
+        "DENDRON_DEV_MODE": "1"
+      },
+      "presentation": {
+        "group": "dendron",
+        "order": 3
       }
     },
     // {
@@ -65,110 +111,59 @@
     //   }
     // },
     {
-      "name": "Run Extension - webpack",
+      "name": "Debug Dendron Extension Tests (Integration)",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "--disable-extensions"
+        "--extensionTestsPath=${workspaceFolder}/out/src/test/suite-integ/index"
       ],
       "outFiles": [
-        "${workspaceFolder:plugin-core}/dist/*.js"
+        "${workspaceFolder}/out/**/*.js"
       ],
+      "preLaunchTask": "compile-plugin-core",
       "env": {
-        "VSCODE_DEBUGGING_EXTENSION": "dendron",
         "LOG_LEVEL": "debug"
+      },
+      "presentation": {
+        "group": "dendron-tests",
+        "order": 1
       }
     },
     {
-      "name": "Extension Integ Tests",
-      "type": "extensionHost",
+      "name": "Debug Current Test File (Jest)",
+      "type": "node",
       "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": [
-        "--disable-extensions",
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/src/test/suite-integ/index.js"
-      ],
+      "program": "${workspaceFolder}/../node_modules/jest/bin/jest.js",
+      "sourceMaps": true,
+      "smartStep": true,
       "env": {
-        "TEST_TO_RUN": "",
-        "STAGE": "test"
+        "LOG_LEVEL": "info"
       },
-      "skipFiles": [
-        "<node_internals>/**/*.js",
-        "${workspaceFolder}/**/node_modules/mocha/**/*.js"
+      "args": [
+        "--findRelatedTests",
+        "--runInBand",
+        "${relativeFile}",
+        "-u"
       ],
       "outFiles": [
-        "${workspaceFolder}/out/src/test/**/*.js"
-      ]
+        "${workspaceFolder}/../packages/engine-test-utils/lib/**/*.js"
+      ],
+      "presentation": {
+        "group": "tests",
+        "order": 10
+      }
     },
     {
-      "name": "Extension Integ Tests - File",
+      "name": "Attach to Running Extension Host",
       "type": "extensionHost",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": [
-        "--disable-extensions",
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/src/test/suite-integ/index"
-      ],
-      "env": {
-        "STAGE": "test",
-        "TEST_TO_RUN": "${fileBasenameNoExtension}"
-      },
-      "skipFiles": [
-        "<node_internals>/**/*.js",
-        "${workspaceFolder}/**/node_modules/mocha/**/*.js",
-        "**/extensionHostProcess.js"
-      ],
+      "request": "attach",
+      "port": 9229,
+      "restart": true,
       "outFiles": [
-        "${workspaceFolder}/out/src/test/**/*.js"
+        "${workspaceFolder}/out/**/*.js"
       ]
-    },
-    {
-      "name": "Extension Integ Tests - File (with extensions)",
-      "type": "extensionHost",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/src/test/suite-integ/index"
-      ],
-      "env": {
-        "STAGE": "test",
-        "TEST_TO_RUN": "${fileBasenameNoExtension}"
-      },
-      "skipFiles": [
-        "<node_internals>/**/*.js",
-        "${workspaceFolder}/**/node_modules/mocha/**/*.js"
-      ],
-      "outFiles": [
-        "${workspaceFolder}/out/src/test/**/*.js"
-      ]
-    },
-    // {
-    //   "name": "Run Performance Test - File",
-    //   "type": "extensionHost",
-    //   "request": "launch",
-    //   "runtimeExecutable": "${execPath}",
-    //   "args": [
-    //     "--disable-extensions",
-    //     "--extensionDevelopmentPath=${workspaceFolder}",
-    //     "--extensionTestsPath=${workspaceFolder}/out/src/test/perf-test/index"
-    //   ],
-    //   "env": {
-    //     "STAGE": "test",
-    //     "TEST_TO_RUN": "${fileBasenameNoExtension}"
-    //   },
-    //   "skipFiles": [
-    //     "<node_internals>/**/*.js",
-    //     "${workspaceFolder}/**/node_modules/mocha/**/*.js",
-    //     "**/extensionHostProcess.js"
-    //   ],
-    //   "outFiles": [
-    //     "${workspaceFolder}/out/src/test/**/*.js"
-    //   ]
-    // },
+    }
   ]
 }

@@ -40,7 +40,7 @@
     "ts-node": "^8.10.2"
   },
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=18.0.0"
   },
   "publishConfig": {
     "access": "public"
@@ -49,11 +49,11 @@
     "@dendronhq/common-all": "^0.124.0",
     "@dendronhq/common-server": "^0.124.0",
     "@dendronhq/pods-core": "^0.124.0",
-    "@types/sinon": "^9.0.9",
+    "@types/sinon": "^17.0.3",
     "fs-extra": "^9.0.1",
-    "jest": "^28.1.0",
+    "jest": "^29.7.0",
     "lodash": "^4.17.20",
-    "sinon": "^9.2.1"
+    "sinon": "^19.0.2"
   },
   "gitHead": "d2e0e1c5ada1ac4a507e2da387cf761316de76de"
 }

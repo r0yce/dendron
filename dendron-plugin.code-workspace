@@ -1,25 +1,35 @@
 {
-    "folders": [
-        {
-            "path": "packages/plugin-core"
-        }
-    ],
-    "settings": {
-        "files.exclude": {
-            "*.d.ts": true,
-            "profile": true
-        },
-        "editor.codeActionsOnSave": {
-            "source.organizeImports": true
-          },
-        "search.exclude": {
-            "**/node_modules": true,
-            "**/bower_components": true,
-            "**/*.code-search": true,
-            "CHANGELOG.md": true
-        },
-        "editor.formatOnSave": false,
-        "workbench.editor.showTabs": true,
-        "editor.snippetSuggestions": "none",
+  "folders": [
+    {
+      "name": "plugin-core (extension)",
+      "path": "packages/plugin-core"
+    },
+    {
+      "path": "."
     }
+  ],
+  "settings": {
+    "files.exclude": {
+      "*.d.ts": true,
+      "profile": true
+    },
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/bower_components": true,
+      "**/*.code-search": true,
+      "CHANGELOG.md": true
+    },
+    "editor.formatOnSave": false,
+    "workbench.editor.showTabs": "multiple",
+    "editor.snippetSuggestions": "none"
+  },
+  "extensions": {
+    "recommendations": [
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode"
+    ]
+  }
 }

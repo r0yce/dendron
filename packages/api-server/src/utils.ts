@@ -84,7 +84,7 @@ export class ServerUtils {
     const handleExit = () => {
       console.log("handle exit");
       try {
-        process.kill(subprocess.pid);
+        if (subprocess.pid !== undefined) process.kill(subprocess.pid);
       } catch (err: any) {
         // this means process was already killed
         if (err.code !== "ESRCH") {

@@ -13,6 +13,8 @@
 
 [Dendron is currently in maintenace only, active development has ceased.](https://github.com/dendronhq/dendron/discussions/3890)
 
+> **Personal Fork Note**: This repository contains a personal long-term maintenance fork focused on keeping Dendron working on modern VS Code, with extremely deep documentation of every component. See [FORK-README.md](./FORK-README.md) and `docs/dev/` for the full story and development guide.
+
 ![Dendron Logo](https://foundation-prod-assetspublic53c57cce-8cpvgjldwysl.s3-us-west-2.amazonaws.com/assets/logo-256.png)
 
 Dendron is an **open-source, local-first, markdown-based, note-taking tool**. It's a personal knowledge management solution (PKM) built specifically for developers and integrates natively with IDEs like [VS Code](https://code.visualstudio.com/) and [VSCodium](https://vscodium.com/).

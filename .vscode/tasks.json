@@ -18,9 +18,43 @@
       "options": {
         "env": {
           "LOG_LEVEL": "info",
-          "LOG_DST": "${workspaceFolder}/engine-test-utils.log",
+          "LOG_DST": "${workspaceFolder}/engine-test-utils.log"
         }
       }
     },
+    {
+      "label": "compile:plugin-core",
+      "type": "shell",
+      "command": "yarn workspace @dendronhq/plugin-core compile",
+      "problemMatcher": ["$tsc"],
+      "group": "build",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "compile:watch:plugin-core",
+      "type": "shell",
+      "command": "yarn workspace @dendronhq/plugin-core watch",
+      "isBackground": true,
+      "problemMatcher": ["$tsc-watch"],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "bootstrap:fast (common packages + plugin)",
+      "type": "shell",
+      "command": "yarn bootstrap:build:fast",
+      "problemMatcher": [],
+      "group": "build",
+      "presentation": {
+        "reveal": "always"
+      }
+    }
   ]
 }

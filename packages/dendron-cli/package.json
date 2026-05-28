@@ -75,7 +75,7 @@
     "vsce": "^2.10.0"
   },
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=18.0.0"
   },
   "gitHead": "b9b209acf808ad7a581bf98b1d0f90ef2bf4b833"
 }

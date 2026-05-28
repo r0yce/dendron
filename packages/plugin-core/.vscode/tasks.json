@@ -4,6 +4,34 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "compile-plugin-core",
+      "type": "shell",
+      "command": "yarn compile",
+      "problemMatcher": ["$tsc"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "detail": "Compile the extension (tsc) - used by F5 launch configs"
+    },
+    {
+      "label": "watch-plugin-core",
+      "type": "shell",
+      "command": "yarn watch",
+      "isBackground": true,
+      "problemMatcher": ["$tsc-watch"],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "detail": "Watch mode (run in a separate terminal for fast iteration)"
+    },
+    {
       "type": "npm",
       "script": "watch",
       "problemMatcher": "$tsc-watch",
@@ -11,11 +39,8 @@
       "presentation": {
         "reveal": "never"
       },
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "label": "npm: watch",
+      "group": "build",
+      "label": "npm: watch (legacy)",
       "detail": "tsc -watch -p ./"
     },
     {

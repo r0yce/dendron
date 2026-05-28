@@ -1,4 +1,9 @@
 /* eslint-disable no-console */
+/**
+ * Pre-push hook kept for manual use / future CI.
+ * The husky v4 configuration was removed in the go-to-work fork
+ * because it was too brittle on Node 26+.
+ */
 const { checkToken } = require("./common");
 const { exec } = require("./exec");
 const madge = require("madge");
