@@ -9,6 +9,30 @@ Format: newest entries first. Each entry = scope + what + why + verification.
 
 ## Phase 5 (in progress) — Test compat for Node 22+
 
+### CVE root-resolutions sweep round 3 (high-severity)
+- **Why**: 473 high-severity advisories remained after rounds 1-2. Targeted top-volume transitive offenders.
+- **Resolutions added** to root `package.json`:
+  - `tar: ^6.2.1` (CVE-2024-28863 — accounted for ~90 advisories)
+  - `node-forge: ^1.3.1` (multiple prototype-pollution / signature CVEs)
+  - `cross-spawn: ^7.0.6` (CVE-2024-21538)
+  - `braces: ^3.0.3` (CVE-2024-4068 ReDoS)
+  - `axios: ^1.7.7` (covers transitive 0.x usages)
+  - `decode-uri-component: ^0.2.2` (CVE-2022-38900)
+  - `picomatch: ^2.3.1`
+  - `ansi-regex: ^5.0.1`
+  - `tar-fs: ^2.1.2`
+  - `tmp: ^0.2.4`
+  - `trim-newlines: ^3.0.1`
+  - `http-cache-semantics: ^4.1.1`
+  - `body-parser: ^1.20.3`
+  - `ip: ^2.0.1` (CVE-2024-29415)
+  - `qs: ^6.11.2`
+  - `serialize-javascript: ^6.0.2`
+  - `prismjs: ^1.30.0`
+  - `nth-check: ^2.0.1`
+- **Deliberately not added**: `ws` (forced major would break consumers wanting v8), `luxon` (direct dep is `1.x` — v3 has breaking date-API changes), `lodash.template` (unpatched standalone — superseded by lodash main, irrelevant runtime).
+- **Result**: total advisories **1060 → 646**, high **473 → 204**, critical **2 → 2** (`next`, `webpack` still pending framework migrations). Build/tests unchanged.
+
 ### `@sentry/node` + `@sentry/integrations` `7.11.1` → `^7.114.0`
 - **Files**: `packages/{common-server,api-server,plugin-core}/package.json`.
 - **Why**: 7.11.1 was a pinned-exact version with multiple CVEs since patched in later 7.x. Staying within `7.x` avoids the v8 breaking-API migration (`Sentry.Handlers.*` removed → `Sentry.setupExpressErrorHandler`, etc.) — deferred to Phase 4.
