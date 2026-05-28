@@ -1,7 +1,7 @@
 # Upgrade Changelog
 
 Running log of every change made during the 2026-05 dependency-upgrade effort.
-Branch: `chore/deps-upgrade-2026-05` (off `master` @ `4420715a4`).
+Branch: `chore/deps-upgrade-2026-05` (off `master` @ `4420715a4` at the time; the fork later moved the primary branch to `main`).
 
 Format: newest entries first. Each entry = scope + what + why + verification.
 

@@ -112,7 +112,7 @@ function main() {
     upstream = exec("git rev-parse --abbrev-ref @{push}").stdout.trim();
   } catch {
     // Fallback to first origin if none are set
-    upstream = `${exec("git remote").stdout.trim().split("\n")[0]}/master`;
+    upstream = `${exec("git remote").stdout.trim().split("\n")[0]}/main`;
     // eslint-disable-next-line no-console
     console.log("error", upstream);
   }
