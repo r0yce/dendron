@@ -272,6 +272,18 @@ Notable external deps: `unified`/`remark`/`rehype` family, `sqlite3` (engine cac
 - Release flows live in `bootstrap/scripts/buildPatch.sh` and `buildNightly.sh`. Env-driven: `UPGRADE_TYPE` ∈ {`patch`,`minor`,`prerelease`}, `PUBLISH_ENDPOINT` ∈ {`local`,`remote`}, `BUILD_ENV=ci`, `USE_IN_MEMORY_REGISTRY=1`.
 - Changelog preset: `@dendronhq/conventional-changelog-dendron`.
 - Project is **maintenance-only**; new feature work is out of scope per the upstream announcement.
+- Live in-progress upgrade work is tracked in [ai/references/upgrade-plan.md](ai/references/upgrade-plan.md) and [ai/references/upgrade-changelog.md](ai/references/upgrade-changelog.md). Active branch: `chore/deps-upgrade-2026-05`.
+
+## 14a. Known Node 18+/22+ Compatibility Gotchas (learned during upgrade)
+
+- `node-sass` cannot install on Node 17+ with modern Python (no `distutils`). Replaced with `sass` (dart-sass) in `dendron-plugin-views`.
+- Webpack 4 errors `ERR_OSSL_EVP_UNSUPPORTED` on Node 17+. Build scripts in `dendron-plugin-views` set `NODE_OPTIONS=--openssl-legacy-provider` until Webpack 5 migration.
+- `fs.rmdirSync(path, { recursive: true })` was **removed** in Node 22 — use `fs.rmSync(path, { recursive: true, force: true })`. Two test files patched (`MarkdownPod.spec.ts`, `MarkdownExportPodV2.spec.ts`).
+- `sinon.useFakeTimers(date)` shorthand causes `Cannot assign to read only property 'performance'` on Node 22+ because Node's `globalThis.performance` is a non-writable data property that doesn't match `@sinonjs/fake-timers`' JSDOM-style getter heuristic. Workaround: always pass `{ now, toFake: ["Date"] }` (or whatever subset is actually needed) — never the bare-date form.
+- `sqlite3 ^5.1.7` is the first version with prebuilt binaries for Node 20/22; older `^5.1.2` forces source compile.
+- `yarn 1.x` is still required (project uses workspaces v1 + lerna 3); installing yarn 4 will break `lerna bootstrap`.
+- `lerna 3.22.1` is end-of-life; `lerna bootstrap` was removed in lerna 7. Migration to lerna 8 will require rewriting `bootstrap/scripts/*` (Phase 2).
+- The unified/remark/rehype stack pinned in `packages/unified` is the **last CJS-compatible** generation. All modern versions are ESM-only — any bump must go with full ESM migration of `engine-server`.
 
 ## 15. Quick Reference
 
