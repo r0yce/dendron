@@ -34,7 +34,8 @@ See the new `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md` for the live per-packag
 - `common-frontend`: Complete
 - `_pkg-template`: Complete
 - `generator-dendron`: Complete
-- `dendron-viz`: Complete (scripts + doc)
+- `dendron-viz`: Complete
+- `dendron-design-system`: TS modern + doc created (further UI lib review needed)
 - Live tracking: `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md`
 
 ## Major Risks & Blockers

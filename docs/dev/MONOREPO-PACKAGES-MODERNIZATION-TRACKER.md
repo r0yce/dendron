@@ -57,7 +57,8 @@
 - [ ] **dendron-plugin-views** — React webviews for the extension
 - [x] **dendron-viz** — Visualization tools  
   **Status**: Scripts modernized. Doc created.
-- [ ] **dendron-design-system** — Design system components
+- [x] **dendron-design-system** — Design system components  
+  **Status**: TS already at 5.5.4. Detailed doc created. Further Chakra/Emotion version review recommended as part of UI modernization.
 - [ ] **nextjs-template** — Next.js publishing template
 
 ### Other

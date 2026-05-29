@@ -133,7 +133,8 @@ This includes:
 - `common-frontend`: Scripts modernized + detailed doc
 - `_pkg-template`: Scripts modernized + doc
 - `generator-dendron`: Deps updated + doc
-- `dendron-viz`: Scripts modernized + doc created
+- `dendron-viz`: Scripts modernized + doc
+- `dendron-design-system`: TS modern + doc created
 
 This effort will continue in parallel with code modernization for every package.
 
