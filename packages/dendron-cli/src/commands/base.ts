@@ -20,7 +20,7 @@ import yargs from "yargs";
 import { CLIAnalyticsUtils } from "../utils/analytics";
 import { CLIUtils } from "../utils/cli";
 
-type BaseCommandOpts = { quiet?: boolean; dev?: boolean };
+type BaseCommandOpts = { quiet?: boolean; dev?: boolean; json?: boolean };
 
 export type CommandCommonProps = {
   error?: DendronError;
@@ -80,6 +80,12 @@ export abstract class CLICommand<
       default: false,
     });
     args.hide("devMode");
+
+    args.option("json", {
+      describe: "Output results as JSON (useful for scripting)",
+      type: "boolean",
+      default: false,
+    });
   }
 
   buildCmd(yargsInstance: yargs.Argv): yargs.Argv {
@@ -219,8 +225,10 @@ export abstract class CLICommand<
     if (!args.wsRoot) {
       const configPath = WorkspaceUtils.findWSRoot();
       if (_.isUndefined(configPath) && !this.wsRootOptional) {
-        // eslint-disable-next-line no-console
-        console.log("no workspace detected. --wsRoot must be set");
+        this.printError(
+          "No Dendron workspace detected.\n" +
+            "Run this command from inside a vault, or pass --wsRoot /path/to/workspace"
+        );
         process.exit(1);
       } else {
         args.wsRoot = configPath;
@@ -228,6 +236,9 @@ export abstract class CLICommand<
     }
     if (args.quiet) {
       this.opts.quiet = true;
+    }
+    if (args.json) {
+      this.opts.json = true;
     }
 
     if (!this.skipValidation) {
@@ -246,6 +257,9 @@ export abstract class CLICommand<
     this.L.info({ args, state: "execute:post" });
     if (out.error instanceof DendronError && out.error) {
       this.L.error(out.error);
+      this.printError(out.error.message || out.error);
+    } else if (out.error) {
+      this.printError(out.error);
     }
 
     const analyticsPayload = this._analyticsPayload || {};
@@ -268,6 +282,11 @@ export abstract class CLICommand<
   };
 
   print(obj: any) {
+    if (this.opts.json) {
+      // In JSON mode, normal output is suppressed.
+      // Commands that support --json should produce structured output themselves.
+      return;
+    }
     if (!this.opts.quiet) {
       // eslint-disable-next-line no-console
       console.log(obj);
@@ -278,6 +297,17 @@ export abstract class CLICommand<
     if (!this.opts.quiet) {
       // eslint-disable-next-line no-console
       console.error(obj);
+    }
+  }
+
+  /**
+   * Print a structured result when --json is used.
+   * Safe to call from any command.
+   */
+  printJson(data: any) {
+    if (this.opts.json) {
+      // eslint-disable-next-line no-console
+      console.log(JSON.stringify(data, null, 2));
     }
   }
 }

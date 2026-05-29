@@ -47,4 +47,5 @@ buildYargs
   .version(CLIUtils.getClientVersion())
   .alias("v", "version")
   .help()
+  .completion("completion", "Generate shell completion script")
   .argv;
