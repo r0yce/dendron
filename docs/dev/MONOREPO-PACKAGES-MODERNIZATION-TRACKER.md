@@ -62,7 +62,8 @@
 ### Other
 
 - [ ] **generator-dendron** — Yeoman generator
-- [ ] **_pkg-template** — Internal package template
+- [x] **_pkg-template** — Internal package template  
+  **Status**: Scripts modernized (rimraf removed). Documentation created.
 
 ---
 

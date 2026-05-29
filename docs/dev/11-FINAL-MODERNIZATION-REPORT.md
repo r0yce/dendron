@@ -130,7 +130,8 @@ This includes:
 - `unified`: Scripts modernized + detailed doc
 - `common-test-utils`: Scripts modernized + detailed doc
 - `engine-test-utils`: Scripts modernized + detailed doc
-- `common-frontend`: Scripts modernized + detailed doc created
+- `common-frontend`: Scripts modernized + detailed doc
+- `_pkg-template`: Scripts modernized + doc created
 
 This effort will continue in parallel with code modernization for every package.
 

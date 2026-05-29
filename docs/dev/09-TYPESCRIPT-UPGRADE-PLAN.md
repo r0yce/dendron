@@ -31,7 +31,8 @@ See the new `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md` for the live per-packag
 - `unified`: Complete
 - `common-test-utils`: Complete
 - `engine-test-utils`: Complete
-- `common-frontend`: Complete (scripts + detailed doc)
+- `common-frontend`: Complete
+- `_pkg-template`: Complete (scripts + doc)
 - Live tracking: `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md`
 
 ## Major Risks & Blockers
