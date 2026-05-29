@@ -124,7 +124,8 @@ This includes:
 - Master tracker created: `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md`
 - `common-all`: Extremely detailed doc created
 - `common-server`: Modernized + detailed doc
-- `engine-server`: Scripts modernized + detailed doc created
+- `engine-server`: Scripts modernized + detailed doc
+- `api-server`: Scripts modernized + detailed doc created
 
 This effort will continue in parallel with code modernization for every package.
 

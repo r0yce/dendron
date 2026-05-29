@@ -25,7 +25,8 @@ See the new `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md` for the live per-packag
 **Execution Status**: Per-package work in active progress.
 - `common-all`: Complete (doc + modernization baseline)
 - `common-server`: Complete
-- `engine-server`: Complete (scripts + detailed doc)
+- `engine-server`: Complete
+- `api-server`: Complete (scripts + detailed doc)
 - Live tracking: `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md`
 
 ## Major Risks & Blockers

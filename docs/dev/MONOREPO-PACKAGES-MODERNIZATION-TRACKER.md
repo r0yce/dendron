@@ -37,7 +37,8 @@
 - [x] **engine-server** — Core Dendron engine  
   **Status**: Scripts modernized (rimraf removed). Compiles cleanly. Extremely detailed doc created with TOC + architecture Mermaid.
 - [ ] **engine-test-utils** — Engine testing utilities
-- [ ] **api-server** — HTTP API server for the engine
+- [x] **api-server** — HTTP API server for the engine  
+  **Status**: Scripts modernized. Compiles cleanly. Detailed doc created.
 - [ ] **pods-core** — Import/Export pod system
 - [ ] **unified** — Markdown processing pipeline
 
