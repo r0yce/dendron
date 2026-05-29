@@ -28,9 +28,10 @@
 
 ### Core Shared Libraries
 
-- [~] **common-all** — Foundational types, errors, utilities  
-  **Status**: Compiles cleanly on modern TS. Extremely detailed documentation created (`docs/dev/packages/common-all.md`) with TOC + architecture Mermaid. Baseline modernization complete.
-- [ ] **common-server** — Server-side utilities, file handling, config
+- [x] **common-all** — Foundational types, errors, utilities  
+  **Status**: Compiles cleanly on modern TS. Extremely detailed documentation created (`docs/dev/packages/common-all.md`) with TOC + multiple Mermaid diagrams. Modernization baseline complete.
+- [x] **common-server** — Server-side utilities, file handling, config  
+  **Status**: Package.json modernized (rimraf removed, dead deps cleaned, ts-node updated). Compiles cleanly. Extremely detailed doc created (`docs/dev/packages/common-server.md`) with TOC + Mermaid.
 - [ ] **common-frontend** — Shared frontend code
 - [ ] **common-test-utils** — Testing helpers
 - [ ] **engine-server** — Core Dendron engine

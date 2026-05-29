@@ -22,9 +22,10 @@ See the new `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md` for the live per-packag
 
 **Current Mandate**: Full one-wave modernization of **every single package** while creating extremely detailed documentation for each (with Table of Contents, Mermaid architecture diagrams, dependency graphs, build processes, current state, modernization roadmap, etc.). Update all related documents continuously.
 
-**Execution Status**: Per-package work has begun.
-- First package (`common-all`) has been documented in extreme detail.
-- Live tracking is available in `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md`.
+**Execution Status**: Per-package work in active progress.
+- `common-all`: Complete (doc + modernization baseline)
+- `common-server`: Complete (package.json modernization + detailed doc with TOC + Mermaid)
+- Live tracking: `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md`
 
 ## Major Risks & Blockers
 

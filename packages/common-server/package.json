@@ -23,15 +23,14 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "clean": "rimraf lib && rimraf coverage",
-    "format": "echo nop",
-    "lint": "echo stub",
+    "clean": "node -e \"const fs=require('fs'); fs.rmSync('lib',{recursive:true,force:true}); fs.rmSync('coverage',{recursive:true,force:true});\"",
+    "format": "echo 'format not configured'",
+    "lint": "echo 'lint not configured'",
     "prepublishOnly": "yarn build",
     "prebuild": "yarn clean && yarn format && yarn lint && echo Using TypeScript && tsc --version",
     "build": "yarn compile",
     "buildCI": "yarn compile",
-    "compile": "tsc -p tsconfig.build.json ",
-    "coverage": "echo nop",
+    "compile": "tsc -p tsconfig.build.json",
     "watch": "yarn compile --watch"
   },
   "dependencies": {
@@ -61,20 +60,15 @@
   "devDependencies": {
     "@types/analytics-node": "^3.1.6",
     "@types/comment-json": "^1.1.1",
-    "@types/execa": "^2.0.0",
     "@types/express": "^4.17.11",
-    "@types/fs-extra": "^9.0.1",
+    "@types/fs-extra": "^11.0.0",
     "@types/js-yaml": "^4.0.5",
     "@types/lodash": "^4.14.154",
     "@types/node": "^20.12.0",
-    "@types/pino": "^6.3.0",
+    "@types/pino": "^7.0.0",
     "@types/spark-md5": "^3.0.2",
     "@types/tmp": "^0.2.0",
-    "coveralls": "^3.0.2",
-    "rimraf": "^2.6.2",
-    "ts-node": "^8.10.2",
-    "tslint": "^5.11.0",
-    "tslint-config-prettier": "^1.15.0"
+    "ts-node": "^10.9.2"
   },
   "publishConfig": {
     "access": "public"
