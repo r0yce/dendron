@@ -109,6 +109,18 @@ These are now much easier because the foundation is modern:
 - Multiple source fixes across common-all, common-server, engine-test-utils, plugin-core, etc.
 - New/updated docs in `docs/dev/` (09, 10, 11)
 
+## Additional CLI Improvements (Post-Upgrade)
+
+After the core modernization work, the following CLI UX improvements were added:
+
+- Global `--json` flag (captured in `CLICommand`, new `printJson()` helper). Already wired into `dendron workspace info`.
+- Shell completion support: `dendron completion`.
+- Much shorter and friendlier first-run telemetry notice.
+- Better error messaging when no workspace is detected.
+- Improved final error output for `DendronError` cases.
+
+These build directly on the yargs 17 upgrade and general cleanup done earlier.
+
 ## Conclusion
 
 This fork is now significantly more future-proof. The hardest part of the modernization (escaping TS 4.6) is complete. Subsequent dependency and strictness work will be far less painful.

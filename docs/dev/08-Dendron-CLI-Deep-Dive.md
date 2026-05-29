@@ -436,6 +436,12 @@ The `attach` mode in the CLI is the bridge that lets you drive a running desktop
 
 ## 10. Current State & Future Directions (as of this writing)
 
+Recent improvements (May 2026):
+- Global `--json` support for scripting (see `base.ts` + `printJson`).
+- Shell completion: `dendron completion`.
+- Cleaner first-run telemetry message.
+- Better error messages (no workspace, DendronError output).
+
 The CLI is mature for workspace/pod/doctor use cases but:
 
 - Test coverage is minimal compared to the extension.
