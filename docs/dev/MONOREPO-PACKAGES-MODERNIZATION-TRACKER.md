@@ -33,7 +33,8 @@
 - [x] **common-server** — Server-side utilities, file handling, config  
   **Status**: Package.json modernized (rimraf removed, dead deps cleaned, ts-node updated). Compiles cleanly. Extremely detailed doc created (`docs/dev/packages/common-server.md`) with TOC + Mermaid.
 - [ ] **common-frontend** — Shared frontend code
-- [ ] **common-test-utils** — Testing helpers
+- [x] **common-test-utils** — Testing helpers  
+  **Status**: Scripts modernized (rimraf + ts-node updated). Compiles cleanly. Detailed doc created with TOC + Mermaid.
 - [x] **engine-server** — Core Dendron engine  
   **Status**: Scripts modernized (rimraf removed). Compiles cleanly. Extremely detailed doc created with TOC + architecture Mermaid.
 - [ ] **engine-test-utils** — Engine testing utilities

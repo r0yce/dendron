@@ -21,7 +21,7 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "clean": "rimraf lib && rimraf coverage",
+    "clean": "node -e \"const fs=require('fs'); fs.rmSync('lib',{recursive:true,force:true}); fs.rmSync('coverage',{recursive:true,force:true});\"",
     "format": "echo nop",
     "lint": "echo stub",
     "prepublishOnly": "yarn build",
@@ -35,10 +35,9 @@
   "devDependencies": {
     "@testing-library/react": "12.1.0",
     "@testing-library/react-hooks": "7.0.2",
-    "@types/fs-extra": "^9.0.1",
+    "@types/fs-extra": "^11.0.0",
     "@types/lodash": "^4.14.161",
-    "@types/node": "^20.12.0",
-    "rimraf": "^2.6.2"
+    "@types/node": "^20.12.0"
   },
   "engines": {
     "node": ">=18.0.0"
