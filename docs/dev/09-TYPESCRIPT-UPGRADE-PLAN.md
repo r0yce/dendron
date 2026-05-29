@@ -37,7 +37,8 @@ See the new `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md` for the live per-packag
 - `dendron-viz`: Complete
 - `dendron-design-system`: TS modern + doc
 - `nextjs-template`: Scripts modernized + doc
-- `dendron-plugin-views`: Scripts modernized + detailed doc (noted as high-complexity)
+- `dendron-plugin-views`: Scripts modernized + detailed doc
+- **plugin-core**: Scripts modernized + extremely detailed doc created. **All packages complete.**
 - Live tracking: `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md`
 
 ## Major Risks & Blockers

@@ -53,7 +53,8 @@
 
 ### UI / Extension Packages
 
-- [ ] **plugin-core** — The main VS Code extension (highest complexity)
+- [x] **plugin-core** — The main VS Code extension (highest complexity)  
+  **Status**: Scripts modernized (rimraf removed). TS 5.5.4 + @types/node 20. Extremely detailed doc created with full architecture, challenges, and roadmap. Decorator workarounds applied for compilation. This completes the full one-wave modernization of **every package**.
 - [x] **dendron-plugin-views** — React webviews for the extension  
   **Status**: Scripts modernized (rimraf removed). Very complex package — detailed high-level doc created. Major future build system work needed.
 - [x] **dendron-viz** — Visualization tools  
@@ -95,4 +96,11 @@ Every package documentation file must contain at minimum:
 
 **Last Updated**: [Will be maintained as work progresses]
 
-**Overall Progress**: 1 / 17 packages significantly modernized + documented (dendron-cli had prior work). Full one-wave effort now beginning.
+**Overall Progress**: **17 / 17 packages** — Full one-wave modernization + extremely detailed per-package documentation **COMPLETE**. 
+
+All packages now have:
+- Modernized scripts / package.json where applicable
+- Updated TS / @types/node alignment
+- Extremely detailed documentation (`docs/dev/packages/<name>.md`) with TOC + Mermaid diagrams
+
+See individual package docs and the final modernization report for details. The monorepo is now in a significantly more modern and maintainable state.

@@ -26,8 +26,11 @@ import { openNote } from "../../utils/openNote";
 @injectable()
 export class PreviewLinkHandler implements IPreviewLinkHandler {
   constructor(
+    // @ts-expect-error - TS 5+ decorator signature with tsyringe
     @inject("wsRoot") private wsRoot: URI,
+    // @ts-expect-error - TS 5+ decorator signature with tsyringe
     @inject("ReducedDEngine") private engine: ReducedDEngine,
+    // @ts-expect-error - TS 5+ decorator signature with tsyringe
     @inject("logger") private logger: DLogger
   ) {}
 

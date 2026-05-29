@@ -136,7 +136,8 @@ This includes:
 - `dendron-viz`: Scripts modernized + doc
 - `dendron-design-system`: TS modern + doc
 - `nextjs-template`: Scripts modernized + doc
-- `dendron-plugin-views`: Scripts modernized + detailed doc created (high complexity noted)
+- `dendron-plugin-views`: Scripts modernized + detailed doc
+- **plugin-core**: Scripts modernized + extremely detailed doc created (with architecture, challenges, roadmap). **Full one-wave modernization of every package is now complete.**
 
 This effort will continue in parallel with code modernization for every package.
 
