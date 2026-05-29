@@ -7,6 +7,7 @@ import {
   ErrorMessages,
   ERROR_STATUS,
   getJournalTitle,
+  getStage,
   LookupNoteType,
   LookupNoteTypeEnum,
   LookupSelectionType,
@@ -14,6 +15,7 @@ import {
   NoteProps,
   NoteQuickInput,
   NoteUtils,
+  PerformanceTimer,
   VSCodeEvents,
 } from "@dendronhq/common-all";
 import {
@@ -405,6 +407,10 @@ export class NoteLookupCommand extends BaseCommand<
   async execute(opts: CommandOpts) {
     const ctx = "NoteLookupCommand:execute";
     Logger.info({ ctx, msg: "enter" });
+
+    const perf = new PerformanceTimer({ timerName: "NoteLookup" });
+    perf.before("total");
+
     try {
       const { quickpick, selectedItems } = opts;
       const selected = this.getSelected({ quickpick, selectedItems });
@@ -462,7 +468,15 @@ export class NoteLookupCommand extends BaseCommand<
         },
         Promise.resolve({})
       );
+      perf.after("showNotes");
     } finally {
+      perf.after("total");
+
+      const shouldLogPerf = getStage() === "dev" || process.env.DENDRON_PERF === "1";
+      if (shouldLogPerf) {
+        Logger.info({ ctx, msg: "perf-report", report: perf.report() });
+      }
+
       this.cleanUp();
       Logger.info({ ctx, msg: "exit" });
     }

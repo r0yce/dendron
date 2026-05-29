@@ -7,6 +7,7 @@ export * from "./regex";
 export * from "./responseUtil";
 export * from "./stringUtil";
 export * from "./treeUtil";
+export * from "./performanceTimer";
 
 /**
  * Defaultdict from Python

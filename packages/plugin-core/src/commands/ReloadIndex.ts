@@ -4,9 +4,11 @@ import {
   DVault,
   ERROR_SEVERITY,
   FOLDERS,
+  getStage,
   IDendronError,
   isNotUndefined,
   NoteUtils,
+  PerformanceTimer,
   SchemaUtils,
   VaultUtils,
   WorkspaceEvents,
@@ -197,6 +199,10 @@ export class ReloadIndexCommand extends BasicCommand<
   ): Promise<DEngineClient | undefined> {
     const ctx = "ReloadIndex.execute";
     this.L.info({ ctx, msg: "enter" });
+
+    const perf = new PerformanceTimer({ timerName: "ReloadIndex" });
+    perf.before("total");
+
     const ws = ExtensionProvider.getDWorkspace();
     let initError: IDendronError | undefined;
     const { wsRoot, engine } = ws;
@@ -209,6 +215,7 @@ export class ReloadIndexCommand extends BasicCommand<
 
     // Fix up any broken vaults
     const reloadIndex = async () => {
+      perf.before("autoFixActions");
       const autoFixActions = await Promise.all(
         engine.vaults.flatMap((vault) => {
           return [
@@ -217,6 +224,9 @@ export class ReloadIndexCommand extends BasicCommand<
           ];
         })
       );
+      perf.after("autoFixActions");
+
+      perf.before("engineInit");
       if (autoFixActions.filter(isNotUndefined).length > 0) {
         AnalyticsUtils.track(WorkspaceEvents.AutoFix, {
           ...categorizeActions(autoFixActions),
@@ -229,6 +239,7 @@ export class ReloadIndexCommand extends BasicCommand<
       const { error } = await engine.init();
       const durationEngineInit = getDurationMilliseconds(start);
       this.L.info({ ctx, durationEngineInit });
+      perf.after("engineInit");
 
       // if fatal, stop initialization
       if (error && error.severity !== ERROR_SEVERITY.MINOR) {
@@ -274,6 +285,14 @@ export class ReloadIndexCommand extends BasicCommand<
         },
         reloadIndex
       );
+    }
+
+    perf.after("total");
+
+    // Only log detailed perf in dev mode or when explicitly requested
+    const shouldLogPerf = getStage() === "dev" || process.env.DENDRON_PERF === "1";
+    if (shouldLogPerf) {
+      Logger.info({ ctx, msg: "perf-report", report: perf.report() });
     }
 
     this.L.info({ ctx, msg: "exit", initError });
