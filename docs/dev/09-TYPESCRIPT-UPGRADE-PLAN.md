@@ -175,12 +175,18 @@ Ready to execute any of these when you give the green light.
 
 **Implication**: Upgrading the rest of the monorepo carries **very low decorator risk**. The hard part is isolated to the VS Code extension package.
 
-### 2. tsconfig Landscape
-- Most packages **purely extend** root `tsconfig.build.json`.
-- Exceptions with their own settings:
-  - `dendron-plugin-views/tsconfig.json` — React/webpack app (`target: "es5"`, `module: "esnext"`, `moduleResolution: "node"`, JSX).
-  - `nextjs-template/tsconfig.build.json` — Next.js (`target: "es5"`, `module: "esnext"`, `moduleResolution: "node"`).
-  - `plugin-core/tsconfig.build.json` and `engine-server` only add `outDir`/`rootDir` on top of root.
+### 2. tsconfig Landscape (Deep Audit)
+- Most packages **purely extend** root `tsconfig.build.json` (very clean inheritance).
+- Packages that override key settings:
+  | Package                    | target   | module     | moduleResolution | Notes |
+  |----------------------------|----------|------------|------------------|-------|
+  | Root (most packages)       | ES2019   | commonjs   | (default)        | experimentalDecorators + emitDecoratorMetadata |
+  | dendron-plugin-views       | es5      | esnext     | node             | React + webpack app |
+  | nextjs-template            | es5      | esnext     | node             | Next.js app |
+  | dendron-design-system      | (not set)| esnext     | node             | - |
+  | nextjs-template (sitemap)  | -        | commonjs   | node             | - |
+
+This means the bulk of the monorepo (engine, common, cli, api-server, pods, unified) will move together cleanly when we change the root. The two web apps will need separate attention.
 
 ### 3. Bootstrap / Build Scripts
 - No direct `tsc` or TypeScript version logic in `bootstrap/scripts/`.

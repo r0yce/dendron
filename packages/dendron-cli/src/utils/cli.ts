@@ -1,5 +1,5 @@
 import _ from "lodash";
-import ora from "ora";
+import { Ora } from "ora";
 import { DENDRON_EMOJIS } from "@dendronhq/common-all";
 
 export class CLIUtils {
@@ -39,7 +39,7 @@ export class SpinnerUtils {
    * @param opts
    */
   static renderAndContinue(opts: {
-    spinner: ora.Ora;
+    spinner: Ora;
     text?: string;
     symbol?: string;
   }) {

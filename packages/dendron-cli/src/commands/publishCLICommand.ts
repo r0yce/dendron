@@ -25,7 +25,7 @@ import { PodSource } from "./pod";
 import { SetupEngineCLIOpts } from "./utils";
 import prompts from "prompts";
 import fs from "fs-extra";
-import ora from "ora";
+import oraDefault, { Ora } from "ora";
 import { DConfig, GitUtils } from "@dendronhq/common-server";
 
 type CommandCLIOpts = {
@@ -172,7 +172,7 @@ export class PublishCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     const { cmd } = opts;
     const ctx = "execute";
     this.L.info({ ctx });
-    const spinner = ora().start();
+    const spinner = oraDefault().start();
     try {
       switch (cmd) {
         case PublishCommands.INIT: {
@@ -326,7 +326,7 @@ export class PublishCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     }
   }
 
-  async init(opts: { wsRoot: string; spinner: ora.Ora }) {
+  async init(opts: { wsRoot: string; spinner: Ora }) {
     const { wsRoot, spinner } = opts;
     GitUtils.addToGitignore({ addPath: ".next", root: wsRoot });
     const nextPath = NextjsExportPodUtils.getNextRoot(wsRoot);
@@ -360,7 +360,7 @@ export class PublishCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     return { error: null };
   }
 
-  async _isInitialized(opts: { wsRoot: string; spinner: ora.Ora }) {
+  async _isInitialized(opts: { wsRoot: string; spinner: Ora }) {
     const { spinner, wsRoot } = opts;
     spinner.start();
     SpinnerUtils.renderAndContinue({
@@ -379,7 +379,7 @@ export class PublishCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     return isInitialized;
   }
 
-  async _nextPathExists(opts: { nextPath: string; spinner: ora.Ora }) {
+  async _nextPathExists(opts: { nextPath: string; spinner: Ora }) {
     const { spinner, nextPath } = opts;
     const nextPathBase = path.basename(nextPath);
     SpinnerUtils.renderAndContinue({
@@ -398,7 +398,7 @@ export class PublishCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     return nextPathExists;
   }
 
-  async _updateNextTemplate(opts: { nextPath: string; spinner: ora.Ora }) {
+  async _updateNextTemplate(opts: { nextPath: string; spinner: Ora }) {
     const { spinner, nextPath } = opts;
     SpinnerUtils.renderAndContinue({
       spinner,
@@ -414,7 +414,7 @@ export class PublishCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     });
   }
 
-  async _removeNextPath(opts: { nextPath: string; spinner: ora.Ora }) {
+  async _removeNextPath(opts: { nextPath: string; spinner: Ora }) {
     const { spinner, nextPath } = opts;
     const nextPathBase = path.basename(nextPath);
     await NextjsExportPodUtils.removeNextPath({
@@ -426,7 +426,7 @@ export class PublishCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     });
   }
 
-  async _initialize(opts: { nextPath: string; spinner: ora.Ora }) {
+  async _initialize(opts: { nextPath: string; spinner: Ora }) {
     const { spinner } = opts;
     SpinnerUtils.renderAndContinue({
       spinner,
@@ -436,7 +436,7 @@ export class PublishCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     await this._installDependencies(opts);
   }
 
-  async _cloneTemplate(opts: { nextPath: string; spinner: ora.Ora }) {
+  async _cloneTemplate(opts: { nextPath: string; spinner: Ora }) {
     const { nextPath, spinner } = opts;
     spinner.stop();
     spinner.start("Cloning NextJS template...");
@@ -448,7 +448,7 @@ export class PublishCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     });
   }
 
-  async _installDependencies(opts: { nextPath: string; spinner: ora.Ora }) {
+  async _installDependencies(opts: { nextPath: string; spinner: Ora }) {
     const { nextPath, spinner } = opts;
     spinner.stop();
     spinner.start("Installing dependencies... This may take a while.");

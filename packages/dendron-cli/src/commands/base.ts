@@ -82,8 +82,14 @@ export abstract class CLICommand<
     args.hide("devMode");
   }
 
-  buildCmd(yargs: yargs.Argv): yargs.Argv {
-    return yargs.command(this.name, this.desc, this.buildArgs, this.eval);
+  buildCmd(yargsInstance: yargs.Argv): yargs.Argv {
+    // yargs 17+ has stricter builder typing; we wrap to keep our existing pattern
+    return yargsInstance.command(
+      this.name,
+      this.desc,
+      (args: any) => this.buildArgs(args),
+      this.eval as any
+    );
   }
 
   setUpSegmentClient() {

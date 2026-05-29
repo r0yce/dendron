@@ -46,13 +46,19 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
    * Implementation to handle preview link clicked events
    */
   constructor(
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy metadata
     @inject("IPreviewLinkHandler") linkHandler: IPreviewLinkHandler,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy metadata
     @inject("ITextDocumentService") textDocumentService: ITextDocumentService,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy metadata
     @inject("logger") private logger: DLogger,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy metadata
     @inject("wsRoot") private wsRoot: URI,
     private wsUtils: WSUtilsWeb,
     private webViewUtils: WebViewUtils,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy metadata
     @inject("IPreviewPanelConfig") private config: IPreviewPanelConfig,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy metadata
     @inject("INoteRenderer") private noteRenderer: INoteRenderer
   ) {
     this._linkHandler = linkHandler;

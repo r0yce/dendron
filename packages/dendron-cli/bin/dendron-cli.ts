@@ -3,6 +3,7 @@
 import { env } from "@dendronhq/common-all";
 import _ from "lodash";
 import yargs from "yargs";
+import { CLIUtils } from "../src/utils/cli";
 import { PublishCLICommand } from "../src/commands";
 import { DevCLICommand } from "../src/commands/devCLICommand";
 import { DoctorCLICommand } from "../src/commands/doctor";
@@ -39,4 +40,11 @@ new ExportPodV2CLICommand().buildCmd(buildYargs);
 new VisualizeCLICommand().buildCmd(buildYargs);
 
 // eslint-disable-next-line no-unused-expressions
-buildYargs.strictCommands().demandCommand(1).help().argv;
+buildYargs
+  .scriptName("dendron")
+  .strictCommands()
+  .demandCommand(1)
+  .version(CLIUtils.getClientVersion())
+  .alias("v", "version")
+  .help()
+  .argv;
