@@ -7,18 +7,16 @@
 
 **Current State (as of late May 2026)**
 
-- Root: `"typescript": "4.6"` (exact pin)
-- A few packages declare their own old TS:
-  - `dendron-plugin-views`: `^4.1.2`
-  - `dendron-design-system`: `^4.2.3`
-  - `nextjs-template`: `^4.4.3`
+- Root + key packages: **TypeScript 5.5.4** (upgrade complete)
+- `@types/node`: Updated to `^20.12.0` in root resolution and most core packages
 - `tsconfig.build.json` (root):
-  - `target`: `"ES2019"`
-  - `module`: `"commonjs"`
-  - `lib`: `["es2019", "es2020.string"]`
-  - `experimentalDecorators: true`
-  - `emitDecoratorMetadata: true`
-- Heavy reliance on **legacy decorator metadata** via `reflect-metadata` + tsyringe (especially in `plugin-core` webviews and DI).
+  - `target`: `"ES2022"`
+  - `lib`: Updated to modern ES2022 + DOM
+  - `moduleResolution`: "node"
+  - Legacy decorators still enabled (`experimentalDecorators: true`, `emitDecoratorMetadata: true`)
+- `plugin-core` uses `@ts-expect-error` workarounds on tsyringe decorators (runtime unchanged via reflect-metadata)
+- Full monorepo compiles on modern TS
+- See `11-FINAL-MODERNIZATION-REPORT.md` for complete details of what was executed and fixed.
 
 ## Major Risks & Blockers
 
@@ -51,25 +49,27 @@
 ## Recommended Phased Approach
 
 ### Phase 0: Preparation (Do this first)
-- [ ] Create this document + get buy-in on target version (recommend **5.5.4** or **5.6** as of 2026).
-- [ ] Audit all `tsconfig*.json` files for `experimentalDecorators`, `emitDecoratorMetadata`, `target`, `module`, `moduleResolution`.
-- [ ] Identify all direct `typescript` devDependencies in source packages.
-- [ ] Pin a modern TypeScript version in root and run a full "dry run" compile with it (using `overrides` or temporary local install) without changing source yet.
-- [ ] Update CI / bootstrap scripts if they hardcode TS version.
+- [x] Create this document + get buy-in on target version (**5.5.4** chosen).
+- [x] Audit all `tsconfig*.json` files for `experimentalDecorators`, `emitDecoratorMetadata`, `target`, `module`, `moduleResolution` (see Deep Audit Results below).
+- [x] Identify all direct `typescript` devDependencies in source packages.
+- [x] Pin modern TypeScript (5.5.4) in root and run full compilation + fix errors iteratively.
+- [ ] Update CI / bootstrap scripts if they hardcode TS version (no hidden TS logic found in bootstrap; CI may still need review).
 
 ### Phase 1: Safe Root + Core Packages Upgrade
+**Status: Completed**
+
 Target: Upgrade root to a modern TS while keeping legacy decorator settings.
 
-Steps:
-1. Update root `package.json`:
-   - Change `"typescript": "4.6"` → `"typescript": "^5.5.4"` (or latest 5.6)
-2. Update the three packages that declare their own TS.
-3. Update root `tsconfig.build.json`:
-   - Bump `target` to `"ES2022"` or `"ES2023"`
-   - Consider `moduleResolution: "node10"` or `"node"` initially for compatibility (later move to `"bundler"` or `"node16"`).
-   - Keep `experimentalDecorators` and `emitDecoratorMetadata` for now.
-4. Run full monorepo compile (`yarn bootstrap:build:fast` or equivalent) and fix any new errors.
-5. Update `@types/node` resolution in root to `^20.12.0` (or ^22) and propagate to packages.
+Steps completed:
+1. [x] Updated root `package.json` to TypeScript 5.5.4.
+2. [x] Updated the three packages that declared their own older TS (`dendron-plugin-views`, `dendron-design-system`, `nextjs-template`).
+3. [x] Updated root `tsconfig.build.json`:
+   - `target` → `ES2022`
+   - Modern `lib` (ES2022 + DOM + DOM.Iterable)
+   - Added `moduleResolution: "node"`
+   - Kept `experimentalDecorators` + `emitDecoratorMetadata`.
+4. [x] Ran iterative full compilation across packages and fixed errors as they appeared (see report for details).
+5. [x] Updated `@types/node` resolution in root to `^20.12.0` and propagated to all major packages.
 
 ### Phase 2: Fix Breaking Changes
 Common issues to expect:
@@ -93,12 +93,14 @@ Common issues to expect:
 
 ## Immediate Next Actions (Recommended Order)
 
-1. **Audit all tsconfig files** for decorator and module settings (I can do this now).
-2. **Test-compile with modern TS** without changing the lockfile yet (using `yarn add -D typescript@latest --ignore-workspace-root-check` in a temp way or overrides).
-3. Decide on exact target version (5.5 vs 5.6).
-4. Create a dedicated branch for the TS upgrade.
-5. Start with root + the 3 packages that pin TS themselves.
-6. Tackle the decorator/tsyringe risk explicitly (decide policy).
+**All items below have been executed** as part of the upgrade:
+
+1. [x] Full audit of all tsconfig files (see Deep Audit Results + generated matrix).
+2. [x] Full compilation with modern TS 5.5.4 + iterative error fixing.
+3. [x] Target version chosen: **5.5.4**.
+4. [x] Dedicated branch created: `typescript-upgrade/phase0`.
+5. [x] Upgraded root + all packages that pinned TS.
+6. [x] Tackled decorator/tsyringe risk (workarounds applied + documented; low risk outside plugin-core).
 
 ## Questions for Decision
 
@@ -109,7 +111,7 @@ Common issues to expect:
 
 ---
 
-**Status**: Phase 0 in progress. Deep audit completed. See "Deep Audit Results (2026-05)" section below.
+**Status**: **Upgrade complete**. See `11-FINAL-MODERNIZATION-REPORT.md` for the full execution report. This document now serves as the historical plan + audit record.
 
 ---
 
@@ -204,17 +206,19 @@ This means the bulk of the monorepo (engine, common, cli, api-server, pods, unif
   - Wave 1: Non-plugin packages + CLI
   - Wave 2: plugin-core + plugin-views (higher risk due to VS Code + decorators + webpack)
 
-## Phase 0 Execution — Started
+## Phase 0 Execution — Completed
 
 **Branch created**: `typescript-upgrade/phase0`
 
-**Actions taken**:
-- Created this detailed plan document with real audit data.
-- Confirmed tsyringe scope is limited to plugin-core.
-- Confirmed build system has no hidden TS version logic.
+**Major actions completed**:
+- Created this plan document + performed deep audits (tsconfig matrix, decorator scope analysis, build script review).
+- Created and committed on `typescript-upgrade/phase0`.
+- Executed full upgrade to TS 5.5.4 (root + packages).
+- Modernized root tsconfig (target, libs, moduleResolution).
+- Ran repeated compiles and fixed errors across the monorepo.
+- Bumped `@types/node` to ^20.12.0 in core packages.
+- Applied and documented decorator workarounds in `plugin-core`.
+- Enabled (with pragmatic handling) stricter tsconfig flags.
+- Produced comprehensive final report (`11-FINAL-MODERNIZATION-REPORT.md`).
 
-**Next immediate Phase 0 steps I can execute now** (tell me which):
-1. Create the actual git branch and commit the plan document.
-2. Add a temporary root resolution to test TS 5.5.4 and run a compile (will surface first errors safely).
-3. Produce a full matrix of every package's tsconfig overrides.
-4. Draft a minimal "safe tsconfig" for Wave 1 packages.
+The upgrade is complete and the project compiles on modern TypeScript. See the final report for the full list of changes and remaining follow-ups.
