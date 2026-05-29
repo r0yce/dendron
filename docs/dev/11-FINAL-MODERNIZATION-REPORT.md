@@ -126,7 +126,8 @@ This includes:
 - `common-server`: Modernized + detailed doc
 - `engine-server`: Scripts modernized + detailed doc
 - `api-server`: Scripts modernized + detailed doc
-- `pods-core`: Scripts modernized + detailed doc created
+- `pods-core`: Scripts modernized + detailed doc
+- `unified`: Scripts modernized + detailed doc created
 
 This effort will continue in parallel with code modernization for every package.
 

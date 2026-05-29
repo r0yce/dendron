@@ -41,7 +41,8 @@
   **Status**: Scripts modernized. Compiles cleanly. Detailed doc created.
 - [x] **pods-core** — Import/Export pod system  
   **Status**: Scripts modernized. Detailed doc created (some node_modules type friction noted after @types/node bump).
-- [ ] **unified** — Markdown processing pipeline
+- [x] **unified** — Markdown processing pipeline  
+  **Status**: Scripts modernized. Detailed doc created.
 
 ### CLI & Tooling
 
