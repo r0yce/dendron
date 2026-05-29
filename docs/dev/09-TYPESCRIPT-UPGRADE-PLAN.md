@@ -26,7 +26,8 @@ See the new `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md` for the live per-packag
 - `common-all`: Complete (doc + modernization baseline)
 - `common-server`: Complete
 - `engine-server`: Complete
-- `api-server`: Complete (scripts + detailed doc)
+- `api-server`: Complete
+- `pods-core`: Complete (scripts + detailed doc)
 - Live tracking: `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md`
 
 ## Major Risks & Blockers

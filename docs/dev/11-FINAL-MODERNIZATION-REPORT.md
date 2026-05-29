@@ -125,7 +125,8 @@ This includes:
 - `common-all`: Extremely detailed doc created
 - `common-server`: Modernized + detailed doc
 - `engine-server`: Scripts modernized + detailed doc
-- `api-server`: Scripts modernized + detailed doc created
+- `api-server`: Scripts modernized + detailed doc
+- `pods-core`: Scripts modernized + detailed doc created
 
 This effort will continue in parallel with code modernization for every package.
 

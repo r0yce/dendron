@@ -39,7 +39,8 @@
 - [ ] **engine-test-utils** — Engine testing utilities
 - [x] **api-server** — HTTP API server for the engine  
   **Status**: Scripts modernized. Compiles cleanly. Detailed doc created.
-- [ ] **pods-core** — Import/Export pod system
+- [x] **pods-core** — Import/Export pod system  
+  **Status**: Scripts modernized. Detailed doc created (some node_modules type friction noted after @types/node bump).
 - [ ] **unified** — Markdown processing pipeline
 
 ### CLI & Tooling
