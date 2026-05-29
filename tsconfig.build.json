@@ -23,6 +23,9 @@
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    // TODO (post TS 5.5 upgrade): Re-enable for stricter codebase
+    // "noUncheckedIndexedAccess": true,
+    // "exactOptionalPropertyTypes": true,
     // --- language features
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,

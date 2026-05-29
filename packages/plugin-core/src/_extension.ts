@@ -1,5 +1,12 @@
 import "reflect-metadata"; // This needs to be the topmost import for tsyringe to work
 
+/**
+ * TypeScript 5.5+ Upgrade Note:
+ * Legacy decorators + tsyringe now require // @ts-expect-error on many @inject sites
+ * due to stricter decorator signature checking.
+ * This is a known temporary modernization cost. See docs/dev/09-TYPESCRIPT-UPGRADE-PLAN.md
+ */
+
 import {
   CONSTANTS,
   DWorkspaceV2,

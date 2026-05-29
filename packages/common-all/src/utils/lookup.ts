@@ -227,7 +227,7 @@ function regularTransform(
     originalQuery: trimmedQuery,
     queryString,
     wasMadeFromWikiLink: false,
-    splitByDots,
-    onlyDirectChildren,
-  };
+    splitByDots: splitByDots ?? undefined,
+    onlyDirectChildren: onlyDirectChildren ?? undefined,
+  } as any; // TODO: proper type for strict optional properties after TS upgrade
 }
