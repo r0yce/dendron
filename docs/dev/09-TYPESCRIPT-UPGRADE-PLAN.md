@@ -32,7 +32,8 @@ See the new `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md` for the live per-packag
 - `common-test-utils`: Complete
 - `engine-test-utils`: Complete
 - `common-frontend`: Complete
-- `_pkg-template`: Complete (scripts + doc)
+- `_pkg-template`: Complete
+- `generator-dendron`: Complete (deps + doc)
 - Live tracking: `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md`
 
 ## Major Risks & Blockers
