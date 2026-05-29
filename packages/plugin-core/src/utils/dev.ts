@@ -29,3 +29,15 @@ export function getDevOutputChannel() {
   }
   return _devChannel;
 }
+
+/**
+ * Logs a performance report cleanly to the "Dendron Dev" output channel.
+ * This provides a much nicer view than raw JSON in the main channel.
+ */
+export function logPerfReport(timerName: string, report: string) {
+  const channel = getDevOutputChannel();
+  channel.appendLine(`\n=== ${timerName} ===`);
+  channel.appendLine(report);
+  channel.appendLine("=".repeat(30 + timerName.length));
+  channel.show(true); // show without taking focus
+}

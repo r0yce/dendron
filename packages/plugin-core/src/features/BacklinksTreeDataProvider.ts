@@ -6,9 +6,11 @@ import {
   DendronConfig,
   EngineEventEmitter,
   NoteUtils,
+  PerformanceTimer,
   ProcFlavor,
   VSCodeEvents,
 } from "@dendronhq/common-all";
+import { logPerfReport } from "../utils/dev";
 import { DConfig } from "@dendronhq/common-server";
 import { MetadataService } from "@dendronhq/engine-server";
 import { MDUtilsV5 } from "@dendronhq/unified";
@@ -272,7 +274,19 @@ export default class BacklinksTreeDataProvider
    * Tells VSCode to refresh the backlinks view. Debounced to fire every 250 ms
    */
   private refreshBacklinks = _.debounce(() => {
+    const perf = new PerformanceTimer({ timerName: "BacklinksRefresh" });
+    perf.before("total");
+
     this._onDidChangeTreeDataEmitter.fire();
+
+    // Note: actual heavy work happens in getChildren / getAllBacklinkedNotes
+    // For now we time the trigger; deeper instrumentation can be added in getChildren
+    perf.after("total");
+    const shouldLog = process.env.DENDRON_PERF === "1" || process.env.LOG_LEVEL === "debug";
+    if (shouldLog) {
+      const report = perf.report();
+      logPerfReport("Backlinks", report);
+    }
   }, 250);
 
   /**
@@ -333,10 +347,15 @@ export default class BacklinksTreeDataProvider
     isLinkCandidateEnabled: boolean | undefined,
     sortOrder: BacklinkPanelSortOrder
   ): Promise<Backlink[]> {
+    const perf = new PerformanceTimer({ timerName: "GetBacklinks" });
+    perf.before("total");
+    perf.before("findReferences");
+
     const references = await findReferencesById({
       id: noteId,
       isLinkCandidateEnabled,
     });
+    perf.after("findReferences");
     const referencesByPath = _.groupBy(
       // Exclude self-references:
       _.filter(references, (ref) => ref.note?.id !== noteId),
@@ -432,6 +451,13 @@ export default class BacklinksTreeDataProvider
 
       return backlink;
     });
+    perf.after("total");
+
+    const shouldLog = process.env.DENDRON_PERF === "1" || process.env.LOG_LEVEL === "debug";
+    if (shouldLog) {
+      logPerfReport("BacklinksComputation", perf.report());
+    }
+
     return _.filter(out, (item) => !_.isUndefined(item)) as Backlink[];
   }
 

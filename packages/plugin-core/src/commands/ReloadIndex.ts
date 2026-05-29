@@ -30,6 +30,7 @@ import { DENDRON_COMMANDS } from "../constants";
 import { ExtensionProvider } from "../ExtensionProvider";
 import { Logger } from "../logger";
 import { IEngineAPIService } from "../services/EngineAPIServiceInterface";
+import { logPerfReport } from "../utils/dev";
 import { AnalyticsUtils } from "../utils/analytics";
 import { MessageSeverity, VSCodeUtils } from "../vsCodeUtils";
 import { BasicCommand } from "./base";
@@ -292,7 +293,9 @@ export class ReloadIndexCommand extends BasicCommand<
     // Only log detailed perf in dev mode or when explicitly requested
     const shouldLogPerf = getStage() === "dev" || process.env.DENDRON_PERF === "1";
     if (shouldLogPerf) {
-      Logger.info({ ctx, msg: "perf-report", report: perf.report() });
+      const report = perf.report();
+      Logger.info({ ctx, msg: "perf-report", report });
+      logPerfReport("ReloadIndex", report);
     }
 
     this.L.info({ ctx, msg: "exit", initError });

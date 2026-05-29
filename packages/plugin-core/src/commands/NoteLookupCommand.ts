@@ -66,6 +66,7 @@ import { DendronContext, DENDRON_COMMANDS } from "../constants";
 import { ExtensionProvider } from "../ExtensionProvider";
 import { Logger } from "../logger";
 import { IEngineAPIService } from "../services/EngineAPIServiceInterface";
+import { logPerfReport } from "../utils/dev";
 import { JournalNote } from "../traits/journal";
 import { AnalyticsUtils, getAnalyticsPayload } from "../utils/analytics";
 import { AutoCompleter } from "../utils/autoCompleter";
@@ -474,7 +475,9 @@ export class NoteLookupCommand extends BaseCommand<
 
       const shouldLogPerf = getStage() === "dev" || process.env.DENDRON_PERF === "1";
       if (shouldLogPerf) {
-        Logger.info({ ctx, msg: "perf-report", report: perf.report() });
+        const report = perf.report();
+        Logger.info({ ctx, msg: "perf-report", report });
+        logPerfReport("NoteLookup", report);
       }
 
       this.cleanUp();
