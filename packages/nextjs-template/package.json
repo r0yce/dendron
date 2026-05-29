@@ -17,9 +17,8 @@
     "export": "npm run build && next export",
     "build:sitemap:ts": "tsc -p tsconfig.sitemap.json && mv dist/scripts/sitemap.js . ",
     "build:sitemap": "next-sitemap --config sitemap.js",
-    "clean": "yarn rimraf public data out",
+    "clean": "node -e \"const fs=require('fs'); ['public','data','out'].forEach(d => fs.rmSync(d,{recursive:true,force:true}));\"",
     "copy:robotstxt": "npx cpx assets/robots.txt public/",
-    "rimraf": "npx rimraf",
     "test": "NODE_ENV=test playwright test",
     "test:skipbuild": "SKIP_BUILD=1 yarn test"
   },

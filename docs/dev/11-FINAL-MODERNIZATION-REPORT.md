@@ -134,7 +134,8 @@ This includes:
 - `_pkg-template`: Scripts modernized + doc
 - `generator-dendron`: Deps updated + doc
 - `dendron-viz`: Scripts modernized + doc
-- `dendron-design-system`: TS modern + doc created
+- `dendron-design-system`: TS modern + doc
+- `nextjs-template`: Scripts modernized + doc created
 
 This effort will continue in parallel with code modernization for every package.
 

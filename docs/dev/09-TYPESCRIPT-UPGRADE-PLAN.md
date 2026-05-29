@@ -35,7 +35,8 @@ See the new `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md` for the live per-packag
 - `_pkg-template`: Complete
 - `generator-dendron`: Complete
 - `dendron-viz`: Complete
-- `dendron-design-system`: TS modern + doc created (further UI lib review needed)
+- `dendron-design-system`: TS modern + doc
+- `nextjs-template`: Scripts modernized + doc created
 - Live tracking: `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md`
 
 ## Major Risks & Blockers
