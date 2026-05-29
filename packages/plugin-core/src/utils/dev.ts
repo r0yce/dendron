@@ -13,6 +13,25 @@ export function getLastActivationReport(): string | undefined {
   return _lastActivationReport;
 }
 
+// Session-level collection of perf reports
+const _perfReports: Array<{ timestamp: Date; name: string; report: string }> = [];
+
+export function recordPerfReport(name: string, report: string) {
+  _perfReports.push({ timestamp: new Date(), name, report });
+  // Keep only last 50 reports to avoid memory bloat
+  if (_perfReports.length > 50) {
+    _perfReports.shift();
+  }
+}
+
+export function getAllPerfReports(): Array<{ timestamp: Date; name: string; report: string }> {
+  return [..._perfReports];
+}
+
+export function clearPerfReports() {
+  _perfReports.length = 0;
+}
+
 /**
  * Opens (or creates) a dedicated "Dendron Dev" output channel
  * and returns it. Useful for clean dev logging without polluting
@@ -40,4 +59,7 @@ export function logPerfReport(timerName: string, report: string) {
   channel.appendLine(report);
   channel.appendLine("=".repeat(30 + timerName.length));
   channel.show(true); // show without taking focus
+
+  // Record for session view
+  recordPerfReport(timerName, report);
 }
