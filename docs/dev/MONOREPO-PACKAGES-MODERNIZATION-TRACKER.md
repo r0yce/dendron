@@ -54,7 +54,8 @@
 ### UI / Extension Packages
 
 - [ ] **plugin-core** — The main VS Code extension (highest complexity)
-- [ ] **dendron-plugin-views** — React webviews for the extension
+- [x] **dendron-plugin-views** — React webviews for the extension  
+  **Status**: Scripts modernized (rimraf removed). Very complex package — detailed high-level doc created. Major future build system work needed.
 - [x] **dendron-viz** — Visualization tools  
   **Status**: Scripts modernized. Doc created.
 - [x] **dendron-design-system** — Design system components  
