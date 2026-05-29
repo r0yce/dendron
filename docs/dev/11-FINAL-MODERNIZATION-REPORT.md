@@ -132,7 +132,8 @@ This includes:
 - `engine-test-utils`: Scripts modernized + detailed doc
 - `common-frontend`: Scripts modernized + detailed doc
 - `_pkg-template`: Scripts modernized + doc
-- `generator-dendron`: Deps updated + doc created
+- `generator-dendron`: Deps updated + doc
+- `dendron-viz`: Scripts modernized + doc created
 
 This effort will continue in parallel with code modernization for every package.
 

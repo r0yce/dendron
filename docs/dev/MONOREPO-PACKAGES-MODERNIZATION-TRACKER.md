@@ -55,7 +55,8 @@
 
 - [ ] **plugin-core** — The main VS Code extension (highest complexity)
 - [ ] **dendron-plugin-views** — React webviews for the extension
-- [ ] **dendron-viz** — Visualization tools
+- [x] **dendron-viz** — Visualization tools  
+  **Status**: Scripts modernized. Doc created.
 - [ ] **dendron-design-system** — Design system components
 - [ ] **nextjs-template** — Next.js publishing template
 
