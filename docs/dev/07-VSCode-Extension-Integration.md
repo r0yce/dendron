@@ -83,12 +83,12 @@ Most commands extend `BasicCommand` or `BaseCommand`.
 ### Mermaid: Command Execution Flow
 
 ```mermaid
-flowchart TD
-    A[User invokes command] --> B["vscode.commands.executeCommand"]
+graph TD
+    A["User invokes command"] --> B["vscode.commands.executeCommand"]
     B --> C["Registered handler in _extension.ts"]
     C --> D["Command class .execute()"]
     D --> E["gatherInputs (optional)"]
-    E --> F[Business logic]
+    E --> F["Business logic"]
     F --> G["Engine calls or UI updates"]
     G --> H["Analytics + error handling"]
 ```
@@ -172,8 +172,8 @@ Dendron listens to many VS Code events:
 ### Mermaid: Note Change Reactivity
 
 ```mermaid
-flowchart LR
-    A[User edits note] --> B["onDidChangeTextDocument"]
+graph LR
+    A["User edits note"] --> B["onDidChangeTextDocument"]
     B --> C["WindowWatcher / WorkspaceWatcher"]
     C --> D["debounced update"]
     D --> E["engine.updateNote()"]
@@ -691,15 +691,15 @@ Registration code also checks `if (!existingCommands.includes(cmd.key))` to avoi
 ### 15.6 Mermaid: How a Typical Command Is Wired
 
 ```mermaid
-flowchart TD
-    A[package.json contributes.commands] --> B[_extension.ts registration]
-    B --> C{requireActiveWorkspace?}
-    C -->|false| D[Registered early]
-    C -->|true| E[Registered only after pluginActive]
-    D --> F[vscode.commands.registerCommand]
+graph TD
+    A["package.json contributes.commands"] --> B["_extension.ts registration"]
+    B --> C{"requireActiveWorkspace?"}
+    C -->|false| D["Registered early"]
+    C -->|true| E["Registered only after pluginActive"]
+    D --> F["vscode.commands.registerCommand"]
     E --> F
-    F --> G[sentryReportingCallback]
-    G --> H[cmd.run(args)]
+    F --> G["sentryReportingCallback"]
+    G --> H["cmd.run(args)"]
 ```
 
 This architecture allows Dendron to scale to 150+ commands while maintaining reasonable consistency and safety.
@@ -728,16 +728,16 @@ Reply with your preference and I'll continue right away.
 ### 13.4 Mermaid: Simplified WorkspaceActivator Flow
 
 ```mermaid
-flowchart TD
-    A[WorkspaceActivator.init] --> B[Detect workspace type]
-    B --> C[Initialize vaults + wsService]
-    C --> D[verifyOrStartServerProcess]
-    D --> E[Create EngineAPIService]
-    E --> F[WorkspaceActivator.activate]
-    F --> G[reloadWorkspace]
-    G --> H[engine.init + post processing]
-    H --> I[activateWatchers + initTreeView]
-    I --> J[togglePluginActiveContext(true)]
+graph TD
+    A["WorkspaceActivator.init"] --> B["Detect workspace type"]
+    B --> C["Initialize vaults + wsService"]
+    C --> D["verifyOrStartServerProcess"]
+    D --> E["Create EngineAPIService"]
+    E --> F["WorkspaceActivator.activate"]
+    F --> G["reloadWorkspace"]
+    G --> H["engine.init + post processing"]
+    H --> I["activateWatchers + initTreeView"]
+    I --> J["togglePluginActiveContext(true)"]
 ```
 
 ---
@@ -788,19 +788,19 @@ codeActionProvider.activate(context);
 ### 12.2 Mermaid: Language Provider Architecture
 
 ```mermaid
-flowchart TD
-    A[VS Code requests language feature] --> B{Which provider?}
-    B -->|References / Backlinks| C[ReferenceProvider]
-    B -->|Go to Definition| D[DefinitionProvider]
-    B -->|Hover Preview| E[ReferenceHoverProvider]
-    B -->|Rename| F[RenameProvider]
-    B -->|Autocomplete| G[CompletionProvider]
-    B -->|Quick Fixes| H[CodeActionProvider]
+graph TD
+    A["VS Code requests language feature"] --> B{"Which provider?"}
+    B -->|References / Backlinks| C["ReferenceProvider"]
+    B -->|Go to Definition| D["DefinitionProvider"]
+    B -->|Hover Preview| E["ReferenceHoverProvider"]
+    B -->|Rename| F["RenameProvider"]
+    B -->|Autocomplete| G["CompletionProvider"]
+    B -->|Quick Fixes| H["CodeActionProvider"]
 
-    C --> I[findReferences + engine data]
+    C --> I["findReferences + engine data"]
     D --> I
     E --> I
-    F --> J[Engine + file system rename]
+    F --> J["Engine + file system rename"]
 ```
 
 ### 12.3 Core Providers
@@ -821,14 +821,14 @@ Most VS Code extensions do all their work **in-process** inside the extension ho
 Dendron does **not**. Its core engine runs in a **separate Node.js process**.
 
 ```mermaid
-flowchart LR
+graph LR
     subgraph "VS Code Extension Host"
-        A[plugin-core]
-        B[EngineAPIService]
+        A["plugin-core"]
+        B["EngineAPIService"]
     end
 
     subgraph "Separate Process"
-        C[DendronEngineV2 + API Server]
+        C["DendronEngineV2 + API Server"]
     end
 
     A <--> B
@@ -987,15 +987,15 @@ Or suggest anything else. I'll continue building the detailed documentation righ
 **Mermaid: When Dendron Chooses Which Pattern**
 
 ```mermaid
-flowchart TD
-    A[Developer needs a custom UI] --> B{Should it live<br/>permanently in the sidebar?}
-    B -->|Yes| C[WebviewView + registerWebviewViewProvider]
-    B -->|No| D{Is it a focused tool<br/>or temporary preview?}
-    D -->|Yes| E[WebviewPanel + createWebviewPanel]
-    D -->|No| F[Consider TreeDataProvider or webview-less approach]
+graph TD
+    A["Developer needs a custom UI"] --> B{"Should it live<br/>permanently in the sidebar?"}
+    B -->|Yes| C["WebviewView + registerWebviewViewProvider"]
+    B -->|No| D{"Is it a focused tool<br/>or temporary preview?"}
+    D -->|Yes| E["WebviewPanel + createWebviewPanel"]
+    D -->|No| F["Consider TreeDataProvider or webview-less approach"]
     
-    C --> G[Graph, Lookup View, Calendar, Tip of the Day]
-    E --> H[Preview, Doctor previews, Refactor/Move/Delete previews, Editor Graphs]
+    C --> G["Graph, Lookup View, Calendar, Tip of the Day"]
+    E --> H["Preview, Doctor previews, Refactor/Move/Delete previews, Editor Graphs"]
 ```
 
 ### 10.7 The Bundling & Asset Story (Critical for Understanding)
@@ -1370,18 +1370,18 @@ Key behaviors beyond what was covered earlier:
 **Mermaid: Preview Update Decision Tree**
 
 ```mermaid
-flowchart TD
-    A[onDidChangeActiveTextEditor or debounced onDidChangeTextDocument] --> B{Preview panel exists?}
-    B -->|No| C[Create + show]
-    B -->|Yes| D{Is locked?}
-    D -->|Yes| E{Locked note ID matches current editor?}
-    E -->|No| F[Ignore]
-    E -->|Yes| G[Refresh with explicit note]
-    D -->|No| H[Refresh with active editor note]
-    C --> I[Send HTML via postMessage]
+graph TD
+    A["onDidChangeActiveTextEditor or debounced onDidChangeTextDocument"] --> B{"Preview panel exists?"}
+    B -->|No| C["Create + show"]
+    B -->|Yes| D{"Is locked?"}
+    D -->|Yes| E{"Locked note ID matches current editor?"}
+    E -->|No| F["Ignore"]
+    E -->|Yes| G["Refresh with explicit note"]
+    D -->|No| H["Refresh with active editor note"]
+    C --> I["Send HTML via postMessage"]
     G --> I
     H --> I
-    I --> J[Webview applies + scrolls to header if needed]
+    I --> J["Webview applies + scrolls to header if needed"]
 ```
 
 ### 19.2 Engine Initialization Sub-Phases (Performance Hot Path)
