@@ -109,6 +109,23 @@ These are now much easier because the foundation is modern:
 - Multiple source fixes across common-all, common-server, engine-test-utils, plugin-core, etc.
 - New/updated docs in `docs/dev/` (09, 10, 11)
 
+## Per-Package Extreme Documentation Effort (New Mandate)
+
+As part of the full one-wave modernization, a new requirement was added: while modernizing each package, create **extremely detailed documentation** for it.
+
+This includes:
+- Full Table of Contents
+- Multiple Mermaid diagrams (architecture, dependency graphs, build flows, etc.)
+- Current modernization status
+- Roadmap items
+- Key patterns and files
+
+**Progress**:
+- Master tracker created: `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md`
+- First package documented in extreme detail: `docs/dev/packages/common-all.md`
+
+This effort will continue in parallel with code modernization for every package.
+
 ## Additional CLI Improvements (Post-Upgrade)
 
 After the core modernization work, the following CLI UX improvements were added:

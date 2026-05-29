@@ -1,0 +1,84 @@
+# Monorepo Packages Modernization Tracker
+
+**Goal**: Modernize every package in the Dendron monorepo to latest standards (TypeScript, configuration, dependencies where practical) while creating **extremely detailed documentation** for each package.
+
+**Process per package**:
+1. Modernize `package.json` (TypeScript, `@types/node`, other key deps if safe).
+2. Modernize `tsconfig*.json` files (target, moduleResolution, strict flags, etc.).
+3. Compile + fix errors.
+4. Create or heavily expand a dedicated documentation file: `docs/dev/packages/[package-name].md`
+5. The per-package doc must include:
+   - Table of Contents
+   - Overview / Purpose
+   - Architecture (Mermaid diagrams)
+   - Dependencies & Relationships
+   - Build / Compilation process
+   - Current Modernization Status
+   - Roadmap / Open Items
+   - Key Files & Code Patterns
+
+**Legend**:
+- [ ] Not started
+- [~] In progress
+- [x] Modernization + detailed doc complete
+
+---
+
+## Package Status
+
+### Core Shared Libraries
+
+- [~] **common-all** — Foundational types, errors, utilities  
+  **Status**: Compiles cleanly on modern TS. Extremely detailed documentation created (`docs/dev/packages/common-all.md`) with TOC + architecture Mermaid. Baseline modernization complete.
+- [ ] **common-server** — Server-side utilities, file handling, config
+- [ ] **common-frontend** — Shared frontend code
+- [ ] **common-test-utils** — Testing helpers
+- [ ] **engine-server** — Core Dendron engine
+- [ ] **engine-test-utils** — Engine testing utilities
+- [ ] **api-server** — HTTP API server for the engine
+- [ ] **pods-core** — Import/Export pod system
+- [ ] **unified** — Markdown processing pipeline
+
+### CLI & Tooling
+
+- [x] **dendron-cli** — Command-line interface (significant modernization already completed)
+
+### UI / Extension Packages
+
+- [ ] **plugin-core** — The main VS Code extension (highest complexity)
+- [ ] **dendron-plugin-views** — React webviews for the extension
+- [ ] **dendron-viz** — Visualization tools
+- [ ] **dendron-design-system** — Design system components
+- [ ] **nextjs-template** — Next.js publishing template
+
+### Other
+
+- [ ] **generator-dendron** — Yeoman generator
+- [ ] **_pkg-template** — Internal package template
+
+---
+
+## Master Checklist
+
+### Configuration Modernization (applies to all)
+- [ ] Root `tsconfig.build.json` fully modern (moduleResolution, strict flags, etc.)
+- [ ] All package `tsconfig*.json` files reviewed and updated
+- [ ] `package.json` files updated for modern TypeScript + `@types/node`
+- [ ] Legacy decorator usage audited and migration plan created per package
+
+### Documentation Standard
+Every package documentation file must contain at minimum:
+- Clear Table of Contents (auto-generated or manual)
+- Mermaid diagrams for:
+  - Package architecture / responsibilities
+  - Dependency graph (what it depends on + what depends on it)
+  - Build / compilation flow (if complex)
+- Current modernization status table
+- Key classes / entry points
+- Open issues / roadmap
+
+---
+
+**Last Updated**: [Will be maintained as work progresses]
+
+**Overall Progress**: 1 / 17 packages significantly modernized + documented (dendron-cli had prior work). Full one-wave effort now beginning.
