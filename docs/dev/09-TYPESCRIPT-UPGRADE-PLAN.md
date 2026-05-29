@@ -1,22 +1,23 @@
 # TypeScript Modernization Upgrade Plan
 
-**Goal**: Bring the monorepo from the ancient **TypeScript 4.6** (pinned exactly) to a modern version (target: **5.5 or 5.6** as of 2026) so we can:
-- Use current `@types/node` (20+)
+**Goal**: Bring the **entire monorepo** (all packages, including `plugin-core`) from the ancient **TypeScript 4.6** (pinned exactly) to the **latest stable TypeScript** so we can:
+- Use current `@types/node` (20+ / 22+)
 - Get better type checking, performance, and new language features
-- Unblock other dependency modernizations
+- Modernize `moduleResolution` and other configuration at the same time
+- Move toward modern decorators / DI (long-term removal of legacy `experimentalDecorators` + `emitDecoratorMetadata` + tsyringe dependency)
+- Unblock other dependency modernizations, new features, and cleaner architecture across the whole project
+
+**Scope Decision**: Full one-wave upgrade of everything together (no split waves).
 
 **Current State (as of late May 2026)**
 
-- Root + key packages: **TypeScript 5.5.4** (upgrade complete)
-- `@types/node`: Updated to `^20.12.0` in root resolution and most core packages
-- `tsconfig.build.json` (root):
-  - `target`: `"ES2022"`
-  - `lib`: Updated to modern ES2022 + DOM
-  - `moduleResolution`: "node"
-  - Legacy decorators still enabled (`experimentalDecorators: true`, `emitDecoratorMetadata: true`)
-- `plugin-core` uses `@ts-expect-error` workarounds on tsyringe decorators (runtime unchanged via reflect-metadata)
-- Full monorepo compiles on modern TS
-- See `11-FINAL-MODERNIZATION-REPORT.md` for complete details of what was executed and fixed.
+- Root + all packages: **TypeScript 5.5.4** (base upgrade complete; target is now **latest stable**)
+- `@types/node`: Updated to `^20.12.0` across core packages
+- `tsconfig.build.json` (root) modernized but still using legacy decorator settings temporarily
+- `plugin-core` carries `@ts-expect-error` workarounds (will be addressed in the full decorator/DI modernization follow-up)
+- Decision recorded: Full one-wave modernization of the entire monorepo + intent to remove legacy decorators/tsyringe over time.
+
+See `11-FINAL-MODERNIZATION-REPORT.md` for the base upgrade execution. This plan now reflects the more aggressive scope.
 
 ## Major Risks & Blockers
 
@@ -55,10 +56,10 @@
 - [x] Pin modern TypeScript (5.5.4) in root and run full compilation + fix errors iteratively.
 - [ ] Update CI / bootstrap scripts if they hardcode TS version (no hidden TS logic found in bootstrap; CI may still need review).
 
-### Phase 1: Safe Root + Core Packages Upgrade
-**Status: Completed**
+### Phase 1: Full Monorepo Upgrade (One Wave)
+**Status: Completed (base upgrade)**
 
-Target: Upgrade root to a modern TS while keeping legacy decorator settings.
+Target: Upgrade the **entire monorepo in one wave** (including plugin-core) to the latest stable TypeScript, while also modernizing `moduleResolution` and other config settings. Legacy decorator emit will be kept temporarily during this phase.
 
 Steps completed:
 1. [x] Updated root `package.json` to TypeScript 5.5.4.
@@ -66,8 +67,8 @@ Steps completed:
 3. [x] Updated root `tsconfig.build.json`:
    - `target` → `ES2022`
    - Modern `lib` (ES2022 + DOM + DOM.Iterable)
-   - Added `moduleResolution: "node"`
-   - Kept `experimentalDecorators` + `emitDecoratorMetadata`.
+   - `moduleResolution: "node"` (first step; further modernization to `node16`/`bundler` planned as part of full modernization)
+   - Kept `experimentalDecorators` + `emitDecoratorMetadata` for now (see new "Path to Modern Decorators / DI" section).
 4. [x] Ran iterative full compilation across packages and fixed errors as they appeared (see report for details).
 5. [x] Updated `@types/node` resolution in root to `^20.12.0` and propagated to all major packages.
 
@@ -102,16 +103,18 @@ Common issues to expect:
 5. [x] Upgraded root + all packages that pinned TS.
 6. [x] Tackled decorator/tsyringe risk (workarounds applied + documented; low risk outside plugin-core).
 
-## Questions for Decision
+## Questions for Decision — Answers (May 2026)
 
-- What is the minimum acceptable modern TS version? (5.4 / 5.5 / 5.6?)
-- Are we willing to keep `experimentalDecorators + emitDecoratorMetadata` for the foreseeable future, or do we want a path to remove tsyringe?
-- Do we want to modernize `moduleResolution` at the same time, or do it in a later phase?
-- Should plugin-core (the VS Code extension) be upgraded in the same wave as the rest of the monorepo, or separately (because of VS Code engine constraints)?
+- **Minimum acceptable modern TS version**: The **latest** stable version (currently 6.0.3 as of this writing). We will target the newest stable release rather than a conservative older 5.x version.
+- **Legacy decorators + `emitDecoratorMetadata` + tsyringe**: We want to **modernize all the things**. The goal is to move away from the legacy decorator emit pattern and tsyringe over time. We will keep the legacy flags enabled during the initial upgrade for compatibility, but we will create a concrete plan to migrate to modern alternatives (either native modern decorators or a different DI approach).
+- **Modernize `moduleResolution`**: Yes — modernize it at the same time as the rest of the upgrade (move toward `"node16"`, `"bundler"`, or the recommended modern setting for the project).
+- **Upgrade scope**: Upgrade **everything in the same wave**, including `plugin-core`. The entire monorepo (all packages) should be brought up to date together so the project is fully modernized and ready for better improvements, new features, and cleaner architecture.
 
 ---
 
-**Status**: **Upgrade complete**. See `11-FINAL-MODERNIZATION-REPORT.md` for the full execution report. This document now serves as the historical plan + audit record.
+**Status**: **Base upgrade complete**. This document has been updated with the latest decisions (latest TS version, full one-wave scope including plugin-core, intent to modernize away from legacy decorators/tsyringe, modernize moduleResolution together).
+
+See `11-FINAL-MODERNIZATION-REPORT.md` for execution details of the base upgrade. A follow-up plan for full decorator/DI modernization will be added.
 
 ---
 
@@ -152,7 +155,7 @@ This is good — changes at the root will propagate, but we must be careful with
 
 ## Suggested First Concrete Steps
 
-1. Pick a target version (recommend starting with **5.5.4** — stable, good decorator support, widely used).
+1. Pick a target version: **Latest stable** (currently 6.0.x). We will use the newest stable release. A practical stepping stone (e.g. 5.6 or 5.7) may be used temporarily if 6.0 introduces too many breaking changes at once.
 2. Create an upgrade branch.
 3. Temporarily override TypeScript in root using Yarn resolutions/overrides and run a full compile to surface the first wave of errors **without** touching source yet.
 4. Decide policy on legacy decorators (keep enabled for at least 1-2 releases).
@@ -176,6 +179,23 @@ Ready to execute any of these when you give the green light.
 - `reflect-metadata` imports exist in only **7 files**, all inside `plugin-core/src/` (including web and workspaceActivator).
 
 **Implication**: Upgrading the rest of the monorepo carries **very low decorator risk**. The hard part is isolated to the VS Code extension package.
+
+### Path to Modern Decorators / DI (New — Based on Latest Decisions)
+
+Because the decision is to **modernize all the things**, we will not treat legacy decorators + tsyringe as permanent.
+
+High-level options being considered (to be researched and prototyped):
+
+1. **Migrate to modern decorators** (stage 3 / TypeScript 5+ native decorators) + a modern DI library that supports them (or no DI at all via simpler patterns).
+2. **Keep tsyringe but drop metadata emit** by switching to explicit registration + factory functions (removes need for `reflect-metadata` and legacy emit).
+3. **Replace tsyringe entirely** with a lighter solution (e.g. manual dependency passing, a small custom container, or a library designed for modern TypeScript such as `inversify` with modern decorators, or even moving toward functional / composition patterns where it makes sense).
+
+**Recommended approach for the upgrade**:
+- Perform the initial TS + config upgrade while **keeping** `experimentalDecorators` + `emitDecoratorMetadata` enabled.
+- Immediately after the base upgrade lands, start a dedicated follow-up effort to prototype a migration path for the decorator-heavy areas (primarily `plugin-core` webviews and services).
+- Goal: Remove the legacy decorator emit and `reflect-metadata` import within 1–2 follow-up milestones.
+
+This aligns with the desire for the whole project to be "updated, upgraded, modern and ready for better improvements, new features, better designs, etc."
 
 ### 2. tsconfig Landscape (Deep Audit)
 - Most packages **purely extend** root `tsconfig.build.json` (very clean inheritance).
@@ -202,9 +222,7 @@ This means the bulk of the monorepo (engine, common, cli, api-server, pods, unif
 ### 5. Immediate Observations
 - The decorator problem is **narrower** than initially feared.
 - The main monorepo (engine + common + cli) can likely be upgraded with lower risk than plugin-core.
-- Suggest splitting the upgrade into:
-  - Wave 1: Non-plugin packages + CLI
-  - Wave 2: plugin-core + plugin-views (higher risk due to VS Code + decorators + webpack)
+- Decision: Perform the upgrade in **one single wave** covering the entire monorepo, including `plugin-core`, `dendron-plugin-views`, and `nextjs-template`. No separate waves. Modernize `moduleResolution` at the same time.
 
 ## Phase 0 Execution — Completed
 
