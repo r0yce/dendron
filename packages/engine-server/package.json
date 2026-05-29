@@ -23,15 +23,15 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "clean": "rimraf lib && rimraf coverage && rimraf src/drivers/generated-prisma-client",
-    "format": "echo nop",
-    "lint": "echo stub",
+    "clean": "node -e \"const fs=require('fs'); fs.rmSync('lib',{recursive:true,force:true}); fs.rmSync('coverage',{recursive:true,force:true}); fs.rmSync('src/drivers/generated-prisma-client',{recursive:true,force:true});\"",
+    "format": "echo 'format not configured'",
+    "lint": "echo 'lint not configured'",
     "buildPrismaClient": "yarn prisma generate && node copyPrismaClient.js",
     "prepublishOnly": "yarn build",
     "prebuild": "yarn clean && yarn format && yarn lint && echo Using TypeScript && tsc --version",
     "build": "yarn compile && yarn buildPrismaClient",
     "buildCI": "yarn compile && yarn buildPrismaClient",
-    "compile": "tsc -p tsconfig.build.json ",
+    "compile": "tsc -p tsconfig.build.json",
     "watch": "yarn compile --watch"
   },
   "dependencies": {

@@ -123,7 +123,8 @@ This includes:
 **Progress**:
 - Master tracker created: `MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md`
 - `common-all`: Extremely detailed doc created
-- `common-server`: Package.json modernized + extremely detailed doc created (TOC + Mermaid diagrams)
+- `common-server`: Modernized + detailed doc
+- `engine-server`: Scripts modernized + detailed doc created
 
 This effort will continue in parallel with code modernization for every package.
 
