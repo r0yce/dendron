@@ -236,12 +236,12 @@ export async function _activate(
     await _setupCommands({ ext: ws, context, requireActiveWorkspace: false });
     // Order matters. Need to register `Reload Index` command before activating workspace
     // Workspace activation calls `RELOAD_INDEX` via {@link WSUtils.reloadWorkspace}
-    if (!existingCommands.includes(DENDRON_COMMANDS.RELOAD_INDEX.key)) {
+    if (!existingCommands.includes(DENDRON_COMMANDS.RELOAD_INDEX!.key)) {
       context.subscriptions.push(
         vscode.commands.registerCommand(
-          DENDRON_COMMANDS.RELOAD_INDEX.key,
+          DENDRON_COMMANDS.RELOAD_INDEX!.key,
           sentryReportingCallback(async (silent?: boolean) => {
-            const out = await new ReloadIndexCommand().run({ silent });
+            const out = await new ReloadIndexCommand().run({ silent: silent as boolean | undefined });
             if (!silent) {
               vscode.window.showInformationMessage(`finish reload`);
             }

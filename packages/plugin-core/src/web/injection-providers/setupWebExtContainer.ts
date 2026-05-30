@@ -11,7 +11,7 @@ import {
   NoteStore,
   type ReducedDEngine,
 } from "@dendronhq/common-all";
-import { container, Lifecycle } from "tsyringe";
+import { container, Lifecycle } from "../di/inject";
 import * as vscode from "vscode";
 import { Event, EventEmitter, TextDocument, workspace } from "vscode";
 import { URI } from "vscode-uri";

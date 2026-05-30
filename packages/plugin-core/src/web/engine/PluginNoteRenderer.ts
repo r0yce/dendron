@@ -17,7 +17,7 @@ import {
   MDUtilsV5,
   MDUtilsV5Web,
 } from "@dendronhq/unified";
-import { inject, injectable } from "tsyringe";
+import { inject, injectable } from "../../di/inject";
 import { INoteRenderer } from "./INoteRenderer";
 
 @injectable()

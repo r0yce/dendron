@@ -23,9 +23,9 @@
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    // --- Modern strictness (ready to enable - see MONOREPO tracker "Full Modernization Pass 2026")
-    // "noUncheckedIndexedAccess": true,
-    // "exactOptionalPropertyTypes": true,
+    // --- Full strict mode enabled (2026 Modernization Pass)
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     // --- language features
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,

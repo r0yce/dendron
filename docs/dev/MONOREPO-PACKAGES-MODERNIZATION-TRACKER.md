@@ -112,12 +112,12 @@ This pass continues the work after the base TS upgrade to make **everything in t
 - **Strict mode hardening prepared**: `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes` are ready in root `tsconfig.build.json` (temporarily left commented after surfacing 100+ real issues in common-all; documented as the next major wave).
 - Many peer-dep warnings and old sub-configs noted (especially in dendron-plugin-views).
 
-### In Progress / Next Immediate Items
-- Full strict flags enable + systematic fix wave (highest type safety win).
+### In Progress / Next Immediate Items (Parallel Work Started)
+- **Strict flags wave** (package-by-package): Flags now **enabled** in root. common-all currently ~113 strict errors. plugin-core has a large number surfacing. Fixing underway.
+- **Decorator/DI migration** (in parallel): 6+ files migrated to `src/di/inject` (setup containers + several web/preview files). Wrapper improved for ergonomics. More migrations continuing.
 - Deeper eslint config modernization + flat config migration planning.
 - Webpack/build system refresh for plugin-core and dendron-plugin-views.
-- Continued broader dep upgrades (lerna 3 is still the largest remaining ancient piece).
-- Mass migration to the new `di/inject` wrapper across plugin-core.
+- Continued broader dep upgrades (lerna 3 remains the largest ancient piece).
 
 See `11-FINAL-MODERNIZATION-REPORT.md` for details and recommendations.
 

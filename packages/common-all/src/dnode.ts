@@ -258,15 +258,15 @@ export class DNodeUtils {
       if (notes.length === 0) {
         throw new DendronError({ message: `no root found for ${fpath}` });
       }
-      return notes[0];
+      return notes[0]!;
     }
     const maybeNotes = await engine.findNotesMeta({
       fname: dirname,
       vault,
-      excludeStub,
+      excludeStub: excludeStub as boolean | undefined,
     });
     if (maybeNotes.length > 0) {
-      return maybeNotes[0];
+      return maybeNotes[0]!;
     } else {
       return DNodeUtils.findClosestParentWithEngine(dirname, engine, opts);
     }

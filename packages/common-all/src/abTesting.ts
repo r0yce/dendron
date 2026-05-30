@@ -75,6 +75,6 @@ export class ABTest<GroupNames> {
         return group.name;
       }
     }
-    return this.groups[this.groups.length - 1].name;
+    return this.groups[this.groups.length - 1]!.name;
   }
 }

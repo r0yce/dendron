@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { DVault, EngineEventEmitter } from "@dendronhq/common-all";
-import { container } from "tsyringe";
+import { container } from "../di/inject";
 import * as vscode from "vscode";
 import { EngineAPIService } from "../services/EngineAPIService";
 import { MetadataSvcTreeViewConfig } from "../views/node/treeview/MetadataSvcTreeViewConfig";

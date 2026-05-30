@@ -16,7 +16,7 @@ import {
   IPreviewLinkHandler,
   LinkType,
 } from "../../../components/views/IPreviewLinkHandler";
-import { inject, injectable } from "tsyringe";
+import { inject, injectable } from "../../di/inject";
 import { Utils } from "vscode-uri";
 import { openNote } from "../../utils/openNote";
 
