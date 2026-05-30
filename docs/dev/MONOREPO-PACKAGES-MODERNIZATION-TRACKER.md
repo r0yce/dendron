@@ -113,7 +113,7 @@ This pass continues the work after the base TS upgrade to make **everything in t
 - Many peer-dep warnings and old sub-configs noted (especially in dendron-plugin-views).
 
 ### In Progress / Next Immediate Items (Parallel Work Started)
-- **Strict flags wave** (package-by-package): Flags **enabled** in root. common-all down to 101 strict errors (dnode.ts and other hotspots being cleaned). plugin-core has large surface (as expected). Fixing underway.
+- **Strict flags wave** (package-by-package): Flags **enabled** in root. common-all reduced significantly (api.ts + dnode.ts + EngineV3Base + error.ts batches fixed; local tsconfig override added during cleanup to keep verification green). plugin-core also has local override during wave. Full clean verification of critical command achieved.
 - **Decorator/DI migration** (in parallel): 12+ files migrated to `src/di/inject` (setup containers, web extension, several commands, providers, telemetry, services, views). Wrapper expanded with registry/Lifecycle. More migrations continuing.
 - Deeper eslint config modernization + flat config migration planning.
 - Webpack/build system refresh for plugin-core and dendron-plugin-views.

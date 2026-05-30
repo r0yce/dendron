@@ -30,7 +30,7 @@ export class PublishUtils {
       noindex,
       image,
       twitter,
-    };
+    } as SEOProps;
   }
 
   /**

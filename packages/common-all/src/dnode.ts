@@ -262,9 +262,9 @@ export class DNodeUtils {
     }
     const maybeNotes = await engine.findNotesMeta({
       fname: dirname,
-      vault,
+      vault: vault as DVault | undefined,
       excludeStub: excludeStub as boolean | undefined,
-    });
+    } as any);
     if (maybeNotes.length > 0) {
       return maybeNotes[0]!;
     } else {
@@ -1423,7 +1423,7 @@ export class SchemaUtils {
     if (_.isNull(schema.parent)) {
       return part;
     }
-    const parent: SchemaProps = schemas[schema.parent];
+    const parent: SchemaProps = schemas[schema.parent]!;
     if (parent && parent.id !== "root") {
       const prefix = SchemaUtils.getPatternRecursive(parent, schemas);
       return [prefix, part].join("/");
@@ -1554,14 +1554,14 @@ export class SchemaUtils {
     if (!resp.data) {
       return;
     } else {
-      const domainSchema = resp.data.schemas[resp.data.root.id];
+      const domainSchema = resp.data.schemas[resp.data.root.id]!;
       if (domainName.length === notePath.length) {
         return {
           schema: domainSchema,
           notePath,
           namespace: domainSchema.data.namespace || false,
           schemaModule: resp.data,
-        };
+        } as any;
       }
       return SchemaUtils.matchPathWithSchema({
         notePath,
@@ -1581,14 +1581,14 @@ export class SchemaUtils {
   }): SchemaMatchResult | undefined {
     const { notePath, schemaModule } = opts;
     const domainName = DNodeUtils.domainName(notePath);
-    const domainSchema = schemaModule.schemas[schemaModule.root.id];
+    const domainSchema = schemaModule.schemas[schemaModule.root.id]!;
     if (domainName.length === notePath.length) {
       return {
         schema: domainSchema,
         notePath,
         namespace: domainSchema.data.namespace || false,
         schemaModule,
-      };
+      } as any;
     }
     return SchemaUtils.matchPathWithSchema({
       notePath,

@@ -248,7 +248,7 @@ export class VaultUtils {
         name === vaultPath || path.basename(vaultPath) === name
           ? undefined
           : name,
-    };
+    } as WorkspaceFolderRaw;
   }
 
   static FILE_VAULT_PREFIX = "dir-";

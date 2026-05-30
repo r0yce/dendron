@@ -4,7 +4,7 @@ import { NoteTestUtilsV4 } from "@dendronhq/common-test-utils";
 import _ from "lodash";
 import { beforeEach, describe } from "mocha";
 import path from "path";
-import { container } from "tsyringe";
+import { container } from "../../di/inject";
 import { Uri } from "vscode";
 import { DeleteCommand } from "../../commands/DeleteCommand";
 import { RenameNoteV2aCommand } from "../../commands/RenameNoteV2a";

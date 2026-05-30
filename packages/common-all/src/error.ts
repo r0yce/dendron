@@ -133,7 +133,7 @@ export class DendronError<TCode = StatusCodes | undefined>
     super(message);
     this.name = "DendronError";
     this.status = status || "unknown";
-    this.severity = severity;
+    this.severity = severity ?? undefined;
     this.message = message || "";
     if (payload?.message && payload?.stack) {
       this.payload = JSON.stringify({
@@ -145,8 +145,8 @@ export class DendronError<TCode = StatusCodes | undefined>
     } else {
       this.payload = JSON.stringify(payload || {});
     }
-    this.code = code;
-    this.innerError = innerError;
+    this.code = code ?? undefined;
+    this.innerError = innerError ?? undefined;
     if (innerError) {
       this.stack = innerError.stack;
     }

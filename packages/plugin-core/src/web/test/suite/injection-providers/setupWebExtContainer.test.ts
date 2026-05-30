@@ -1,7 +1,7 @@
 import assert from "assert";
 import _ from "lodash";
 import sinon from "sinon";
-import { container } from "tsyringe";
+import { container } from "../../../../di/inject";
 import * as vscode from "vscode";
 import { URI, Utils } from "vscode-uri";
 import { NoteLookupAutoCompleteCommand } from "../../../../commands/common/NoteLookupAutoCompleteCommand";

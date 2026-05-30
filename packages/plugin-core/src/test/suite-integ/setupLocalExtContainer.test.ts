@@ -1,6 +1,6 @@
 import assert from "assert";
 import _ from "lodash";
-import { container } from "tsyringe";
+import { container } from "../../di/inject";
 import { ExtensionProvider } from "../../ExtensionProvider";
 import { setupLocalExtContainer } from "../../injection-providers/setupLocalExtContainer";
 import { EngineAPIService } from "../../services/EngineAPIService";

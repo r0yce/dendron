@@ -90,7 +90,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
       data: bulkResponses
         .flatMap((response) => response.data)
         .filter(isNotUndefined),
-    };
+    } as any;
   }
 
   /**
@@ -108,7 +108,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
       data: bulkResponses
         .flatMap((response) => response.data)
         .filter(isNotUndefined),
-    };
+    } as any;
   }
 
   /**

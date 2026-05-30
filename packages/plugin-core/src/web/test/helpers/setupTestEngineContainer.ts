@@ -12,7 +12,7 @@ import {
   NoteStore,
   NoteUtils,
 } from "@dendronhq/common-all";
-import { container, Lifecycle } from "tsyringe";
+import { container, Lifecycle } from "../../../di/inject";
 import { ILookupProvider } from "../../commands/lookup/ILookupProvider";
 import { NoteLookupProvider } from "../../commands/lookup/NoteLookupProvider";
 import { DendronEngineV3Web } from "../../engine/DendronEngineV3Web";

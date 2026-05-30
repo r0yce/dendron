@@ -327,7 +327,7 @@ export class DendronAPI extends API {
       path: "config/get",
       method: "get",
       qs: req,
-    });
+    }) as Promise<RespV3<DendronConfig>>;
   }
 
   workspaceInit(req: WorkspaceInitRequest): Promise<DEngineInitResp> {
@@ -337,7 +337,7 @@ export class DendronAPI extends API {
       body: {
         ...req,
       },
-    });
+    }) as Promise<DEngineInitResp>;
   }
 
   workspaceSync(req: WorkspaceSyncRequest): Promise<DEngineInitResp> {
@@ -345,7 +345,7 @@ export class DendronAPI extends API {
       path: "workspace/sync",
       method: "post",
       body: req,
-    });
+    }) as Promise<DEngineInitResp>;
   }
 
   engineBulkAdd(req: EngineBulkAddRequest): Promise<BulkWriteNotesResp> {
@@ -353,7 +353,7 @@ export class DendronAPI extends API {
       path: "note/bulkAdd",
       method: "post",
       body: req,
-    });
+    }) as Promise<BulkWriteNotesResp>;
   }
 
   engineDelete(req: EngineDeleteRequest): Promise<DeleteNoteResp> {
@@ -361,14 +361,14 @@ export class DendronAPI extends API {
       path: "note/delete",
       method: "post",
       body: req,
-    });
+    }) as Promise<DeleteNoteResp>;
   }
 
   engineInfo(): Promise<EngineInfoResp> {
     return this._makeRequest({
       path: "note/info",
       method: "get",
-    });
+    }) as Promise<EngineInfoResp>;
   }
 
   engineRenameNote(req: EngineRenameNoteRequest): Promise<RenameNoteResp> {
@@ -376,7 +376,7 @@ export class DendronAPI extends API {
       path: "note/rename",
       method: "post",
       body: req,
-    });
+    }) as Promise<RenameNoteResp>;
   }
 
   engineWrite(req: EngineWriteRequest): Promise<WriteNoteResp> {
@@ -384,7 +384,7 @@ export class DendronAPI extends API {
       path: "note/write",
       method: "post",
       body: req,
-    });
+    }) as Promise<WriteNoteResp>;
   }
 
   noteGet(req: EngineGetNoteRequest): Promise<GetNoteResp> {
@@ -392,7 +392,7 @@ export class DendronAPI extends API {
       path: "note/get",
       method: "get",
       qs: req,
-    });
+    }) as Promise<GetNoteResp>;
   }
 
   noteGetMeta(req: EngineGetNoteRequest): Promise<GetNoteMetaResp> {
@@ -400,7 +400,7 @@ export class DendronAPI extends API {
       path: "note/getMeta",
       method: "get",
       qs: req,
-    });
+    }) as Promise<GetNoteMetaResp>;
   }
 
   noteBulkGet(req: EngineBulkGetNoteRequest): Promise<BulkGetNoteResp> {
@@ -408,7 +408,7 @@ export class DendronAPI extends API {
       path: "note/bulkGet",
       method: "get",
       qs: req,
-    });
+    }) as Promise<BulkGetNoteResp>;
   }
 
   noteBulkGetMeta(req: EngineBulkGetNoteRequest): Promise<BulkGetNoteMetaResp> {
@@ -416,7 +416,7 @@ export class DendronAPI extends API {
       path: "note/bulkGetMeta",
       method: "get",
       qs: req,
-    });
+    }) as Promise<BulkGetNoteMetaResp>;
   }
 
   noteFind(req: APIRequest<FindNoteOpts>): Promise<RespV3<FindNotesResp>> {
@@ -424,7 +424,7 @@ export class DendronAPI extends API {
       path: "note/find",
       method: "post",
       body: req,
-    });
+    }) as Promise<RespV3<FindNotesResp>>;
   }
 
   noteFindMeta(
@@ -434,7 +434,7 @@ export class DendronAPI extends API {
       path: "note/findMeta",
       method: "post",
       body: req,
-    });
+    }) as Promise<RespV3<FindNotesMetaResp>>;
   }
 
   noteQuery(req: NoteQueryRequest): Promise<RespV3<QueryNotesResp>> {
@@ -442,7 +442,7 @@ export class DendronAPI extends API {
       path: "note/query",
       method: "get",
       qs: req,
-    });
+    }) as Promise<RespV3<QueryNotesResp>>;
   }
 
   noteRender(req: APIRequest<RenderNoteOpts>): Promise<RenderNoteResp> {
@@ -450,7 +450,7 @@ export class DendronAPI extends API {
       path: "note/render",
       method: "post",
       body: req,
-    });
+    }) as Promise<RenderNoteResp>;
   }
 
   getNoteBlocks(req: GetNoteBlocksRequest): Promise<GetNoteBlocksResp> {
@@ -458,7 +458,7 @@ export class DendronAPI extends API {
       path: "note/blocks",
       method: "get",
       qs: req,
-    });
+    }) as Promise<GetNoteBlocksResp>;
   }
 
   getDecorations(req: GetDecorationsRequest): Promise<GetDecorationsResp> {
@@ -466,7 +466,7 @@ export class DendronAPI extends API {
       path: "note/decorations",
       method: "post",
       body: req,
-    });
+    }) as Promise<GetDecorationsResp>;
   }
 
   schemaDelete(req: SchemaDeleteRequest): Promise<DeleteSchemaResp> {
@@ -474,7 +474,7 @@ export class DendronAPI extends API {
       path: "schema/delete",
       method: "post",
       body: req,
-    });
+    }) as Promise<DeleteSchemaResp>;
   }
 
   schemaRead(req: SchemaReadRequest): Promise<GetSchemaResp> {
@@ -482,7 +482,7 @@ export class DendronAPI extends API {
       path: "schema/get",
       method: "get",
       qs: req,
-    });
+    }) as Promise<GetSchemaResp>;
   }
 
   schemaQuery(req: SchemaQueryRequest): Promise<QuerySchemaResp> {
@@ -490,7 +490,7 @@ export class DendronAPI extends API {
       path: "schema/query",
       method: "post",
       body: req,
-    });
+    }) as Promise<QuerySchemaResp>;
   }
 
   schemaWrite(req: SchemaWriteRequest): Promise<WriteSchemaResp> {
@@ -498,7 +498,7 @@ export class DendronAPI extends API {
       path: "schema/write",
       method: "post",
       body: req,
-    });
+    }) as Promise<WriteSchemaResp>;
   }
 }
 

@@ -79,7 +79,7 @@ export class NoteLookupUtils {
     const roots: NoteProps[] = NoteUtils.getRoots(notes);
 
     const childrenOfRoot = roots.flatMap((ent) => ent.children);
-    const childrenOfRootNotes = _.map(childrenOfRoot, (ent) => notes[ent]);
+    const childrenOfRootNotes = _.map(childrenOfRoot, (ent) => notes[ent]).filter(Boolean) as NoteProps[];
     return roots.concat(childrenOfRootNotes);
   };
   /**
