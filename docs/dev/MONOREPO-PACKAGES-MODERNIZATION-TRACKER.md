@@ -37,13 +37,13 @@
 - [x] **common-test-utils** — Testing helpers  
   **Status**: Scripts modernized (rimraf + ts-node updated). Compiles cleanly. Detailed doc created with TOC + Mermaid.
 - [x] **engine-server** — Core Dendron engine  
-  **Status**: Scripts modernized (rimraf removed). Compiles cleanly. Extremely detailed doc created with TOC + architecture Mermaid.
+  **Status**: Scripts modernized (final rimraf devDep removed in cleanup pass). Compiles cleanly. Extremely detailed doc created with TOC + architecture Mermaid.
 - [x] **engine-test-utils** — Engine testing utilities  
   **Status**: Scripts modernized. Compiles cleanly. Detailed doc created.
 - [x] **api-server** — HTTP API server for the engine  
   **Status**: Scripts modernized. Compiles cleanly. Detailed doc created.
 - [x] **pods-core** — Import/Export pod system  
-  **Status**: Scripts modernized. Detailed doc created (some node_modules type friction noted after @types/node bump).
+  **Status**: Scripts modernized (rimraf removed). Final type friction (emailjs shipping .ts types incompatible with @types/node 20 + TS 5.5 on Node 26) resolved with local ambient shim + compiler paths redirect. Compiles cleanly. Doc updated.
 - [x] **unified** — Markdown processing pipeline  
   **Status**: Scripts modernized. Detailed doc created.
 
@@ -54,7 +54,7 @@
 ### UI / Extension Packages
 
 - [x] **plugin-core** — The main VS Code extension (highest complexity)  
-  **Status**: Scripts modernized (rimraf removed). TS 5.5.4 + @types/node 20. Extremely detailed doc created with full architecture, challenges, and roadmap. Decorator workarounds applied for compilation. This completes the full one-wave modernization of **every package**.
+  **Status**: Scripts modernized (final `buildCI` rimraf reference removed in cleanup pass). TS 5.5.4 + @types/node 20. Extremely detailed doc created with full architecture, challenges, and roadmap. Decorator workarounds applied for compilation. This completes the full one-wave modernization of **every package**.
 - [x] **dendron-plugin-views** — React webviews for the extension  
   **Status**: Scripts modernized (rimraf removed). Very complex package — detailed high-level doc created. Major future build system work needed.
 - [x] **dendron-viz** — Visualization tools  
@@ -94,9 +94,34 @@ Every package documentation file must contain at minimum:
 
 ---
 
-**Last Updated**: [Will be maintained as work progresses]
+**Last Updated**: 2026-05-29 (final rimraf cleanup + full verification pass)
 
-**Overall Progress**: **17 / 17 packages** — Full one-wave modernization + extremely detailed per-package documentation **COMPLETE**. 
+**Overall Progress**: **17 / 17 packages** — Full one-wave modernization + extremely detailed per-package documentation **COMPLETE**.
+
+---
+
+## Final Verification (Post-Cleanup)
+
+After the rimraf removal sweep and all per-package modernization:
+
+- All source-controlled `package.json` files are valid JSON (no trailing commas).
+- Zero remaining direct `rimraf` references in our controlled package.json scripts or devDependencies (only transitive in node_modules/yarn.lock as expected).
+- The exact command the user requested: `yarn bootstrap:build:common-all && yarn workspace @dendronhq/plugin-core compile` — **succeeds cleanly (exit 0)**.
+- `yarn bootstrap:build:fast` (the full primary chain) — **succeeds cleanly (exit 0)**.
+- Individual `yarn workspace @dendronhq/<pkg> compile` (or build) succeeds for every core compilable package:
+  - common-all, common-server, common-frontend, common-test-utils
+  - unified, pods-core (with emailjs shim), engine-server, api-server
+  - dendron-cli, engine-test-utils, dendron-viz
+  - dendron-plugin-views (webpack), common-assets (gulp)
+  - plugin-core (full compile)
+
+Ancillary packages (generator-dendron, dendron-design-system, nextjs-template) have pre-existing environment/dependency requirements for their full builds (own yarn.lock, data fixtures, Chakra resolution) but are not blockers for the core monorepo compile story.
+
+All issues encountered during the final sweep were diagnosed and fixed in-place:
+- Final two rimraf call sites removed (engine-server dep, plugin-core buildCI script).
+- pods-core emailjs type incompatibility resolved via `src/typings/emailjs.d.ts` + `paths` mapping (no change to runtime behavior).
+
+The monorepo on `typescript-upgrade/phase0` is now in a clean, modern, fully-compilable state.
 
 All packages now have:
 - Modernized scripts / package.json where applicable

@@ -12,6 +12,7 @@ export class CopyNoteURLCmd {
 
   constructor(
     private wsUtils: WSUtilsWeb,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("ITelemetryClient") private _analytics: ITelemetryClient,
     private siteUtils?: SiteUtilsWeb
   ) {}

@@ -51,9 +51,13 @@ export class DendronEngineV3Web
   private wsRootURI: URI;
 
   constructor(
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("wsRoot") wsRootURI: URI,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("vaults") vaults: DVault[],
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("IFileStore") private fileStore: IFileStore, // TODO: Engine shouldn't be aware of FileStore. Currently still needed because of Init Logic
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("INoteStore") noteStore: INoteStore<string>
   ) {
     super({

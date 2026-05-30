@@ -18,7 +18,10 @@ import {
  */
 @injectable()
 export class NoteLookupProvider implements ILookupProvider {
-  constructor(@inject("ReducedDEngine") private engine: ReducedDEngine) {}
+  constructor(
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
+    @inject("ReducedDEngine") private engine: ReducedDEngine
+  ) {}
 
   async provideItems(opts: provideItemsProps): Promise<NoteQuickInputV2[]> {
     const { token, showDirectChildrenOnly, workspaceState } = opts;

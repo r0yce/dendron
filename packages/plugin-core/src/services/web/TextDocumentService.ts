@@ -44,10 +44,15 @@ export class TextDocumentService implements ITextDocumentService {
   _textDocumentEventHandle: Disposable;
 
   constructor(
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("textDocumentEvent") textDocumentEvent: Event<TextDocument>,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("wsRoot") private wsRoot: URI,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("vaults") private vaults: DVault[],
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("ReducedDEngine") private engine: ReducedDEngine,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("logger") private L: DLogger
   ) {
     this._textDocumentEventHandle = textDocumentEvent(this.onDidSave, this);

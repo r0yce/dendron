@@ -107,7 +107,8 @@ These are now much easier because the foundation is modern:
 - 12+ package.json files for TS and @types/node versions
 - Root `tsconfig.build.json`
 - Multiple source fixes across common-all, common-server, engine-test-utils, plugin-core, etc.
-- New/updated docs in `docs/dev/` (09, 10, 11)
+- New/updated docs in `docs/dev/` (09, 10, 11, and all per-package files)
+- Final cleanup pass (rimraf removal + emailjs shim for pods-core + full build verification) documented in MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md
 
 ## Per-Package Extreme Documentation Effort (New Mandate)
 
@@ -165,3 +166,27 @@ The project is in a good state for ongoing personal maintenance and incremental 
 
 **Branch**: `typescript-upgrade/phase0`  
 **Final Status**: Modern TypeScript foundation in place + major CLI and dependency cleanups completed. Ready for continued work.
+
+---
+
+## Post-Report Final Cleanup & Verification (User Request)
+
+After the main report, the user requested a final "clean that up" pass + guarantee that **all compilable packages actually compile**.
+
+Actions taken autonomously:
+1. Full codebase search for remaining `rimraf` (source-controlled package.json only).
+2. Removed the last two direct references:
+   - `packages/engine-server/package.json`: deleted the unused `"rimraf": "^2.6.2"` devDependency (clean script already used `fs.rmSync`).
+   - `packages/plugin-core/package.json`: replaced the last `yarn rimraf` call in `buildCI` script with an equivalent `node -e "fs.rmSync..."` one-liner.
+3. All 20+ source package.json files re-validated for strict JSON correctness (no trailing commas introduced by any prior edit).
+4. During the sweep, `pods-core` failed to compile due to `emailjs` shipping `"types": "./email.ts"` (actual source with modern Node `Timer` vs legacy `Timeout` mismatch). Fixed with:
+   - `packages/pods-core/src/typings/emailjs.d.ts` (ambient declaration)
+   - `paths` + `baseUrl` entries in both of its tsconfig files (redirects the module name before the package.json "types" field wins).
+5. Full verification:
+   - `yarn bootstrap:build:common-all && yarn workspace @dendronhq/plugin-core compile` — **passes cleanly**.
+   - `yarn bootstrap:build:fast` (primary chain) — **passes cleanly**.
+   - Every individual core package `compile` / `build` succeeds.
+
+Result: The monorepo is now in a **provably clean, fully compiling state** on modern Node + TS 5.5.4 with zero rimraf in our build scripts.
+
+All per-package docs and the master tracker were updated with the final status.

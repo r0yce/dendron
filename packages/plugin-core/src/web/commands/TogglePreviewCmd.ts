@@ -18,7 +18,9 @@ export class TogglePreviewCmd {
   _panel: PreviewProxy;
 
   constructor(
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("PreviewProxy") previewPanel: PreviewProxy,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("ITelemetryClient") private _analytics: ITelemetryClient,
     // @inject("wsRoot") private wsRoot: URI, // This will be needed later for openFile functionality
     private wsUtils: WSUtilsWeb

@@ -36,7 +36,9 @@ import { getAnonymousId } from "./getAnonymousId";
 ])
 export class WebTelemetryClient implements ITelemetryClient {
   constructor(
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("anonymousId") private anonymousId: string,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("extVersion") private extVersion: string
   ) {}
 

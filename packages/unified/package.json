@@ -64,8 +64,7 @@
   },
   "devDependencies": {
     "@types/mdast": "^3.0.10",
-    "@types/unist": "^2.0.6",
-    "rimraf": "^2.6.2"
+    "@types/unist": "^2.0.6"
   },
   "engines": {
     "node": ">=18.0.0"

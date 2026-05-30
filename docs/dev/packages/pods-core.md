@@ -78,7 +78,7 @@ Note: Some transitive type conflicts exist with newer `@types/node` (e.g. emailj
 
 ## Build & Compilation
 
-Compiles cleanly at the source level. Some node_modules type friction remains after the @types/node modernization.
+Compiles cleanly at the source level. The emailjs type conflict (library ships .ts sources with Timer/Timeout incompatibility vs modern @types/node + TS 5.x) was resolved with a local `src/typings/emailjs.d.ts` ambient declaration + `paths` redirect in both tsconfig files. This completely isolates the bad types without affecting runtime.
 
 ---
 
@@ -87,7 +87,7 @@ Compiles cleanly at the source level. Some node_modules type friction remains af
 | Area              | Status     | Notes |
 |-------------------|------------|-------|
 | TypeScript        | Modern     | 5.5.4 |
-| @types/node       | ^20.12.0   | Some node_modules conflicts |
+| @types/node       | ^20.12.0   | Clean compile via local type shim for emailjs |
 | Scripts           | Modernized | rimraf removed |
 | Documentation     | Created    | This file |
 
@@ -95,7 +95,7 @@ Compiles cleanly at the source level. Some node_modules type friction remains af
 
 ## Modernization Roadmap
 
-- [ ] Resolve or better isolate emailjs / similar type conflicts.
+- [x] Resolved emailjs type conflict via local shim + paths redirect (compiles cleanly).
 - [ ] Continue V2 pod migration if not complete.
 - [ ] Participate in broader dependency cleanup.
 

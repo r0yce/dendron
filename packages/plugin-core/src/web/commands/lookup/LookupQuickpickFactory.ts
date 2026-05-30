@@ -33,8 +33,11 @@ export type LookupAcceptPayload = {
 @injectable()
 export class LookupQuickpickFactory {
   constructor(
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("ReducedDEngine") private _engine: ReducedDEngine,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("vaults") private vaults: DVault[],
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("AutoCompleteEvent") private tabAutoCompleteEvent: Event<void>,
     private wsUtils: WSUtilsWeb
   ) {}

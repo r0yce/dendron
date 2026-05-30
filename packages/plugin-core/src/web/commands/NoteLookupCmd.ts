@@ -16,10 +16,14 @@ import { LookupQuickpickFactory } from "./lookup/LookupQuickpickFactory";
 export class NoteLookupCmd {
   constructor(
     private factory: LookupQuickpickFactory,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("wsRoot") private wsRoot: URI,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("ReducedDEngine")
     private engine: ReducedDEngine,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("NoteProvider") private noteProvider: ILookupProvider,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("ITelemetryClient") private _analytics: ITelemetryClient
   ) {}
 

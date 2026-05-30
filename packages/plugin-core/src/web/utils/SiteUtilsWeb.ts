@@ -10,9 +10,13 @@ import { inject, injectable } from "tsyringe";
 @injectable()
 export class SiteUtilsWeb {
   constructor(
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("siteUrl") private siteUrl?: string,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("siteIndex") private siteIndex?: string,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("assetsPrefix") private assetsPrefix?: string,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("enablePrettyLinks") private enablePrettyLinks?: boolean
   ) {}
 

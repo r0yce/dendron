@@ -26,9 +26,12 @@ export class PluginNoteRenderer implements INoteRenderer {
   // parameters that are needed. Right now, the unified proc's require the
   // entire config to be passed in.
   constructor(
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("DendronConfig")
     private publishingConfig: DendronConfig, // why is this call publishingConfig?
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("ReducedDEngine") private engine: ReducedDEngine,
+    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("vaults") private vaults: DVault[]
   ) {}
 

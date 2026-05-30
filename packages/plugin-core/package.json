@@ -1486,7 +1486,7 @@
     "webpack:dev:watch": "yarn webpack --watch",
     "webpack:prod": "webpack --config webpack.prod.js",
     "watch": "yarn compile --watch",
-    "buildCI": "yarn rimraf out && yarn compile",
+    "buildCI": "node -e \"const fs=require('fs'); try { fs.rmSync('out',{recursive:true,force:true}); } catch(e){}\" && yarn compile",
     "build": "yarn compile",
     "build:dev": "yarn webpack",
     "build:prod": "yarn webpack:prod && ./scripts/varSub.sh && yarn package-web",

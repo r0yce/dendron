@@ -22,14 +22,14 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "clean": "rimraf lib && rimraf coverage",
-    "format": "echo nop",
-    "lint": "echo stub",
+    "clean": "node -e \"const fs=require('fs'); ['lib','coverage'].forEach(d => { try { fs.rmSync(d,{recursive:true,force:true}); } catch(e){} });\"",
+    "format": "echo 'format not configured'",
+    "lint": "echo 'lint not configured'",
     "prepublishOnly": "yarn build",
     "prebuild": "yarn clean && yarn format && yarn lint && echo Using TypeScript && tsc --version",
     "build": "yarn compile",
     "buildCI": "yarn compile",
-    "compile": "tsc -p tsconfig.build.json ",
+    "compile": "tsc -p tsconfig.build.json",
     "watch": "yarn compile --watch"
   },
   "dependencies": {
@@ -70,7 +70,6 @@
     "@types/title": "^3.4.1",
     "@types/unist": "^2.0.3",
     "coveralls": "^3.0.2",
-    "rimraf": "^2.6.2",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.15.0"
   },
