@@ -23,7 +23,7 @@
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    // TODO (post TS 5.5 upgrade): Re-enable for stricter codebase
+    // --- Modern strictness (ready to enable - see MONOREPO tracker "Full Modernization Pass 2026")
     // "noUncheckedIndexedAccess": true,
     // "exactOptionalPropertyTypes": true,
     // --- language features

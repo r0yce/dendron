@@ -164,8 +164,16 @@ The project is in a good state for ongoing personal maintenance and incremental 
 
 ---
 
-**Branch**: `typescript-upgrade/phase0`  
-**Final Status**: Modern TypeScript foundation in place + major CLI and dependency cleanups completed. Ready for continued work.
+**Branch**: `main` (merged from typescript-upgrade/phase0 + Full Modernization Pass)
+
+**Final Status (as of this autonomous pass)**: 
+- Major linting, formatting, and git hook tooling brought to modern versions.
+- First concrete step taken on the long-standing decorator/DI debt (typed wrapper introduced).
+- Strict mode flags prepared and the scale of work quantified.
+- Repo remains fully compiling and usable.
+- All changes pushed to main.
+
+The "make everything modern" mandate is being executed in waves. See the updated MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md for the live status of this pass.
 
 ---
 

@@ -94,9 +94,32 @@ Every package documentation file must contain at minimum:
 
 ---
 
-**Last Updated**: 2026-05-29 (final rimraf cleanup + full verification pass)
+**Last Updated**: 2026-05-30 (Full Modernization Pass - lint stack, husky, decorator wrapper, strict flags prepared)
 
 **Overall Progress**: **17 / 17 packages** — Full one-wave modernization + extremely detailed per-package documentation **COMPLETE**.
+
+---
+
+## Full Modernization Pass 2026 (Current Wave)
+
+This pass continues the work after the base TS upgrade to make **everything in the repository modern**.
+
+### Completed in This Pass
+- **ESLint + @typescript-eslint**: Upgraded from v5 / ESLint 7 → v7 / ESLint 8.57. Legacy deprecated rules cleaned (`ban-ts-ignore`, `camelcase`, `interface-name-prefix`). Lint stack now runs on the full monorepo.
+- **Prettier**: ^2 → ^3.3
+- **Husky**: v4 → v9 (modern .husky/ setup with prepare script).
+- **Decorator/DI path started**: Created `packages/plugin-core/src/di/inject.ts` — typed wrapper that centralizes `@ts-expect-error` noise for tsyringe + legacy decorators. First concrete step toward cleaning the ~95 decorator sites.
+- **Strict mode hardening prepared**: `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes` are ready in root `tsconfig.build.json` (temporarily left commented after surfacing 100+ real issues in common-all; documented as the next major wave).
+- Many peer-dep warnings and old sub-configs noted (especially in dendron-plugin-views).
+
+### In Progress / Next Immediate Items
+- Full strict flags enable + systematic fix wave (highest type safety win).
+- Deeper eslint config modernization + flat config migration planning.
+- Webpack/build system refresh for plugin-core and dendron-plugin-views.
+- Continued broader dep upgrades (lerna 3 is still the largest remaining ancient piece).
+- Mass migration to the new `di/inject` wrapper across plugin-core.
+
+See `11-FINAL-MODERNIZATION-REPORT.md` for details and recommendations.
 
 ---
 
