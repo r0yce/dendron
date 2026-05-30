@@ -43,7 +43,7 @@ import { DendronNativeWorkspace } from "./nativeWorkspace";
 import { WorkspaceInitFactory } from "./WorkspaceInitFactory";
 import { WorkspaceInitializer } from "./workspaceInitializer";
 import { CreateNoteCommand } from "../commands/CreateNoteCommand";
-import { container } from "tsyringe";
+import { container } from "../di/inject";
 import { NativeTreeView } from "../views/common/treeview/NativeTreeView";
 import SparkMD5 from "spark-md5";
 

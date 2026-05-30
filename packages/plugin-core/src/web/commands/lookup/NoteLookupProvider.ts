@@ -5,7 +5,7 @@ import {
   TransformedQueryString,
   type ReducedDEngine,
 } from "@dendronhq/common-all";
-import { inject, injectable } from "tsyringe";
+import { inject, injectable } from "../../di/inject";
 import { window } from "vscode";
 import {
   ILookupProvider,

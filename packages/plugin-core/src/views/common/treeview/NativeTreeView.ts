@@ -5,7 +5,7 @@ import {
   TreeViewItemLabelTypeEnum,
 } from "@dendronhq/common-all";
 import _ from "lodash";
-import { injectable } from "tsyringe";
+import { injectable } from "../../di/inject";
 import { Disposable, TextEditor, TreeView, window } from "vscode";
 import { EngineNoteProvider } from "./EngineNoteProvider";
 import { TreeNote } from "./TreeNote";

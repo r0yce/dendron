@@ -2,7 +2,7 @@ import _ from "lodash";
 import { env, window } from "vscode";
 import { WSUtilsWeb } from "../utils/WSUtils";
 import { SiteUtilsWeb } from "../utils/SiteUtilsWeb";
-import { inject, injectable } from "tsyringe";
+import { inject, injectable } from "../../di/inject";
 import { DENDRON_COMMANDS } from "../../constants";
 import { type ITelemetryClient } from "../../telemetry/common/ITelemetryClient";
 

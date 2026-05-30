@@ -1,6 +1,6 @@
 import { AppNames } from "@dendronhq/common-all";
 import axios, { AxiosRequestConfig } from "axios";
-import { inject, injectable, registry } from "tsyringe";
+import { inject, injectable, registry } from "../../di/inject";
 import * as vscode from "vscode";
 import { ITelemetryClient } from "../common/ITelemetryClient";
 import { getAnonymousId } from "./getAnonymousId";

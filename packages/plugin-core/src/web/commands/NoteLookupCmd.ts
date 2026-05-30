@@ -4,7 +4,7 @@ import {
   VaultUtils,
   VSCodeEvents,
 } from "@dendronhq/common-all";
-import { inject, injectable } from "tsyringe";
+import { inject, injectable } from "../../di/inject";
 import * as vscode from "vscode";
 import { URI, Utils } from "vscode-uri";
 import { DENDRON_COMMANDS } from "../../constants";

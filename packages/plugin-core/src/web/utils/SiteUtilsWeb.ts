@@ -5,7 +5,7 @@ import {
   NoteProps,
 } from "@dendronhq/common-all";
 import _ from "lodash";
-import { inject, injectable } from "tsyringe";
+import { inject, injectable } from "../../di/inject";
 
 @injectable()
 export class SiteUtilsWeb {

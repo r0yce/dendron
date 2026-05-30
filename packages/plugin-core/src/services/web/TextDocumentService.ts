@@ -14,7 +14,7 @@ import {
 } from "@dendronhq/common-all";
 import { MDUtilsV5 } from "@dendronhq/unified";
 import _ from "lodash";
-import { inject, injectable } from "tsyringe";
+import { inject, injectable } from "../../di/inject";
 import visit from "unist-util-visit";
 import * as vscode from "vscode";
 import {

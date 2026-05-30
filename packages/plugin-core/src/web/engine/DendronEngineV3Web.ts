@@ -38,7 +38,7 @@ import {
   WriteNoteResp,
 } from "@dendronhq/common-all";
 import _ from "lodash";
-import { inject, singleton } from "tsyringe";
+import { inject, singleton } from "../../di/inject";
 import { URI, Utils } from "vscode-uri";
 import { NoteParserV2 } from "./NoteParserV2";
 

@@ -588,7 +588,7 @@ export class NoteUtils {
     schemaId: string;
     vault: DVault;
   }) {
-    const mschema = schemaModule.schemas[schemaId];
+    const mschema = schemaModule.schemas[schemaId]!;
     return NoteUtils.create({
       fname,
       schemaStub: true,
@@ -614,7 +614,7 @@ export class NoteUtils {
         throw Error("schema mod required");
       }
       const domain = schemaMod.root;
-      const schema = schemaMod.schemas[note.schema.schemaId];
+      const schema = schemaMod.schemas[note.schema.schemaId]!;
       // case: recognized schema
       prefixParts.push(`$(repo) ${domain.title || domain.id}`);
 
@@ -676,11 +676,11 @@ export class NoteUtils {
     const titleFromBasename = DNodeUtils.basename(fname, true);
     // check if title is unchanged from default. if so, add default title
     if (_.toLower(fname) === fname) {
-      fname = titleFromBasename.replace(/-/g, " ");
+      fname = titleFromBasename!.replace(/-/g, " ");
       return title(fname);
     }
     // if user customized title, return the title as user specified
-    return titleFromBasename;
+    return titleFromBasename!;
   }
 
   static genTitleFromFullFname(fname: string): string {
@@ -1105,8 +1105,8 @@ export class NoteUtils {
     let note: NotePropsMeta | undefined = (
       await engine.findNotesMeta({
         fname,
-        vault,
-      })
+        vault: vault as DVault | undefined,
+      } as any)
     )[0];
 
     // Check if we need this note itself
@@ -1117,7 +1117,7 @@ export class NoteUtils {
     while (parts.length > 1) {
       parts = parts.slice(undefined, parts.length - 1);
       // eslint-disable-next-line no-await-in-loop
-      note = (await engine.findNotesMeta({ fname: parts.join("."), vault }))[0];
+      note = (await engine.findNotesMeta({ fname: parts.join("."), vault: vault as DVault | undefined } as any))[0];
       if (note && !(nonStubOnly && note.stub)) return note;
     }
 
@@ -1125,7 +1125,7 @@ export class NoteUtils {
     if (note) {
       // Yielded at least one note
       if (!vault) vault = note.vault;
-      note = (await engine.findNotesMeta({ fname: "root", vault }))[0];
+      note = (await engine.findNotesMeta({ fname: "root", vault: vault as DVault | undefined } as any))[0];
       return note;
     }
     return;

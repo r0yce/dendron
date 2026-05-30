@@ -7,7 +7,7 @@ import {
   type ReducedDEngine,
 } from "@dendronhq/common-all";
 import _ from "lodash";
-import { inject, injectable } from "tsyringe";
+import { inject, injectable } from "../../di/inject";
 import * as vscode from "vscode";
 import { Event, QuickPick, QuickPickOptions } from "vscode";
 import { Utils } from "vscode-uri";

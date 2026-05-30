@@ -19,6 +19,7 @@ import {
   singleton as tsyringeSingleton,
   container as tsyringeContainer,
   Lifecycle,
+  registry as tsyringeRegistry,
 } from "tsyringe";
 
 // Re-export the raw container (use sparingly)
@@ -30,3 +31,4 @@ export { tsyringeContainer as rawContainer, Lifecycle };
 export const inject = tsyringeInject;
 export const injectable = tsyringeInjectable;
 export const singleton = tsyringeSingleton;
+export const registry = tsyringeRegistry;
