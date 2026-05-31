@@ -126,6 +126,14 @@
     {
       "name": "Dendron: Full Debug (Extension + Engine Tests)",
       "configurations": ["Run Dendron Extension (Desktop)", "Debug Current Test File (Jest, engine-test-utils)"]
+    },
+    {
+      "name": "Dendron p6 DX: Plugin-Core + Doctor CLI (health + perf breakpoints)",
+      "configurations": ["Run Dendron Extension (Desktop) - [open monorepo root]", "Debug Dendron-CLI (ts-node bin + doctor health)", "Debug Doctor (health checks + perf)"]
+    },
+    {
+      "name": "Dendron p6+7 DX: Full Insiders Perf (Extension + RingBuffer Doctor)",
+      "configurations": ["Run Dendron Extension (Desktop) - [open monorepo root]", "Debug Doctor (health checks + perf)"]
     }
   ]
 }
