@@ -11,7 +11,7 @@ import {
   NoteStore,
   type ReducedDEngine,
 } from "@dendronhq/common-all";
-import { container, Lifecycle } from "../../di/inject";
+import { container, Lifecycle, TOKENS, registerWebDependencies } from "../../di/inject"; // Phase 2: TOKENS + shim (common-di pure delegation)
 import * as vscode from "vscode";
 import { Event, EventEmitter, TextDocument, workspace } from "vscode";
 import { URI } from "vscode-uri";
@@ -94,12 +94,16 @@ export async function setupWebExtContainer(context: vscode.ExtensionContext) {
     { lifecycle: Lifecycle.Singleton }
   );
 
-  container.register("wsRoot", { useValue: wsRoot });
-  container.register("vaults", { useValue: vaults });
-  container.register("assetsPrefix", { useValue: assetsPrefix });
-  container.register("enablePrettyLinks", { useValue: enablePrettyLinks });
-  container.register("siteUrl", { useValue: siteUrl });
-  container.register("siteIndex", { useValue: siteIndex });
+  // Phase 2 proof (web reg site): TOKENS from common-di shim + delegation note.
+  // Pure values delegated via registerWebDependencies (called from activation); here shown with TOKENS for migration.
+  // Full vscode (PreviewProxy, TextDocumentEvent, context) + afterResolution + useFactory for NoteStore stay local (per ADR).
+  container.register(TOKENS.wsRoot, { useValue: wsRoot });
+  container.register(TOKENS.vaults, { useValue: vaults });
+  container.register(TOKENS.assetsPrefix, { useValue: assetsPrefix });
+  container.register(TOKENS.enablePrettyLinks, { useValue: enablePrettyLinks });
+  container.register(TOKENS.siteUrl, { useValue: siteUrl });
+  container.register(TOKENS.siteIndex, { useValue: siteIndex });
+  // TODO post-Phase2: call registerWebDependencies(context) early; expand pure delegation in common-di.
 
   container.register<INoteStore<string>>("INoteStore", {
     useFactory: (container) => {

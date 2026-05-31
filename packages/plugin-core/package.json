@@ -1542,14 +1542,11 @@
     "node-loader": "^2.0.0",
     "node-pre-gyp": "^0.17.0",
     "ovsx": "^0.5.1",
-    "reflect-metadata": "^0.1.13",
-
     "source-map-loader": "^3.0.0",
     "terser-webpack-plugin": "^5.2.4",
     "ts-loader": "^8.0.0",
     "ts-node": "^8.10.2",
     "ts-sinon": "^2.0.2",
-    "tsyringe": "^4.7.0",
     "@vscode/vsce": "^2.24.0",
     "@vscode/test-electron": "^2.3.9",
     "@types/vscode": "1.90.0",
@@ -1563,6 +1560,7 @@
   "dependencies": {
     "@dendronhq/api-server": "^0.124.0",
     "@dendronhq/common-all": "^0.124.0",
+    "@dendronhq/common-di": "^0.124.0",
     "@dendronhq/common-server": "^0.124.0",
     "@dendronhq/engine-server": "^0.124.0",
     "@dendronhq/pods-core": "^0.124.0",

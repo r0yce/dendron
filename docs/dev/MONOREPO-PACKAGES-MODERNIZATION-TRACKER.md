@@ -205,3 +205,27 @@ All packages now have:
 - Extremely detailed documentation (`docs/dev/packages/<name>.md`) with TOC + Mermaid diagrams
 
 See individual package docs and the final modernization report for details. The monorepo is now in a significantly more modern and maintainable state.
+
+---
+
+## Extraction Phase 2 Live: @dendronhq/common-di (2026-05-31, Monorepo-Architect in isolated worktree subagent-019e7ce2-4a1b-5c3d-8e2f-9a0b1c2d3e4f)
+
+**Status**: [x] Scaffolded + shim + 2 proof migrations + all docs/diagrams/credits updated. ADR 0001 Accepted Phase 2. 4-axis #1 endorsed.
+
+**Worktree**: /Users/royce/.grok/worktrees/src-dendron/subagent-019e7ce2-4a1b-5c3d-8e2f-9a0b1c2d3e4f (feature/common-di-extraction-phase2)
+
+**Key Deliverables**:
+- New package packages/common-di (pure, tsyringe+reflect runtime+peer, DiToken<T>, 43+ TOKENS, RegisterDependencies, registerAllDependencies, resolveOrThrow, zero vscode).
+- plugin-core thin shim + dep hygiene (tsyringe/reflect removed from plugin-core).
+- Proof: setupLocalExtContainer + setupWebExtContainer use TOKENS + delegation to common-di facade (vscode surface local only).
+- Updated 5+ mandatory + dendron-doctor + GROK + SKILL with "Extraction Phase 2 live" + 4+ advanced Mermaid (monorepo layers Before/After + extraction state machine + credits).
+
+**Credits (orchestra)**: Doc-Master M2 019e7cd0-caa7 (285.4s/60), Test-Guardian 019e7cd0-df92 (239.2s/55, DI surface handoff), prior Monorepo 019e7cc6-3d67 (211s/71) + 019e7ccc-d4a9 (190s/59), burner 019e7cb5-0da5 (252s/82), Self-Improver, Feature-Ideator, Dependency-Hunter. Full in ADR appendix + headers + .grok/GROK.md.
+
+**Post-invariants**: Enforced (grep clean, logical compile, shim compat). enhance-in-place default for non-DI (common-errors in common-all).
+
+**Handoff**: Test-Guardian (common-di surface + 2 sites + doctor gaps), Doc-Master (diagrams), Self-Improver (lessons).
+
+See ADR 0001 Phase 2 + common-di/README.md + di-container-proposal (Phase 2 live).
+
+**THE CHAIN DOES NOT STOP**.
