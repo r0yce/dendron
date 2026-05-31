@@ -261,7 +261,7 @@ flowchart TD
 > 2. DI burner Batches 2+ (37→<10-15): typed tokens (TOKENS const + branded), declarative `registerAllDependencies()` + @registry in di/inject.ts v2 per di-container-proposal; burn remaining decorator @ts-expect-error.
 > 3. **Milestone 2 finalize** (burn-down chart + snapshots of all 3 DI diagrams in MILESTONE-2-REPORT + TRACKER + this file).
 > 4. Extraction: stabilized patterns → `@dendronhq/common-di` scaffold (ADR 0001; tsyringe + wrapper + tokens move; vscode-tied registration stays/adapts in plugin-core). Update imports, tests, docs.
-> 5. Proactive: `dendron doctor` impl + perf hooks (no pause, Feature-Ideator artifacts ready) + Test-Guardian DI surface coverage.
+> 5. Proactive: `dendron doctor` (health) impl + perf hooks (gaps filled + MVP launch ready, health now directly usable post-build with table + --json + perf; --checks wired, 3 --fix safe, units in dendron-cli, bin reg; post 06/07 polish on feature/dendron-doctor) + Test-Guardian DI surface coverage.
 > 6. Extraction/doctor refreshes + spawn follow-up Doc-Master on verify_green (per updated SKILL + hooks).
 > Target: 0 decorator noise, clean common-di boundary per endorsed proposal, world-class real-time docs as conductor. Chain to 100% roadmap + features without pause. Strict grinding + DI using endorsed wrapper/proposal + extraction per Monorepo framework + doctor ready post-M2.
 
@@ -382,16 +382,20 @@ sequenceDiagram
   - New coverage (added): unit smoke in setupWebExtContainer.test.ts for `inject(token)` fn return type + decorator application on local @injectable test class (token passthrough verified indirectly via all resolutions + direct).
 - **vscode-test / full smoke**: `yarn workspace @dendronhq/plugin-core test-web` or manual `code --extensionDevelopmentPath=...` + invoke Preview (web), lookup, treeview (exercises DI ctors + activator path). Document "DI resolution smoke passed (no ctor inject failures)".
 
-**2. Smoke the 4 final strict files + boundary casts (explicit test notes required per SKILL lesson)**:
-- workspacev2.ts (init(), createServerWatcher with numRetries as any TODO for exactOptional cross-pkg; watchers).
-- workspace/workspaceActivator.ts (verifyOrStartServerProcess; serverProcess = ... as any cast for IDendronExtension interop + ext.port).
-- workspace/tutorialInitializer.ts (onWorkspaceCreation + tutorial flows; hack TODO noted).
-- WorkspaceWatcher.ts + dendronExtensionInterface (per di header mentions).
-- **How + explicit notes**: 
-  - Existing: packages/plugin-core/src/test/suite-integ/workspaceActivator.test.ts + Extension.test.ts + migration.test.ts (exercise init/watch/activator/server).
-  - DI container tests above indirectly (many classes from activator path registered/resolved).
-  - **Test note required**: "Boundary casts (as any for serverProcess/numRetries) exercised in activator smoke + DI resolution; no runtime breakage on resolve or onChangePort; TODOs tracked for common-di audit post-extraction (no leakage of casts into pure surface)."
-  - Add to future: assert in test that ext.serverProcess is set post start (mocked subprocess).
+**2. Smoke the 4 final strict files + boundary casts (explicit test notes required per SKILL lesson + Post-M2 strict review)**:
+- **All 4-axis boundary cast sites (full list from strict-mode-fixer review 2026-06)**: 
+  - workspace.ts:362-363 (workspaceFile / workspaceFolders ?? undefined as any for getWorkspaceType vscode.Uri + exactOptional boundary).
+  - workspacev2.ts:59 (onReady optional method), 87 (numTries for common-server CreateFileWatcherOpts).
+  - workspace/workspaceActivator.ts:722 (ext.serverProcess = subprocess as any for IDendronExtension + execa childprocess | undef interop).
+  - commands/SetupWorkspace.ts:247,259 (CreateOpts as any for WorkspaceServiceCreateOpts |undefined alignment).
+  - web/views/preview/PreviewLinkHandler.ts:61 (wiki link data as any), 71 (anchor ?? undefined as any for openNote; ties to PreviewPanel DI).
+  (Also referenced: tutorialInitializer hack, WorkspaceWatcher, dendronExtensionInterface, SiteUtilsWeb per prior SKILL/Batch 6+).
+- **How + explicit test notes (M2 Test Plan mandate; expanded post strict review of 15-18 @ts + 0 new fallout confirmation)**: 
+  - Existing: packages/plugin-core/src/test/suite-integ/workspaceActivator.test.ts + Extension.test.ts + migration.test.ts (exercise init/watch/activator/server/start flows + getWorkspaceType + Setup).
+  - Web/preview: web/test/suite + suite-integ preview tests + DI smokes (PreviewLinkHandler exercised via PreviewPanel ctor + register/resolve in setupWebExtContainer; web views).
+  - DI container tests above indirectly (many classes from activator/workspacev2 paths registered/resolved; v2 helper coverage).
+  - **Test note (MANDATORY, now in SKILL + here)**: "Boundary casts (as any with precise 4-axis TODOs for cross-pkg exactOptional / vscode.Uri / childprocess / IDendronExtension.d.ts interop) exercised in activator smoke + DI resolution + preview tests; no runtime breakage on resolve, onChangePort, activate, or link handling; TODOs tracked for common-di / common-server audit post-extraction per Monorepo 4-axis (no leakage of casts into pure shared surface). Future cast audit MUST re-run these tests + add asserts (e.g. ext.serverProcess is set post verifyOrStartServerProcess with mocked subprocess)."
+  - Add to future iterations: assert serverProcess / numRetries paths post-activation; cross-link to di/inject.d.ts 4-axis snapshot + strict-mode-fixer Post-M2 section.
 
 **3. Targeted tests run (post every logical DI/helper change)**:
 - Critical: `yarn bootstrap:build:common-all && yarn workspace @dendronhq/plugin-core compile` (re-ran 3x; post helper any-cast + 30+ site cleanup: DI decorator errors eliminated (TS1239/TS2578 gone); @ts 48→11; remaining ~30 strict are non-DI exactOptional/noUnchecked/undef (for final batches); common-all always GREEN).
@@ -514,7 +518,8 @@ sequenceDiagram
 - @ts-expect-error count stable or down; no test file regressions.
 - Wave Completion Test Plan section + SKILL observations updated (done).
 
-**Last Test-Guardian Execution + Doc-Master Parallel**: 2026-05-31 (296 strict errors RED expected mid-wave; 38 @ts post-burner Batch 1 / 0-in-tests; tops updated to SetupWorkspace etc + EngineNoteProvider cleanups; full critical proxy via compile; Wave Plan + DI diagram + doctor prep sections evolved; SKILL + TRACKER + GROK updated live).
+**M2+Smoke Gaps Filled (Test-Guardian 06/09 addendum)**: Doctor gaps closed (see dendron-doctor.md): --checks filter + 3 real --fix + NEW dendron-cli DoctorCommand.test.ts (5 unit/smoke contracts GREEN via ts-node). DI extraction phase1 surface covered (edit to setupWebExtContainer.test.ts: TOKENS/DiToken/RegisterDependencies/register* factories + registerInstance + resolve(TOKENS) + explicit "boundary cast notes" per M2 plan for workspace numRetries/activator casts etc). Re-smoke: ts-node doctor + critical proxy + targeted tsc (doctor/DI clean; pre-existing strict elsewhere). "MVP directly exercisable". 0 @ts in new tests. Credits: pulled Doc-Master 019e7cd0-caa7... 285.4s/60 + self prior 019e7cd0-df92 239.2s/55 + Feature-Ideator 019e7ccf-96a6 283s/68 + Monorepo 019e7cc6-3d67 211s/71 + 019e7ccc-d4a9 190s/59 + final burner 019e7cc6-1dba 330s/74 (77% net) + all scaffolds. Handoffs done. GREEN invariant held.
+**Last Test-Guardian Execution + Doc-Master Parallel**: 2026-05-31 (296 strict errors RED expected mid-wave; 38 @ts post-burner Batch 1 / 0-in-tests; tops updated to SetupWorkspace etc + EngineNoteProvider cleanups; full critical proxy via compile; Wave Plan + DI diagram + doctor prep sections evolved; SKILL + TRACKER + GROK updated live). M2+Smoke 06/09: gaps filled, tests added, re-verified.
 
 ---
 
@@ -718,3 +723,15 @@ stateDiagram-v2
 **Diagram Credits (this wave)**: Delivered by Doc-Master M2 assembly conductor post-M2+smoke refresh (this run) + prior 019e7cd0-caa7... 285.4s/60. 3+ new/refreshed this wave (smoke matrix + extraction state + 3+ waterfall/state/Before-After refreshes). Fulfills SKILL "at least 3 new advanced per wave" + "Current Status + Roadmap religiously" + "orchestra conductor" + "M2 assembly conductor" sacred. All tie explicitly to di-container-proposal #1 (4-axis), ADR 0001, Test-Guardian smoke gaps value, "never again", non-stop chain, full credits with IDs/durs.
 
 (End of new diagrams section for M2 + Smoke GREEN refresh conductor run. Self-test gate executed/passed below.)
+
+
+---
+**M2+Smoke + Extraction Phase 2: common-errors enhance-in-place LIVE (monorepo-architect subagent, worktree subagent-monorepo-errors-019e7ce2-e26f-7531-9e1d-85bd985b9760, 2026-06)**
+
+- Dep-Hunter 019e7cda-a3cc-7122-b0c6-b1f9de1b7ba7 (266s/58) re-scan input + execution complete: IErrorService + DefaultErrorService + TOKENS.ErrorService + register* integration (enhance-in-place in common-all; 4-axis Vol HIGH 860+ / DI HIGH / LOW risk).
+- Worktree: /Users/royce/.grok/worktrees/src-dendron/subagent-monorepo-errors-019e7ce2-e26f-7531-9e1d-85bd985b9760 (feature/common-errors-enhance-in-place).
+- See common-errors-proposal.md (Execution started + Mermaid), ADR 0001 (enhance appendix), TRACKER (Phase 2 live), monorepo-architect/SKILL (full section + mental self-test 4 passed).
+- Full credits (verbatim): Dep-Hunter 019e7cda-a3cc-7122-b0c6-b1f9de1b7ba7 266s/58 + Doc-Master 019e7cd0-caa7-78d3-84cc-97932f7f37a5 285.4s/60 + Test-Guardian 019e7cd0-df92-7203-aa4d-eb6ca900e628 239.2s/55 + Monorepo scaffolds 019e7cc6-3d67 211s/71 + 019e7ccc-d4a9 190s/59 + burner 019e7cc6-1dba 330s/74 (77% net) + Feature-Ideator 283s/68 + orchestra. Handoffs to Test-Guardian/Doc-Master/Self-Improver issued. THE CHAIN DOES NOT STOP.
+- Phase 2 enhance-in-place live. Non-stop.
+---
+

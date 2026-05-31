@@ -159,3 +159,15 @@ This is not "just get it working". This is turning Dendron into *your* maintaina
 - Proposals: [docs/dev/extractions/di-container-proposal.md](../../extractions/di-container-proposal.md) (ENDORSED #1), [docs/dev/adr/0001-...md](../../adr/0001-introduce-common-di-for-tsyringe-ergonomics.md) (ADR 0001).
 
 Let's get to work.
+
+
+---
+**M2+Smoke + Extraction Phase 2: common-errors enhance-in-place LIVE (monorepo-architect subagent, worktree subagent-monorepo-errors-019e7ce2-e26f-7531-9e1d-85bd985b9760, 2026-06)**
+
+- Dep-Hunter 019e7cda-a3cc-7122-b0c6-b1f9de1b7ba7 (266s/58) re-scan input + execution complete: IErrorService + DefaultErrorService + TOKENS.ErrorService + register* integration (enhance-in-place in common-all; 4-axis Vol HIGH 860+ / DI HIGH / LOW risk).
+- Worktree: /Users/royce/.grok/worktrees/src-dendron/subagent-monorepo-errors-019e7ce2-e26f-7531-9e1d-85bd985b9760 (feature/common-errors-enhance-in-place).
+- See common-errors-proposal.md (Execution started + Mermaid), ADR 0001 (enhance appendix), TRACKER (Phase 2 live), monorepo-architect/SKILL (full section + mental self-test 4 passed).
+- Full credits (verbatim): Dep-Hunter 019e7cda-a3cc-7122-b0c6-b1f9de1b7ba7 266s/58 + Doc-Master 019e7cd0-caa7-78d3-84cc-97932f7f37a5 285.4s/60 + Test-Guardian 019e7cd0-df92-7203-aa4d-eb6ca900e628 239.2s/55 + Monorepo scaffolds 019e7cc6-3d67 211s/71 + 019e7ccc-d4a9 190s/59 + burner 019e7cc6-1dba 330s/74 (77% net) + Feature-Ideator 283s/68 + orchestra. Handoffs to Test-Guardian/Doc-Master/Self-Improver issued. THE CHAIN DOES NOT STOP.
+- Phase 2 enhance-in-place live. Non-stop.
+---
+

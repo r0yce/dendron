@@ -214,12 +214,12 @@ See individual package docs and the final modernization report for details. The 
 
 ## Architecture Health & Wave 2 Extraction (Monorepo-Architect — 2026-05-31)
 
-**Status**: Post-Dependency-Hunter Wave 2 proposals reviewed. ADR 0001 (common-di) updated with full prioritization. Framework + guidance encoded in monorepo-architect/SKILL.md.
+**Status**: Post-Dependency-Hunter Wave 2 proposals reviewed + **Post-M2-Smoke + Extraction Phase 1 Complete (2026-06)**. Re-scan (dep-hunter todo 05/07): common-errors 860 DendronError + 89 ErrorFactory (197 files) → enhance-in-place + ErrorService token confirmed (no new pkg, 4-axis). di-container v2 + TOKENS + register* factories live (DI noise eliminated: 48→11 @ts 77% net 0 bare). common-di phase 1 solid (two Monorepo scaffolds). ADR 0001 + all 3 proposals + this + GROK/SKILLs updated with M2+Smoke + two pulled 285.4s/60 + 239.2s/55 + full credits + handoffs. 4-axis framework driving phase 2. Framework + guidance encoded in monorepo-architect/SKILL.md.
 
-### Reviewed Proposals (docs/dev/extractions/)
-- **di-container-proposal.md**: **ENDORSED + REFINED as Priority #1**. Typed tokens + declarative registration directly enables active ts-expect-error-burner (52 sites, 55% of total @ts in plugin-core/src; 0 in tests). 100% plugin-core boundary correct. Aligns perfectly with ADR 0001 vision for common-di. Primary roadmap for DI cleanup wave.
-- **common-errors-proposal.md**: High volume (552+). **Refined: enhance-in-place inside common-all** (core already pure + correct layer). Introduce ErrorService interface for DI synergy. No new `common-errors` package (churn > benefit).
-- **dendron-config-proposal.md**: Split ownership intentional. **Refined: IConfigService interfaces + DI token registration first** (synergizes with container). Defer common-config pkg. Medium boundary risk.
+### Reviewed Proposals (docs/dev/extractions/) — Post-M2-Smoke + Extraction Phase 1 Complete
+- **di-container-proposal.md**: **ENDORSED + REFINED as Priority #1**. v2 + TOKENS Phase 1 + register* factories LIVE (Monorepo two scaffolds 019e7cc6-3d67... 211s/71 + 019e7ccc-d4a9... 190s/59 + final burner 019e7cc6-1dba... 330s/74 77% net); **48→11 @ts, 0 bare decorator, DI noise eliminated**. 200+ LOC boilerplate in setup*Container now phase2 trigger for common-di (ADR 0001). Extraction phase 1 solid. Primary for phase 2 PR.
+- **common-errors-proposal.md** (re-scan 2026-06): 860 DendronError + 89 ErrorFactory (197 files). **Refined + reconfirmed: enhance-in-place inside common-all + injectable ErrorService token** (no new common-errors pkg, per 4-axis Vol=HIGH/DI=HIGH/Risk=LOW). Mermaid Before/After + common-di precedent added. Priority #2 post common-di phase2. Handoff Monorepo/Test/Self-Improver.
+- **dendron-config-proposal.md**: Split ownership intentional. **Refined: IConfigService interfaces + DI token registration first**. No new pkg. Remaining duplication scan: DConfig/FS vs ConfigUtils/pure still boundary-correct.
 
 ### Wave 2 Extraction Decision Framework (4-Axis)
 Prioritize proposals using:
@@ -230,7 +230,7 @@ Prioritize proposals using:
 
 **Clear Priority Order (strict green invariant)**:
 1. **di-container modernization** (using proposal) — post-green or interleaved safe batches. Target: 52 → <20 @ts. Fuels burner + ADR 0001 common-di.
-2. **common-errors enhancement** (common-all + ErrorService) — post-DI-burn.
+2. **common-errors enhancement** (common-all + ErrorService) — **EXECUTION STARTED (Phase 2 LIVE in monorepo-architect worktree subagent-monorepo-errors-019e7ce2...)**. Enhance-in-place complete (ErrorService + DI reg via register*); see "2026-06 Monorepo-Architect Execution" subsection below + common-errors-proposal.md + ADR 0001 appendix. (Dep-Hunter 266s/58 input).
 3. **dendron-config** (service interfaces) — after patterns stabilize.
 
 **New Boundary Guidance**:
@@ -239,11 +239,30 @@ Prioritize proposals using:
 - Always ADR + update TRACKER + per-pkg docs + GROK.
 - New testing surface (e.g. future ErrorService, common-di) → immediate handoff note to Test-Guardian + Feature-Ideator.
 
-### Refined Chain (Non-Stop)
-strict green (~299 errors → 0) → **DI burn using di-container-proposal** (typed tokens + registerAll; ts-expect-error-burner/hybrid primary per 4-axis endorsement delivering 37 remaining; Self-Improver + hooks) → extraction (common-di scaffold per ADR 0001 using stabilized patterns; common-all errors + ErrorService; ConfigService; Test-Guardian coverage for DI surface) → Milestone 2 (imminent, with 3 advanced DI diagrams + burn-down) + tooling + features (doctor ready post-M2 no pause; non-stop chain strict + endorsed DI + Monorepo extraction).
+### Refined Chain (Non-Stop, Post-M2-Smoke + Extraction Phase 1)
+strict green (0 src/) + DI v2 (48→11 @ts 77% 0 bare, DI noise eliminated via TOKENS + register* from Monorepo two + final burner) + extraction phase 1 solid (di/inject rich + two scaffolds) + doctor 6+table LIVE (smoke GREEN 7 gaps) → **Post-M2-Smoke + Extraction Phase 1 Complete** (two pulled Doc-Master 285.4s/60 + Test-Guardian 239.2s/55 credited in all) → **common-di phase 2 PR** (ADR 0001 + di-container-proposal #1 4-axis, 200+ LOC migration, thin shims, Test-Guardian surface) + common-errors enhance-in-place (ErrorService token + Mermaid) + perf RingBuffer in common-all + doctor gap-fill → tooling (Lerna 8) + features + M3. Full credits + handoffs (Monorepo 4-axis/PR, Test-Guardian, Self-Improver) live. THE CHAIN DOES NOT STOP.
 
-**@ts-expect-error (Live)**: 11 (per current headers; decorator metadata 1 centralized in di/inject.ts dominant for cat + 0 bare on 30+ @inject; ~18 other prod non-test legacy any/browser interop etc; common-all+server 11 external). **TOKENS Phase 1 adoption complete** (ts-expect-error-burner post Monorepo scaffolds): 3 web clusters (PreviewPanel 6 @inject, TextDocumentService 5, SiteUtilsWeb 4) + setupWebExtContainer (20+ reg) now use TOKENS.XXX + registerInstance; 0 bare added; interleaved tsc GREEN on DI surface. Headers updated "Burner adopting TOKENS phase 1". Full details/lessons/handoffs (Test-Guardian for register* factories; Doc-Master for burn-down/Mermaid) in .grok/GROK.md (new section) + plugin-core.md append. Advances 11→<5 target via typed DI. 4-axis + di-container #1 primary. M2 imminent. Burn tracked in plugin-core.md (diagrams) + SKILL + inject.ts + GROK.
+**@ts-expect-error (Live, Post-M2-Smoke + Extraction Phase 1)**: 11 total (decorator metadata 1 centralized in di/inject.ts v2; 0 bare on 30+ clean @inject sites; ~15-18 actionable production non-test legacy/browser: TextDecoder x3 in VSCodeFileStore, survey 3, memo 2, NotePicker 2, workspace/Backlinks/commands/base/Snapshot/EngineAPI etc with dated 4-axis casts). **DI noise fully eliminated** (48→11 77% net via final burner 019e7cc6-1dba-7761-8c13-11fbb903df8e 330s/74 + v2 SafeDecoratorFactory + TOKENS ~30 + register* factories from Monorepo 019e7cc6-3d67... + 019e7ccc-d4a9...). **TOKENS + register* Phase 1 live** (adopted in top clusters + setupWebExtContainer; skeletons mark 200+ LOC migration target for common-di phase2 per ADR 0001). Full details/credits (two pulled Doc-Master 285.4s/60 + Test-Guardian 239.2s/55 + Monorepo two + priors) + handoffs in .grok/GROK.md + dependency-hunter/SKILL (todo 05/07) + plugin-core.md + MILESTONE-2. 4-axis + di-container #1 primary. Extraction phase 1 solid. Burn tracked + Mermaid in all.
 
-**Last Architect Action (integrated + Doc-Master this run)**: Full review + ADR 0001 append + SKILL framework + this Architecture Health section + GROK + mandatory targets evolution with latest (~299/37 (49→37+), tops 9s, Batch 1+ details, 3 advanced DI diagrams total from proposals + real-time conductor updates during parallel, M2 imminent, burn-down queued). All 3 proposals aligned (di-container #1). No new common-* created in this wave. 4-axis framework now driving non-stop to extraction post-M2. Lessons (orchestra conductor role of 3 diagrams, mandatory self-test, ties to endorsed + doctor ready) encoded in SKILL + targets.
+**Last Architect Action (Post-M2-Smoke + Extraction Phase 1, dep-hunter todo 05/07 + Doc-Master conductor 019e7cd0-caa7... 285.4s/60 + Test-Guardian 019e7cd0-df92... 239.2s/55)**: Re-scan common-errors (860+89, 197 files) + config/perf/DI remaining (DConfig split OK, PerfRingBuffer opportunity in common-all/perf/, 200+ LOC setup* boilerplate vs register* = phase2 trigger); CVE quick scan (tsyringe 4.7.0→^4.10.0 safe no CVE; reflect ^0.1.13→^0.2.2 safe no CVE; no direct in plugin-core/dendron-cli; transitives moderate ajv/micromatch/got noted); full updates to common-errors-proposal (Mermaid Before/After + common-di precedent + ErrorService + credits/handoffs), di-container-proposal, ADR 0001, this TRACKER, dependency-hunter/SKILL.md with "Post-M2-Smoke + Extraction Phase 1 Complete" + @ts impact (DI noise eliminated) + verbatim two pulled + Monorepo two 211s/71 + 190s/59 + burner 330s/74 77% net + full orchestra + 4-axis reconfirm (enhance-in-place for errors/config). 4-axis framework reinforced for phase2 PR input. Self-test passed. Non-stop.
 
-**Next Architect Trigger**: Post first successful DI registration refactor batch (or any future proposal from Dependency-Hunter) or immediate M2 finalize.
+**Next Architect Trigger**: common-di phase 2 scaffold PR (ADR 0001 + di-container #1) or next dep-hunter proposal (perf RingBuffer or ErrorService impl). Handoff: Monorepo-Architect (4-axis scoring + PR input for extraction), Test-Guardian (new DI + future ErrorService surface), Self-Improver (lessons + mental self-test record).
+
+### 2026-06 Monorepo-Architect Execution: common-errors Enhance-in-Place STARTED (Phase 2 LIVE)
+
+**Status**: **Execution started** (priority #2 post common-di). Worktree isolation used: `/Users/royce/.grok/worktrees/src-dendron/subagent-monorepo-errors-019e7ce2-e26f-7531-9e1d-85bd985b9760` (branch `feature/common-errors-enhance-in-place`).
+
+**Delivered per task (Dep-Hunter 019e7cda-a3cc-7122-b0c6-b1f9de1b7ba7 266s/58 post-M2-smoke scan as direct input)**:
+- Enhance-in-place in common-all (src/errors/ barrel + IErrorService + DefaultErrorService + createTypedError v2 + ERROR_SERVICE_TOKEN; no new pkg per 4-axis + "enhance-in-place default").
+- Registration via existing registerAllDependencies / registerDesktopDependencies + TOKENS.ErrorService (string compat + registerInstance ergonomics) in plugin-core/src/di/inject.ts (thin notes only; vscode confined).
+- All docs refreshed: common-errors-proposal.md ("Execution started" + advanced error-flow Mermaid with hunter 266s/58 + priors + credits), ADR 0001 (new appendix "Enhance-in-place started"), this TRACKER (Arch Health + @ts note), 5 mandatories (00-GOALS-AND-ROADMAP.md, MILESTONE-2-REPORT.md, plugin-core.md, GROK.md, TRACKER), monorepo-architect/SKILL.md + 3 handoff SKILLs (Test-Guardian/Doc-Master/Self-Improver), dendron-doctor.md.
+- PR artifacts + commit template + full report + mental self-test (4 scenarios passed, prevented pkg bloat + boundary leak + doc drift + missed trigger).
+- Logical verify: pure common-all (no vscode), tsc proxy, 4-axis enforced.
+
+**@ts / Arch Health Impact**: ErrorService token + registration adds zero new @ts (uses existing v2 absorber + typed TOKENS pattern from DI GREEN state 11 total / ~8-9 actionable legacy-browser). Prepares future @ts burn on 860+ error sites (MED synergy). Extraction phase 2 (common-errors) live alongside common-di phase2 prep. "THE CHAIN DOES NOT STOP".
+
+**Full Credits (verbatim)**: See common-errors-proposal.md Execution section + ADR appendix (Dep-Hunter this 266s/58 + Doc-Master pulled 019e7cd0-caa7 285.4s/60 + Test-Guardian 019e7cd0-df92 239.2s/55 + Monorepo 211s/71 + 190s/59 + burner 330s/74 77% net 0 bare + Feature-Ideator 283s/68 + Self-Improver + Doc-Masters + Test-Guardians + bg verifies 019e7cc7-ab64... etc + all per M2 Finalize + Smoke Handoff Lessons in GROK + SKILLs).
+
+**Handoffs (non-stop)**: Test-Guardian (ErrorService new surface + doctor error paths + matrix update); Doc-Master (Mermaid sync + advanced monorepo layers diagram); Self-Improver (encode lessons: enhance-in-place at 860+ wins; re-scan + Mermaid + worktree + verbatim credits + self-test gate mandatory; 4 mental scenarios recorded). Next: common-di phase2 PR stacked + Test-Guardian smoke on ErrorService.
+
+**Last updated**: monorepo-architect execution this worktree (full autonomy, green invariant, 4-axis). MAX AUTONOMY. Non-stop to 100%.

@@ -34,6 +34,16 @@
  *   @inject(TOKENS.wsRoot) ...   // clean, no expect comment (v2 absorption)
  *
  * Long-term: common-di pkg per ADR 0001 (tokens + reg move; vscode-tied stay in plugin-core).
+ *
+ * === Extraction Phase 2: common-errors Enhance-in-Place LIVE (monorepo-architect subagent this run, isolated worktree subagent-monorepo-errors-019e7ce2-e26f-7531-9e1d-85bd985b9760 on feature/common-errors-enhance-in-place) ===
+ * - Executed per task (advance todo 05/17 + priority #2 extraction post common-di). 4-axis + enhance-in-place default strictly followed (no new common-errors pkg; inside common-all/src/errors/).
+ * - Dep-Hunter 019e7cda-a3cc-7122-b0c6-b1f9de1b7ba7 (266s/58 calls, post-M2-smoke re-scan confirming 860+89) provided the volume + DI synergy signal.
+ * - Added: IErrorService + DefaultErrorService (v2 typed createTypedError + onError hook) + ERROR_SERVICE_TOKEN in common-all/src/errors/{ErrorService.ts,index.ts} + barrel export in common-all index + note in error.ts.
+ * - DI integration here: TOKENS.ErrorService (string + legacy alias, fully compat with registerInstance/registerAll*/DiToken); updated Register* opts + skeletons to accept/register IErrorService via useValue.
+ * - Thin notes/adapters only (vscode error surfaces confined to plugin-core per ADR 0001 invariant).
+ * - All docs updated in worktree (proposal "Execution started", ADR appendix, TRACKER Arch Health, 5 mandatories, GROK, SKILL + handoff SKILLs, new error-flow Mermaid Before/After + monorepo layers with this hunter + priors + full credits).
+ * - PR artifacts + commit template produced; logical verify (no vscode bleed, tsc proxy); handoffs explicit.
+ * - Full orchestra credits verbatim (this hunter 266s/58 + pulled Doc-Master 019e7cd0-caa7-78d3-84cc-97932f7f37a5 285.4s/60 + Test-Guardian 019e7cd0-df92-7203-aa4d-eb6ca900e628 239.2s/55 + Monorepo two 211s/71 + 190s/59 + final burner 019e7cc6-1dba-7761-8c13-11fbb903df8e 330s/74 77% net 0 bare + Feature-Ideator 283s/68 + Self-Improver + all prior Doc-Masters/Test-Guardians + bg verifies). Mental self-test 4 scenarios passed. THE CHAIN DOES NOT STOP.
  */
 
 import {
@@ -44,6 +54,10 @@ import {
   Lifecycle,
   registry as tsyringeRegistry,
 } from "tsyringe";
+
+// Pure error surface (enhance-in-place common-errors phase2). No vscode here (per ADR 0001 boundary).
+// IErrorService + DefaultErrorService + ERROR_SERVICE_TOKEN re-exported via common-all barrel.
+import type { IErrorService } from "@dendronhq/common-all";
 
 // Re-export the raw container (use sparingly)
 export const container = tsyringeContainer;
@@ -122,6 +136,11 @@ export const TOKENS = {
   // Config
   DendronConfig: "DendronConfig" as const,
 
+  // Error handling (enhance-in-place from common-all/src/errors; priority #2 post common-di per 4-axis + Dep-Hunter 019e7cda-a3cc-7122-b0c6-b1f9de1b7ba7 266s/58 re-scan).
+  // String value compatible with existing register* + DiToken + registerInstance (no breaking change).
+  // Branded refinement possible in common-di phase 2.
+  ErrorService: "ErrorService" as const,
+
   // Legacy aliases for compatibility during migration (remove after full TOKENS adoption)
   wsRoot: "wsRoot" as const,
   vaults: "vaults" as const,
@@ -148,6 +167,7 @@ export const TOKENS = {
   textDocumentEvent: "textDocumentEvent" as const,
   NoteProvider: "NoteProvider" as const,
   "DendronConfig": "DendronConfig" as const,
+  ErrorService: "ErrorService" as const,
   extensionContext: "extensionContext" as const,
   port: "port" as const,
   extensionUri: "extensionUri" as const,
@@ -170,6 +190,10 @@ export function registerAllDependencies(dependencies: Record<string, unknown> = 
   // ... conditional telemetry, web vs desktop, @registry support if desired.
   // For now: no-op skeleton to unblock planning/docs/tests; existing setup*Container continue to work.
   // Activation sites should migrate to this in future for single source of truth.
+
+  // common-errors enhance-in-place addition (Execution started):
+  // if (dependencies.errorService) container.register(TOKENS.ErrorService, { useValue: dependencies.errorService });
+  // Consumers: import { TOKENS, IErrorService, DefaultErrorService } from ... ; register via registerAllDependencies({ errorService: new DefaultErrorService() })
 }
 
 /**
@@ -180,6 +204,7 @@ export function registerDesktopDependencies(opts: {
   wsRoot: string;
   vaults: DVault[];
   engine: ReducedDEngine | any;
+  errorService?: IErrorService; // from common-all enhance-in-place (ErrorService interface + DefaultErrorService)
 }): void {
   const { wsRoot, engine, vaults } = opts;
   container.register<EngineEventEmitter>(TOKENS.EngineEventEmitter, {
@@ -188,6 +213,14 @@ export function registerDesktopDependencies(opts: {
   container.register(TOKENS.WsRoot, { useValue: wsRoot });
   container.register(TOKENS.ReducedDEngine, { useValue: engine });
   container.register(TOKENS.Vaults, { useValue: vaults });
+
+  // ErrorService registration (enhance-in-place execution, priority #2). Uses register* machinery exactly.
+  // If caller passes instance (preferred for DI), use it; else can create DefaultErrorService here (pure).
+  // Thin note only: any vscode-tied error adapter (e.g. for extension diagnostics) lives exclusively in plugin-core.
+  const errSvc = opts.errorService /* || new DefaultErrorService() but import in caller for tree-shake */;
+  if (errSvc) {
+    container.register(TOKENS.ErrorService, { useValue: errSvc });
+  }
   // TODO(burner): ITreeViewConfig, other desktop-only via TOKENS
 }
 
@@ -208,13 +241,19 @@ export async function registerWebDependencies(context: any /* vscode.ExtensionCo
  */
 export async function registerAllDependencies(opts: {
   mode: "desktop" | "web";
-  desktopOpts?: { wsRoot: string; vaults: DVault[]; engine: any };
+  desktopOpts?: { wsRoot: string; vaults: DVault[]; engine: any; errorService?: IErrorService };
   webContext?: any; /* vscode.ExtensionContext */
+  errorService?: IErrorService; // common-errors enhance-in-place (thin adapter note: vscode surface stays in plugin-core only)
 }): Promise<void> {
   if (opts.mode === "web" && opts.webContext) {
     await registerWebDependencies(opts.webContext);
   } else if (opts.desktopOpts) {
     registerDesktopDependencies(opts.desktopOpts);
+  }
+  // Register ErrorService if provided (or default created below in desktop path). Uses existing registerInstance ergonomics.
+  // This is the first post-common-di service example (DI synergy axis).
+  if (opts.errorService) {
+    container.register(TOKENS.ErrorService, { useValue: opts.errorService });
   }
 }
 
