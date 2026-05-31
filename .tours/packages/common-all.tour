@@ -29,10 +29,11 @@
       "line": 1
     },
     {
-      "title": "Error Handling & Classification",
-      "description": "Dendron has a sophisticated error system (`DendronError`, `ErrorUtils`, error codes, severity).\n\nThis is used for both user-facing messages and for Sentry reporting.\n\n[Open the error module](./packages/common-all/src/error.ts)",
+      "title": "Error Handling & Classification (incl. new ErrorService)",
+      "description": "Dendron has a sophisticated error system (`DendronError`, `ErrorUtils`, error codes, severity).\n\n**Recent major addition (enhance-in-place per 4-axis)**: `ErrorService` interface + injectable token now lives in common-all (no new package). This centralizes error creation while preserving the 860+ existing `DendronError` usages.\n\nThis is the first major post-common-di DI surface example.\n\n[Open the error module](./packages/common-all/src/error.ts)\n\n[See the new ErrorService](./packages/common-all/src/errors/ErrorService.ts) (or .d.ts)",
       "file": "packages/common-all/src/error.ts",
-      "line": 1
+      "line": 1,
+      "pattern": "DendronError|ErrorService|error codes"
     },
     {
       "title": "The Data Validator (dendron-yml.validator.json)",
