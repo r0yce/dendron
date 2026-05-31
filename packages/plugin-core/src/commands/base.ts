@@ -100,8 +100,7 @@ export abstract class BaseCommand<
         return;
       }
 
-      // @ts-ignore
-      const inputs = await this.gatherInputs(args);
+      const inputs = await this.gatherInputs(args as TRunOpts);
       // if undefined, imply user cancel
       if (_.isUndefined(inputs)) {
         return;

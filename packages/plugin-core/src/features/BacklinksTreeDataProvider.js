@@ -301,8 +301,7 @@ class BacklinksTreeDataProvider {
         lodash_1.default.filter(references, (ref) => ref.note?.id !== noteId), ({ location }) => location.uri.fsPath);
         let pathsSorted;
         if (sortOrder === common_all_1.BacklinkPanelSortOrder.PathNames) {
-            // @ts-ignore
-            pathsSorted = this.shallowFirstPathSort(referencesByPath);
+            pathsSorted = this.shallowFirstPathSort(referencesByPath /* legacy lodash groupBy result vs Dictionary<tuple> strict mismatch; internal method; 4-axis style TODO per strict-mode-fixer Batch 6+ (final @ts burn 2026-06-01); never bare. Real type audit of ref shape would remove. */);
         }
         else if (sortOrder === common_all_1.BacklinkPanelSortOrder.LastUpdated) {
             pathsSorted = Object.keys(referencesByPath).sort((p1, p2) => {

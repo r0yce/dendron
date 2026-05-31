@@ -212,10 +212,8 @@ const replaceRefs = ({ refs, content, onMatch, onReplace, }) => {
         const pattern = `\\[\\[\\s*?(.*\\|)?\\s*${oldRef}\\s*\\]\\]`;
         if (new RegExp(pattern, "i").exec(content)) {
             let replacedOnce = false;
-            // @ts-ignore
-            const nextContent = content.replace(new RegExp(pattern, "gi"), 
-            // @ts-ignore
-            ($0, $1, offset) => {
+            // @ts-expect-error - legacy vendored external/memo/utils regex replace callback typing (replacer params + captured 'content'/'replacedOnce' interop under strict; original memo lib had looser any). Precise dated justification (final Post-M2 + Doctor Smoke Burn, 2026-06-01); never bare per SKILL. Real cheap fix blocked by commented-out isInFencedCodeBlock logic + external origin. See full file history. 0 bare upheld.
+            const nextContent = content.replace(new RegExp(pattern, "gi"), ($0, $1, offset) => {
                 // const pos = document.positionAt(offset);
                 // if (
                 //   isInFencedCodeBlock(document, pos.line) ||

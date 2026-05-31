@@ -1,38 +1,35 @@
 #!/usr/bin/env node
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const common_all_1 = require("@dendronhq/common-all");
-const lodash_1 = __importDefault(require("lodash"));
-const yargs_1 = __importDefault(require("yargs"));
-const cli_1 = require("../src/utils/cli");
-const commands_1 = require("../src/commands");
-const devCLICommand_1 = require("../src/commands/devCLICommand");
-const doctor_1 = require("../src/commands/doctor");
-const exportPod_1 = require("../src/commands/exportPod");
-const exportPodV2_1 = require("../src/commands/exportPodV2");
-const importPod_1 = require("../src/commands/importPod");
-const launchEngineServer_1 = require("../src/commands/launchEngineServer");
-const notes_1 = require("../src/commands/notes");
-const publishPod_1 = require("../src/commands/publishPod");
-const seedCLICommand_1 = require("../src/commands/seedCLICommand");
-const vaultCLICommand_1 = require("../src/commands/vaultCLICommand");
-const workspaceCLICommand_1 = require("../src/commands/workspaceCLICommand");
-const visualizeCLICommand_1 = require("../src/commands/visualizeCLICommand");
-const DoctorCommand_1 = require("../src/commands/DoctorCommand");
+var common_all_1 = require("@dendronhq/common-all");
+var lodash_1 = require("lodash");
+var yargs_1 = require("yargs");
+var cli_1 = require("../src/utils/cli");
+var commands_1 = require("../src/commands");
+var devCLICommand_1 = require("../src/commands/devCLICommand");
+var doctor_1 = require("../src/commands/doctor");
+var exportPod_1 = require("../src/commands/exportPod");
+var exportPodV2_1 = require("../src/commands/exportPodV2");
+var importPod_1 = require("../src/commands/importPod");
+var launchEngineServer_1 = require("../src/commands/launchEngineServer");
+var notes_1 = require("../src/commands/notes");
+var publishPod_1 = require("../src/commands/publishPod");
+var seedCLICommand_1 = require("../src/commands/seedCLICommand");
+var vaultCLICommand_1 = require("../src/commands/vaultCLICommand");
+var workspaceCLICommand_1 = require("../src/commands/workspaceCLICommand");
+var visualizeCLICommand_1 = require("../src/commands/visualizeCLICommand");
+var DoctorCommand_1 = require("../src/commands/DoctorCommand");
 // import { WorkspaceCLICommand } from "../src/commands/workspace";
 if (lodash_1.default.isUndefined((0, common_all_1.env)("LOG_LEVEL", { shouldThrow: false }))) {
     process.env.LOG_LEVEL = "error";
 }
-const buildYargs = yargs_1.default;
+var buildYargs = yargs_1.default;
 new exportPod_1.ExportPodCLICommand().buildCmd(buildYargs);
 new launchEngineServer_1.LaunchEngineServerCommand().buildCmd(buildYargs);
 new importPod_1.ImportPodCLICommand().buildCmd(buildYargs);
 new publishPod_1.PublishPodCLICommand().buildCmd(buildYargs);
 new doctor_1.DoctorCLICommand().buildCmd(buildYargs);
-new DoctorCommand_1.DoctorCommand().buildCmd(buildYargs); // "health" registered (6 checks + perf + table output + --json/--verbose/--fix skeletons; registration live + CLIUtils table per Test-Guardian matrix; safe collision with notes "doctor")
+new DoctorCommand_1.DoctorCommand().buildCmd(buildYargs); // UNCOMMENTED + gaps filled ( --checks wired, 3 real --fix via DConfig/GitUtils/ConfigUtils + backups, units added, --json timingMs, table polish). Registration LIVE post-smoke (019e7ccf + 06/07 polish). "health" (safe w/ notes "doctor"). MVP launch ready.
 new notes_1.NoteCLICommand().buildCmd(buildYargs);
 new vaultCLICommand_1.VaultCLICommand().buildCmd(buildYargs);
 new workspaceCLICommand_1.WorkspaceCLICommand().buildCmd(buildYargs);
@@ -51,4 +48,3 @@ buildYargs
     .help()
     .completion("completion", "Generate shell completion script")
     .argv;
-//# sourceMappingURL=dendron-cli.js.map

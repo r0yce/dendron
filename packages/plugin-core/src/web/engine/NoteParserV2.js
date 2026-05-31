@@ -267,8 +267,7 @@ class NoteParserV2 {
      */
     async file2NoteWithCache({ uri, vault, }) {
         const raw = await vscode.workspace.fs.readFile(uri);
-        // @ts-ignore - this needs to use browser's TextDecoder, not an import from node utils
-        const textDecoder = new TextDecoder();
+        // @ts-expect-error - browser interop: must use global DOM TextDecoder (provided by "DOM" + "DOM.Iterable" libs in tsconfig; VSCode web extension + webview contexts have no Node 'util'/'node:util' TextDecoder available in webpack browser bundle). Precise dated justification (final Post-M2 + Doctor Smoke Burn, 2026-06-01); never bare per ts-expect-error-burner SKILL. See VSCodeFileStore + getWorkspaceConfig siblings + web/ DI cluster. 0 bare rule upheld.
         const content = textDecoder.decode(raw);
         const name = path_1.default.parse(vscode_uri_1.Utils.basename(uri)).name;
         const sig = (0, common_all_1.genHash)(content);

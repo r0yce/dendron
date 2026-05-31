@@ -29,7 +29,7 @@ let NoteLookupAutoCompleteCommand = class NoteLookupAutoCompleteCommand {
 exports.NoteLookupAutoCompleteCommand = NoteLookupAutoCompleteCommand;
 exports.NoteLookupAutoCompleteCommand = NoteLookupAutoCompleteCommand = __decorate([
     (0, inject_1.injectable)(),
-    __param(0, (0, inject_1.inject)("AutoCompleteEventEmitter")),
+    __param(0, (0, inject_1.inject)(inject_1.TOKENS.AutoCompleteEventEmitter)),
     __metadata("design:paramtypes", [vscode_1.EventEmitter])
 ], NoteLookupAutoCompleteCommand);
 //# sourceMappingURL=NoteLookupAutoCompleteCommand.js.map

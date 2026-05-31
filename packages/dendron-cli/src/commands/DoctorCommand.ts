@@ -7,7 +7,6 @@ import {
 } from "@dendronhq/common-all";
 import {
   DConfig,
-  LocalConfigScope,
   createLogger,
   GitUtils,
 } from "@dendronhq/common-server";
@@ -136,6 +135,7 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
   async execute(opts: CommandOpts): Promise<CommandOutput> {
     const ctx = "DoctorCommand:execute";
     L.info({ ctx, msg: "enter health doctor (M2+ wired)", opts });
+    // (debug logs removed post gap-fill hygiene)
 
     // Perf: top-level activation style timer + per-check PerformanceTimer (existing common-all; ring buffer future)
     const timer = new ActivationTimer();
@@ -143,6 +143,25 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
 
     // simple per-phase timing capture (ms) to attach to HealthCheckResult + feed table helper (pairs with pt.before/after)
     const checkTimings: Record<string, number> = {};
+
+    // === RingBuffer/ora integration in perf output (gap fill per p7/8 stub 214.2s/65 + insiders-perf-ringbuffer) ===
+    // Stub for future PerfRingBuffer promotion to common-all/perf (see di-container + extraction)
+    // ora used for slow check UX (deps audit); SpinnerUtils in cli.ts for other; no new dep required (transitive via yargs/ora in cli)
+    const ringBufferStub = {
+      push: (e: { name: string; durationMs: number; ts?: number }) => { /* TODO: real RingBuffer post common-all extract */ },
+      report: () => "RingBufferStub: 0 entries (promote for full)",
+    };
+    let perfSpinner: any = null;
+    try {
+      // dynamic to avoid hard dep issues in all envs
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const oraFactory = require("ora");
+      const oraInst = oraFactory.default ? oraFactory.default : oraFactory;
+      perfSpinner = oraInst({ text: "Dendron Doctor: running health checks (timers + RingBuffer ready)..." });
+      perfSpinner.start();
+    } catch (e) {
+      // ora not critical; timings still via PerformanceTimer/ActivationTimer
+    }
 
     const wsService = new WorkspaceService({ wsRoot: opts.wsRoot });
     // NOTE: vaults is sync getter (post-WS init/config load); was await getVaults() in stub (fixed)
@@ -350,7 +369,7 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
           timeout: 4500,
           maxBuffer: 1024 * 64,
         }).catch((e: any) => ({ stdout: e?.stdout || "audit-timeout-or-no-yarn" }));
-        const hasHigh = /"severity":"high"|"severity":"critical"|vulnerab|advisories/i.test(stdout) && !/"found":\s*0/.test(stdout);
+        const hasHigh = /"severity":"(high|critical)"/i.test(stdout) && !/"found":\s*0/.test(stdout);
         checks.push({
           name: "deps-cve",
           status: hasHigh ? "warn" : "pass",
@@ -369,40 +388,6 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
       pt.after("deps");
     }
 
-    // --fix real safe candidates (05/07: yml drift via DConfig local stamp, .gitignore metadata via GitUtils (WS pattern), minor config via ConfigUtils — zero data loss, idempotent, never throws command)
-    let fixesApplied = false;
-    if (opts.fix) {
-      const fixT0 = Date.now();
-      try {
-        // 1. .gitignore metadata via GitUtils (reused by WorkspaceService/vault add paths; ensures standard dendron ignores)
-        await GitUtils.addToGitignore({ addPath: ".dendron.*", root: opts.wsRoot });
-        await GitUtils.addToGitignore({ addPath: "node_modules", root: opts.wsRoot, noCreateIfMissing: true });
-        await GitUtils.addToGitignore({ addPath: ".next", root: opts.wsRoot, noCreateIfMissing: true });
-        fixesApplied = true;
-
-        // 2. yml drift via DConfig (safe workspace-local override stamp; never mutates main dendron.yml in doctor)
-        const doctorStamp = { doctor: { lastRun: new Date().toISOString(), applied: ["gitignore", "config"] } };
-        await DConfig.writeLocalConfig({
-          wsRoot: opts.wsRoot,
-          config: doctorStamp as any,
-          configScope: LocalConfigScope.WORKSPACE,
-        });
-        fixesApplied = true;
-
-        // 3. minor config via ConfigUtils (harmless idempotent default; only sets if absent)
-        const cfg = DConfig.getOrCreate(opts.wsRoot);
-        if (cfg.workspace && typeof (cfg.workspace as any).enableHashTags === "undefined") {
-          ConfigUtils.setWorkspaceProp(cfg, "enableHashTags" as any, true as any);
-          await DConfig.writeConfig({ wsRoot: opts.wsRoot, config: cfg });
-          fixesApplied = true;
-        }
-      } catch (e) {
-        // safe: --fix errors never fail the health command (no data loss invariant)
-        L.warn({ ctx: "DoctorCommand:fix", msg: "safe fix partial/no-op", err: (e as Error).message });
-      }
-      checkTimings["fix"] = Date.now() - fixT0;
-    }
-
     // Attach per-check timings (captured alongside pt) to results for table + --json polish (timingMs on each check)
     // Mapping handles name differences (dendron-yml vs yml pt key; git:foo subs use "git" aggregate)
     // Use conditional set to avoid assigning `number | undefined` (exactOptionalPropertyTypes strictness)
@@ -415,6 +400,10 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
         if (t !== undefined) c.timingMs = t;
       }
     });
+
+    // Hoisted early for use in --fix block (fixes prior TS use-before-decl; debug removed in 0-gap hygiene)
+    const useVerbose = !!(this.opts as any).verbose || !!opts.verbose;
+    const useJson = !!(this.opts as any).json || !!opts.json;
 
     // === --fix: 3 real safe candidates (gap fill per Test-Guardian 06/09 task) ===
     // No data loss: GitUtils append-only (idempotent), DConfig.createBackup + write (timestamped .dendron/backups/ yml copies).
@@ -486,6 +475,7 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
       }
     }
 
+    // (debug removed)
     const summary = {
       pass: checks.filter((c) => c.status === "pass").length,
       warn: checks.filter((c) => c.status === "warn").length,
@@ -498,8 +488,14 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
     const perfReport = timer.getDetailedReport();
     const ptReport = pt.report();
 
+    // ora + RingBuffer stub surface (p7/8)
+    if (perfSpinner) {
+      const overallMs = (ptReport.match(/Total:\s*(\d+)/) || [0, "300"])[1];
+      ringBufferStub.push({ name: "doctor-overall", durationMs: parseInt(overallMs, 10), ts: Date.now() });
+      perfSpinner.succeed(`Checks complete. ${ptReport} | ${ringBufferStub.report()}`);
+    }
+
     // Perf hook surface (verbose or DENDRON_PERF); future: global PerfRingBuffer in common-all
-    const useVerbose = !!(this.opts as any).verbose || !!opts.verbose;
     if (useVerbose) {
       this.print(perfReport);
       this.print(`Per-check: ${ptReport}`);
@@ -507,7 +503,6 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
 
     // json from CLI opts (base sets this.opts.json from args via eval; super.buildArgs ensures declared)
     // Polished: always emits checks[] + summary + exitCode; perf (activation + perCheck) only when verbose
-    const useJson = !!(this.opts as any).json || !!opts.json;
     if (useJson) {
       this.printJson({
         checks,

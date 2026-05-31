@@ -63,9 +63,4 @@ export declare class EngineAPIService implements DEngineClient, IEngineAPIServic
     renderNote(opts: RenderNoteOpts): Promise<RenderNoteResp>;
     getNoteBlocks(opts: GetNoteBlocksOpts): Promise<GetNoteBlocksResp>;
     getDecorations(opts: GetDecorationsOpts): Promise<GetDecorationsResp>;
-    /**
-     * Setup telemetry tracking on engine events to understand user engagement
-     * levels
-     */
-    private setupEngineAnalyticsTracking;
 }

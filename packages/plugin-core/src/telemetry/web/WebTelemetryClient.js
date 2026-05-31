@@ -120,19 +120,19 @@ exports.WebTelemetryClient = WebTelemetryClient = __decorate([
     ,
     (0, inject_1.registry)([
         {
-            token: "anonymousId",
-            useFactory: (container) => (0, getAnonymousId_1.getAnonymousId)(container.resolve("extensionContext")),
+            token: inject_1.TOKENS.anonymousId,
+            useFactory: (container) => (0, getAnonymousId_1.getAnonymousId)(container.resolve(inject_1.TOKENS.extensionContext)),
         },
         {
-            token: "extVersion",
+            token: inject_1.TOKENS.extVersion,
             useFactory: (container) => {
-                const context = container.resolve("extensionContext");
+                const context = container.resolve(inject_1.TOKENS.extensionContext);
                 return context.extension.packageJSON.version ?? "0.0.0";
             },
         },
     ]),
-    __param(0, (0, inject_1.inject)("anonymousId")),
-    __param(1, (0, inject_1.inject)("extVersion")),
+    __param(0, (0, inject_1.inject)(inject_1.TOKENS.anonymousId)),
+    __param(1, (0, inject_1.inject)(inject_1.TOKENS.extVersion)),
     __metadata("design:paramtypes", [String, String])
 ], WebTelemetryClient);
 //# sourceMappingURL=WebTelemetryClient.js.map

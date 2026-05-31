@@ -27,8 +27,7 @@ class SnapshotVaultCommand extends base_1.BaseCommand {
             vaults: [vault],
             wsRoot,
             engine,
-            // @ts-ignore
-            config: {},
+            config: {} /* TODO: SnapshotExportPod / pod opts expect full DendronConfig (exactOptional strict); legacy partial snapshot mock; 4-axis style + dated final burn (2026-06-01 per ts-expect-error-burner). Real: pass minimal valid config or widen pod type. */,
         });
         vscode_1.window.showInformationMessage(`snapshot made to ${snapshotDirPath}`);
         return { snapshotDirPath };

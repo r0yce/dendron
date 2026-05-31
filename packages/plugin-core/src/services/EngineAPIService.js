@@ -7,7 +7,6 @@ exports.EngineAPIService = void 0;
 const common_all_1 = require("@dendronhq/common-all");
 const engine_server_1 = require("@dendronhq/engine-server");
 const lodash_1 = __importDefault(require("lodash"));
-const analytics_1 = require("../utils/analytics");
 class EngineAPIService {
     _internalEngine;
     _engineEventEmitter;
@@ -156,23 +155,6 @@ class EngineAPIService {
     }
     getDecorations(opts) {
         return this._internalEngine.getDecorations(opts);
-    }
-    /**
-     * Setup telemetry tracking on engine events to understand user engagement
-     * levels
-     */
-    // @ts-ignore
-    setupEngineAnalyticsTracking() {
-        this._engineEventEmitter.onEngineNoteStateChanged((entries) => {
-            const createCount = (0, common_all_1.extractNoteChangeEntriesByType)(entries, "create").length;
-            const updateCount = (0, common_all_1.extractNoteChangeEntriesByType)(entries, "update").length;
-            const deleteCount = (0, common_all_1.extractNoteChangeEntriesByType)(entries, "delete").length;
-            analytics_1.AnalyticsUtils.track(common_all_1.EngagementEvents.EngineStateChanged, {
-                created: createCount,
-                updated: updateCount,
-                deleted: deleteCount,
-            });
-        });
     }
 }
 exports.EngineAPIService = EngineAPIService;

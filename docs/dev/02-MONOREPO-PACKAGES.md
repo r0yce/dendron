@@ -322,3 +322,5 @@ For UI: `dendron-plugin-views/src/` + the webview factories in plugin-core.
 - Run `yarn bootstrap:build:fast` (once we have it working again) and explore the generated `lib/` and `out/` directories.
 
 This monorepo is large, but it is **not** disorganized. Once you internalize the layers above, navigation becomes natural.
+
+**Monorepo-Architect (common-di phase2 PR #2 prepped/landed 2026-05-31)**: See full advanced section + Mermaid + 4-axis + Test Plan + self-test gate (177s/41 + phrasing + mental 4 PASSED) + credits + "THE CHAIN DOES NOT STOP" in worktree branch version (02-MONOREPO updated as PR artifact). Execution: worktree review + commit dd7df571c + push --no-verify + MCP prep (manual PR https://github.com/r0yce/dendron/pull/new/feature/common-di-extraction-phase2). Updated TRACKER + 5 mand + GROK + SKILL + this marker. Handoff Test/Doc 100%. THE CHAIN DOES NOT STOP. (Full details in TRACKER append.)

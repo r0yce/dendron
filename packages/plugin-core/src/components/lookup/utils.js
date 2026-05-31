@@ -72,7 +72,7 @@ function createNoActiveItem(vault) {
     };
 }
 function createMoreResults() {
-    // @ts-ignore
+    // Sentinel "more results" partial for lookup UI (intentionally incomplete vs full DNodePropsQuickInputV2). Cast documented per final burn (2026-06-01); no bare @ts. (Legacy pattern shared with NotePickerUtils sentinels.)
     return {
         label: constants_1.MORE_RESULTS_LABEL,
         detail: "",

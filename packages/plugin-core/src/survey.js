@@ -490,9 +490,8 @@ class SurveyUtils {
                 analytics_1.AnalyticsUtils.track(common_all_1.SurveyEvents.InitialSurveyRejected);
             }
         })
-            // @ts-ignore
             .catch((error) => {
-            logger_1.Logger.error({ msg: error });
+            logger_1.Logger.error({ msg: error instanceof Error ? error.message : String(error) });
         });
     }
     static async showLapsedUserSurvey() {
@@ -536,9 +535,8 @@ class SurveyUtils {
                 engine_server_1.MetadataService.instance().setLapsedUserSurveyStatus(engine_server_1.LapsedUserSurveyStatusEnum.cancelled);
             }
         })
-            // @ts-ignore
             .catch((error) => {
-            logger_1.Logger.error({ msg: error });
+            logger_1.Logger.error({ msg: error instanceof Error ? error.message : String(error) });
         });
     }
     static async showInactiveUserSurvey() {
@@ -563,9 +561,8 @@ class SurveyUtils {
                 analytics_1.AnalyticsUtils.track(common_all_1.SurveyEvents.InactiveUserSurveyRejected);
             }
         })
-            // @ts-ignore
             .catch((error) => {
-            logger_1.Logger.error({ msg: error });
+            logger_1.Logger.error({ msg: error instanceof Error ? error.message : String(error) });
         });
     }
 }

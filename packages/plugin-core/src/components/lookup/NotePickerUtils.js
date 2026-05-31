@@ -52,8 +52,7 @@ class NotePickerUtils {
             id: constants_1.CREATE_NEW_LABEL,
             fname,
             type: "note",
-            // @ts-ignore
-            vault: {},
+            vault: { fsPath: "", name: "" }, // sentinel for CREATE_NEW UI item only (no real FS ops); 4-axis style boundary note + dated (final @ts burn 2026-06-01 per ts-expect-error-burner + strict-mode-fixer patterns). No @ts needed.
         });
         return {
             ...props,
@@ -67,8 +66,7 @@ class NotePickerUtils {
             id: constants_1.CREATE_NEW_WITH_TEMPLATE_LABEL,
             fname,
             type: "note",
-            // @ts-ignore
-            vault: {},
+            vault: { fsPath: "", name: "" }, // sentinel for CREATE_NEW_WITH_TEMPLATE UI item only (no real FS ops); 4-axis style boundary note + dated (final @ts burn 2026-06-01 per ts-expect-error-burner + strict-mode-fixer patterns). No @ts needed.
         });
         const label = common_all_1.LabelUtils.createLabelWithHighlight({
             value: constants_1.CREATE_NEW_WITH_TEMPLATE_LABEL,

@@ -112,10 +112,13 @@ export class SpinnerUtils {
     symbol?: string;
   }) {
     const { spinner, text, symbol } = opts;
-    spinner.stopAndPersist({
-      text: text || undefined,
+    const persistOpts: any = {
       symbol: symbol || DENDRON_EMOJIS.SEEDLING,
-    });
+    };
+    if (text) {
+      persistOpts.text = text;
+    }
+    spinner.stopAndPersist(persistOpts);
     spinner.start();
   }
 }
