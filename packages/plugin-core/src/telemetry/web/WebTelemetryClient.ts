@@ -1,6 +1,6 @@
 import { AppNames } from "@dendronhq/common-all";
 import axios, { AxiosRequestConfig } from "axios";
-import { inject, injectable, registry } from "../../di/inject";
+import { inject, injectable, registry, TOKENS } from "../../di/inject";
 import * as vscode from "vscode";
 import { ITelemetryClient } from "../common/ITelemetryClient";
 import { getAnonymousId } from "./getAnonymousId";
@@ -21,23 +21,23 @@ import { getAnonymousId } from "./getAnonymousId";
  */
 @registry([
   {
-    token: "anonymousId",
+    token: TOKENS.anonymousId,
     useFactory: (container) =>
-      getAnonymousId(container.resolve("extensionContext")),
+      getAnonymousId(container.resolve(TOKENS.extensionContext)),
   },
   {
-    token: "extVersion",
+    token: TOKENS.extVersion,
     useFactory: (container) => {
       const context =
-        container.resolve<vscode.ExtensionContext>("extensionContext");
+        container.resolve<vscode.ExtensionContext>(TOKENS.extensionContext);
       return context.extension.packageJSON.version ?? "0.0.0";
     },
   },
 ])
 export class WebTelemetryClient implements ITelemetryClient {
   constructor(
-    @inject("anonymousId") private anonymousId: string,
-    @inject("extVersion") private extVersion: string
+    @inject(TOKENS.anonymousId) private anonymousId: string,
+    @inject(TOKENS.extVersion) private extVersion: string
   ) {}
 
   /**

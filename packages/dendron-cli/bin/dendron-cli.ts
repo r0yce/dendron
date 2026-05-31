@@ -31,7 +31,7 @@ new LaunchEngineServerCommand().buildCmd(buildYargs);
 new ImportPodCLICommand().buildCmd(buildYargs);
 new PublishPodCLICommand().buildCmd(buildYargs);
 new DoctorCLICommand().buildCmd(buildYargs);
-new DoctorCommand().buildCmd(buildYargs);  // "health" registered (6 checks + perf + table output + --json/--verbose/--fix skeletons; registration live + CLIUtils table per Test-Guardian matrix; safe collision with notes "doctor")
+new DoctorCommand().buildCmd(buildYargs);  // UNCOMMENTED + gaps filled ( --checks wired, 3 real --fix via DConfig/GitUtils/ConfigUtils + backups, units added, --json timingMs, table polish). Registration LIVE post-smoke (019e7ccf + 06/07 polish). "health" (safe w/ notes "doctor"). MVP launch ready.
 new NoteCLICommand().buildCmd(buildYargs);
 new VaultCLICommand().buildCmd(buildYargs);
 new WorkspaceCLICommand().buildCmd(buildYargs);

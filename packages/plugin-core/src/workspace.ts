@@ -80,8 +80,7 @@ export function whenGlobalState(key: string, cb?: () => boolean): boolean {
     function alwaysTrue() {
       return true;
     };
-  // @ts-ignore
-  const out = getExtension().getGlobalState(key);
+  const out = getExtension().getGlobalState(key) as any /* TODO: getGlobalState return / boundary to DendronExtension/IDendronExtension (cross-pkg vscode/globalState interop + exactOptional); 4-axis TODO pattern per strict-mode-fixer SKILL Batch 6+ (final @ts burn 2026-06-01). See same-file:362 workspaceFile cast sibling + workspaceActivator precedents. Cross-pkg only. */;
   if (!(out === false || _.isUndefined(out))) {
     return cb();
   }

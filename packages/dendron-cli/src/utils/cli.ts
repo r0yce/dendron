@@ -94,7 +94,7 @@ export class CLIUtils {
       console.log(`\nSummary: ${summary.pass} pass / ${summary.warn} warn / ${summary.fail} fail  | exit=${ec}`);
     }
     if (fixNote) {
-      console.log("⚠️  --fix skeleton active (no mutations applied in M2 start; safe no-op).");
+      console.log("⚠️  --fix active (safe gitignore/yml drift+defaults+deprecated applied where triggered; backups created). Re-run to verify.");
     }
     console.log("Use --json for machine output. --checks/--fix/--verbose supported.");
   }

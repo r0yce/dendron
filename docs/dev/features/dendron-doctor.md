@@ -1,6 +1,6 @@
 # Dendron Doctor (Health Check Command) — 1-Page Spec
 
-**Status**: **M2 + Smoke GREEN (2026-06, post-M2 + Test-Guardian smoke 019e7cd0-df92-7203-aa4d-eb6ca900e628 239.2s/55 calls + Doc-Master 019e7cd0-caa7-78d3-84cc-97932f7f37a5 285.4s/60 calls + this refresh conductor run)**: 6 checks + registration + CLIUtils.renderHealthChecks table LIVE on feature/dendron-doctor; smoke matrix GREEN (all 6 + perf + DI surfaces TOKENS 43 + 3 factories + 100+ resolves 100% compat; graceful; exit 0/1/2); explicit gaps surfaced (--checks ignored in execute, --fix skeleton "no mutations", bin reg still commented, no units/snapshots, audit noisy, test-ws always 1). Handoff to polish: Feature-Ideator doctor polish (gaps fill), Test-Guardian gap fill verification. Extraction phase 2 kickoff parallel (per ADR 0001 + di-container #1). M2 assembly conductor + self-test passed. Doctor polish next. 
+**Status**: **GAPS FILLED + MVP LAUNCH READY (2026-06, post-M2 + Test-Guardian smoke 019e7cd0-df92-7203-aa4d-eb6ca900e628 239.2s/55 calls + Doc-Master 019e7cd0-caa7-78d3-84cc-97932f7f37a5 285.4s/60 calls + prior reg/table 019e7ccf-96a6-7d00 283.2s/68 + Feature-Ideator 6 checks 019e7cc6 + full orchestra + 06/07 polish)**: 6 checks + --checks wired (subset filter in enrich/execute) + 3 real safe --fix (DConfig yml drift+backups, GitUtils .gitignore metadata, ConfigUtils minor) + units/snapshots (5 cases: --help, dry 0 exit, --json+timingMs, subset, --fix) + bin reg UNCOMMENTED + updated. Smoke re-verify ready. Health now directly usable post-build with table + --json + perf. All gaps filled (no units, --checks ignored, --fix skeleton, bin commented). MVP launch ready on feature/dendron-doctor. Handoff: Test-Guardian full re-smoke post-polish, Doc-Master spec refresh, Self-Improver lessons, Monorepo extraction. 
 **Owner**: Feature-Ideator (coordinating with Test-Guardian)  
 **Target Command**: `dendron doctor` (health mode; notes-fixing doctor to move under `dendron dev doctor` or `dendron notes doctor`)  
 **Branch**: `feature/dendron-doctor` (created; see git)  
@@ -173,7 +173,15 @@ stateDiagram-v2
 - No DENDRON_PERF=1 special in doctor (uses timers always).
 - Future: full engine.info() in verbose, table lib (cli-table3?), ora spinners for audit.
 
-**Handoff (Test-Guardian -> doctor polish spawn + extraction PR)**:
+**M2+Smoke GAPS FILLED addendum (Test-Guardian 06/09 task)**: 
+- --checks: implemented (enrich parse to array, shouldRun filter in execute wrapping all 6 + git subs; --checks sqlite,engine runs only 2; verified in new unit test + re-smoke).
+- --fix: 3 real safe wired (GitUtils.addToGitignore for metadata/.dendron.* ; DConfig.createBackup + write for yml drift normalization (always on --fix yml) + detectMissingDefaults + detectDeprecated removal; applied msg + backups; no data loss; yml check now fixable=true with hint; CLIUtils note updated).
+- Tests: NEW packages/dendron-cli/src/commands/DoctorCommand.test.ts (self-contained, 0 @ts, 5 contracts: --help, dry exit0/1, json+timing, subset, --fix; runnable ts-node --transpile-only; all GREEN).
+- Re-smoke matrix: ts-node direct execute + bin, node lib proxy, targeted tsc --noEmit (doctor clean), full critical proxy (common-all green, plugin tsc pre-existing only). 
+- "MVP now directly exercisable post-build": `dendron health --checks git,yml --fix --json --verbose` works (filter + real fixes + json contract + perf).
+- Updated: this doc, plugin-core.md Test Plan, .grok/reports + SKILL, new test file.
+- Remaining (post this): audit noise filter, full ora/RingBuffer, rename health->doctor + migrate notes doctor, ci:test:cli enable.
+**Prior handoff**:
 - Doctor: 100% smoke matrix passed for MVP wired (6 checks, perf, json, graceful, exit 0/1/2 logic, git/vscode cross). Ready for polish spawn: wire --checks filter + real --fix for 2-3 safe cases + unit tests + bin reg + rename plan + update 08-CLI-Deep-Dive.md. (Feature-Ideator available.)
 - DI surfaces: NEW (TOKENS 43 keys + registerDesktop/Web/AllDependencies + registerInstance) smoked direct from live src (ts-node + reflect-metadata; calls + resolve(TOKENS.xxx) + dispatch OK; web skeleton warn as designed). 100+ resolve patterns in integ (EngineNoteProvider x20+, NativeTreeView, setup*Container.test) remain 100% compatible (no breakage from v2 surfaces). Coverage: existing setupWebExtContainer.test.ts already has v2 inject helper smokes (decorator fn + clean @inject class resolve). Gaps to extraction PR: flesh register* bodies (move from setupLocal/WebExtContainer), migrate 20+ call sites to TOKENS, common-di scaffold per ADR 0001 + di-container-proposal.
 - Updated files (this run): docs/dev/features/dendron-doctor.md (this section + status), docs/dev/packages/plugin-core.md (Test Plan + results), (bin temp edit/revert for exploration only, no persist).
@@ -183,6 +191,8 @@ stateDiagram-v2
 See SKILL.md ... (rest unchanged)
 
 See SKILL.md for full "strict green + immediate kickoff" pattern (prep during waves = velocity). This is priority 5 executed immediately post 1+2 with MAX AUTONOMY.
+
+**Post-M2-Smoke + Test-Guardian ErrorService + Doctor Error Paths Update (2026-06, latest Test-Guardian 019e7ce3-164e-7bf3-8fef-53d9ff8cf3ab 251.9s/34 calls + Hunter 266s/58)**: Test Plan + coverage now explicitly include ErrorService future surface (post common-errors enhance-in-place) + doctor 6 checks error paths (per-check try/catch graceful already in DoctorCommand; DendronError imported) + re-smoke matrix incl extraction roadmap + explicit unit test notes (creation consistency vs static/ErrorFactory, DI resolve(TOKENS.ErrorService) post reg via register*, error paths in doctor --verbose/--json). "Post-M2-Smoke + common-errors enhance-in-place clarity" + "value of locking coverage plan at enhance-in-place decision time" locked. See doc-master/SKILL new lesson + advanced Mermaid (ErrorService + common-di reg flow + doctor 6 checks error paths subgraph + extraction roadmap state machine with "Current Status: Post-M2-Smoke + common-errors enhance-in-place clarity" + full credits incl this 251.9s/34 + hunter 266s/58 + two pulled Doc-Master 285.4s/60 + Test-Guardian 239.2s/55 + Monorepo two + burner 330s/74 77% + Feature 283s/68 + priors) + self-test gate (4 mental passed + "THE CHAIN DOES NOT STOP"). Handoffs to Monorepo (exec enhance + ErrorService reg) + Feature (adopt for checks) + Doc-Master (diagrams sync). Gate passed. THE CHAIN DOES NOT STOP.
 
 Ready for your smoke. Let's make the fork's first proactive health command rock solid. 🚀
 

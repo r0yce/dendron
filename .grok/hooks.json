@@ -1,0 +1,130 @@
+{
+  "hooks": [
+    {
+      "name": "post-change-verifier",
+      "event": "on_file_change",
+      "pattern": "**/*.{ts,tsx}",
+      "action": "run_command",
+      "command": "yarn bootstrap:build:common-all && yarn workspace @dendronhq/plugin-core compile"
+    },
+    {
+      "name": "strict-hardening-trigger",
+      "event": "on_compile_error",
+      "pattern": "packages/plugin-core/**",
+      "action": "run_skill",
+      "skill": "strict-mode-fixer"
+    },
+    {
+      "name": "auto-doc-mermaid",
+      "event": "on_milestone_or_batch_green",
+      "action": "run_skill",
+      "skill": "doc-master"
+    },
+    {
+      "name": "self-evolver",
+      "event": "on_session_end",
+      "action": "run_skill",
+      "skill": "self-improver"
+    },
+    {
+      "name": "error-to-skill-learner",
+      "event": "on_compile_error",
+      "action": "run_skill",
+      "skill": "strict-mode-fixer"
+    },
+    {
+      "name": "test-guard-after-batch",
+      "event": "on_verify_green",
+      "action": "run_skill",
+      "skill": "test-guardian"
+    },
+    {
+      "name": "feature-spark",
+      "event": "on_hardening_complete",
+      "action": "run_skill",
+      "skill": "feature-ideator"
+    },
+    {
+      "name": "extraction-review",
+      "event": "on_shared_pattern_detected",
+      "action": "run_skill",
+      "skill": "dependency-hunter"
+    },
+    {
+      "name": "architecture-guard",
+      "event": "on_package_move_or_new_common",
+      "action": "run_skill",
+      "skill": "monorepo-architect"
+    },
+    {
+      "name": "di-wave-self-improver",
+      "event": "on_di_wave_start",
+      "action": "run_skill",
+      "skill": "self-improver",
+      "note": "Evolved 2026-06: also fires on on_strict_green / on_di_pivot for post-green immediate lessons encoding (v2 helper, 4-axis boundary, web/DI overlap). Prevents missing DI trigger + command-opts rediscovery + bare expects."
+    },
+    {
+      "name": "di-wave-strict-sweep",
+      "event": "on_di_wave_start",
+      "action": "run_skill",
+      "skill": "strict-mode-fixer",
+      "note": "Triggers expect-error sweep + pattern encoding for DI modernization + @ts-expect-error burn-down phase (post plugin-core strict green)"
+    },
+    {
+      "name": "strict-green-evolver",
+      "event": "on_strict_green",
+      "action": "run_skill",
+      "skill": "self-improver",
+      "note": "Fires on plugin-core strict production src/ 0-error green (critical tsc phase clean). Immediate self-evolution + lessons encoding + new on_di_pivot coordination. Part of non-stop chain."
+    },
+    {
+      "name": "di-pivot-burner-orchestra",
+      "event": "on_di_pivot",
+      "action": "run_skill",
+      "skill": "ts-expect-error-burner",
+      "note": "Immediate post-strict-green DI pivot trigger (e.g. after v2 inject() helper + 11-site cleanup like PreviewPanel 6 + TextDocumentService 5, 53→48). Runs burner + self-improver (for 4-axis/v2 lessons) + doc-master (diagrams) + test-guardian in parallel. Prevents missing DI trigger forever. Wires to di-container-proposal #1 + 4-axis."
+    },
+    {
+      "name": "strict-green-doc-update",
+      "event": "on_strict_green",
+      "action": "run_skill",
+      "skill": "doc-master",
+      "note": "On 0 strict errors: update all mandatory trackers/MILESTONE-2/plugin-core.md with 0/48 + v2 proof + 4-axis TODO snapshots + burn-down start. Real-time conductor role."
+    },
+    {
+      "name": "strict-green-test-guard",
+      "event": "on_strict_green",
+      "action": "run_skill",
+      "skill": "test-guardian",
+      "note": "Post-strict-green verification gate + test plan activation for DI surface (handoff from burner). Critical verify already green; prepare for extraction/doctor."
+    },
+    {
+      "name": "doctor-smoke-green-orchestra",
+      "event": "on_doctor_smoke_green",
+      "action": "run_skill",
+      "skill": "test-guardian",
+      "note": "Evolved 2026-06 M2+Smoke: Fires on Test-Guardian smoke GREEN for doctor (feature/dendron-doctor). Wires full orchestra auto-fire: Test-Guardian gap-fill ( --checks dispatch, --fix candidates, units, re-smoke, audit noise, test-ws, RingBuffer) + Feature-Ideator polish (bin uncomment + --fix yml/git + --checks subset + RingBuffer + units) + Doc-Master (smoke gaps + doctor matrix diagram sync to 5 mand + MILESTONE) + Self-Improver (hooks/config verify + mental test) + ts-expect-error-burner (final <5 + Registry for remaining @ts) in parallel. Prevents bin reg commented + undocumented smoke gaps forever. Exact wiring like on_strict_green/on_di_pivot."
+    },
+    {
+      "name": "extraction-pr-start-orchestra",
+      "event": "on_extraction_pr_start",
+      "action": "run_skill",
+      "skill": "monorepo-architect",
+      "note": "Evolved 2026-06 M2+Smoke: Fires on extraction PR start (common-di scaffold per ADR 0001 + di-container #1 4-axis). Wires full orchestra: Monorepo-Architect + Dependency-Hunter (enhance-in-place errors/config + PR) + Test-Guardian (new public surface coverage: TOKENS/register*/DiToken/RegisterDependencies/registerInstance + re-verify) + Doc-Master (extraction readiness diagram + full credits + phase 1 live callouts in 5 mand + MILESTONE) + Self-Improver (config/hooks + mental test) + Feature-Ideator (doctor polish handoff) + ts-expect-error-burner (final sweep during PR). Prevents register* skeletons discovered late. Exact parallel auto-fire like on_strict_green/on_di_pivot."
+    },
+    {
+      "name": "m2-commit-orchestra",
+      "event": "on_m2_commit",
+      "action": "run_skill",
+      "skill": "self-improver",
+      "note": "Evolved 2026-06 M2+Smoke: Fires on M2 finalize commit (0 strict / DI GREEN / doctor LIVE+smoked / extraction phase 1 solid / @ts ~15-18 actionable). Wires full orchestra auto-fire: Self-Improver (full evolve + mental test + credits) + Doc-Master (M2 Finalize burn-down + smoke gaps + @ts Registry + extraction readiness advanced Mermaid sync to all 5 mand + MILESTONE-2 + GROK + SKILLs with full orchestra credits incl two pulled 019e7cd0-caa7... 285.4s/60 + 019e7cd0-df92... 239.2s/55) + Test-Guardian (final smoke re-verify + gap-fill ownership) + ts-expect-error-burner (final <5 sweep + Suppression Registry for legacy/browser @ts: TextDecoder x3 + survey/memo/NotePicker + boundary casts) + Monorepo + Dependency-Hunter (extraction PR prep) + Feature-Ideator (doctor launch polish). Prevents all 4 frictions (bin reg, gaps undocumented, skeletons late, @ts without registry). Exact parallel auto-fire like on_strict_green/on_di_pivot. Sacred 5min encoding + full credits mandatory."
+    },
+    {
+      "name": "error-service-registered-orchestra",
+      "event": "on_error_service_registered",
+      "action": "run_skill",
+      "skill": "test-guardian",
+      "note": "Evolved 2026-06 Post-M2-Smoke + Test-Guardian ErrorService + Doctor Error Paths (post Test-Guardian 019e7ce3-164e-7bf3-8fef-53d9ff8cf3ab 251.9s/34 + hunter 019e7cda-a3cc 266s/58 'Post-M2-Smoke + common-errors enhance-in-place clarity'): Fires on ErrorService token registration (post common-di phase2 + common-errors enhance-in-place per 4-axis/ADR 0001, inside common-all no new pkg). Wires full orchestra: Test-Guardian (ErrorService unit tests coverage: creation consistency, DI via TOKENS/register*, doctor error paths in 6 health checks --verbose/--json + re-smoke matrix incl extraction roadmap; explicit notes in plugin-core.md Test Plan + reports) + Doc-Master (advanced Mermaid: ErrorService + common-di reg flow + doctor 6 checks error paths subgraph + extraction roadmap state machine 'Current Status: Post-M2-Smoke + common-errors enhance-in-place clarity' + full credits callouts incl this 251.9s/34 + hunter 266s/58 + two pulled 285.4s/60 + 239.2s/55 + Monorepo two + burner 330s/74 77% + Feature 283s/68) + Self-Improver (lessons + mental self-test 4 passed + prevented frictions + append sections to ALL 8 SKILLs + hooks/config) + Monorepo/Dep-Hunter (execution + surface return) + Feature-Ideator (doctor adopt ErrorService for check errors) + ts-expect-error-burner (if any @ts on new surface). Never again: update Test Plan for future DI surfaces at the time the enhance-in-place decision is locked. Exact parallel auto-fire like on_strict_green/on_di_pivot/on_m2_commit. Sacred 5min + full verbatim credits + 'THE CHAIN DOES NOT STOP' mandatory in every."
+    }
+  ]
+}
