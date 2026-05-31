@@ -37,7 +37,7 @@ export class SchemaCreationUtils {
         if (_.isUndefined(currParent["children"])) {
           currParent.children = [];
         }
-        const currPattern = tokenizedRow[i];
+        const currPattern = tokenizedRow[i]!;
 
         if (
           currParent.children?.some((ch) => ch.pattern === currPattern.pattern)
@@ -46,7 +46,7 @@ export class SchemaCreationUtils {
           // not double add it, find the matching element and assign it as parent for next iteration.
           currParent = currParent.children?.filter(
             (ch) => ch.pattern === currPattern.pattern
-          )[0];
+          )[0]!;
         } else {
           let curr: SchemaInMaking;
 

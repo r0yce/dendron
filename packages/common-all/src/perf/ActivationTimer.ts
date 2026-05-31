@@ -36,7 +36,7 @@ export class ActivationTimer {
 
   finish() {
     this.mark("finish");
-    const total = this.marks[this.marks.length - 1].ts - this.startTs;
+    const total = this.marks[this.marks.length - 1]!.ts - this.startTs;
 
     // Only do our nice formatted output when explicitly requested.
     // This prevents raw arrays/objects from being accidentally logged
@@ -73,7 +73,7 @@ export class ActivationTimer {
       return "No activation timings recorded.";
     }
 
-    const total = this.marks[this.marks.length - 1].ts - this.startTs;
+    const total = this.marks[this.marks.length - 1]!.ts - this.startTs;
     const lines: string[] = [];
     lines.push("=== Dendron Activation Performance ===");
     lines.push(`Total: ${total.toFixed(1)}ms`);

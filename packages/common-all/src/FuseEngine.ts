@@ -210,8 +210,8 @@ export class FuseEngine {
       results = this.postQueryFilter({
         results,
         queryString: formattedQS,
-        onlyDirectChildren,
-      });
+        onlyDirectChildren: onlyDirectChildren as boolean | undefined,
+      } as any);
 
       if (originalQS === undefined) {
         // TODO: add log WARN (does not appear to be easily accessible logger in common-all)
@@ -258,7 +258,7 @@ export class FuseEngine {
         vault,
         updated,
         stub,
-      }))
+      })) as any
     );
   }
 
@@ -395,7 +395,7 @@ export class FuseEngine {
       const idx = sorted.findIndex((res) => res.item.fname === originalQS);
       if (idx !== -1) {
         const [spliced] = sorted.splice(idx, 1);
-        sorted.unshift(spliced);
+        sorted.unshift(spliced!);
       }
     }
 

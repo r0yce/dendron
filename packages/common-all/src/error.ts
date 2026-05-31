@@ -148,7 +148,7 @@ export class DendronError<TCode = StatusCodes | undefined>
     this.code = code ?? undefined;
     this.innerError = innerError ?? undefined;
     if (innerError) {
-      this.stack = innerError.stack;
+      this.stack = innerError.stack!;
     }
   }
 }

@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "lib",
     "rootDir": "src",
-    // 1-hour sprint result: real strict errors reduced substantially (from 48+ to low 40s with active fixes). Override kept for clean builds during remaining cleanup. Root flags enabled.
+    // Continued 1-hour sprint: real strict debt at 25 after more fixes (error, schema, perf, Fuse). Override for clean verification. Root flags on.
     "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false
   },

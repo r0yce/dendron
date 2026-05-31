@@ -90,7 +90,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
       data: bulkResponses
         .flatMap((response) => response.data)
         .filter(isNotUndefined),
-    } as any;
+    } as BulkGetNoteResp;
   }
 
   /**
@@ -108,7 +108,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
       data: bulkResponses
         .flatMap((response) => response.data)
         .filter(isNotUndefined),
-    } as any;
+    } as BulkGetNoteMetaResp;
   }
 
   /**
@@ -143,7 +143,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
       data: writeResponses
         .flatMap((response) => response.data)
         .filter(isNotUndefined),
-    };
+    } as BulkWriteNotesResp;
   }
 
   /**
@@ -304,7 +304,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
     const response = await this.queryStore.queryNotes(qs, {
       onlyDirectChildren: onlyDirectChildren as boolean | undefined,
       originalQS,
-    });
+    } as any);
     if (response.isErr()) {
       // TODO: need to return an error
       return [];
