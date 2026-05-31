@@ -1,0 +1,48 @@
+{
+  "title": "Packages Overview - The Monorepo Map",
+  "description": "A high-level tour of every package in `packages/`. Each step focuses a directory or key file and links to the dedicated deep-dive tour (when one exists) and the canonical `docs/dev/packages/<name>.md` writeup. Use this as a map before diving into any individual package tour.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "The Complete Package Map (docs/dev/02-MONOREPO-PACKAGES.md)",
+      "description": "The fork maintainer wrote an exhaustive breakdown of every package, its responsibilities, dependencies, health, and modernization status.\n\n[Read the full package map](./docs/dev/02-MONOREPO-PACKAGES.md)\n\nThis tour will hit the highlights and give you direct links into the source for each.",
+      "file": "docs/dev/02-MONOREPO-PACKAGES.md",
+      "line": 1
+    },
+    {
+      "title": "plugin-core - The User-Facing Product (Most Important)",
+      "description": "This is the VS Code extension. 1800+ TS files. Activation, 100+ commands, all tree views, webviews, language providers, workspace trust, startup flows.\n\n**Dedicated tour**: [plugin-core Deep Dive][plugin-core Deep Dive]\n\n**Doc**: [docs/dev/packages/plugin-core.md](./docs/dev/packages/plugin-core.md)\n\n[Focus the plugin-core directory](./packages/plugin-core)",
+      "directory": "packages/plugin-core"
+    },
+    {
+      "title": "engine-server - The Brain",
+      "description": "`DendronEngineV2`, note store, schema engine, link utils, vault utils, git, SQLite, workspace initialization.\n\nHighest criticality after plugin-core.\n\n**Dedicated tour**: [engine-server Deep Dive][engine-server Deep Dive]\n\n**Doc**: [docs/dev/packages/engine-server.md](./docs/dev/packages/engine-server.md)\n\n[Focus engine-server](./packages/engine-server)",
+      "directory": "packages/engine-server"
+    },
+    {
+      "title": "common-all - The Universal Type System",
+      "description": "Every other package imports from here. Change a type → you touch the world.\n\n**Dedicated tour**: [common-all Deep Dive][common-all Deep Dive]\n\n**Doc**: [docs/dev/packages/common-all.md](./docs/dev/packages/common-all.md)\n\n[Focus common-all](./packages/common-all)",
+      "directory": "packages/common-all"
+    },
+    {
+      "title": "unified - Dendron-Flavored Markdown Pipeline",
+      "description": "All remark/rehype processing for wikilinks, note refs `![[]]`, block anchors, publishing transforms, preview, graph, etc.\n\n**Dedicated tour**: [unified Deep Dive][unified Deep Dive]\n\n**Doc**: [docs/dev/packages/unified.md](./docs/dev/packages/unified.md)\n\n[Focus unified](./packages/unified)",
+      "directory": "packages/unified"
+    },
+    {
+      "title": "dendron-cli - The Power User & CI Binary",
+      "description": "The `dendron` CLI. Doctor, import/export, dev commands, many delegate to the engine.\n\n**Dedicated tour**: [dendron-cli Deep Dive][dendron-cli Deep Dive]\n\n**Doc**: See also `docs/dev/08-Dendron-CLI-Deep-Dive.md`\n\n[Focus dendron-cli](./packages/dendron-cli)",
+      "directory": "packages/dendron-cli"
+    },
+    {
+      "title": "dendron-plugin-views - All the Webviews (React)",
+      "description": "Graph, calendar, lookup (V3), note preview, tip-of-the-day, configure UI, etc. All React + webview IPC.\n\n**Doc**: [docs/dev/packages/dendron-plugin-views.md](./docs/dev/packages/dendron-plugin-views.md)\n\n[Focus dendron-plugin-views](./packages/dendron-plugin-views)",
+      "directory": "packages/dendron-plugin-views"
+    },
+    {
+      "title": "The Rest of the Packages (Smaller but Important)",
+      "description": "The following packages each have their own `docs/dev/packages/*.md` and a lightweight tour entry:\n\n- `common-server` — logging, Sentry, Segment, file wrappers\n- `common-frontend` — shared React bits\n- `common-test-utils` + `engine-test-utils` — the heroic integration test harness\n- `pods-core` — Notion, Roam, JSON, Airtable import/export\n- `api-server` — HTTP side of some publishing features\n- `nextjs-template` — the beautiful static site generator for publishing your vault\n- `dendron-viz`, `dendron-design-system`, `generator-dendron`, etc.\n\nSee the individual package tours under this directory for the ones that have deeper coverage. For the others, start with their package.json + README + the doc in `docs/dev/packages/`.",
+      "directory": "packages"
+    }
+  ]
+}

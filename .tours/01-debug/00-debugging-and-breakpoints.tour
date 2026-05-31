@@ -1,0 +1,131 @@
+{
+  "title": "Debugging Dendron with Breakpoints",
+  "description": "THE most practical tour for day-to-day work. Covers every launch configuration, how to use the debug:* views, exactly where to set breakpoints for the most common classes of bugs (activation, indexing, lookups, publishing, CLI doctor, perf), attach workflows, DENDRON_PERF + RingBuffer, and the native module gotchas. For beginners to advanced extension debuggers.",
+  "ref": "codetour",
+  "nextTour": "3: Build System, Tasks & Bootstrap",
+  "steps": [
+    {
+      "title": "Welcome to Dendron Debugging (The Hard Parts)",
+      "description": "# Debugging Dendron is Special\n\nDebugging a VS Code *extension* is fundamentally different from debugging a normal Node app or web app:\n\n- The extension runs in a separate **Extension Host** process\n- Source maps + `out/` vs `src/` must be perfect\n- Native modules (sqlite3) + webpack shims create weird require paths\n- Many bugs only appear on first activation or after a VS Code upgrade\n- The CLI (`dendron-cli`) can be debugged separately (and often should be)\n\nThis tour will make you dangerous at debugging all of it.\n\n**Prerequisites before starting this tour:**\n1. Have the extension compiling (`yarn workspace @dendronhq/plugin-core compile`)\n2. Have a real vault you can open (or use the test fixtures)\n3. Be comfortable with F5 / the Debug view\n\nLet's begin.",
+      "view": "debug"
+    },
+    {
+      "title": "The Launch Config You Will Use 99% of the Time",
+      "description": "Open `.vscode/launch.json` and look at the first (and most important) configuration:\n\n**\"Run Dendron Extension (Desktop) - [open monorepo root]\"**\n\nIt does:\n- `preLaunchTask`: `compile:plugin-core`\n- Points `--extensionDevelopmentPath` at `packages/plugin-core`\n- Sets `outFiles` glob so breakpoints in `src/` map through source maps in `out/`\n- Injects `LOG_LEVEL=debug`, `DENDRON_DEV_MODE=1`, `DENDRON_PERF=1`\n\n**Critical**: You must have the **monorepo root** as your workspace folder (or use the `dendron-plugin.code-workspace`).\n\n[Highlight the main desktop launch config](./.vscode/launch.json)\n\n[Run the preLaunch compile task directly](command:workbench.action.tasks.runTask?[\"compile:plugin-core\"])",
+      "file": ".vscode/launch.json",
+      "line": 4,
+      "selection": {
+        "start": { "line": 4, "character": 1 },
+        "end": { "line": 24, "character": 1 }
+      },
+      "view": "debug"
+    },
+    {
+      "title": "Focus the Breakpoints View (Using view property)",
+      "description": "This step uses the `view` property to automatically focus **Breakpoints**.\n\nIn a real debugging session you will live in this view + the Call Stack + Variables.\n\n**Pro move**: While the extension is running in the Extension Development Host, you can add breakpoints here even if the file isn't open yet. VS Code will resolve them when the code loads.\n\nTry clicking the \"+\" in the Breakpoints view and typing a file path from the engine or plugin-core.",
+      "file": ".vscode/launch.json",
+      "line": 20,
+      "view": "debug:breakpoints"
+    },
+    {
+      "title": "The No-Precompile Variant + Watch Mode",
+      "description": "Sometimes the preLaunchTask gets in your way (you want to change code while the host is already running).\n\nUse **\"Run Dendron Extension (Desktop, No Precompile)\"** + a separate terminal running:\n\n```bash\nyarn workspace @dendronhq/plugin-core watch\n```\n\n(The watch task is also defined in tasks.json as `compile:watch:plugin-core`)\n\n[See the no-precompile config](./.vscode/launch.json)\n\n[Open the watch task definition](./.vscode/tasks.json)",
+      "file": ".vscode/launch.json",
+      "line": 26,
+      "selection": {
+        "start": { "line": 26, "character": 1 },
+        "end": { "line": 44, "character": 1 }
+      }
+    },
+    {
+      "title": "Attach to a Running Extension Host (Advanced but Essential)",
+      "description": "The **\"Attach to Running Extension Host\"** config (port 9229) is how you debug the extension **after** it has already activated, or when F5 is inconvenient.\n\nWorkflow:\n1. Start the extension with one of the Run configs (or just reload the window in the dev host)\n2. In the *original* window, choose the Attach config and F5\n3. You are now debugging the live extension\n\nThis is the only way to debug certain race conditions or post-activation commands.\n\n[Highlight the attach config](./.vscode/launch.json)",
+      "file": ".vscode/launch.json",
+      "line": 81,
+      "selection": {
+        "start": { "line": 81, "character": 1 },
+        "end": { "line": 89, "character": 1 }
+      },
+      "view": "debug:callstack"
+    },
+    {
+      "title": "CLI Debugging - The Other 40% of Your Life",
+      "description": "Many bugs live in the CLI (`dendron-cli`) or are easiest to reproduce there (doctor, import/export, dev commands).\n\nThere are dedicated launch configs for it:\n- \"Debug Dendron-CLI (ts-node bin + doctor health)\"\n- \"Debug Doctor (health checks + perf)\"\n\nThey use `ts-node/register` so you debug the `.ts` sources directly.\n\n[Highlight the CLI doctor config](./.vscode/launch.json)\n\n[Open the actual CLI entry point](./packages/dendron-cli/bin/dendron-cli.ts)",
+      "file": ".vscode/launch.json",
+      "line": 91,
+      "selection": {
+        "start": { "line": 91, "character": 1 },
+        "end": { "line": 104, "character": 1 }
+      }
+    },
+    {
+      "title": "Compound Launch Configs (Debug Everything at Once)",
+      "description": "The `compounds` section at the bottom of launch.json lets you launch multiple configurations simultaneously.\n\nExamples:\n- \"Dendron: Full Debug (Extension + Engine Tests)\"\n- \"Dendron p6 DX: Plugin-Core + Doctor CLI\"\n- \"Dendron p6+7 DX: Full Insiders Perf\"\n\nThis is how the fork maintainer does \"zero-ramp\" performance and health debugging.\n\n[See the compounds](./.vscode/launch.json)",
+      "file": ".vscode/launch.json",
+      "line": 125,
+      "selection": {
+        "start": { "line": 125, "character": 1 },
+        "end": { "line": 138, "character": 1 }
+      },
+      "view": "debug"
+    },
+    {
+      "title": "Where to Set Your First Breakpoint: _activate()",
+      "description": "Always start here when chasing activation or \"extension won't start\" bugs.\n\nSet a breakpoint at the very first line of `_activate` (the one with `const startActivate = process.hrtime();`).\n\nThen F5 using the main desktop config.\n\nWhen it hits, step through:\n- Telemetry unlock\n- DI container creation\n- WorkspaceActivator\n- The full index\n\n[Jump to the exact line in _extension.ts](./packages/plugin-core/src/_extension.ts)",
+      "file": "packages/plugin-core/src/_extension.ts",
+      "line": 142,
+      "selection": {
+        "start": { "line": 142, "character": 1 },
+        "end": { "line": 150, "character": 1 }
+      },
+      "view": "debug:variables"
+    },
+    {
+      "title": "Engine Initialization & Full Index Breakpoints",
+      "description": "After the container is up, the engine is created and `engine.init()` (or equivalent) is called. This is where the expensive full parse of every note + schema happens.\n\nKey file: `packages/engine-server/src/enginev2.ts`\n\nLook for `async init()` and the methods that build the note index (`updateNotes`, `updateSchemas`, `linkNotes`, etc.).\n\nThis is the #1 place performance problems in \"first open of a large vault\" manifest.\n\n[Open enginev2.ts at the class](./packages/engine-server/src/enginev2.ts)",
+      "file": "packages/engine-server/src/enginev2.ts",
+      "line": 129,
+      "view": "debug"
+    },
+    {
+      "title": "DENDRON_PERF + ActivationTimer + Doctor RingBuffer",
+      "description": "The fork added serious perf instrumentation.\n\n- Set `DENDRON_PERF=1` (already done by the launch configs)\n- The `ActivationTimer` marks throughout _activate and workspace activation\n- At the end, or via `dendron doctor --verbose --json`, you get timing breakdowns\n- Some paths also feed a RingBuffer for in-memory recent events (great for post-mortem)\n\n[Search for DENDRON_PERF usage](./packages/plugin-core/src/_extension.ts)\n\n[Open the Doctor command implementation (CLI side)](./packages/dendron-cli/src/commands/DoctorCommand.ts)\n\n>> echo 'After a debug run with DENDRON_PERF=1, run: yarn workspace @dendronhq/dendron-cli build && node packages/dendron-cli/lib/bin/dendron-cli.js health --verbose --json'",
+      "file": "packages/plugin-core/src/_extension.ts",
+      "line": 147,
+      "pattern": "DENDRON_PERF|ActivationTimer"
+    },
+    {
+      "title": "Common Gotcha: Source Maps & out/ vs src/",
+      "description": "If your breakpoints are greyed out or never hit:\n\n1. Make sure you compiled (or are using the watch task)\n2. The `outFiles` glob in launch.json must cover the generated `.js` and `.js.map` files\n3. You are debugging the **Extension Development Host** window, not the original one\n4. For web extension path you need the webpack bundle + different sourcemaps\n\nThe launch configs in this repo have been tuned for the desktop tsc path. If you change the build, you must update `outFiles`.\n\n[Re-examine the outFiles globs](./.vscode/launch.json)",
+      "file": ".vscode/launch.json",
+      "line": 12,
+      "selection": {
+        "start": { "line": 12, "character": 1 },
+        "end": { "line": 14, "character": 1 }
+      }
+    },
+    {
+      "title": "Native Module Breakpoints & The sqlite3 Nightmare",
+      "description": "When you see errors about `node_sqlite3.node` not found or cannot find module 'sqlite3' after a Node upgrade, start in these files:\n\n- `packages/plugin-core/sqlite3-binding.js`\n- `packages/plugin-core/webpack.common.js` (the CopyPlugin that ships the .node binary)\n- `packages/plugin-core/package.json` → the `binary` section for node-pre-gyp\n\nThese are the files that make the vendored sqlite3 work in both the extension host and after webpack for the web extension.\n\n[Open the binding shim](./packages/plugin-core/sqlite3-binding.js)",
+      "file": "packages/plugin-core/sqlite3-binding.js",
+      "line": 1,
+      "view": "debug"
+    },
+    {
+      "title": "Debugging Integration Tests (The vscode-test Path)",
+      "description": "The integration test launch config actually spins up a full VS Code instance + loads your extension + runs the test suite.\n\nThis is how `engine-test-utils` + the `*Integ` tests work.\n\nIt is slow but extremely powerful (you get real VS Code APIs + your extension running).\n\n[See the integ test launch config](./.vscode/launch.json)\n\n[See how the integ harness is wired](./packages/plugin-core/src/test/runTestInteg.ts)",
+      "file": ".vscode/launch.json",
+      "line": 46,
+      "selection": {
+        "start": { "line": 46, "character": 1 },
+        "end": { "line": 58, "character": 1 }
+      }
+    },
+    {
+      "title": "Final Debugging Wisdom + Recommended Next Tours",
+      "description": "## The Debugging Checklist (Memorize This)\n\n1. Wrong workspace root open? → 90% of \"F5 does nothing\"\n2. Breakpoint grey? → compile + check outFiles glob + source maps\n3. Activation bug? → breakpoint at top of `_activate`\n4. Engine/index bug? → breakpoint in enginev2.ts + watch the index methods\n5. CLI bug? → use the ts-node CLI launch configs, not the extension ones\n6. Perf? → `DENDRON_PERF=1` + doctor --verbose --json + RingBuffer\n7. Native module hell? → sqlite3-binding + webpack.common + the .node binary in out/\n8. Need to debug already-running extension? → Attach config on 9229\n\n**Next tours after this one:**\n- [3: Build System, Tasks & Bootstrap][3: Build System, Tasks & Bootstrap]\n- The package tours for `plugin-core` and `engine-server`\n\nYou are now equipped to debug 95% of the problems you will encounter in this codebase.\n\n[Open the build/debug doc for even more detail](./docs/dev/04-BUILD-AND-DEBUG-WORKFLOW.md)",
+      "file": "docs/dev/04-BUILD-AND-DEBUG-WORKFLOW.md",
+      "line": 110
+    }
+  ]
+}

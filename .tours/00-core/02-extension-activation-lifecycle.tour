@@ -1,0 +1,73 @@
+{
+  "title": "2: Extension Activation Lifecycle",
+  "description": "The single most important flow in the entire Dendron codebase. Walks line-by-line through _extension.ts, WorkspaceActivator, command registration, DI setup, and the exact sequence that must complete before the UI lights up. Every bug you will ever chase in startup, workspace trust, telemetry, or slow activation starts here.",
+  "ref": "codetour",
+  "nextTour": "Debugging Dendron with Breakpoints",
+  "steps": [
+    {
+      "title": "Why This Flow Matters More Than Anything Else",
+      "description": "If the extension fails to activate, **nothing works**.\n\nThis tour is deliberately narrow and deep. When you finish it you will be able to:\n- Set a breakpoint on first line of activate and know exactly what happens next\n- Explain why certain things are slow or fail only on first launch vs reload\n- Know where to add new startup work (and where *not* to)\n\n[Open the full dedicated doc](./docs/dev/03-EXTENSION-ACTIVATION-LIFECYCLE.md)\n\nThis is the companion tour to that document.",
+      "file": "docs/dev/03-EXTENSION-ACTIVATION-LIFECYCLE.md",
+      "line": 1
+    },
+    {
+      "title": "The Public activate() Surface (extension.ts)",
+      "description": "VS Code calls this because of `\"activationEvents\": [\"*\"]` in plugin-core/package.json.\n\nIt does almost nothing itself — just configures a logger and immediately `require()`s the sibling `_extension`.\n\n**Why the weird require + eslint-disable?** Historical (circular import + decorator metadata ordering reasons).\n\n[Open it](./packages/plugin-core/src/extension.ts)\n\nNext step jumps straight into the real `_activate`.",
+      "file": "packages/plugin-core/src/extension.ts",
+      "line": 5,
+      "selection": {
+        "start": { "line": 5, "character": 1 },
+        "end": { "line": 12, "character": 1 }
+      }
+    },
+    {
+      "title": "The Real _activate() - 700 Lines of Startup",
+      "description": "This is the function. Everything you care about for startup lives under here or is called from here.\n\nLandmarks you will set breakpoints on for the rest of your Dendron life:\n- Line ~148: `new ActivationTimer()` (perf instrumentation added in the fork)\n- Telemetry / Segment unlock + Sentry init (only in prod stage)\n- `setupLocalExtContainer()` (DI)\n- `new WorkspaceActivator().activate()`\n- The giant `ALL_COMMANDS.forEach(...)` registration loop\n\n[Jump to _activate signature](./packages/plugin-core/src/_extension.ts)\n\n>> echo 'Set your breakpoint on the first line of _activate before the next F5'",
+      "file": "packages/plugin-core/src/_extension.ts",
+      "line": 120,
+      "selection": {
+        "start": { "line": 120, "character": 1 },
+        "end": { "line": 145, "character": 1 }
+      }
+    },
+    {
+      "title": "WorkspaceActivator - Where the Real Work Happens",
+      "description": "After DI container and command registration, `WorkspaceActivator.activate()` is called.\n\nThis is where:\n- `dendron.yml` is read\n- Vaults are initialized\n- The engine (`DendronEngineV2`) is created and a **full index** of every note + schema is triggered\n- File watchers are wired\n- All tree views (backlinks, note graph, calendar, etc.) are registered\n- Language providers (definition, hover, rename, completion...) are attached\n\nOnly after this completes does the `dendron:pluginActive` context key become true and most UI elements light up.\n\n[Open WorkspaceActivator](./packages/plugin-core/src/workspace/workspaceActivator.ts)",
+      "file": "packages/plugin-core/src/workspace/workspaceActivator.ts",
+      "line": 419,
+      "selection": {
+        "start": { "line": 419, "character": 1 },
+        "end": { "line": 450, "character": 1 }
+      }
+    },
+    {
+      "title": "The Singleton Pattern: getExtension(), getEngine(), getDWorkspace()",
+      "description": "You will see these three functions **everywhere** in plugin-core and tests.\n\n- `getExtension()` → returns the `DendronExtension` singleton\n- `getEngine()` → `getExtension().getEngine()` (convenience)\n- `getDWorkspace()` / `ExtensionProvider.getDWorkspace()` (newer preferred path)\n\n**Modern rule in the fork**: Prefer injecting `IDendronExtension` via tsyringe rather than calling the static getters (better for testing + explicit deps).\n\n[See the getters in workspace.ts](./packages/plugin-core/src/workspace.ts)\n\n[See ExtensionProvider (the newer DI-friendly path)](./packages/plugin-core/src/ExtensionProvider.ts)",
+      "file": "packages/plugin-core/src/workspace.ts",
+      "line": 102,
+      "selection": {
+        "start": { "line": 102, "character": 1 },
+        "end": { "line": 115, "character": 1 }
+      }
+    },
+    {
+      "title": "Command Registration - The ALL_COMMANDS List",
+      "description": "Dendron has **100+ commands**. They are all registered in one giant loop during activation.\n\n[Find the ALL_COMMANDS import and registration](./packages/plugin-core/src/_extension.ts)\n\n```ts\n// Look for something like this near the end of _activate\nALL_COMMANDS.forEach(Cmd => {\n  const cmd = new Cmd();\n  context.subscriptions.push(...);\n});\n```\n\nEach command class lives in `src/commands/`. Many inherit from `BasicCommand` or `DendronCommand`.\n\nThis is also where a lot of \"command X is slow\" or \"command X doesn't appear\" bugs are diagnosed.",
+      "file": "packages/plugin-core/src/_extension.ts",
+      "line": 40,
+      "pattern": "ALL_COMMANDS"
+    },
+    {
+      "title": "ActivationTimer & Perf Instrumentation (Fork Addition)",
+      "description": "The fork added `ActivationTimer` (see `src/utils/ActivationTimer.ts`) to measure exactly where time is spent during startup.\n\nIt is already wired in _activate:\n```ts\nconst activationTimer = new ActivationTimer();\nactivationTimer.mark(\"after:env-setup\");\n...\nactivationTimer.mark(\"before:telemetry-setup\");\n```\n\nLater milestones (engine init, index complete, tree views ready) are also marked.\n\nThis data feeds the `DENDRON_PERF` doctor reports and future performance work.\n\n[Open ActivationTimer](./packages/plugin-core/src/utils/ActivationTimer.ts)",
+      "file": "packages/plugin-core/src/utils/ActivationTimer.ts",
+      "line": 1
+    },
+    {
+      "title": "End of Lifecycle Tour + Next Steps",
+      "description": "You now understand the exact sequence that turns \"VS Code loads the extension\" into \"user can look up a note in <50ms\".\n\n**Common startup bugs you can now debug:**\n- Workspace trust dialog never appears → check before the engine init block\n- Commands registered but don't work → check the context key `dendron:pluginActive`\n- First launch is 10x slower than reload → full index + no cache\n- Telemetry/Sentry errors on activate → the try/catch around Segment unlock\n\n**Next tours:**\n- [Debugging Dendron with Breakpoints][Debugging Dendron with Breakpoints] (set breakpoints on every one of these functions)\n- [Build & Monorepo Tour][3: Build System, Tasks & Bootstrap]\n\n[Read the full 03-EXTENSION-ACTIVATION-LIFECYCLE.md doc](./docs/dev/03-EXTENSION-ACTIVATION-LIFECYCLE.md)",
+      "file": "docs/dev/03-EXTENSION-ACTIVATION-LIFECYCLE.md",
+      "line": 1
+    }
+  ]
+}

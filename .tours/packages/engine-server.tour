@@ -1,0 +1,56 @@
+{
+  "title": "engine-server Deep Dive",
+  "description": "The note engine. This package implements DendronEngineV2, the workspace service, schema engine, git integration, file watchers, SQLite usage, and all the core algorithms for note lookup, backlinks, and refactoring. If plugin-core is the body, this is the brain and nervous system.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "The Engine Class - DendronEngineV2",
+      "description": "The main implementation of `DEngine`.\n\nIt owns the note index, schema index, vault state, and orchestrates parsing + linking.\n\nMost of the \"heavy lifting\" methods are here or delegated to stores inside this package.\n\n[Open the engine class at its definition](./packages/engine-server/src/enginev2.ts)",
+      "file": "packages/engine-server/src/enginev2.ts",
+      "line": 129,
+      "selection": {
+        "start": { "line": 129, "character": 1 },
+        "end": { "line": 160, "character": 1 }
+      }
+    },
+    {
+      "title": "Workspace Service & Initialization",
+      "description": "`WorkspaceService` (and the newer `WorkspaceInitFactory` / `WorkspaceActivator` in plugin-core) are responsible for reading `dendron.yml`, creating the initial vault layout, running migrations, and seeding the engine.\n\nThis is also where a lot of the \"first time user\" and \"workspace trust\" logic lives.\n\n[Open WorkspaceService](./packages/engine-server/src/workspace/service.ts)\n\nSee also the activator in plugin-core.",
+      "file": "packages/engine-server/src/workspace/service.ts",
+      "line": 1
+    },
+    {
+      "title": "Schema Engine & Schema Inheritance",
+      "description": "Schemas (`.schema.yml`) are Dendron's type system for your notes.\n\nThe schema engine handles:\n- Parsing schema files\n- Inheritance and child patterns\n- Applying schemas to notes at index time (or on demand)\n\nThis is one of the most powerful and least understood parts of Dendron.\n\n[Open the schema engine entry](./packages/engine-server/src/schemas.ts)",
+      "file": "packages/engine-server/src/schemas.ts",
+      "line": 1
+    },
+    {
+      "title": "Note Linking, Backlinks & Reference Resolution",
+      "description": "The engine computes (and incrementally maintains) the graph of wikilinks, note references `![[]]`, block anchors, and tags.\n\nKey concepts: `LinkUtils`, `BacklinkUtils`, the note reference processor in the unified package, and the various caches.\n\nWhen you rename or refactor, this is the code that updates all the references.\n\n[Search for LinkUtils in engine-server](./packages/engine-server/src)",
+      "directory": "packages/engine-server/src"
+    },
+    {
+      "title": "File Watchers & Incremental Updates",
+      "description": "The engine registers `FileWatcher` (in plugin-core) and internal watchers to react to on-disk changes without a full re-index every time.\n\nGetting incremental update + cache invalidation right is one of the hardest and highest-leverage performance areas in the entire project.\n\n[Open the FileWatcher in plugin-core (it talks to the engine)](./packages/plugin-core/src/fileWatcher.ts)",
+      "file": "packages/plugin-core/src/fileWatcher.ts",
+      "line": 1
+    },
+    {
+      "title": "SQLite + Prisma Usage",
+      "description": "Some indexes and metadata are persisted in SQLite via Prisma.\n\nThis is another native module surface (alongside the direct sqlite3 usage) and a source of upgrade pain.\n\nThe prisma schema and client generation live under `packages/engine-server/prisma/`.\n\n[Open the prisma directory](./packages/engine-server/prisma)",
+      "directory": "packages/engine-server/prisma"
+    },
+    {
+      "title": "Git Integration",
+      "description": "Dendron has first-class git awareness (blame, history, \"create pull request from note\", etc.).\n\nThe git layer lives in `engine-server` and is used by both the CLI doctor and various commands.\n\n[Open the git module](./packages/engine-server/src/git.ts)",
+      "file": "packages/engine-server/src/git.ts",
+      "line": 1
+    },
+    {
+      "title": "Engine Test Utils - How the Hard Tests Are Written",
+      "description": "Because the engine is so stateful (real vaults on disk, watchers, git), testing it requires a sophisticated harness.\n\n`engine-test-utils` (sibling package) + the integ test runner are what make reliable engine testing possible.\n\nSee the dedicated [engine-test-utils package tour][engine-test-utils Deep Dive] and the `runEngineTestV5` family of helpers.",
+      "directory": "packages/engine-test-utils/src"
+    }
+  ]
+}

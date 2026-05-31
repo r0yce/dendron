@@ -1,0 +1,12 @@
+{
+  "title": "dendron-viz (Lightweight)",
+  "description": "Visualization utilities and components (separate from the main graph webview).",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "Visualization Package",
+      "description": "Small package focused on viz. See its README and src/.\n\n[Focus the package](./packages/dendron-viz)",
+      "directory": "packages/dendron-viz"
+    }
+  ]
+}

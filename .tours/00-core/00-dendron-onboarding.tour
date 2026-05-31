@@ -1,0 +1,107 @@
+{
+  "title": "1: Dendron Developer Onboarding - Start Here",
+  "description": "PRIMARY TOUR. The single best starting point for new and returning developers. Walks through the fork goals, monorepo layout, essential dev commands, documentation, and links you to every other specialized tour (architecture, debugging, packages, etc.). Uses every CodeTour feature.",
+  "isPrimary": true,
+  "ref": "codetour",
+  "nextTour": "1: Architecture & Mental Model",
+  "when": "true",
+  "steps": [
+    {
+      "title": "Welcome to the Dendron go-to-work Fork",
+      "description": "# Welcome, Developer!\n\nYou are about to take the **primary onboarding CodeTour** for the Dendron personal maintenance fork (\"go-to-work\").\n\nDendron is a local-first hierarchical markdown note-taking system that feels like an IDE for your brain. This fork exists to keep it alive and working on 2025-2026 Node + VS Code.\n\n**This tour will:**\n- Get your environment ready\n- Teach you the mental model\n- Show you the most important files and commands\n- Point you at deeper tours for debugging, architecture, each package, etc.\n\n**How to navigate this tour:**\n- Use the **CodeTour** tree view in Explorer sidebar (or status bar)\n- Keyboard: `Cmd+Right` / `Cmd+Left` (or Ctrl on Windows/Linux)\n- The floating comment UI at the bottom of the editor has Previous/Next/End\n\n> **Pro tip**: Keep the CodeTour sidebar visible while taking tours. It is often faster than the inline UI.\n\nWhen you're ready, click **Next** (or press the keyboard shortcut).",
+      "commands": ["workbench.view.explorer"]
+    },
+    {
+      "title": "The Most Important Document: FORK-README.md",
+      "description": "This file explains **why this fork exists**, the current branch strategy, immediate goals, and the modernized quick-start commands.\n\nRead it now (it is short and high-signal).\n\n[Open full FORK-README.md](./FORK-README.md)\n\nKey points you will learn:\n- The `codetour` branch (where these tours live)\n- `go-to-work` is the active dev branch\n- Recommended: open `dendron-plugin.code-workspace` instead of the raw folder\n- The entire `docs/dev/` series (this tour will take you there)\n\n>> cat FORK-README.md | head -60\n\n(Click the shell command above to run it in a dedicated CodeTour terminal.)",
+      "file": "FORK-README.md",
+      "line": 1,
+      "selection": {
+        "start": { "line": 1, "character": 1 },
+        "end": { "line": 45, "character": 1 }
+      }
+    },
+    {
+      "title": "The Sacred Documentation: docs/dev/",
+      "description": "The `docs/dev/` folder is the **canonical deep technical documentation** for this fork. It was written with the explicit goal of allowing a single motivated person to maintain Dendron indefinitely.\n\n**Must-read order (these tours mirror it):**\n1. `00-GOALS-AND-ROADMAP.md`\n2. `01-ARCHITECTURE-OVERVIEW.md` ← next tour covers this in depth\n3. `02-MONOREPO-PACKAGES.md`\n4. `03-EXTENSION-ACTIVATION-LIFECYCLE.md`\n5. `04-BUILD-AND-DEBUG-WORKFLOW.md` ← debugging tour goes here\n\n[Open docs/dev/ folder in Explorer](#directory:docs/dev/)\n\nThis directory also contains per-package deep dives under `docs/dev/packages/`.\n\nWe will create a directory step next so the explorer focuses exactly here.",
+      "directory": "docs/dev"
+    },
+    {
+      "title": "Directory Step: The docs/dev/packages/ Breakdowns",
+      "description": "Every major package has a dedicated `.md` file here written by the fork maintainer.\n\nThese are **gold**. Read them alongside the per-package CodeTours you will find under `.tours/packages/`.\n\nExample files:\n- `plugin-core.md` (the heart of the VS Code extension)\n- `engine-server.md`\n- `common-all.md` (the type foundation everything imports)\n\nClicking **Next** will take you to the root README and the actual source layout.",
+      "directory": "docs/dev/packages"
+    },
+    {
+      "title": "Root package.json - The Monorepo Contract",
+      "description": "This is a **Yarn workspaces + Lerna + custom bootstrap** monorepo (with Turbo for some caching).\n\nKey things to look for in this file:\n- `workspaces.packages`\n- `scripts` (especially `bootstrap:*`, `gen:data`)\n- `resolutions` (the horror that keeps old deps working)\n- `engines` (Node version expectations)\n\nWe will use shell commands and task commands heavily in later steps.\n\n[Open root package.json](./package.json)\n\n>> yarn --version && node --version\n\n(Shell commands prefixed with `>>` become clickable and run in a special \"CodeTour\" integrated terminal.)",
+      "file": "package.json",
+      "line": 1,
+      "selection": {
+        "start": { "line": 1, "character": 1 },
+        "end": { "line": 30, "character": 1 }
+      }
+    },
+    {
+      "title": "Your First Real Command: bootstrap:build:fast",
+      "description": "## The Daily Driver Build Command\n\nAfter a fresh clone or branch switch, run:\n\n```bash\nyarn bootstrap:build:fast\n```\n\nThis builds the common packages + engine-server + plugin-core (the minimum needed to F5 the extension).\n\n**In this tour we will not actually run the long build** (it can take 30-90s), but you should run it in your real terminal after this tour.\n\nInstead, here is a **lighter smoke task** you can run right now via a CodeTour command link:\n\n[Run doctor:smoke task](command:workbench.action.tasks.runTask?[\"doctor:smoke (health --verbose + json)\"])\n\nWatch the terminal output — it exercises the CLI + engine health checks.",
+      "file": "package.json",
+      "line": 20,
+      "pattern": "bootstrap:build:fast"
+    },
+    {
+      "title": "The Heart: packages/plugin-core/src/extension.ts + _extension.ts",
+      "description": "All VS Code extensions start at `activate()`. Dendron immediately delegates (the `_` prefix is a deliberate signal that the real implementation lives in the sibling file).\n\n**Critical files you will set breakpoints in constantly:**\n- `packages/plugin-core/src/extension.ts` (the public surface)\n- `packages/plugin-core/src/_extension.ts` (the 700+ line monster that does DI, telemetry, WorkspaceActivator, command registration...)\n\n[Open extension.ts](./packages/plugin-core/src/extension.ts)\n\n[#7] (jump to the next step in this tour which highlights the delegation)\n\nSee also the full deep dive tour: [Extension Activation Lifecycle Tour][2: Extension Activation Lifecycle]",
+      "file": "packages/plugin-core/src/extension.ts",
+      "line": 5,
+      "selection": {
+        "start": { "line": 1, "character": 1 },
+        "end": { "line": 17, "character": 1 }
+      }
+    },
+    {
+      "title": "The Real Activation Logic (Common DI + Telemetry Setup)",
+      "description": "Open `_extension.ts`. This is where `reflect-metadata`, tsyringe container, Segment/Sentry, and the giant `ALL_COMMANDS` registration happens.\n\n**Look for these landmarks while the tour is here:**\n- Top of file: `import \"reflect-metadata\"` (must be first)\n- `setupLocalExtContainer()` call (the DI wiring)\n- `WorkspaceActivator.activate()`\n- The `DendronExtension` singleton pattern\n\nThis file is deliberately kept as the \"one file to rule them all\" for activation.\n\n[Open _extension.ts at the activate function](./packages/plugin-core/src/_extension.ts)\n\n>> echo 'Tip: Set a breakpoint on line 120 (the _activate function) before your next F5'",
+      "file": "packages/plugin-core/src/_extension.ts",
+      "line": 120,
+      "selection": {
+        "start": { "line": 1, "character": 1 },
+        "end": { "line": 30, "character": 1 }
+      }
+    },
+    {
+      "title": "Debugging Tour Teaser (Using CodeTour view + command features)",
+      "description": "The single most valuable specialized tour in this suite is the **Debugging & Breakpoints** tour.\n\nIt will teach you:\n- How to use every launch config in `.vscode/launch.json`\n- The difference between \"Run Extension\" vs Attach\n- Exactly where to set breakpoints for activation, engine indexing, lookups, publishing, etc.\n- How `DENDRON_PERF=1` + Doctor + RingBuffer work\n- Using the `debug:breakpoints`, `debug:callstack`, `debug:variables` views (this tour will auto-focus them in later steps)\n\n[Start the Debugging Tour immediately][Debugging Dendron with Breakpoints]\n\nOr continue this tour — we will link back at the end.",
+      "file": ".vscode/launch.json",
+      "line": 5,
+      "view": "debug"
+    },
+    {
+      "title": "Focus Debug Breakpoints View (CodeTour view integration demo)",
+      "description": "This step demonstrates the `view` property in a CodeTour step.\n\nWhen you arrived here, CodeTour should have automatically focused the **Breakpoints** subview under the Debug activity.\n\nThis is extremely useful for tours that teach debugging workflows.\n\n**Try manually focusing other views** from the command palette while a tour is active:\n- `Debug: Focus on Call Stack View`\n- `Debug: Focus on Variables View`\n\nThe full debugging tour uses all of them.",
+      "file": ".vscode/launch.json",
+      "line": 110,
+      "view": "debug:breakpoints"
+    },
+    {
+      "title": "Key Monorepo Workspaces (packages/ directory)",
+      "description": "The `packages/` folder is the entire product.\n\nMost important ones (you will have dedicated tours for each):\n- `plugin-core` — the VS Code extension (1.8k+ TS files)\n- `engine-server` — the note engine (DendronEngineV2, indexing, watchers, SQLite)\n- `common-all` — every type, constant, utility that is shared (changes here ripple everywhere)\n- `unified` — the remark/rehype pipeline that gives Dendron its special markdown powers (`![[note refs]]`, wikilinks, etc.)\n- `dendron-cli` — the `dendron` binary\n- `dendron-plugin-views` — all the React webviews (graph, calendar, lookup, etc.)\n\n[Explore packages/ directory](#directory:packages/)\n\nSee also the Packages Overview tour and the individual package tours under `.tours/packages/`.",
+      "directory": "packages"
+    },
+    {
+      "title": "The .vscode/ Folder - Your Daily DX",
+      "description": "This folder contains the modernized launch configs, tasks, and (now) the CodeTour recommendation.\n\n**Launch configs you will use constantly:**\n- \"Run Dendron Extension (Desktop)\"\n- The compound configs (\"Dendron: Full Debug...\")\n- Attach configs for when the extension is already running\n\n[Open launch.json with selection on the main config](./.vscode/launch.json)\n\n[Run the compile:plugin-core task](command:workbench.action.tasks.runTask?[\"compile:plugin-core\"])",
+      "file": ".vscode/launch.json",
+      "line": 4,
+      "selection": {
+        "start": { "line": 4, "character": 1 },
+        "end": { "line": 24, "character": 1 }
+      }
+    },
+    {
+      "title": "Next Steps After This Tour (The Full Learning Path)",
+      "description": "## Your Personalized Learning Path\n\n1. **Architecture & Mental Model** (next tour in this series)\n2. **Debugging Dendron with Breakpoints** (the most practical tour)\n3. **Build System Deep Dive**\n4. **Extension Activation Lifecycle** (the single most important flow)\n5. Pick a package tour from `.tours/packages/`\n\nAll of these tours deliberately cross-link using CodeTour's tour reference syntax so you can jump around.\n\n**After the tours**, read the full `docs/dev/` series in order.\n\nYou now have everything you need to be productive.\n\n---\n\n**End of primary onboarding tour.**\n\nThank you for taking the time. The `codetour` branch and these tours exist precisely so that Dendron's incredible engineering (and the fork's modernization work) is not lost.\n\n[Return to CodeTour view](command:codetour.focusToursView)\n\n[Open the full .tours/README.md](./.tours/README.md)",
+      "file": "docs/dev/00-GOALS-AND-ROADMAP.md",
+      "line": 1
+    }
+  ]
+}

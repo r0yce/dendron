@@ -1,0 +1,57 @@
+{
+  "title": "plugin-core Deep Dive",
+  "description": "The beating heart of Dendron. 1800+ source files. This tour hits the absolute highest-leverage files and patterns: activation, the command system, tree views, webview factories, lookup V3, language providers, the DI container, and the many webpack/native hacks that keep the extension alive. For intermediate to advanced contributors.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "The Two Extension Entry Points",
+      "description": "`extension.ts` is the public surface VS Code calls.\n`_extension.ts` is where 95% of the interesting work lives (and where you will spend most of your debugging life).\n\n[Open both side-by-side if possible](./packages/plugin-core/src/extension.ts)\n\n[Open _extension.ts](./packages/plugin-core/src/_extension.ts)\n\nSee the [Extension Activation Lifecycle tour][2: Extension Activation Lifecycle] for the full walkthrough.",
+      "file": "packages/plugin-core/src/extension.ts",
+      "line": 1
+    },
+    {
+      "title": "ALL_COMMANDS - The Giant Command Registry",
+      "description": "Every user-facing command is listed here and auto-registered during activation.\n\nLocation: `src/commands/index.ts` (re-exported).\n\nEach command is a class (usually extending `BasicCommand` or `DendronCommand`). They live in `src/commands/`.\n\n**Pattern**: If you want to add a new command, you add the class and append it to the `ALL_COMMANDS` array. No other wiring needed.\n\n[Open the commands barrel](./packages/plugin-core/src/commands/index.ts)",
+      "file": "packages/plugin-core/src/commands/index.ts",
+      "line": 1
+    },
+    {
+      "title": "Lookup V3 - The Crown Jewel Feature",
+      "description": "The unified lookup (quick pick + modal + note creation + schema hints) is one of Dendron's most loved and complex pieces.\n\nKey files:\n- `src/components/lookup/`\n- `NoteLookupProviderV3`, `SchemaLookupProviderV3`, etc.\n- The controller + quickpick factories\n\nThis is also where a huge amount of the \"Dendron feels fast\" magic lives (fuzzy matching, recent files, vault switching, etc.).\n\n[Open the lookup components directory](./packages/plugin-core/src/components/lookup)",
+      "directory": "packages/plugin-core/src/components/lookup"
+    },
+    {
+      "title": "Webview Panel Factories (React in VS Code)",
+      "description": "All the rich UI (graph, calendar, preview, configure, etc.) are implemented as webviews with React apps living in `dendron-plugin-views`.\n\nThe factories in `src/components/views/` are the bridge:\n- They create the webview panel\n- They handle the `WebViewMessage` protocol (bidirectional)\n- They wire up the `getEngine()` / `getExtension()` singletons\n\n[Open the view factories](./packages/plugin-core/src/components/views)",
+      "directory": "packages/plugin-core/src/components/views"
+    },
+    {
+      "title": "Language Providers (Go-to-Def, Hover, Rename, etc.)",
+      "description": "Dendron implements a full Language Server-like experience inside the extension (no separate LSP process for the desktop path).\n\nKey providers in `src/features/`:\n- `DefinitionProvider.ts`\n- `ReferenceHoverProvider.ts`\n- `RenameProvider.ts`\n- `completionProvider.ts`\n- `codeActionProvider.ts`\n- `FrontmatterFoldingRangeProvider.ts`\n\nThese all talk to the engine for note/schema data.\n\n[Open the features directory](./packages/plugin-core/src/features)",
+      "directory": "packages/plugin-core/src/features"
+    },
+    {
+      "title": "Tree Views (Backlinks, Recent Workspaces, Help, etc.)",
+      "description": "The left sidebar trees are registered in `_extension.ts` via helper functions:\n- `setupHelpFeedbackTreeView`\n- `setupRecentWorkspacesTreeView`\n- `BacklinksTreeDataProvider`\n\nMany of them are simple `TreeDataProvider` implementations that query the engine or VS Code state.\n\n[Open the tree view setup code](./packages/plugin-core/src/features/HelpFeedbackTreeview.ts)",
+      "file": "packages/plugin-core/src/features/HelpFeedbackTreeview.ts",
+      "line": 1
+    },
+    {
+      "title": "The DI Container Setup (tsyringe)",
+      "description": "`setupLocalExtContainer` is the single place that registers almost every injectable service.\n\nOnce you learn to read the container, the \"magic globals\" become explicit dependencies.\n\nThis is also the current hotspot for `@ts-expect-error` noise due to TS 5+ decorator changes (see the strict-mode and ts-expect-error-burner skills).\n\n[Open the container wiring](./packages/plugin-core/src/injection-providers/setupLocalExtContainer.ts)",
+      "file": "packages/plugin-core/src/injection-providers/setupLocalExtContainer.ts",
+      "line": 1
+    },
+    {
+      "title": "Webpack + Native Hacks (The Maintenance Tax)",
+      "description": "These files exist solely because of the combination of native modules + webpack + the desire to support both desktop and web extension paths:\n- `sqlite3-binding.js`\n- `webpack-require-hack.js`\n- `webpack.*.js` (four of them)\n- The `binary` + `scripts` sections in package.json\n\nIf you are touching build/packaging or chasing \"it worked on my machine\" after a Node upgrade, you live here.\n\n[Open webpack-require-hack.js](./packages/plugin-core/webpack-require-hack.js)",
+      "file": "packages/plugin-core/webpack-require-hack.js",
+      "line": 1
+    },
+    {
+      "title": "Tests (Unit + The Heroic Integration Harness)",
+      "description": "plugin-core has both Jest unit tests and the full `runTestInteg` integration tests that actually boot VS Code + load the extension.\n\nThe integration harness lives in `src/test/` and is used by `engine-test-utils` as well.\n\n[Open the test directory](./packages/plugin-core/src/test)",
+      "directory": "packages/plugin-core/src/test"
+    }
+  ]
+}

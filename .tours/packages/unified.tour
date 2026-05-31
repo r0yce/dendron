@@ -1,0 +1,35 @@
+{
+  "title": "unified Deep Dive",
+  "description": "The remark/rehype pipeline that turns \"normal markdown\" into Dendron-flavored markdown with wikilinks, note references, block anchors, tags, and all the publishing transforms. This package is the single source of truth for how Dendron parses and transforms note content. Touch it and you touch preview, publishing, graph, backlinks, and pods.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "The Unified Pipeline Entry Point",
+      "description": "All the custom remark/rehype plugins that implement Dendron syntax are wired together here.\n\nThis is the place to understand the processing order (very important for note refs inside other note refs, etc.).\n\n[Open the main index](./packages/unified/src/index.ts)",
+      "file": "packages/unified/src/index.ts",
+      "line": 1
+    },
+    {
+      "title": "Note Reference Processor (The Killer Feature)",
+      "description": "The `![[note.name#^block-ref]]` transclusion syntax is implemented as a remark plugin + a special rehype step that actually fetches the content from the engine at render time.\n\nThis is what makes Dendron notes feel alive and interconnected.\n\n[Open the note reference related plugins](./packages/unified/src)",
+      "directory": "packages/unified/src"
+    },
+    {
+      "title": "Wikilink, Tag, and Block Anchor Handling",
+      "description": "The classic `[[other.note]]` syntax, `#my-tag`, and `^my-block-anchor` are all turned into proper MDAST nodes by plugins in this package.\n\nThese plugins are used by:\n- The in-editor preview webview\n- Publishing (nextjs-template consumes the transformed AST or HTML)\n- The graph view\n- Backlink calculation\n\n[Search for wikilink or remark plugins](./packages/unified/src)",
+      "directory": "packages/unified/src"
+    },
+    {
+      "title": "Publishing Transforms",
+      "description": "When you publish a vault with the nextjs-template (or the old Dendron publishing), a specific set of transforms in the unified package are applied (remove private notes, resolve note refs for static output, rewrite links, etc.).\n\nUnderstanding this is required if you ever want to customize publishing output.\n\nSee `nextjs-template` and the publishing-related plugins here.",
+      "directory": "packages/unified/src"
+    },
+    {
+      "title": "How the Engine Uses the Unified Package",
+      "description": "The engine (engine-server) calls into the unified package during indexing to extract links, references, and frontmatter.\n\nThe same AST processing is later reused at render time by the webviews.\n\nThis sharing is why changes here have such a broad blast radius.",
+      "file": "packages/engine-server/src/enginev2.ts",
+      "line": 129,
+      "pattern": "unified|remark|rehype"
+    }
+  ]
+}
