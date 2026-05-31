@@ -1,0 +1,12 @@
+{
+  "title": "api-server (Lightweight)",
+  "description": "HTTP server used by some publishing/remote features. Niche but still part of the ecosystem.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "API Server Overview",
+      "description": "Small Express-based server. See its README and the routes/ + modules/ for the actual endpoints.\n\n**Doc**: [docs/dev/packages/api-server.md](./docs/dev/packages/api-server.md) (if present) or the root package README.\n\n[Focus the package](./packages/api-server)",
+      "directory": "packages/api-server"
+    }
+  ]
+}

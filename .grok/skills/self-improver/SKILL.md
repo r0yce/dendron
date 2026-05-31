@@ -18,7 +18,7 @@ Every time the main agent or any subagent hits friction, an error, a repeated ma
 - **hooks.json**: Add new event triggers (on_compile_error → strict-mode-fixer, on_milestone → doc-master + self-improver, on_feature_complete → test-guardian + feature-ideator, on_di_wave_start → self-improver + strict-mode-fixer + new ts-expect-error-burner, **on_strict_green / on_di_pivot → self-improver + ts-expect-error-burner + doc-master + test-guardian** for immediate post-green evolution + DI pivot encoding)
 - **GROK.md**: Update "Current Priorities", add new "Operating Principles" from experience, record branch naming conventions that worked
 - **config.toml**: Adjust verification command if it evolves, add new mermaid styles, raise max_parallel if safe, note parallel worktrees + subagent orchestration learnings
-- **New Skills**: When a task is repeated 3+ times manually, extract to a dedicated skill (e.g. "lerna-modernizer", "ts-expect-error-sweeper" → realized as "ts-expect-error-burner" for DI phase)
+- **New Skills**: When a task is repeated 3+ times manually, extract to a dedicated skill (e.g. "lerna-modernizer", "ts-expect-error-sweeper" → realized as "ts-expect-error-burner" for DI phase). The 2026 `codetour-expert` skill was created exactly this way after the massive `.tours/` investment on the `codetour` branch — it is now the canonical example of "high-value living asset gets its own immune + evolution guardian". Self-Improver must always cross-encode lessons from codetour-expert (and any future *-expert skills) into the global immune system.
 - **Memory**: Propose additions to user memory or project .grok/ for cross-session knowledge (e.g. "preferred error batch size for plugin-core is 12")
 
 ## This Sprint Triggers

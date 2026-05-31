@@ -146,6 +146,56 @@
       "action": "run_skill",
       "skill": "feature-ideator",
       "note": "Evolved 2026-06 M2 Commit + Doctor Launch (post gap-fill 421.3s/116 + smoke 239.2s/55 + 251.9s/34 ErrorService paths + 'doctor MVP launch ready, health now directly usable post-build (table + --json + perf + --checks + real --fix + NEW 5-contract units + error paths)' on feature/dendron-doctor dirty 42 files). Fires on doctor MVP launch ( 'health' directly usable + ErrorService future ready). Wires full orchestra parallel: Feature-Ideator (final p6-9 kickoffs execution + Lerna synergy + perf RingBuffer) + Test-Guardian (post-launch re-smoke + ErrorService units in 6 checks + coverage) + Doc-Master (sync 'doctor MVP launch ready' + 'health now directly usable' to 5 mand + dendron-doctor.md + new conductor Mermaid + full credits 331.3s/56 + 421.3s/116 + 'THE CHAIN DOES NOT STOP') + Self-Improver (mental self-test on dirty launch + drift + hooks verify + gate) + Monorepo (post-doctor extraction synergy) + ts-burner (final 21@ts Registry). Verbatim: 'doctor MVP launch ready, health now directly usable', 'smoke gaps filled before MVP', 'value of locking coverage plan at enhance-in-place', latest IDs + 4 kickoff branches + Lerna A+B rec. Prevents doctor launch on dirty without hygiene note or gaps claim. Exact parallel auto-orchestra like on_m2_commit/on_extraction_pr_landed. Sacred 5min + 'THE CHAIN DOES NOT STOP'."
+    },
+    {
+      "name": "strict-batch-complete-orchestra",
+      "event": "on_strict_batch_complete",
+      "action": "run_skill",
+      "skill": "self-improver",
+      "note": "Evolved 2026-05-31 Debug Launch Sweep Final Push: Fires after every Strict-Mode-Fixer micro-batch (CommandOpts/KeybindingUtils/autoCompleter etc clusters). Wires full orchestra auto-fire: Strict-Mode-Fixer (next batch) + Test-Guardian (probe + green invariant + @ts test gate) + Doc-Master (report append + burn-down update) + Self-Improver (mental gate + re-grep + phrase sync to 5 mand + GROK). Sacred 5min rule + cumulative verification (bg 5min tool limit lesson from 019e7d53-338e... 300s termination + >1h probes across session + main 22+ 312 clears) mandatory. 'THE CHAIN DOES NOT STOP' in every dispatch. Prevents stalled final drive from 282/267 to 0."
+    },
+    {
+      "name": "prod-metric-milestone-orchestra",
+      "event": "on_prod_metric_milestone",
+      "action": "run_skill",
+      "skill": "self-improver",
+      "note": "Evolved 2026-05-31 Debug Launch Sweep: Fires on prod src/-only strict milestones (200/100/50/0 via accurate ^src/ -v 'src/test/' filter). Wires full orchestra: Strict-Mode-Fixer (resume if needed) + Test-Guardian (full matrix probe + report append) + Doc-Master (advanced Mermaid refresh with Current Status '282 baseline, Batch 3 CommandOpts/KeybindingUtils/autoCompleter focus, resumed IDs') + Self-Improver (gate + SKILL touches + config sync). Include verbatim '282', 'Batch 3 CommandOpts', 'KeybindingUtils', 'autoCompleter', 'full test suite + Clean Host smoke', 'merge to main prep', resumed Strict/Test IDs, 'Would the hooks + resumed agents + cumulative have prevented the final 282 blocker + any smoke stall? YES because...'. Sacred 5min + cumulative (>1h including 5min bg limit) + 'THE CHAIN DOES NOT STOP'."
+    },
+    {
+      "name": "full-test-green-orchestra",
+      "event": "on_full_test_green",
+      "action": "run_skill",
+      "skill": "self-improver",
+      "note": "Evolved 2026-05-31 Debug Launch Sweep: Fires on full test suite GREEN (yarn workspace @dendronhq/plugin-core test + ci:test:cli + fast proxies for doctor/DI + 0 @ts tests invariant). Wires full orchestra parallel: Test-Guardian (owner) + Strict (if residual) + Doc-Master (final burn-down waterfall + state machine to merge + sync to 5 mand + report) + Self-Improver (final mental 4 + complete report prep + hooks/config final gate). Verbatim user mandate 'finish the remaining clusters until 0 then full test + Clean Host smoke + merge', cumulative verification lessons, 4 hook names, 'THE CHAIN DOES NOT STOP'. Sacred 5min + 'Would the hooks + resumed + cumulative have prevented... YES' mental required."
+    },
+    {
+      "name": "clean-host-smoke-green-orchestra",
+      "event": "on_clean_host_smoke_green",
+      "action": "run_skill",
+      "skill": "self-improver",
+      "note": "Evolved 2026-05-31 Debug Launch Sweep: Fires on exact 'Run Dendron Extension (Clean Host - disable all other extensions)' runtime smoke GREEN (preLaunchTask compile:plugin-core success, no errors in launch, activation + command invocation proxy). Wires full orchestra: Test-Guardian (owner + doctor/DI/4-axis re-smoke) + Doc-Master (final complete report debug-launch-sweep-complete-...md with full credits + advanced Mermaid + mental 4 + '100% for this phase') + Self-Improver (merge prep gate + 'merge to main prep' hygiene + final SKILL/config sync) + Strict (closeout). Include '282', 'resumed Strict-Mode-Fixer', 'resumed Test-Guardian', 'Batch 3 CommandOpts' etc, 'full test suite + Clean Host smoke', 'merge to main prep', 'THE CHAIN DOES NOT STOP'. Sacred 5min + cumulative + 0 bare + 4-axis. Prepares merge to main."
+    },
+    {
+      "name": "codetour-file-change-guard",
+      "event": "on_file_change",
+      "pattern": ".tours/**",
+      "action": "run_skill",
+      "skill": "codetour-expert",
+      "note": "Evolved on creation of codetour-expert skill: Any edit (by human or agent) to the .tours/ suite immediately triggers the CodeTour Expert for validation + self-heal + improvement pass + lesson encoding. Protects the entire interactive onboarding investment (primary + debugging + per-package + advanced tours). Sacred 5min heal + update to codetour-expert/SKILL.md + cross to self-improver."
+    },
+    {
+      "name": "codetour-audit-orchestra",
+      "event": "on_codetour_audit",
+      "action": "run_skill",
+      "skill": "codetour-expert",
+      "note": "Manual or scheduled full audit of the CodeTour suite. Runs complete inventory, upstream freshness check (microsoft/codetour schema + releases), drift detection, opportunistic improvements, new tour proposals, and self-heal. Always appends to codetour-expert/SKILL.md + .grok/reports/ + updates .tours/README.md when valuable. Wires self-improver for any systemic .grok lessons."
+    },
+    {
+      "name": "codetour-healed-orchestra",
+      "event": "on_codetour_healed",
+      "action": "run_skill",
+      "skill": "self-improver",
+      "note": "Fires after codetour-expert completes a self-heal cycle (breakage introduced by another agent was detected + repaired + new Never Again rule encoded in codetour-expert/SKILL.md). Self-Improver pulls the exact lesson, cross-encodes to ALL skills where relevant, updates hooks/config/GROK if systemic, and ensures the immune system of .grok/ now prevents that class of CodeTour breakage forever."
     }
   ]
 }

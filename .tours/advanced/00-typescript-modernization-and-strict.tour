@@ -1,0 +1,24 @@
+{
+  "title": "Advanced: TypeScript Modernization & Strict Mode",
+  "description": "The ongoing work (2025-2026) to bring this 2020-2022 codebase up to modern TypeScript (strictNullChecks, exactOptionalPropertyTypes, noUncheckedIndexedAccess, decorator metadata changes in TS 5+, removal of experimentalDecorators where possible, etc.). Includes the strict-mode-fixer and ts-expect-error-burner skills in .grok/skills/.",
+  "ref": "codetour",
+  "when": "true",
+  "steps": [
+    {
+      "title": "The State of Strictness in the Fork",
+      "description": "The original Dendron codebase was not written under full strict mode.\n\nThe fork has been running waves of modernization (see docs/dev/09-TYPESCRIPT-UPGRADE-PLAN.md, 10-TYPESCRIPT-UPGRADE-REPORT.md, 11-FINAL-MODERNIZATION-REPORT.md).\n\nTwo dedicated Grok skills exist to continue the work systematically:\n- `strict-mode-fixer`\n- `ts-expect-error-burner` (especially around the tsyringe + reflect-metadata + legacy decorator cluster)\n\n[Open the skills directory](./.grok/skills)",
+      "directory": ".grok/skills"
+    },
+    {
+      "title": "Where the @ts-expect-error Noise Lives",
+      "description": "The bulk of the remaining suppressions are in `plugin-core` around `@inject` sites and some test mocks.\n\nThe ts-expect-error-burner skill has a specific workflow for attacking these without just adding more comments.\n\n[Search the codebase for @ts-expect-error (limit to src)](./packages/plugin-core/src)",
+      "directory": "packages/plugin-core/src"
+    },
+    {
+      "title": "The Skills Themselves (How to Continue the Work)",
+      "description": "Read the SKILL.md for each:\n- strict-mode-fixer/SKILL.md\n- ts-expect-error-burner/SKILL.md\n\nThey encode the exact small-batch, verify-religiously, lesson-learning workflow that has already cleaned up large parts of the monorepo.\n\nThese are the primary tools for any future strictness or decorator cleanup waves.",
+      "file": ".grok/skills/strict-mode-fixer/SKILL.md",
+      "line": 1
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "title": "engine-test-utils & Testing Strategy",
+  "description": "How reliable tests are written for a stateful, file-system-heavy, git-aware, VS-Code-integrated note engine. This harness (plus the integ runner in plugin-core) is what makes it possible to have confidence when changing core algorithms. Advanced testing techniques for monorepo plugin development.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "The Testing Pyramid in This Repo",
+      "description": "Dendron has three main layers:\n\n1. Plain Jest unit tests (co-located or in `src/test`)\n2. `engine-test-utils` + `runEngineTestV5` family (real temporary vaults on disk, real engine, fast feedback)\n3. Full integration tests that boot an actual VS Code instance via `vscode-test` + load the extension (`runTestInteg`)\n\nThis tour focuses on layer 2, which is the sweet spot for most engine work.",
+      "file": "packages/engine-test-utils/src/index.ts",
+      "line": 1
+    },
+    {
+      "title": "runEngineTestV5 - The Workhorse Helper",
+      "description": "This function (and its many variants) creates a temporary vault, seeds it with notes/schemas, wires a real engine, runs your test callback, then cleans up.\n\nIt is the standard way to write deterministic engine tests without polluting your machine.\n\n[Open the main test helper entry](./packages/engine-test-utils/src/index.ts)",
+      "file": "packages/engine-test-utils/src/index.ts",
+      "line": 1,
+      "pattern": "runEngineTestV5|runEngineTestV4"
+    },
+    {
+      "title": "The Integration Test Harness (vscode-test)",
+      "description": "For tests that need real VS Code APIs + the full extension activated, the `runTestInteg` path actually downloads/launches VS Code, points it at the extension, and runs the Mocha suite inside that context.\n\nThis is slow (seconds to tens of seconds per test file) but extremely powerful.\n\nSee `packages/plugin-core/src/test/runTestInteg.ts` and the launch config \"Debug Dendron Extension Tests (Integration)\".",
+      "file": "packages/plugin-core/src/test/runTestInteg.ts",
+      "line": 1
+    },
+    {
+      "title": "Perf Testing & The Perf Harness",
+      "description": "There is also a perf-test path that reuses the same engine test harness but collects timing numbers.\n\nCombined with `DENDRON_PERF=1` and Doctor, this is how the fork is beginning to build a performance baseline.\n\nSee `perf-test` related scripts and the ActivationTimer usage.",
+      "directory": "packages/engine-test-utils"
+    }
+  ]
+}

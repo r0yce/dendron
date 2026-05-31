@@ -1,0 +1,12 @@
+{
+  "title": "dendron-design-system (Lightweight)",
+  "description": "The (small) design system / component library used by the webviews and publishing template.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "Design System",
+      "description": "Stories, tokens, and React components. See the example/ and stories/ folders.\n\n[Focus the package](./packages/dendron-design-system)",
+      "directory": "packages/dendron-design-system"
+    }
+  ]
+}

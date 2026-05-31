@@ -5,7 +5,7 @@ type CommandOpts = {};
 type CommandOutput = {
     link: string;
     type: string;
-    anchorType?: string;
+    anchorType?: string | undefined;
 } | undefined;
 export declare class CopyNoteLinkCommand extends BasicCommand<CommandOpts, CommandOutput> implements Disposable {
     static requireActiveWorkspace: boolean;
@@ -18,12 +18,12 @@ export declare class CopyNoteLinkCommand extends BasicCommand<CommandOpts, Comma
     private getUserLinkAnchorPreference;
     private createNonNoteFileLink;
     private createNoteLink;
-    addAnalyticsPayload(_opts: CommandOpts, resp: CommandOutput): {
+    addAnalyticsPayload(_opts?: CommandOpts, resp?: CommandOutput): {
         type: string | undefined;
         anchorType: string | undefined;
     };
     private anchorType;
-    execute(_opts: CommandOpts): Promise<{
+    execute(_opts?: CommandOpts): Promise<{
         link: string;
         type: string;
         anchorType: string | undefined;

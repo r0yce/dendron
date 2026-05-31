@@ -1,0 +1,17 @@
+{
+  "title": "pods-core Deep Dive",
+  "description": "The pluggable import/export system (Notion, Roam Research, JSON, Airtable, Obsidian, etc.). Pods are one of Dendron's most beloved power-user features. The core abstractions + the built-in pod implementations live here.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "The Pod Core Abstractions",
+      "description": "Pods follow a consistent interface (import vs export, config schema, engine interaction).\n\nThe base classes and runner live here; the CLI and extension command surfaces are thin wrappers.\n\n[Open the pods-core src](./packages/pods-core/src)",
+      "directory": "packages/pods-core/src"
+    },
+    {
+      "title": "Example: JSON Pod or Notion Pod",
+      "description": "Pick any of the concrete pod implementations to see the pattern:\n- How they read/write the engine\n- How they map Dendron's note model to the external system's model\n- How they handle attachments, hierarchies, and frontmatter\n\nThis is a great area for new contributors (adding a new pod is high impact and relatively self-contained).",
+      "directory": "packages/pods-core/src"
+    }
+  ]
+}

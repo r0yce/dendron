@@ -1,0 +1,24 @@
+{
+  "title": "dendron-plugin-views Deep Dive",
+  "description": "All the rich React UIs that appear as webviews inside VS Code (note graph, calendar, lookup V3, preview, tip of the day, configure panel, etc.). This package is a full React app (or several) that communicates with the extension host via a typed message protocol.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "The Webview App Structure",
+      "description": "This package contains the React source, build config (it uses its own bundling), and the various \"panels\" (entry points for each webview type).\n\nThe built assets are loaded by the factories in `plugin-core/src/components/views/`.\n\n[Open the src directory](./packages/dendron-plugin-views/src)",
+      "directory": "packages/dendron-plugin-views/src"
+    },
+    {
+      "title": "The WebView Message Protocol",
+      "description": "All communication between the webview (running in an iframe-like context) and the extension host goes through a carefully typed message protocol (`WebViewMessage` and related types, mostly defined in common-all).\n\nThe factories in plugin-core register listeners and forward engine calls.\n\nThis is the contract you must understand if you are adding new webview features or fixing \"graph doesn't update\" bugs.",
+      "file": "packages/common-all/src/types.ts",
+      "line": 1,
+      "pattern": "WebViewMessage|WebViewPanel"
+    },
+    {
+      "title": "Key Webviews: Graph, Calendar, Lookup, Preview",
+      "description": "Notable subdirectories / panels:\n- Graph view (D3 or similar + engine data)\n- Calendar (daily notes navigation)\n- Lookup V3 (the fancy quick pick replacement)\n- Note Preview (custom rendered with all Dendron syntax resolved)\n\nEach has its own entry and set of React components.\n\n[Open the public/ assets and build output to see what actually ships](./packages/dendron-plugin-views/public)",
+      "directory": "packages/dendron-plugin-views/src"
+    }
+  ]
+}

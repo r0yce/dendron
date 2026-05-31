@@ -8,6 +8,7 @@
     "usernamehw.errorlens",
     "christian-kohler.path-intellisense",
     "gruntfuggly.todo-tree",
-    "aaron-bond.better-comments"
+    "aaron-bond.better-comments",
+    "vsls-contrib.codetour"
   ]
 }

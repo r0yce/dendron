@@ -1,0 +1,12 @@
+{
+  "title": "common-test-utils (Lightweight)",
+  "description": "Shared test helpers, fixtures, and utilities used across Jest tests in multiple packages.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "Common Test Utilities",
+      "description": "Look here before writing new test scaffolding. Often contains mock engines, vault factories, and assertion helpers.\n\n[Focus the package](./packages/common-test-utils)",
+      "directory": "packages/common-test-utils"
+    }
+  ]
+}

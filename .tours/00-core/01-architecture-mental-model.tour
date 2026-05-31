@@ -1,0 +1,71 @@
+{
+  "title": "1: Architecture & Mental Model",
+  "description": "Deep dive into the layered architecture of Dendron. Walks the diagrams and key files from docs/dev/01-ARCHITECTURE-OVERVIEW.md while pointing at the actual source that implements each layer. Essential reading before touching any code.",
+  "ref": "codetour",
+  "nextTour": "2: Extension Activation Lifecycle",
+  "steps": [
+    {
+      "title": "Start Here: The Architecture Overview Document",
+      "description": "This document is the **single source of truth** for how all the pieces fit together.\n\nRead the whole thing (it is not that long). The rest of this tour will make the abstract concrete by jumping to the real files.\n\n[Open 01-ARCHITECTURE-OVERVIEW.md](./docs/dev/01-ARCHITECTURE-OVERVIEW.md)\n\nKey mental model from the doc:\n\n> **Dendron = (hierarchical markdown files on disk) + (a very sophisticated in-memory index + query engine) + (a giant, lovingly-crafted VS Code extension...)**",
+      "file": "docs/dev/01-ARCHITECTURE-OVERVIEW.md",
+      "line": 1,
+      "selection": {
+        "start": { "line": 220, "character": 1 },
+        "end": { "line": 228, "character": 1 }
+      }
+    },
+    {
+      "title": "Layered Architecture Diagram (in source)",
+      "description": "The diagram in the doc maps directly to the package boundaries:\n\n1. VS Code Extension Host → `plugin-core` + `dendron-plugin-views`\n2. Dendron Engine → `engine-server` (DendronEngineV2)\n3. Shared Primitives → `common-all`, `common-server`\n4. Markdown Pipeline → `unified` package (remark/rehype)\n5. Data Layer → SQLite (via prisma) + plain FS + `dendron.yml`\n\nWe will visit each of these in the tour steps that follow.",
+      "file": "docs/dev/01-ARCHITECTURE-OVERVIEW.md",
+      "line": 20,
+      "selection": {
+        "start": { "line": 20, "character": 1 },
+        "end": { "line": 45, "character": 1 }
+      }
+    },
+    {
+      "title": "The Engine: packages/engine-server/src/enginev2.ts",
+      "description": "**This is the brain.** `DendronEngineV2` implements `DEngine`.\n\nIt owns:\n- Note indexing (full + incremental)\n- Schema validation & inheritance\n- Backlink / reference resolution\n- Vault management\n- Git integration + file watchers\n- SQLite usage for some indexes\n\nAlmost every command and webview ultimately talks to an engine instance (usually via the singleton `getEngine()`).\n\n[Open the engine class](./packages/engine-server/src/enginev2.ts)\n\n>> grep -n \"export class DendronEngineV2\" packages/engine-server/src/enginev2.ts",
+      "file": "packages/engine-server/src/enginev2.ts",
+      "line": 129,
+      "selection": {
+        "start": { "line": 129, "character": 1 },
+        "end": { "line": 145, "character": 1 }
+      }
+    },
+    {
+      "title": "The Universal Type System: common-all",
+      "description": "If you change anything in `common-all`, you will touch **every other package**.\n\nThis is where you find:\n- All the `NoteProps`, `DVault`, `DWorkspace`, `Schema` types\n- Constants (DENDRON_*)\n- Error classes, lookup types, publishing types, etc.\n- The `FName` / hierarchical note naming logic\n\n**Rule**: Put shared pure types and small utilities here. Everything else imports from here.\n\n[Open common-all package.json to see its exports](./packages/common-all/package.json)\n\nSee the dedicated package tour: [common-all Package Tour][common-all Deep Dive]",
+      "directory": "packages/common-all"
+    },
+    {
+      "title": "Markdown Superpowers: The unified Package",
+      "description": "Dendron does **not** use VS Code's built-in markdown preview for its own features.\n\nAll special syntax (`[[wikilinks]]`, `![[note refs]]`, `^block-anchors`, `#tags`, frontmatter, etc.) goes through a custom remark/rehype pipeline defined here.\n\nThis pipeline powers:\n- The in-editor preview webview\n- Publishing (nextjs-template)\n- Graph view\n- Export pods\n- Backlink calculation (indirectly)\n\nUnderstanding this package is mandatory for any syntax or rendering work.\n\n[Open unified package entry](./packages/unified/src/index.ts)",
+      "file": "packages/unified/src/index.ts",
+      "line": 1
+    },
+    {
+      "title": "Native Module Hell: sqlite3 + webpack hacks (plugin-core)",
+      "description": "This area is historically the #1 source of \"it worked yesterday, today the extension won't even activate\" after Node/VS Code upgrades.\n\nKey files you must know:\n- `packages/plugin-core/sqlite3-binding.js`\n- `packages/plugin-core/webpack-require-hack.js`\n- `packages/plugin-core/webpack.common.js` (the copy of .node binary)\n- The `binary` section in plugin-core package.json\n\n[Open the sqlite3 binding hack](./packages/plugin-core/sqlite3-binding.js)\n\nSee also `docs/dev/04-BUILD-AND-DEBUG-WORKFLOW.md` section on native modules.",
+      "file": "packages/plugin-core/sqlite3-binding.js",
+      "line": 1,
+      "selection": {
+        "start": { "line": 1, "character": 1 },
+        "end": { "line": 20, "character": 1 }
+      }
+    },
+    {
+      "title": "DI Container (tsyringe) - The Hidden Wiring",
+      "description": "Dendron uses **tsyringe** + `reflect-metadata` + legacy decorators.\n\n- `setupLocalExtContainer()` in plugin-core wires almost everything\n- Classes are `@injectable()`, constructor params use `@inject(Token)`\n- This makes testing dramatically easier (swap real engine for mocks)\n- It also explains why some \"global\" singletons exist\n\n**Current modernization tax**: TS 5.5+ stricter decorator checking means many `@ts-expect-error` comments around inject sites (see the strict-mode-fixer and ts-expect-error-burner skills in `.grok/skills/`).\n\n[Open the container setup](./packages/plugin-core/src/injection-providers/setupLocalExtContainer.ts)",
+      "file": "packages/plugin-core/src/injection-providers/setupLocalExtContainer.ts",
+      "line": 1
+    },
+    {
+      "title": "End of Architecture Tour - Where to Go Next",
+      "description": "You now have the 30,000ft view + the actual files that implement each layer.\n\n**Next recommended tours:**\n- [2: Extension Activation Lifecycle][2: Extension Activation Lifecycle] (the most important single flow in the entire codebase)\n- [Debugging Dendron with Breakpoints][Debugging Dendron with Breakpoints]\n- Individual package deep dives under `.tours/packages/`\n\n[Open the full architecture doc again for reference](./docs/dev/01-ARCHITECTURE-OVERVIEW.md)\n\n>> echo 'Remember: the source of truth is always the .md files on disk. The engine just indexes them.'",
+      "file": "docs/dev/01-ARCHITECTURE-OVERVIEW.md",
+      "line": 220
+    }
+  ]
+}

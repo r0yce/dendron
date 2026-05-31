@@ -1,0 +1,27 @@
+{
+  "title": "Advanced: macOS-Specific Debugging & Apple Silicon Notes",
+  "description": "Conditional tour (only visible on macOS via the `when: \"isMac\"` property). Covers Apple Silicon sqlite3 binary paths, arm64 vs x64 gotchas, signing/notarization irrelevance for local dev, and the specific prebuilt paths that have historically caused pain on M-series Macs.",
+  "ref": "codetour",
+  "when": "isMac",
+  "steps": [
+    {
+      "title": "This Tour Only Appears on macOS",
+      "description": "The `when` property on this tour file evaluates the JavaScript expression `isMac` (provided by CodeTour).\n\nOn non-mac machines this entire tour is hidden from the tree. This is how you create audience-specific or platform-specific guidance without polluting the main experience.\n\n[See the when clause in this file](./.tours/advanced/01-macos-specific-debugging.tour)",
+      "file": ".tours/advanced/01-macos-specific-debugging.tour",
+      "line": 6
+    },
+    {
+      "title": "sqlite3 Prebuilt Path on Apple Silicon (2026)",
+      "description": "On darwin-arm64 + modern Node (22/24/26), the important binary path inside the vendored sqlite3 looks like:\n\n`lib/binding/napi-v6-darwin-unknown-arm64/node_sqlite3.node`\n\nAfter `yarn download-sqlite-binary` (or the postinstall hook), this should be present under `packages/plugin-core/node_modules/sqlite3/`.\n\nIf the extension fails to activate on a new M-series Mac after a Node upgrade, this is the first place to check (plus the webpack copy step that ships it into `out/`).",
+      "file": "packages/plugin-core/package.json",
+      "line": 1,
+      "pattern": "sqlite3|binary|node-pre-gyp"
+    },
+    {
+      "title": "Debugging Native Module Load Failures on macOS",
+      "description": "Common symptoms on Apple Silicon:\n- \"cannot find module 'sqlite3'\"\n- \"The specified module could not be found\" for the .node file\n- Works in terminal but not in the Extension Host\n\nFixes usually involve:\n1. `yarn workspace @dendronhq/plugin-core download-sqlite-binary`\n2. Clean `node_modules` + re-bootstrap\n3. Verify the CopyPlugin in webpack.common.js is still copying the right napi variant\n4. Check that `out/` actually contains the .node after your last compile\n\nSee the Debugging tour for the full native module checklist.",
+      "file": "packages/plugin-core/sqlite3-binding.js",
+      "line": 1
+    }
+  ]
+}

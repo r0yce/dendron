@@ -1,0 +1,12 @@
+{
+  "title": "generator-dendron (Lightweight)",
+  "description": "Yeoman (or similar) generator for scaffolding new Dendron projects, plugins, or pods. Niche but useful for contributors adding new project templates.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "Generator Package",
+      "description": "See the templates/ folder and the main generator source.\n\n[Focus the package](./packages/generator-dendron)",
+      "directory": "packages/generator-dendron"
+    }
+  ]
+}

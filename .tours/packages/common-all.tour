@@ -1,0 +1,44 @@
+{
+  "title": "common-all Deep Dive",
+  "description": "The foundation that everything else imports. Types, constants, utilities, error classes, lookup models, publishing types, and the hierarchical note naming logic. Change anything here and you will recompile the world. Understand this package and you understand the data model of Dendron.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "The Barrel and What Lives Here",
+      "description": "`common-all` is deliberately a \"pure types + small utilities\" package with zero runtime side effects (as much as possible).\n\nIt is the one package that is safe to import from *anywhere* (plugin, engine, CLI, webviews, tests).\n\n[Open the main index barrel](./packages/common-all/src/index.ts)",
+      "file": "packages/common-all/src/index.ts",
+      "line": 1
+    },
+    {
+      "title": "Core Domain Types: NoteProps, DVault, Schema",
+      "description": "These three types (and their variations) are the heart of the system.\n\n- `NoteProps` / `NotePropsV2` — a note = frontmatter + body + fname (hierarchical key) + vault + links + etc.\n- `DVault` — a folder root that can contain notes (supports remote vaults, seeds, etc.)\n- `SchemaProps` / `SchemaModule` — the YAML-defined type system\n\n[Search for the NoteProps definition](./packages/common-all/src/types.ts)",
+      "file": "packages/common-all/src/types.ts",
+      "line": 1,
+      "pattern": "export (interface|type) NoteProps"
+    },
+    {
+      "title": "Hierarchical Naming (fname) & Note References",
+      "description": "Dendron's killer feature is treating note names as hierarchical paths (`projects.dendron.fork` → `projects/dendron/fork.md` or `.../index.md`).\n\nThe logic for parsing, validating, and converting between different representations lives in `common-all` (FName, NoteUtils, etc.).\n\nNote references (`![[other.note#^block]]`) have their own parser and data structures here too.\n\n[Open NoteUtils](./packages/common-all/src/note.ts)",
+      "file": "packages/common-all/src/note.ts",
+      "line": 1
+    },
+    {
+      "title": "Constants, Events, and Enums",
+      "description": "Dendron has a large set of well-known constants, VS Code context keys (`dendron:*`), telemetry events, and graph themes.\n\nThese are all defined here so they can be shared without circular imports.\n\n`CONSTANTS`, `DENDRON_COMMANDS`, `WorkspaceEvents`, `GraphEvents`, etc.\n\n[Open constants.ts](./packages/common-all/src/constants.ts)",
+      "file": "packages/common-all/src/constants.ts",
+      "line": 1
+    },
+    {
+      "title": "Error Handling & Classification",
+      "description": "Dendron has a sophisticated error system (`DendronError`, `ErrorUtils`, error codes, severity).\n\nThis is used for both user-facing messages and for Sentry reporting.\n\n[Open the error module](./packages/common-all/src/error.ts)",
+      "file": "packages/common-all/src/error.ts",
+      "line": 1
+    },
+    {
+      "title": "The Data Validator (dendron-yml.validator.json)",
+      "description": "The JSON schema for `dendron.yml` is generated and lives in `common-all/data/`.\n\nIt is used at runtime for validation and also powers the Configure UI webview.\n\nSee the `gen:data` script and the validator generator in the CLI.\n\n[Open the validator](./packages/common-all/data/dendron-yml.validator.json)",
+      "file": "packages/common-all/data/dendron-yml.validator.json",
+      "line": 1
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "title": "nextjs-template Deep Dive (Publishing)",
+  "description": "The beautiful static site generator that turns your Dendron vault into a modern documentation / digital garden website. Consumes the unified pipeline output (or pre-rendered HTML) and produces a Next.js site with excellent SEO, search, and navigation.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "The Next.js Publishing Pipeline",
+      "description": "This is a full Next.js app (with its own pages/, components/, styles/, etc.).\n\nDuring publishing, Dendron (via the CLI or the old publishing UI) invokes the build process here, feeding it the transformed notes.\n\nKey integration points:\n- How note refs and wikilinks are turned into static routes/links\n- The sitemap and SEO generation\n- The custom theme / styling system\n\n[Open the Next.js template root](./packages/nextjs-template)",
+      "directory": "packages/nextjs-template"
+    },
+    {
+      "title": "Where the Unified Transforms Feed Into Publishing",
+      "description": "The actual content transformation for static output often happens in the unified package (or in a small adapter layer that calls it).\n\nChanges to note reference rendering or frontmatter handling usually need coordinated changes here + in unified + sometimes in the engine.",
+      "file": "packages/unified/src/index.ts",
+      "line": 1
+    }
+  ]
+}

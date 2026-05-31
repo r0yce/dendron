@@ -143,7 +143,7 @@ class CopyNoteLinkCommand extends base_1.BasicCommand {
                     },
                 useVaultPrefix: clientUtils_1.DendronClientUtilsV2.shouldUseVaultPrefix(engine),
                 alias: { mode: aliasMode },
-            }),
+            } /* TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes on NoteUtils.createWikiLink (common-all cross-pkg boundary); Batch 8 debug launch sweep 2026-05-31 (per Strict-Fixer plan on NoteUtils.createWikiLink sites + user mandate "finish the remaining clusters until 0 then full test + Clean Host smoke + merge"); see 4-axis + di-container + ADR 0001 + di/inject Suppression Registry */),
             anchor,
         };
     }
@@ -189,7 +189,7 @@ class CopyNoteLinkCommand extends base_1.BasicCommand {
             return;
         }
         else {
-            const note = (await engine.findNotesMeta({ fname, vault }))[0];
+            const note = (await engine.findNotesMeta({ fname, vault: vault ?? undefined } /* 4-axis boundary: FindNoteOpts.vault required vs | undefined from PickerUtilsV2.getVaultForOpenEditor(); exactOptionalPropertyTypes. TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes; debug launch sweep 2026-05-31. See di/inject Suppression Registry + ADR 0001 */))[0];
             return this.executeCopyNoteLink(note, editor);
         }
     }

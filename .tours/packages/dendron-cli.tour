@@ -1,0 +1,31 @@
+{
+  "title": "dendron-cli Deep Dive",
+  "description": "The `dendron` command-line binary. Many power-user workflows, doctor health checks, import/export (pods), dev commands, and CI usage go through the CLI. It often delegates to the engine but has its own command routing, argument parsing, and output formatting.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "The CLI Entry Point",
+      "description": "This is what gets executed when you run `dendron` (after the bootstrap chmod script makes it executable).\n\nIt uses a command routing pattern (similar to the extension's ALL_COMMANDS but for CLI).\n\n[Open the bin entry](./packages/dendron-cli/bin/dendron-cli.ts)",
+      "file": "packages/dendron-cli/bin/dendron-cli.ts",
+      "line": 1
+    },
+    {
+      "title": "Doctor Command - Your Best Friend for Health & Perf",
+      "description": "The `dendron doctor` command (and its many `--checks`) is one of the most valuable tools for both users and developers.\n\nIt exercises the engine, git, SQLite, YAML validation, dependency checks, and (with `DENDRON_PERF=1`) the new RingBuffer + timing instrumentation.\n\nThe launch configs in this repo have dedicated Doctor debugging setups for exactly this reason.\n\n[Open DoctorCommand.ts](./packages/dendron-cli/src/commands/DoctorCommand.ts)",
+      "file": "packages/dendron-cli/src/commands/DoctorCommand.ts",
+      "line": 1
+    },
+    {
+      "title": "Pod Commands - Import/Export Pluggability",
+      "description": "The CLI surface for pods (Notion, Roam, JSON, Airtable, etc.) lives here, but the actual pod implementations are in `pods-core`.\n\nThe CLI just wires up the command + engine + pod runner.\n\nSee also the [pods-core package tour][pods-core Deep Dive].",
+      "directory": "packages/dendron-cli/src/commands"
+    },
+    {
+      "title": "Dev Commands & JSON Schema Generation",
+      "description": "There are several internal/dev-only commands (visible with `--dev` or similar).\n\nOne of the most important for the monorepo itself is the JSON schema generator for `dendron.yml` (`dev generate_json_schema_from_config`).\n\nThis feeds the validator in common-all and the Configure UI.\n\n[See the gen:data task in root package.json](./package.json)",
+      "file": "package.json",
+      "line": 1,
+      "pattern": "gen:data"
+    }
+  ]
+}

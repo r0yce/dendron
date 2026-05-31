@@ -1,0 +1,26 @@
+{
+  "title": "common-server Deep Dive",
+  "description": "Cross-cutting server/runtime concerns that are not pure types: pino logging, Sentry initialization, Segment analytics client, file system wrappers (fs-extra + custom), error classification, and the analytics unlock/opt-out machinery. Imported by engine, CLI, and plugin-core.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "The Analytics & Telemetry Layer",
+      "description": "Segment client (analytics) + Sentry (error reporting) initialization and opt-out handling live here.\n\nThis code runs very early in `_activate` and in the CLI.\n\nIn a personal fork you will almost certainly want to make telemetry fully optional or disabled by default.\n\n[Open the analytics entry in common-server](./packages/common-server/src/analytics.ts)",
+      "file": "packages/common-server/src/analytics.ts",
+      "line": 1
+    },
+    {
+      "title": "Logging (pino) + File System Abstractions",
+      "description": "pino is used for structured logging throughout.\n\nThere are also thin wrappers around fs-extra and path operations that are used to make certain operations more testable or to add observability.\n\n[Open the logger setup](./packages/common-server/src/logger.ts)",
+      "file": "packages/common-server/src/logger.ts",
+      "line": 1
+    },
+    {
+      "title": "Sentry Initialization Details",
+      "description": "Sentry is only initialized in `prod` stage and only if the user has not opted out.\n\nThe DSN and release information are configured here.\n\nSee the call site in `_extension.ts` around the Segment unlock block.",
+      "file": "packages/common-server/src/analytics.ts",
+      "line": 1,
+      "pattern": "Sentry|initializeSentry"
+    }
+  ]
+}

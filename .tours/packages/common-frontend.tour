@@ -1,0 +1,12 @@
+{
+  "title": "common-frontend (Lightweight)",
+  "description": "Shared React components, hooks, and frontend utilities used by the webviews in dendron-plugin-views and the nextjs-template.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "Shared Frontend Primitives",
+      "description": "Small but important. Look at the src/ for hooks and components that avoid duplication between the various React surfaces.\n\n[Focus the package](./packages/common-frontend)",
+      "directory": "packages/common-frontend"
+    }
+  ]
+}

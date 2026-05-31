@@ -1,0 +1,50 @@
+{
+  "title": "3: Build System, Tasks & Bootstrap",
+  "description": "How the monorepo actually turns TypeScript into runnable extension bits. Covers the two main paths (tsc dev vs webpack), the custom bootstrap/ scripts, tasks.json, native module packaging, watch modes, and the exact commands the fork recommends in 2026. Essential for anyone who will ever change a package boundary or fight a build error.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "Two Build Paths (You Only Need One Most Days)",
+      "description": "## Daily Driver (95% of the time)\n\n```bash\ncd packages/plugin-core\nyarn compile          # or yarn watch\n```\n\nJust tsc → `out/`. Fast. What the F5 launch configs use.\n\n## Full Bootstrap (when you touch shared packages)\n\n```bash\nyarn bootstrap:build:fast   # common + engine + plugin\nyarn bootstrap:build        # almost everything\n```\n\nThese live in root package.json scripts and delegate to `bootstrap/scripts/buildAll.js` + lerna under the hood.",
+      "file": "package.json",
+      "line": 1,
+      "selection": {
+        "start": { "line": 1, "character": 1 },
+        "end": { "line": 50, "character": 1 }
+      }
+    },
+    {
+      "title": "The Secret Sauce: bootstrap/scripts/",
+      "description": "This folder is why Dendron feels like it has its own private build system.\n\nImportant scripts:\n- `buildAll.js` — called by `bootstrap:build`\n- `buildAllForTest.js`\n- `genMeta.js` — some runtime metadata\n- `chmod-cli.js` — makes the CLI binary executable\n\nThese scripts hard-code package ordering and names. If you add a new package you **must** update them.\n\n[Explore the bootstrap scripts directory](./bootstrap/scripts)",
+      "directory": "bootstrap/scripts"
+    },
+    {
+      "title": "tasks.json - The VS Code Build Interface",
+      "description": "All the tasks you invoke from Command Palette or preLaunchTask live here.\n\nNotable ones (memorize the labels):\n- `compile:plugin-core`\n- `compile:watch:plugin-core` (background)\n- `bootstrap:fast ...`\n- `doctor:smoke`\n- `p6 DX: doctor health smoke...`\n- `tsc:plugin-core --noEmit (strict/DI wave)`\n\n[Open the full tasks.json](./.vscode/tasks.json)",
+      "file": ".vscode/tasks.json",
+      "line": 1
+    },
+    {
+      "title": "Native Modules & The sqlite3 Packaging Horror",
+      "description": "The vendored sqlite3 + node-pre-gyp + webpack copy steps are the most fragile part of any upgrade.\n\nKey files:\n- `packages/plugin-core/package.json` (the `binary` section)\n- `packages/plugin-core/sqlite3-binding.js`\n- `packages/plugin-core/webpack.common.js` (CopyPlugin for the .node)\n- `download-sqlite-binary` script\n\nAfter any Node major bump, you will be here.\n\n[Open the webpack common copy logic](./packages/plugin-core/webpack.common.js)",
+      "file": "packages/plugin-core/webpack.common.js",
+      "line": 1,
+      "pattern": "sqlite3|node_sqlite3|CopyPlugin"
+    },
+    {
+      "title": "Webpack Paths (When You Actually Need Them)",
+      "description": "For normal desktop development you almost never touch webpack.\n\nYou need it for:\n- `build:prod` + publishing (`vscode:prepublish` runs package-web)\n- The web extension (`vscode.dev`, github.dev) path → `webpack.webext.js`\n\nThere are four webpack configs. The desktop tsc `out/` path is the one 99% of contributors use day to day.\n\n[Open the four webpack configs in plugin-core](./packages/plugin-core/webpack.common.js)",
+      "directory": "packages/plugin-core"
+    },
+    {
+      "title": "Recommended 2026 Daily Commands (Fork Modernization)",
+      "description": "After any branch switch or clean clone:\n\n```bash\nyarn                              # (can be slow first time)\nyarn bootstrap:build:fast\ncd packages/plugin-core\nyarn compile\n# optional but recommended after Node bumps\nyarn workspace @dendronhq/plugin-core download-sqlite-binary\n```\n\nThen F5 with the main desktop launch config.\n\n[Run the doctor smoke task from here](command:workbench.action.tasks.runTask?[\"doctor:smoke (health --verbose + json)\"])",
+      "file": "docs/dev/04-BUILD-AND-DEBUG-WORKFLOW.md",
+      "line": 159,
+      "selection": {
+        "start": { "line": 159, "character": 1 },
+        "end": { "line": 185, "character": 1 }
+      }
+    }
+  ]
+}
