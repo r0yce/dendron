@@ -55,6 +55,55 @@
       "presentation": {
         "reveal": "always"
       }
+    },
+    {
+      "label": "doctor:smoke (health --verbose + json)",
+      "type": "shell",
+      "command": "yarn workspace @dendronhq/dendron-cli build && node packages/dendron-cli/lib/bin/dendron-cli.js health --verbose --json",
+      "problemMatcher": [],
+      "group": "test",
+      "presentation": { "reveal": "always" }
+    },
+    {
+      "label": "tsc:plugin-core --noEmit (strict/DI wave)",
+      "type": "shell",
+      "command": "yarn workspace @dendronhq/plugin-core tsc --noEmit -p tsconfig.build.json",
+      "problemMatcher": ["$tsc"],
+      "group": "build"
+    },
+    {
+      "label": "Lerna: list packages (post A/B)",
+      "type": "shell",
+      "command": "npx lerna list --all",
+      "problemMatcher": []
+    },
+    {
+      "label": "p6 DX: doctor health smoke + --fix dry (zero-ramp debug)",
+      "type": "shell",
+      "command": "yarn workspace @dendronhq/dendron-cli build && node packages/dendron-cli/lib/bin/dendron-cli.js health --checks sqlite,git,yml --verbose --json",
+      "problemMatcher": [],
+      "group": "test",
+      "presentation": { "reveal": "always", "focus": true }
+    },
+    {
+      "label": "p7 Perf: doctor + ringbuffer dump (insiders tie-in)",
+      "type": "shell",
+      "command": "DENDRON_PERF=1 yarn workspace @dendronhq/dendron-cli build && node packages/dendron-cli/lib/bin/dendron-cli.js health --verbose --json 2>&1 | cat",
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "p6+8: tsc --noEmit common-all + plugin-core (perf foundation waves)",
+      "type": "shell",
+      "command": "yarn workspace @dendronhq/common-all tsc --noEmit -p tsconfig.build.json && yarn workspace @dendronhq/plugin-core tsc --noEmit -p tsconfig.build.json",
+      "problemMatcher": ["$tsc"],
+      "group": "build"
+    },
+    {
+      "label": "p9 Longterm: build modernize spike note (esbuild/vite proxy)",
+      "type": "shell",
+      "command": "echo 'p9 spike: tsup/esbuild candidate for dendron-cli post Lerna8 (see docs/dev/TELEMETRY.md + 00-GOALS). Run: npx tsup --entry src/bin/dendron-cli.ts --format cjs --dts' && echo 'Verify: time node lib/bin/dendron-cli.js health --help'",
+      "problemMatcher": []
     }
   ]
 }
