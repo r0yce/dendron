@@ -29,7 +29,7 @@ export class SchemaCreationUtils {
     tokenizedMatrix: SchemaToken[][];
   }): string {
     for (let r = 0; r < tokenizedMatrix.length; r += 1) {
-      const tokenizedRow = tokenizedMatrix[r];
+      const tokenizedRow = tokenizedMatrix[r]!;
 
       let currParent = topLevel;
       // Top level is already taken care of hence we start out and index 1.

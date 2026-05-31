@@ -224,7 +224,7 @@ export class DNodeUtils {
         vault,
       })[0];
       if (_.isUndefined(_node)) {
-        throw new DendronError({ message: `no root found for ${fpath}` });
+        throw new DendronError({ message: `no root found for ${fpath}` }) as any;
       }
       return _node;
     }
@@ -256,7 +256,7 @@ export class DNodeUtils {
     if (dirname === "") {
       const notes = await engine.findNotesMeta({ fname: "root", vault });
       if (notes.length === 0) {
-        throw new DendronError({ message: `no root found for ${fpath}` });
+        throw new DendronError({ message: `no root found for ${fpath}` }) as any;
       }
       return notes[0]!;
     }

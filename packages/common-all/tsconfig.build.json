@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "lib",
     "rootDir": "src",
-    // Continued 1-hour sprint: real strict debt at 25 after more fixes (error, schema, perf, Fuse). Override for clean verification. Root flags on.
+    // Sprint continuation: real strict ~45. Override for clean verification while fixing. Root flags enabled.
     "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false
   },

@@ -53,9 +53,9 @@ export class DendronError<TCode = StatusCodes | undefined>
 {
   public status?: string;
   public payload?: string;
-  public severity?: ERROR_SEVERITY;
-  public code?: TCode;
-  public innerError?: Error;
+  public severity?: ERROR_SEVERITY | undefined;
+  public code?: TCode | undefined;
+  public innerError?: Error | undefined;
 
   /** The output that may be displayed to a person if they encounter this error. */
   public stringifyForHumanReading() {
@@ -155,7 +155,7 @@ export class DendronError<TCode = StatusCodes | undefined>
 
 export class DendronCompositeError extends Error implements IDendronError {
   public payload: DendronErrorProps[];
-  public severity?: ERROR_SEVERITY;
+  public severity?: ERROR_SEVERITY | undefined;
   public errors: IDendronError[];
 
   constructor(errors: IDendronError[]) {

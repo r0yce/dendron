@@ -60,7 +60,7 @@ export class ActivationTimer {
   }
 
   getReport() {
-    const total = this.marks[this.marks.length - 1]?.ts - this.startTs || 0;
+    const total = (this.marks[this.marks.length - 1]?.ts ?? 0) - this.startTs;
     return { totalMs: Math.round(total) };
   }
 

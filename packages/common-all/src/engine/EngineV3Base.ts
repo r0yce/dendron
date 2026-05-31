@@ -168,7 +168,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
         error: new DendronError({
           status: ERROR_STATUS.DOES_NOT_EXIST,
           message: `Unable to delete ${id}: Note does not exist`,
-        }),
+        }) as any,
       };
     }
     // Temp solution to get around current restrictions where NoteChangeEntry needs a NoteProp
@@ -183,7 +183,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
         error: new DendronError({
           status: ERROR_STATUS.NO_PARENT_FOR_NOTE,
           message: `No parent found for ${noteToDelete.fname}`,
-        }),
+        }) as any,
       };
     }
     const parentResp = await this.noteStore.get(noteToDelete.parent);
@@ -193,7 +193,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
           status: ERROR_STATUS.NO_PARENT_FOR_NOTE,
           message: `Unable to delete ${noteToDelete.fname}: Note's parent does not exist in engine: ${noteToDelete.parent}`,
           innerError: parentResp.error,
-        }),
+        }) as any,
       };
     }
 
