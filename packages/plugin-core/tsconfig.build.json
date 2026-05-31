@@ -5,11 +5,7 @@
     "rootDirs": ["src", "scripts"],
     "declaration": false,
     "skipLibCheck": true,
-    "strictNullChecks": true,
-    // Temporarily disabled during strict mode cleanup wave (see MONOREPO tracker).
-    // Root has the modern strict flags enabled. Remove this override once cleanup is complete.
-    "noUncheckedIndexedAccess": false,
-    "exactOptionalPropertyTypes": false
+    "strictNullChecks": true
   },
   "exclude": ["node_modules", "lib", "local", ".vscode-test", "out", "dist"]
 }

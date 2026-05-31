@@ -361,7 +361,7 @@ export const DENDRON_MENUS = {
   ],
 };
 
-export const DENDRON_COMMANDS: { [key: string]: CommandEntry } = {
+export const DENDRON_COMMANDS = {
   // --- backlinks panel buttons
   BACKLINK_SORT_BY_LAST_UPDATED: {
     key: "dendron.backlinks.sortByLastUpdated",
@@ -1312,7 +1312,7 @@ export const CONFIG: { [key: string]: ConfigEntry } = {
     description:
       "When enabled, newly created workspaces will be created as self contained vaults.",
   },
-};
+} as const;
 
 export const gdocRequiredScopes = [
   "https://www.googleapis.com/auth/documents",

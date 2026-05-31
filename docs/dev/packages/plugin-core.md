@@ -98,6 +98,49 @@ plugin-core is one of the biggest consumers in the graph.
 
 | Area                        | Status                          | Notes |
 |-----------------------------|---------------------------------|-------|
+| Strict Mode (noUncheckedIndexedAccess + exactOptionalPropertyTypes) | [~] Wave 1 Active (2026-05-31) | Overrides removed from tsconfig.build.json. Initial 1779 errors surfaced (mostly from suite-integ tests + exactOptional in web/workspace layers). Batch 1 (DENDRON_COMMANDS precise `as const` typing) dropped command-undefined errors. Production src/ focus first. See "Strict Hardening Wave" section + tracker. |
+
+## Strict Hardening Wave (2026-05-31 — In Progress)
+
+**Branch**: `modernization/plugin-core-strict-hardening-wave-1`
+
+**Initial Error Count** (after removing the two local overrides): **~1780** (tsc on tsconfig.build.json)
+
+**Error Categories** (Mermaid flow of the cascade):
+
+```mermaid
+flowchart TD
+    A[Remove noUncheckedIndexedAccess + exactOptionalPropertyTypes overrides<br/>in plugin-core/tsconfig.build.json] --> B[1779+ errors surface]
+    B --> C1[TS18048: 'DENDRON_COMMANDS.XXX' possibly undefined<br/>~100+ sites in commands + activation]
+    B --> C2[TS2379/TS2412/TS2375: exactOptionalPropertyTypes<br/>passing T|undef into foo?: T sites<br/>web/, workspace/, tests]
+    B --> C3[TS2345/TS2532: passing NoteProps|undef or array[0] undef<br/>into required params]
+    B --> C4[Integ test mocks & factories<br/>hundreds of strict violations<br/>in suite-integ/*]
+
+    C1 --> D1["Batch 1 Fix: DENDRON_COMMANDS = { ... } as const<br/>Precise literal keys → definite accesses"]
+    D1 --> E[Command undef errors eliminated<br/>~178 errors reduced]
+
+    C2 --> D2["Batch 2+: Update target interfaces in common-all / local<br/>foo?: T → foo?: T | undefined<br/>or use omit-undefined at call sites or ! where total"]
+    C3 --> D3["Guard or ! at known-total sites<br/>or strengthen types upstream"]
+    C4 --> D4["Fix test helpers + common test factories first<br/>(high leverage for collapse)"]
+
+    E --> F["Re-verify: yarn bootstrap:build:common-all && yarn workspace @dendronhq/plugin-core compile"]
+    F --> G{Error count dropping?}
+    G -->|Yes| H["Document in TRACKER + this doc<br/>Commit batch on branch<br/>Self-evolve .grok/skills/strict-mode-fixer.md"]
+    G -->|No| I["Analyze new top files<br/>Root cause in shared types?"]
+    H --> J["Continue batches ≤15-20 logical changes<br/>until plugin-core compile GREEN"]
+    J --> K["When green + DI cleanup done → Milestone 2 Report<br/>(full Mermaid overhaul + @ts-expect-error burn-down)"]
+```
+
+**Batch Log**:
+- **Batch 1**: DENDRON_COMMANDS typing modernization (constants.ts). Errors: 1779 → 1601 (command undef class eliminated). Verification run post-edit (still red as expected, tracking progress).
+- **Next Batch Focus** (per Strict-Mode-Fixer + Test-Guardian): Top production files with exactOptional (PreviewLinkHandler, PreviewPanel, workspaceActivator, WorkspaceWatcher, workspacev2). Fix 10-15 sites or 2-3 files. Re-verify count.
+
+**Success Target for Wave**: plugin-core compile exits 0. Then massive @ts-expect-error cleanup pass (currently 95).
+
+**Lessons for .grok (encoded)**: Large integ test suites amplify strict error counts 5-10x when shared types tighten. Prioritize production src/ + shared test utils first for fast "compile green" signal, then test polish. `as const` on large command registries is high-leverage single-edit win for noUncheckedIndexedAccess.
+
+| Area                        | Status                          | Notes |
+|-----------------------------|---------------------------------|-------|
 | TypeScript                  | Modern (5.5.4)                  | Core upgrade done |
 | @types/node                 | ^20.12.0                        | Good |
 | Scripts                     | Partially modernized            | Clean scripts updated (rimraf removed) |
