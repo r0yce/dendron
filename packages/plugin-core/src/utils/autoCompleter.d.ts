@@ -9,7 +9,7 @@ export declare class AutoCompleter {
      *                 (if nothing is in focus this should be equal to the current value).
      * fnames: the file names to choose completions from sorted by most likely matches first.
      * */
-    static autoCompleteNoteLookup(currentValue: string, activeItemValue: string, fnames: string[]): string | undefined;
+    static autoCompleteNoteLookup(currentValue: string, activeItemValue: string, fnames: string[]): string;
     private static matchPrefixTillNextDot;
     private static matchNoteUpToCurrValue;
     static getAutoCompletedValue(_quickPick: QuickPick<QuickPickItem & {

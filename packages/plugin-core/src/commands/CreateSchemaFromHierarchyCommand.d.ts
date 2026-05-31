@@ -2,12 +2,12 @@ import { DVault, NotePropsMeta } from "@dendronhq/common-all";
 import { Uri } from "vscode";
 import { BasicCommand } from "./base";
 type CommandOpts = {
-    candidates?: readonly SchemaCandidate[];
-    schemaName?: string;
-    hierarchyLevel?: HierarchyLevel;
-    uri?: Uri;
+    candidates?: readonly SchemaCandidate[] | undefined;
+    schemaName?: string | undefined;
+    hierarchyLevel?: HierarchyLevel | undefined;
+    uri?: Uri | undefined;
     isHappy: boolean;
-    stopReason?: StopReason;
+    stopReason?: StopReason | undefined;
 };
 type CommandOutput = {
     successfullyCreated: boolean;
@@ -60,8 +60,8 @@ type HierarchyLevelRes = {
     stopReason?: StopReason;
 };
 type PatternsFromCandidateRes = {
-    pickedCandidates?: readonly SchemaCandidate[];
-    stopReason?: StopReason;
+    pickedCandidates?: readonly SchemaCandidate[] | undefined;
+    stopReason?: StopReason | undefined;
 };
 /**
  * Encapsulates methods that are responsible for user interaction when
@@ -78,7 +78,7 @@ export declare class UserQueries {
     /** Finds the item from previously selected that is not selected anymore. */
     static findUncheckedItem(prevSelected: readonly SchemaCandidate[], currSelected: readonly SchemaCandidate[]): SchemaCandidate | undefined;
     /** Finds newly selected item.*/
-    static findCheckedItem(prevSelected: readonly SchemaCandidate[], currSelected: readonly SchemaCandidate[]): SchemaCandidate | undefined;
+    static findCheckedItem(prevSelected: readonly SchemaCandidate[], currSelected: readonly SchemaCandidate[]): SchemaCandidate;
 }
 /**
  * Responsible for forming the schema body from the hierarchical files that user chose. */

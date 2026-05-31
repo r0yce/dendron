@@ -109,7 +109,7 @@ export class KeybindingUtils {
       // we only recognize disabling of the conflicting keybinding as resolution
       // remapping of either the conflicting / dendron command's keybinding
       // or disabling the dendron command's keybinding is not considered a resolution.
-      if (keybinding.command.startsWith("-")) {
+      if (keybinding.command && keybinding.command.startsWith("-")) {
         const command = keybinding.command.substring(1);
         const resolvedConflict = conflicts.find(
           (conflict) => conflict.commandId === command
@@ -340,8 +340,8 @@ export class KeybindingUtils {
         item.args === podId
     );
 
-    if (result.length === 1 && result[0].key) {
-      return result[0].key;
+    if (result.length === 1 && result[0]!.key) {
+      return result[0]!.key;
     } else if (result.length > 1) {
       throw new DendronError({
         message: this.getMultipleKeybindingsMsgFormat("pod"),
@@ -371,8 +371,8 @@ export class KeybindingUtils {
       );
     });
 
-    if (result.length === 1 && result[0].key) {
-      return result[0].key;
+    if (result.length === 1 && result[0]!.key) {
+      return result[0]!.key;
     } else if (result.length > 1) {
       throw new DendronError({
         message: this.getMultipleKeybindingsMsgFormat("copy as"),

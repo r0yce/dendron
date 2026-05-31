@@ -79,11 +79,21 @@ These tours deliberately exercise **every major feature** of CodeTour:
 - Many steps link to the deep `docs/dev/*.md` files — read those for even more detail.
 - Tours are versioned with `ref` where it makes sense so they don't drift too badly; rebase them as the `codetour` branch evolves.
 
-## Maintaining These Tours
+## Maintaining These Tours (Automated by codetour-expert Skill)
 
-- After big refactors, run the CodeTour tree commands to edit/re-record steps.
-- Consider adding the [CodeTour Watch](https://github.com/marketplace/actions/codetour-watch) GitHub Action to CI to detect tour drift on PRs.
-- New contributors: add a new focused tour under the appropriate subdirectory and link it from the onboarding tour.
+**The `.grok/skills/codetour-expert/SKILL.md` subagent is now the dedicated guardian of this entire suite.**
+
+- Any edit to files under `.tours/` automatically triggers `codetour-expert` (via `on_file_change` hook).
+- The skill performs full inventory + JSON + path + link + upstream validation on every invocation.
+- It **self-heals** breakage (bad paths, drifted lines, broken `nextTour`, invalid JSON, etc.) and **updates its own SKILL.md** with a new "Never Again" rule + mental self-test within 5 minutes so the mistake class becomes impossible.
+- It proactively improves tours (richer steps, better resilience via `pattern`, new cross-links, new tours for gaps) and checks microsoft/codetour upstream for new features/deprecations.
+- It proposes + wires new hooks and cross-encodes every lesson to `self-improver`.
+
+**Manual trigger**: Run `/codetour-expert`, "codetour audit", "heal codetours", or "improve codetours".
+
+After big refactors you can still use the CodeTour extension UI, but prefer letting the expert skill do the heavy lifting first — it will keep the suite in a higher-quality state than pure manual editing.
+
+Consider adding the [CodeTour Watch](https://github.com/marketplace/actions/codetour-watch) GitHub Action to CI as a backstop; the expert skill will still be the primary local healer.
 
 ## Related Resources in This Repo
 

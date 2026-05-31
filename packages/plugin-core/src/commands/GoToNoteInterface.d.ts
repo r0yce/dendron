@@ -6,23 +6,23 @@ export declare enum TargetKind {
     LINK = "link"
 }
 export type GoToNoteCommandOpts = {
-    qs?: string;
-    vault?: DVault;
-    anchor?: DNoteAnchorBasic;
-    overrides?: Partial<NoteProps>;
-    kind?: TargetKind;
+    qs?: string | undefined;
+    vault?: DVault | undefined;
+    anchor?: DNoteAnchorBasic | undefined;
+    overrides?: Partial<NoteProps> | undefined;
+    kind?: TargetKind | undefined;
     /**
      * What {@link vscode.ViewColumn} to open note in
      */
-    column?: ViewColumn;
+    column?: ViewColumn | undefined;
     /** added for contextual UI analytics. */
-    source?: string;
+    source?: string | undefined;
     /**
      * the note which go to originates from.
      * this is populated in the process of running the command
      * and should not be passed in outside of tests.
      */
-    originNote?: NoteProps;
+    originNote?: NoteProps | undefined;
 };
 export { GoToNoteCommandOpts as GotoNoteCommandOpts };
 export declare enum GotoFileType {

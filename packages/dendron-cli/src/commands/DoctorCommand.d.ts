@@ -18,6 +18,7 @@ type CommandCLIOpts = {
 } & CommandCommonProps;
 type CommandOpts = CommandCLIOpts & {
     wsRoot: string;
+    checks?: string[] | null;
 };
 type CommandOutput = {
     checks: HealthCheckResult[];
@@ -52,9 +53,10 @@ type CommandOutput = {
  *   - DConfig.getRaw + ConfigUtils for yml/schema + vaults.
  *   - Perf timers: ActivationTimer (overall) + PerformanceTimer (per-check) from common-all.
  *     (PerfRingBuffer/withPerfTiming deferred to common-all/perf evolution; see SKILL.md)
- *   - --json via base, --verbose includes timings; --fix skeleton only (no mutations yet).
+ *   - --json via base, --verbose includes timings; --fix LIVE (3 safe: gitignore-metadata, yml drift/defaults/deprecated via DConfig+backups+GitUtils; no data loss).
  *
- * Checks 1-6 fully wired (real probes, not placeholders). --fix skeleton / engine-full future; registration + simple CLIUtils table live (per Test-Guardian matrix).
+ * Checks 1-6 fully wired (real probes, not placeholders; --checks subset filter + only-selected timing). --fix real (3 safe candidates). registration + CLIUtils table live (per Test-Guardian matrix).
+ * Gaps filled + MVP launch ready, health now directly usable post-build with table + --json + perf (post-smoke polish 06/07).
  * Post-green proactive pattern: prep during hardening = instant value add.
  */
 export declare class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {

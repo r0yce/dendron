@@ -70,7 +70,7 @@ export class ConvertLinkCommand extends BasicCommand<
       label: "Alias",
       description: parsedLink?.alias,
       detail: "Convert broken link to alias text.",
-    };
+    } as QuickPickItem; // 4-axis boundary: vscode QuickPickItem description?: string vs our optional-chain producing string | undefined under exactOptionalPropertyTypes. See Batch 5+/6+ + di/inject Suppression Registry. TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes; debug launch sweep 2026-05-31.
     const hierarchyOption: QuickPickItem = {
       label: "Hierarchy",
       description:
@@ -78,7 +78,7 @@ export class ConvertLinkCommand extends BasicCommand<
           ? reference.ref
           : parsedLink?.value,
       detail: "Convert broken link to hierarchy.",
-    };
+    } as QuickPickItem; // 4-axis boundary (same reason as aliasOption)
     const noteNameOption: QuickPickItem = {
       label: "Note name",
       description:
@@ -87,7 +87,7 @@ export class ConvertLinkCommand extends BasicCommand<
           : _.last(parsedLink?.value?.split(".")),
       detail:
         "Convert broken link to note name excluding hierarchy except the basename.",
-    };
+    } as QuickPickItem; // 4-axis boundary (same reason as aliasOption)
     const promptOption: QuickPickItem = {
       label: "Prompt",
       detail: "Input plaintext to convert broken link to.",

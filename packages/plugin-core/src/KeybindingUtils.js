@@ -99,7 +99,7 @@ class KeybindingUtils {
             // we only recognize disabling of the conflicting keybinding as resolution
             // remapping of either the conflicting / dendron command's keybinding
             // or disabling the dendron command's keybinding is not considered a resolution.
-            if (keybinding.command.startsWith("-")) {
+            if (keybinding.command && keybinding.command.startsWith("-")) {
                 const command = keybinding.command.substring(1);
                 const resolvedConflict = conflicts.find((conflict) => conflict.commandId === command);
                 if (resolvedConflict) {

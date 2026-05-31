@@ -212,7 +212,7 @@ const replaceRefs = ({ refs, content, onMatch, onReplace, }) => {
         const pattern = `\\[\\[\\s*?(.*\\|)?\\s*${oldRef}\\s*\\]\\]`;
         if (new RegExp(pattern, "i").exec(content)) {
             let replacedOnce = false;
-            // @ts-expect-error - legacy vendored external/memo/utils regex replace callback typing (replacer params + captured 'content'/'replacedOnce' interop under strict; original memo lib had looser any). Precise dated justification (final Post-M2 + Doctor Smoke Burn, 2026-06-01); never bare per SKILL. Real cheap fix blocked by commented-out isInFencedCodeBlock logic + external origin. See full file history. 0 bare upheld.
+            // legacy vendored external/memo (regex replacer interop). Directive removed — no longer triggers under current strict config (justification preserved in Suppression Registry).
             const nextContent = content.replace(new RegExp(pattern, "gi"), ($0, $1, offset) => {
                 // const pos = document.positionAt(offset);
                 // if (

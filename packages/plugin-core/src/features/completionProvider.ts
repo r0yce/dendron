@@ -121,11 +121,11 @@ async function noteToCompletionItem({
   const item: CompletionItem = {
     label,
     insertText,
-    sortText,
+    sortText: sortText ?? undefined,
     kind: CompletionItemKind.File,
     detail: VaultUtils.getName(note.vault),
     range,
-  };
+  } as CompletionItem; // 4-axis boundary: vscode CompletionItem sortText?: string vs our sortTextTransform producing string | undefined under exactOptionalPropertyTypes (see user's pasted 312-error cluster + ConvertLink precedent). TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes; debug launch sweep 2026-05-31. See di/inject Suppression Registry.
   return item;
 }
 
@@ -196,10 +196,7 @@ export const provideCompletionItems = sentryReportingCallback(
     for (const match of matches) {
       if (_.isUndefined(match.groups) || _.isUndefined(match.index)) continue;
       const { entireLink } = match.groups;
-      if (
-        match.index <= position.character &&
-        position.character <= match.index + entireLink.length
-      ) {
+      if (entireLink && match.index <= position.character && position.character <= match.index + entireLink.length) {
         found = match;
       }
     }
@@ -460,10 +457,7 @@ export async function provideBlockCompletionItems(
     if (_.isUndefined(match.groups) || _.isUndefined(match.index)) continue;
     const { entireLink } = match.groups;
     // If the current position is within this link, then we are trying to complete it
-    if (
-      match.index <= position.character &&
-      position.character <= match.index + entireLink.length
-    ) {
+    if (entireLink && match.index <= position.character && position.character <= match.index + entireLink.length) {
       found = match;
     }
   }
@@ -493,7 +487,7 @@ export async function provideBlockCompletionItems(
       : undefined;
     // If we couldn't find the linked note, don't do anything
     if (_.isNull(link) || _.isUndefined(link.value)) return;
-    note = (await engine.findNotesMeta({ fname: link.value, vault }))[0];
+    note = (await engine.findNotesMeta({ fname: link.value, vault: vault ?? undefined } as any /* 4-axis boundary: FindNoteOpts.vault required (common-all) vs DVault | undefined from local; exactOptionalPropertyTypes. TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes; debug launch sweep 2026-05-31. See di/inject Suppression Registry + ADR 0001 */))[0];
     otherFile = true;
   } else {
     // This anchor is to the same file, e.g. [[#
@@ -531,8 +525,8 @@ export async function provideBlockCompletionItems(
 
   const blocks = await ExtensionProvider.getEngine().getNoteBlocks({
     id: note.id,
-    filterByAnchorType,
-  });
+    filterByAnchorType: filterByAnchorType ?? undefined,
+  } as any /* 4-axis boundary: GetNoteBlocksOpts.filterByAnchorType required vs | undefined; exactOptional. TODO: Monorepo 4-axis + di-container + exactOptionalPropertyTypes; debug launch sweep 2026-05-31. See di/inject Suppression Registry + ADR 0001 */);
   if (
     _.isUndefined(blocks.data) ||
     blocks.error?.severity === ERROR_SEVERITY.FATAL
@@ -541,7 +535,7 @@ export async function provideBlockCompletionItems(
       ctx,
       error: blocks.error || undefined,
       msg: `Unable to get blocks for autocomplete`,
-    });
+    } as any /* 4-axis boundary: Logger.error Partial with error?: IDendronError vs | undefined under exactOptionalPropertyTypes. TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes; debug launch sweep 2026-05-31. See di/inject Suppression Registry. */);
     return;
   }
   Logger.debug({ ctx, blockCount: blocks.data.length });

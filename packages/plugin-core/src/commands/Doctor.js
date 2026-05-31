@@ -341,7 +341,7 @@ class DoctorCommand extends base_1.BasicCommand {
                     note,
                     // fix notes with broken ids if necessary
                     overwriteFields: ["id"],
-                });
+                } /* TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes (BackfillServiceOpts from engine-server); Batch 6 debug launch sweep 2026-05-31 (per Strict-Fixer plan + user mandate "finish the remaining clusters until 0 then full test + Clean Host smoke + merge"); see 4-axis + di-container + ADR 0001 */);
                 break;
             }
             case engine_server_1.DoctorActionsEnum.CREATE_MISSING_LINKED_NOTES: {
@@ -532,7 +532,7 @@ class DoctorCommand extends base_1.BasicCommand {
                     candidates,
                     engine,
                     exit: false,
-                });
+                } /* TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes (DoctorServiceOpts from engine-server); Batch 6 debug launch sweep 2026-05-31 (per Strict-Fixer plan + user mandate "finish the remaining clusters until 0 then full test + Clean Host smoke + merge"); see 4-axis + di-container + ADR 0001 */);
                 ds.dispose();
             }
         }

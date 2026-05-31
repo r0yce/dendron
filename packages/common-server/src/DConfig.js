@@ -58,7 +58,7 @@ class DConfig {
     }
     static getSiteIndex(sconfig) {
         const { siteIndex, siteHierarchies } = sconfig;
-        return siteIndex || siteHierarchies[0];
+        return siteIndex || siteHierarchies[0] ?? "";
     }
     /**
      * fill in defaults

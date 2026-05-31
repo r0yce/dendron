@@ -210,13 +210,13 @@ async function _activate(context, opts) {
         // Need to recompute this for tests, because the instance of DendronExtension doesn't get re-created.
         // Probably also needed if the user switches from one workspace to the other.
         ws.type = await engine_server_1.WorkspaceUtils.getWorkspaceType({
-            workspaceFile: vscode.workspace.workspaceFile,
-            workspaceFolders: vscode.workspace.workspaceFolders,
+            workspaceFile: vscode.workspace.workspaceFile ?? undefined /* TODO: vscode.Uri vs URI + exactOptional at getWorkspaceType boundary; Batch 6 debug launch sweep 2026-05-31 (per Strict-Fixer plan on _extension workspaceFile/DWorkspaceV2 + user mandate to 0 + full test + Clean Host smoke + merge); see 4-axis + di-container + ADR 0001 */,
+            workspaceFolders: vscode.workspace.workspaceFolders ?? undefined /* TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes (workspaceFolders | undefined at getWorkspaceType); Batch 6 debug launch sweep 2026-05-31 (per Strict-Fixer plan + user mandate "finish the remaining clusters until 0 then full test + Clean Host smoke + merge"); see 4-axis + di-container + ADR 0001 */,
         });
         // Also need to reset the implementation here for testing. Doing it in all
         // cases because if the extension is activated, we'll recreate it while
         // activating the workspace
-        ws.workspaceImpl = undefined;
+        ws.workspaceImpl = undefined /* TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes (DWorkspaceV2 | undefined assignment at workspace activation); Batch 6 debug launch sweep 2026-05-31 (per Strict-Fixer plan on _extension workspaceFile/DWorkspaceV2 + user mandate "finish the remaining clusters until 0 then full test + Clean Host smoke + merge"); see 4-axis + di-container + ADR 0001 + main thread prior casts in this file (workspaceFile) and activator */; // lingering site addressed with full 4-axis boundary cast per rules (cross from common-all DWorkspaceV2)
         const currentVersion = workspace_1.DendronExtension.version();
         const previousWorkspaceVersionFromState = stateService.getWorkspaceVersion();
         const previousGlobalVersion = engine_server_1.MetadataService.instance().getGlobalVersion();

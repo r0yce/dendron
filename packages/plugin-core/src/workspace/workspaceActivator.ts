@@ -392,7 +392,7 @@ type WorkspaceActivatorOpts = {
   ext: IDendronExtension;
   context: vscode.ExtensionContext;
   wsRoot: string;
-  workspaceInitializer?: WorkspaceInitializer;
+  workspaceInitializer?: WorkspaceInitializer | undefined;
 };
 
 type WorkspaceActivatorSkipOpts = {
@@ -400,21 +400,21 @@ type WorkspaceActivatorSkipOpts = {
     /**
      * Skip setting up language features (eg. code action providesr)
      */
-    skipLanguageFeatures: boolean;
+    skipLanguageFeatures: boolean | undefined;
     /**
      * Skip automatic migrations on start
      */
-    skipMigrations: boolean;
+    skipMigrations: boolean | undefined;
     /**
      * Skip surfacing dialogues on startup
      */
-    skipInteractiveElements: boolean;
+    skipInteractiveElements: boolean | undefined;
 
     /**
      * Skip showing tree view
      */
-    skipTreeView: boolean;
-  }>;
+    skipTreeView: boolean | undefined;
+  }> | undefined;
 };
 export class WorkspaceActivator {
   /**
@@ -719,7 +719,7 @@ export class WorkspaceActivator {
       },
     });
     ext.port = _.toInteger(port);
-    ext.serverProcess = subprocess as any /* TODO: exactOptional + execa childprocess | undef interop on IDendronExtension.serverProcess (d.ts widened); final strict Batch 5+; see 4-axis */;
+    ext.serverProcess = subprocess as any /* TODO: exactOptional + execa childprocess | undef interop on IDendronExtension.serverProcess (d.ts widened); Batch 5 debug launch sweep 2026-05-31 (per Strict-Fixer plan on _extension/activator/Partial opts + user mandate to 0 + full test + Clean Host smoke + merge); see 4-axis + prior M2 cast notes */;
     return ext.port;
   }
 }

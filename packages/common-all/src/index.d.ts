@@ -9,6 +9,7 @@ export * from "./assert";
 export * from "./uuid";
 export * from "./constants";
 export * from "./error";
+export * from "./errors";
 export * from "./time";
 export * from "./utils";
 export * from "./md";

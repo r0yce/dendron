@@ -1,7 +1,7 @@
 import { BasicCommand } from "./base";
 import { CommandOutput as NoteLookupCommandOut } from "./NoteLookupCommand";
 type CommandOpts = {
-    noConfirm?: boolean;
+    noConfirm?: boolean | undefined;
 };
 type CommandOutput = NoteLookupCommandOut;
 export declare class GoDownCommand extends BasicCommand<CommandOpts, CommandOutput> {

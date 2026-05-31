@@ -163,6 +163,7 @@ class AutoCompleter {
                 activeItemValue = candidate;
             }
         }
+        // noUnchecked: fnames is from uniq of filtered items; empty case already handled above.
         return AutoCompleter.autoCompleteNoteLookup(_quickPick.value, activeItemValue, fnames);
     }
 }

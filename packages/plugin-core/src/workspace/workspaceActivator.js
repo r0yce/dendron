@@ -552,7 +552,7 @@ class WorkspaceActivator {
             },
         });
         ext.port = lodash_1.default.toInteger(port);
-        ext.serverProcess = subprocess /* TODO: exactOptional + execa childprocess | undef interop on IDendronExtension.serverProcess (d.ts widened); final strict Batch 5+; see 4-axis */;
+        ext.serverProcess = subprocess /* TODO: exactOptional + execa childprocess | undef interop on IDendronExtension.serverProcess (d.ts widened); Batch 5 debug launch sweep 2026-05-31 (per Strict-Fixer plan on _extension/activator/Partial opts + user mandate to 0 + full test + Clean Host smoke + merge); see 4-axis + prior M2 cast notes */;
         return ext.port;
     }
 }

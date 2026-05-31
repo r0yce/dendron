@@ -370,21 +370,18 @@ export default class BacklinksTreeDataProvider
         const ref1 = referencesByPath[p1];
         const ref2 = referencesByPath[p2];
 
-        if (
-          ref1.length === 0 ||
-          ref2.length === 0 ||
-          ref1[0]!.note === undefined ||
-          ref2[0]!.note === undefined
-        ) {
+        if (!ref1 || !ref2 || ref1.length === 0 || ref2.length === 0 || ref1[0]!.note === undefined || ref2[0]!.note === undefined) {
           Logger.error({
             msg: "Missing info for well formed backlink sort by last updated.",
           });
-
           return 0;
         }
 
-        const ref2Updated = ref2[0]!.note.updated;
-        const ref1Updated = ref1[0]!.note.updated;
+        // noUncheckedIndexedAccess guard: explicit length + note checks above guarantee non-null; ! is safe post-invariant (Batch 5+/6+ + debug launch sweep pattern)
+        const r1 = ref1!;
+        const r2 = ref2!;
+        const ref2Updated = r2[0]!.note.updated;
+        const ref1Updated = r1[0]!.note.updated;
 
         // We want to sort in descending order by last updated
         return ref2Updated - ref1Updated;
@@ -529,7 +526,7 @@ export default class BacklinksTreeDataProvider
     tooltip.supportHtml = true;
     tooltip.supportThemeIcons = true;
 
-    const noteProps = references[0].note;
+    const noteProps = references.length > 0 ? references[0]!.note : undefined;
 
     if (noteProps) {
       tooltip.appendMarkdown(

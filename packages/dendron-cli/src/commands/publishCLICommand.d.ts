@@ -74,8 +74,8 @@ export declare class PublishCLICommand extends CLICommand<CommandOpts, CommandOu
             wsRoot: string;
             error?: DendronError;
             dest?: string;
-            attach?: boolean;
             cmd: PublishCommands;
+            attach?: boolean;
             sitemap?: boolean;
         };
         error?: never;

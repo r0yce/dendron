@@ -62,7 +62,6 @@ class BaseCommand {
                 vscode_1.window.showErrorMessage(sanityCheckResp);
                 return;
             }
-            // @ts-ignore
             const inputs = await this.gatherInputs(args);
             // if undefined, imply user cancel
             if (lodash_1.default.isUndefined(inputs)) {

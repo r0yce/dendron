@@ -169,9 +169,9 @@ export class EditorUtils {
 
   static async getSelectionAnchors(opts: {
     editor: TextEditor;
-    selection?: Selection;
-    doStartAnchor?: boolean;
-    doEndAnchor?: boolean;
+    selection?: Selection | undefined;
+    doStartAnchor?: boolean | undefined;
+    doEndAnchor?: boolean | undefined;
     engine: DEngineClient;
   }): Promise<{ startAnchor?: string; endAnchor?: string }> {
     const { editor, selection, doStartAnchor, doEndAnchor, engine } =

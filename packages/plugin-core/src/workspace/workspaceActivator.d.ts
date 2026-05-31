@@ -22,27 +22,27 @@ type WorkspaceActivatorOpts = {
     ext: IDendronExtension;
     context: vscode.ExtensionContext;
     wsRoot: string;
-    workspaceInitializer?: WorkspaceInitializer;
+    workspaceInitializer?: WorkspaceInitializer | undefined;
 };
 type WorkspaceActivatorSkipOpts = {
     opts?: Partial<{
         /**
          * Skip setting up language features (eg. code action providesr)
          */
-        skipLanguageFeatures: boolean;
+        skipLanguageFeatures: boolean | undefined;
         /**
          * Skip automatic migrations on start
          */
-        skipMigrations: boolean;
+        skipMigrations: boolean | undefined;
         /**
          * Skip surfacing dialogues on startup
          */
-        skipInteractiveElements: boolean;
+        skipInteractiveElements: boolean | undefined;
         /**
          * Skip showing tree view
          */
-        skipTreeView: boolean;
-    }>;
+        skipTreeView: boolean | undefined;
+    }> | undefined;
 };
 export declare class WorkspaceActivator {
     /**

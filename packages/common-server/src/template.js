@@ -101,7 +101,7 @@ class TemplateHelpers {
                 return "ERROR: no match found for {year}, {month}, or {day}";
             }
             const { year, month, day } = resp;
-            return new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
+            return new Date(parseInt(year ?? "0", 10), parseInt(month ?? "0", 10) - 1, parseInt(day ?? "0", 10));
         },
         getDayOfWeek: (date) => {
             const day = date.getDay();
@@ -154,7 +154,7 @@ class TemplateUtils {
             note,
             engine,
         });
-        const maybeTemplate = maybeSchema?.schemas[note.schema?.schemaId].data.template;
+        const maybeTemplate = maybeSchema?.schemas[(note.schema?.schemaId ?? "")]?.data.template;
         let maybeVault;
         if (maybeTemplate) {
             // Support xvault template
@@ -174,7 +174,7 @@ class TemplateUtils {
                     };
                 }
             }
-            const maybeNotes = await engine.findNotes({ fname, vault: maybeVault });
+            const maybeNotes = await engine.findNotes({ fname: fname, vault: maybeVault });
             const maybeTemplateNote = await pickNote(maybeNotes);
             if (maybeTemplateNote.error) {
                 return { error: maybeTemplateNote.error };

@@ -8,7 +8,7 @@ import {
 } from "./NoteLookupCommand";
 
 type CommandOpts = {
-  noConfirm?: boolean;
+  noConfirm?: boolean | undefined;
 };
 
 type CommandOutput = NoteLookupCommandOut;

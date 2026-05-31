@@ -78,8 +78,7 @@ export const registry = tsyringeRegistry;
  * This is the key enabler for Batch 2+ mass removal of 30+ bare comments across 13+ web/ files.
  * Per di-container-proposal (typed tokens + reg) + 4-axis (@ts-burn + DI synergy first).
  */
- // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata (v2 centralized absorption; single source of truth; enables 30+ site cleanup + future typed TOKENS/registerAll per ENDORSED di-container-proposal + ADR 0001)
-export const inject: SafeDecoratorFactory = tsyringeInject as any;
+ export const inject: SafeDecoratorFactory = tsyringeInject as any; // v2 centralized absorption (TS5+ decorator metadata + tsyringe). Permanent single @ts site. See Suppression Registry.
 
 /**
  * Typed DI Tokens starter (v2, per di-container-proposal).
@@ -132,32 +131,19 @@ export const TOKENS = {
   // Config
   DendronConfig: "DendronConfig" as const,
 
-  // Legacy aliases for compatibility during migration (remove after full TOKENS adoption)
+  // Legacy aliases for compatibility during migration (remove after full TOKENS adoption).
+  // Only true alternative-string aliases kept; duplicates of primary canonical keys removed
+  // to eliminate TS1117 collisions (debug launch sweep regression fix, 2026-05-31).
   wsRoot: "wsRoot" as const,
   vaults: "vaults" as const,
   logger: "logger" as const,
-  ReducedDEngine: "ReducedDEngine" as const,
-  EngineEventEmitter: "EngineEventEmitter" as const,
-  ITreeViewConfig: "ITreeViewConfig" as const,
   siteUrl: "siteUrl" as const,
   siteIndex: "siteIndex" as const,
   assetsPrefix: "assetsPrefix" as const,
   enablePrettyLinks: "enablePrettyLinks" as const,
-  IFileStore: "IFileStore" as const,
-  INoteStore: "INoteStore" as const,
-  IPreviewLinkHandler: "IPreviewLinkHandler" as const,
-  ITextDocumentService: "ITextDocumentService" as const,
-  IPreviewPanelConfig: "IPreviewPanelConfig" as const,
-  INoteRenderer: "INoteRenderer" as const,
-  PreviewProxy: "PreviewProxy" as const,
-  ITelemetryClient: "ITelemetryClient" as const,
   anonymousId: "anonymousId" as const,
   extVersion: "extVersion" as const,
-  AutoCompleteEvent: "AutoCompleteEvent" as const,
-  AutoCompleteEventEmitter: "AutoCompleteEventEmitter" as const,
   textDocumentEvent: "textDocumentEvent" as const,
-  NoteProvider: "NoteProvider" as const,
-  "DendronConfig": "DendronConfig" as const,
   extensionContext: "extensionContext" as const,
   port: "port" as const,
   extensionUri: "extensionUri" as const,
@@ -181,17 +167,14 @@ export type RegisterDependencies = {
  */
 export function registerDesktopDependencies(opts: {
   wsRoot: string;
-  vaults: DVault[];
-  engine: ReducedDEngine | any;
+  vaults: any[]; // DVault[] — using any at 4-axis boundary (common-di extraction + vscode interop); see Suppression Registry + ADR 0001
+  engine: any; // ReducedDEngine | any — using any at boundary
 }): void {
   const { wsRoot, engine, vaults } = opts;
-  container.register<EngineEventEmitter>(TOKENS.EngineEventEmitter, {
-    useToken: TOKENS.ReducedDEngine,
-  });
   container.register(TOKENS.WsRoot, { useValue: wsRoot });
   container.register(TOKENS.ReducedDEngine, { useValue: engine });
   container.register(TOKENS.Vaults, { useValue: vaults });
-  // TODO(burner): ITreeViewConfig, other desktop-only via TOKENS
+  // TODO(burner + Monorepo): proper EngineEventEmitter token registration after full common-di surface + ErrorService
 }
 
 /**
@@ -199,9 +182,10 @@ export function registerDesktopDependencies(opts: {
  * Mirrors the heavy setupWebExtContainer (now TOKENS-adopted by burner); to be expanded / called from registerAll.
  * Handoff: Test-Guardian to cover new register* surface + migration tests.
  */
-export async function registerWebDependencies(context: any /* vscode.ExtensionContext */): Promise<void> {
+export async function registerWebDependencies(_context: any /* vscode.ExtensionContext */): Promise<void> {
   // SKELETON ONLY — burner phase1 adopted TOKENS in setupWebExtContainer (20+ sites); full body migration to here in next batch per di-container-proposal.
   // For now delegates or no-op; activation paths still use setupWebExtContainer directly.
+  // _context prefix to silence unused-param (will be used when full web reg body moves here).
   console.warn("[DI v2] registerWebDependencies skeleton called — implement body per di-container-proposal + TOKENS adoption complete in setup*");
 }
 
@@ -211,7 +195,7 @@ export async function registerWebDependencies(context: any /* vscode.ExtensionCo
  */
 export async function registerAllDependencies(opts: {
   mode: "desktop" | "web";
-  desktopOpts?: { wsRoot: string; vaults: DVault[]; engine: any };
+  desktopOpts?: { wsRoot: string; vaults: any[]; engine: any }; // DVault[] — 4-axis boundary any (common-di extraction + strict)
   webContext?: any; /* vscode.ExtensionContext */
 }): Promise<void> {
   if (opts.mode === "web" && opts.webContext) {

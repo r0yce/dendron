@@ -4,7 +4,7 @@ import { IDendronExtension } from "../dendronExtensionInterface";
 type CommandOpts = {
     type: VaultRemoteSource;
     vault: DVault;
-    remoteUrl?: string;
+    remoteUrl?: string | undefined;
 };
 type CommandOutput = {
     updatedVault: DVault | null;

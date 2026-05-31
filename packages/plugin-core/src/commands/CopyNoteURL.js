@@ -35,7 +35,7 @@ class CopyNoteURLCommand extends base_1.BasicCommand {
         const { config } = this.extension.getDWorkspace();
         const publishingConfig = common_all_1.ConfigUtils.getPublishing(config);
         const urlRoot = publishingConfig.siteUrl ||
-            workspace_1.DendronExtension.configuration().get(constants_1.CONFIG.COPY_NOTE_URL_ROOT.key);
+            workspace_1.DendronExtension.configuration().get(constants_1.CONFIG.COPY_NOTE_URL_ROOT?.key ?? "");
         const maybeTextEditor = vsCodeUtils_1.VSCodeUtils.getActiveTextEditor();
         if (lodash_1.default.isUndefined(maybeTextEditor)) {
             vscode_1.window.showErrorMessage("no active document found");
@@ -62,9 +62,9 @@ class CopyNoteURLCommand extends base_1.BasicCommand {
             config,
             note,
             vault,
-            urlRoot,
-            anchor,
-        });
+            urlRoot: urlRoot ?? undefined,
+            anchor: anchor ?? undefined,
+        } /* TODO: Monorepo 4-axis + exactOptionalPropertyTypes on WorkspaceUtils.getNoteUrl opts (common-server boundary); Batch 6+ debug launch sweep; see ADR 0001 */);
         this.showFeedback(link);
         utils_1.clipboard.writeText(link);
         return link;

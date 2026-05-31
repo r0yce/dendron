@@ -45,6 +45,9 @@ __exportStar(require("./assert"), exports);
 __exportStar(require("./uuid"), exports);
 __exportStar(require("./constants"), exports);
 __exportStar(require("./error"), exports);
+// Enhance-in-place: ErrorService + token + typed v2 (common-errors priority #2 post common-di).
+// Barrel enables: import { IErrorService, DefaultErrorService, ERROR_SERVICE_TOKEN } from "@dendronhq/common-all"
+__exportStar(require("./errors"), exports);
 __exportStar(require("./time"), exports);
 __exportStar(require("./utils"), exports);
 __exportStar(require("./md"), exports);

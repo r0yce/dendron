@@ -3,7 +3,7 @@ import { IEngineAPIService } from "../services/EngineAPIServiceInterface";
 import { BasicCommand } from "./base";
 export declare const FIX_CONFIG_SELF_CONTAINED = "Fix configuration";
 type ReloadIndexCommandOpts = {
-    silent?: boolean;
+    silent?: boolean | undefined;
 };
 export declare class ReloadIndexCommand extends BasicCommand<ReloadIndexCommandOpts, DEngineClient | undefined> {
     key: string;

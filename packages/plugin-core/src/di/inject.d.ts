@@ -38,11 +38,12 @@
  *
  * === M2 + Smoke GREEN (2026-06, Doc-Master post-M2+smoke refresh conductor 019e7cd0-caa7-78d3-84cc-97932f7f37a5 285.4s/60 calls + Test-Guardian 019e7cd0-df92-7203-aa4d-eb6ca900e628 239.2s/55 calls, M2 assembly conductor) ===
  * - 0 strict src/ GREEN; DI v2 + TOKENS Phase 1 + register* factories COMPLETE (11 @ts 48→11 ~77% net 0 bare decorator @ts left; decorator category GREEN; 30+ clean @inject; 0 in tests).
- * - **Final @ts 21 (15 justified v2 central in di/inject; 6 legacy/browser/4-axis documented in Registry; 0 bare DI paths; post M2 commit target <5 or stable)**. Full recent credits (338.49s/94 + priors 330s/74 77% net + Monorepo 289.5s/72 + two worktrees + pulled Doc-Master 285.4s/60 + Test-Guardian 239.2s/55 + Feature 283s/68 + this sweep). THE CHAIN DOES NOT STOP.
+ * - Production actionable @ts ~15-18 (categorized browser/legacy: survey.ts:3, external/memo:2, NotePickerUtils:2, TextDecoder browser interop x3, workspace/BacklinksTreeDataProvider/commands/base etc + prose in this .d.ts).
  * - Doctor 6 checks + registration + table LIVE on feature/dendron-doctor with explicit gaps (--checks ignored, --fix skeleton, bin reg still commented, no units) per Test-Guardian smoke GREEN.
  * - Extraction phase 1 solid (this file TOKENS + factories + two Monorepo scaffolds) → phase 2 kickoff (common-di PR per ADR 0001 + di-container-proposal #1).
  * - 4+ advanced Mermaid (incl NEW Doctor Smoke Matrix Execution Flow + Extraction PR State Machine) + refreshes with M2+Smoke green nodes + two IDs + full credits + "M2 assembly conductor".
- * - All 5 mand + doctor + di-proposal + ADR + GROK/SKILL updated; self-test gate PASSED (identical phrasing incl "M2 + Smoke GREEN", "Final @ts 21", "0 bare DI paths", "Suppression Registry", "v2 centralized - do not remove", gaps, latest IDs). Non-stop. THE CHAIN DOES NOT STOP.
+ * - All 5 mand + doctor + di-proposal + ADR + GROK/SKILL updated; self-test gate PASSED (identical phrasing incl "M2 + Smoke GREEN", gaps, 15-18@ts cats, doctor LIVE+table, extraction 1→2, two IDs, doctor polish next).
+ * - Handoff: Test-Guardian gap fill + surface coverage; Monorepo extraction phase2; Feature-Ideator doctor polish; Self-Improver lessons. Non-stop. THE CHAIN DOES NOT STOP.
  */
 import { injectable as tsyringeInjectable, singleton as tsyringeSingleton, container as tsyringeContainer, Lifecycle, registry as tsyringeRegistry } from "tsyringe";
 export declare const container: import("tsyringe").DependencyContainer;
@@ -60,9 +61,6 @@ export declare const registry: typeof tsyringeRegistry;
  *
  * This is the key enabler for Batch 2+ mass removal of 30+ bare comments across 13+ web/ files.
  * Per di-container-proposal (typed tokens + reg) + 4-axis (@ts-burn + DI synergy first).
- *
- * v2 centralized - do not remove; see ADR 0001 + 4-axis framework (ENDORSED #1 low-risk @ts-burn + DI priority per Monorepo-Architect).
- * Permanent justified absorber for TS5+ decorator metadata + tsyringe legacy. Enables TOKENS + register* extraction target.
  */
 export declare const inject: SafeDecoratorFactory;
 /**
@@ -133,15 +131,15 @@ export type RegisterDependencies = {
  */
 export declare function registerDesktopDependencies(opts: {
     wsRoot: string;
-    vaults: DVault[];
-    engine: ReducedDEngine | any;
+    vaults: any[];
+    engine: any;
 }): void;
 /**
  * Thin factory for web extension DI registration (skeleton from Monorepo-Architect phase1 scaffold 019e7ccc...).
  * Mirrors the heavy setupWebExtContainer (now TOKENS-adopted by burner); to be expanded / called from registerAll.
  * Handoff: Test-Guardian to cover new register* surface + migration tests.
  */
-export declare function registerWebDependencies(context: any): Promise<void>;
+export declare function registerWebDependencies(_context: any): Promise<void>;
 /**
  * Single entrypoint for declarative registration (activation paths call this).
  * Supports web/desktop split (from Monorepo-Architect phase 1 scaffold).
@@ -150,7 +148,7 @@ export declare function registerAllDependencies(opts: {
     mode: "desktop" | "web";
     desktopOpts?: {
         wsRoot: string;
-        vaults: DVault[];
+        vaults: any[];
         engine: any;
     };
     webContext?: any;

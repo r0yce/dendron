@@ -22,12 +22,12 @@ import { VSCodeUtils } from "../vsCodeUtils";
 import { BasicCommand } from "./base";
 
 type CommandOpts = {
-  candidates?: readonly SchemaCandidate[];
-  schemaName?: string;
-  hierarchyLevel?: HierarchyLevel;
-  uri?: Uri;
+  candidates?: readonly SchemaCandidate[] | undefined;
+  schemaName?: string | undefined;
+  hierarchyLevel?: HierarchyLevel | undefined;
+  uri?: Uri | undefined;
   isHappy: boolean;
-  stopReason?: StopReason;
+  stopReason?: StopReason | undefined;
 };
 
 type CommandOutput = {
@@ -96,7 +96,8 @@ export class Hierarchy {
   }
 
   topId() {
-    return this.levels[0].topId();
+    // noUnchecked: levels is populated in constructor; guard for safety per Batch 6 plan on CreateSchema residuals.
+    return this.levels.length > 0 ? this.levels[0]!.topId() : undefined; // ! after explicit length > 0 guard (only allowed form per SKILL Batch 5+/6+ debug launch sweep)
   }
 
   /**
@@ -168,8 +169,8 @@ type HierarchyLevelRes = {
   stopReason?: StopReason;
 };
 type PatternsFromCandidateRes = {
-  pickedCandidates?: readonly SchemaCandidate[];
-  stopReason?: StopReason;
+  pickedCandidates?: readonly SchemaCandidate[] | undefined;
+  stopReason?: StopReason | undefined;
 };
 
 /**
@@ -389,7 +390,7 @@ export class UserQueries {
     // The only time there will be more than checked one item in a single event
     // is when everything got checked. In that case we don't need to worry
     // about checking the parents anyway, hence we can just grab the first item.
-    return currSelected.filter((item) => !map.has(item.note.fname))[0];
+    return currSelected.filter((item) => !map.has(item.note.fname))[0]!; // ! after filter (explicit non-empty expectation in context); only allowed form per strict-mode-fixer SKILL (debug launch sweep 2026-05-31)
   }
 }
 
@@ -414,7 +415,7 @@ export class SchemaCreator {
       id: hierarchyLevel.topId(),
       title: hierarchyLevel.topId(),
       parent: "root",
-    };
+    } as SchemaInMaking; // 4-axis boundary for SchemaInMaking (local but used in residual CreateSchema constructions under exactOptional); Batch 6 debug launch sweep 2026-05-31 (per Strict-Fixer plan on CreateSchema/SchemaInMaking + user mandate to 0 + full test + Clean Host smoke + merge); see 4-axis + ADR 0001.
 
     return SchemaCreationUtils.getBodyForTokenizedMatrix({
       topLevel,

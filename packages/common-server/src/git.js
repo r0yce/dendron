@@ -64,7 +64,7 @@ class GitUtils {
         return common_all_1.GitUtils.getRepoNameFromURL(url);
     }
     static remoteUrlToDependencyPath({ vaultName, url, }) {
-        return common_all_1.GitUtils.remoteUrlToDependencyPath({ vaultName, url });
+        return common_all_1.GitUtils.remoteUrlToDependencyPath({ vaultName, url: url ?? undefined });
     }
     static getDependencyPathWithRemote({ vault, remote, }) {
         return common_all_1.GitUtils.getDependencyPathWithRemote({ vault, remote });

@@ -3,7 +3,7 @@ import { IDendronExtension } from "../dendronExtensionInterface";
 import { BaseCommand } from "./base";
 export type CommandOpts = {
     fname: string;
-    vaultOverride?: DVault;
+    vaultOverride?: DVault | undefined;
 };
 export type CommandInput = {
     fname: string;

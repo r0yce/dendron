@@ -76,19 +76,19 @@ import { WSUtilsV2 } from "../WSUtilsV2";
 import { BaseCommand } from "./base";
 
 export type CommandRunOpts = {
-  initialValue?: string;
-  noConfirm?: boolean;
-  fuzzThreshold?: number;
-  multiSelect?: boolean;
-  copyNoteLink?: boolean;
-  noteType?: LookupNoteType;
-  selectionType?: LookupSelectionType;
-  splitType?: LookupSplitType;
+  initialValue?: string | undefined;
+  noConfirm?: boolean | undefined;
+  fuzzThreshold?: number | undefined;
+  multiSelect?: boolean | undefined;
+  copyNoteLink?: boolean | undefined;
+  noteType?: LookupNoteType | undefined;
+  selectionType?: LookupSelectionType | undefined;
+  splitType?: LookupSplitType | undefined;
   /**
    * NOTE: currently, only one filter is supported
    */
-  filterMiddleware?: LookupFilterType[];
-  vaultSelectionMode?: VaultSelectionMode;
+  filterMiddleware?: LookupFilterType[] | undefined;
+  vaultSelectionMode?: VaultSelectionMode | undefined;
 };
 
 /**

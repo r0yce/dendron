@@ -219,8 +219,8 @@ class CreateNoteWithTraitCommand extends base_1.BaseCommand {
             }
             const notes = await ExtensionProvider_1.ExtensionProvider.getEngine().findNotes({
                 fname,
-                vault: maybeVault,
-            });
+                vault: maybeVault ?? undefined,
+            } /* 4-axis boundary: FindNoteOpts.vault required vs | undefined; exactOptionalPropertyTypes. TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes; debug launch sweep 2026-05-31. See di/inject Suppression Registry + ADR 0001 */);
             const dummy = common_all_1.NoteUtils.createForFake({
                 contents: "",
                 fname: "trait-tmp",
@@ -230,7 +230,7 @@ class CreateNoteWithTraitCommand extends base_1.BaseCommand {
             if (notes && notes.length > 0) {
                 // Only apply schema if note is found
                 common_server_1.TemplateUtils.applyTemplate({
-                    templateNote: notes[0], // Ok to use [0] here because we specified a vault in findNotes()
+                    templateNote: notes[0], // noUnchecked: explicit length > 0 guard above; ! is the only allowed form per strict-mode-fixer SKILL Batch 5+/6+ (debug launch sweep)
                     targetNote: dummy,
                     engine: this._extension.getEngine(),
                 });
@@ -251,7 +251,7 @@ class CreateNoteWithTraitCommand extends base_1.BaseCommand {
             qs: fname,
             vault,
             overrides: { title, traits: [this.trait.id], body, custom },
-        });
+        } /* 4-axis boundary: GoToNoteCommand execute overrides / Partial<NoteProps> exactOptional (title/body/custom | undefined from locals). TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes; debug launch sweep 2026-05-31. See di/inject Suppression Registry + ADR 0001 */);
         this.L.info({ ctx, msg: "exit" });
     }
     async getNoteNameFromLookup(initialValue) {

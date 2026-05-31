@@ -74,9 +74,9 @@ export declare class EditorUtils {
     }): string | undefined;
     static getSelectionAnchors(opts: {
         editor: TextEditor;
-        selection?: Selection;
-        doStartAnchor?: boolean;
-        doEndAnchor?: boolean;
+        selection?: Selection | undefined;
+        doStartAnchor?: boolean | undefined;
+        doEndAnchor?: boolean | undefined;
         engine: DEngineClient;
     }): Promise<{
         startAnchor?: string;

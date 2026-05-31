@@ -47,21 +47,21 @@ class ConvertLinkCommand extends base_1.BasicCommand {
             label: "Alias",
             description: parsedLink?.alias,
             detail: "Convert broken link to alias text.",
-        };
+        }; // 4-axis boundary: vscode QuickPickItem description?: string vs our optional-chain producing string | undefined under exactOptionalPropertyTypes. See Batch 5+/6+ + di/inject Suppression Registry. TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes; debug launch sweep 2026-05-31.
         const hierarchyOption = {
             label: "Hierarchy",
             description: reference.refType === "usertag" || reference.refType === "hashtag"
                 ? reference.ref
                 : parsedLink?.value,
             detail: "Convert broken link to hierarchy.",
-        };
+        }; // 4-axis boundary (same reason as aliasOption)
         const noteNameOption = {
             label: "Note name",
             description: reference.refType === "usertag" || reference.refType === "hashtag"
                 ? lodash_1.default.last(reference.ref.split("."))
                 : lodash_1.default.last(parsedLink?.value?.split(".")),
             detail: "Convert broken link to note name excluding hierarchy except the basename.",
-        };
+        }; // 4-axis boundary (same reason as aliasOption)
         const promptOption = {
             label: "Prompt",
             detail: "Input plaintext to convert broken link to.",

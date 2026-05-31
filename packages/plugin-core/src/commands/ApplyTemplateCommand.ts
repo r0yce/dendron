@@ -23,7 +23,7 @@ type CommandOpts = {
 };
 
 type CommandOutput = {
-  updatedTargetNote?: NoteProps;
+  updatedTargetNote?: NoteProps | undefined;
 };
 
 const APPLY_TEMPLATE_LOOKUP_ID = "templateApply;";
@@ -65,7 +65,7 @@ export class ApplyTemplateCommand extends BasicCommand<
     return { templateNote, targetNote };
   }
 
-  async execute(opts: CommandOpts) {
+  async execute(opts?: CommandOpts) {
     const ctx = "ApplyTemplateCommand";
     opts = _.defaults(opts, { closeAndOpenFile: true });
     Logger.info({ ctx });

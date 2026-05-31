@@ -54,7 +54,7 @@ function categorizeActions(actions: (AutoFixAction | undefined)[]) {
 }
 
 type ReloadIndexCommandOpts = {
-  silent?: boolean;
+  silent?: boolean | undefined;
 };
 
 export class ReloadIndexCommand extends BasicCommand<

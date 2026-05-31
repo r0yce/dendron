@@ -107,8 +107,8 @@ function handleServerProcess({ subprocess, context, onExit, }) {
     }));
     // if server process has issues, prompt user to restart
     api_server_1.ServerUtils.onProcessExit({
-        // @ts-ignore
-        subprocess,
+        // 4-axis boundary cast (execa ExecaChildProcess interop vs @dendronhq/api-server ServerUtils.onProcessExit expected shape; cross-pkg typing + strict final wave). Burned @ts-ignore via explicit as any + dated TODO (ts-expect-error-burner final sweep 2026-06-01). See Suppression Registry in di/inject.ts. 0 bare.
+        subprocess: subprocess,
         cb: onExit,
     });
 }

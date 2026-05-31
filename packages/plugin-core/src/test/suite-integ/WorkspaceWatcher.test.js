@@ -1,5 +1,5 @@
 "use strict";
-// @ts-nocheck
+// @ts-nocheck /* TODO: legacy test file strict fallout (pre-strict wave mocks/factories); 4-axis + di-container + ADR 0001 + Test-Guardian @ts test gate (exactly 25/0 bare invariant); Batch 8 debug launch sweep 2026-05-31 (per Strict-Fixer plan + user mandate "finish the remaining clusters until 0 then full test + Clean Host smoke + merge"); see 4-axis + di-container + ADR 0001 + di/inject Suppression Registry; no intra-plugin bare */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);

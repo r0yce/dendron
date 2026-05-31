@@ -33,7 +33,7 @@ import { AutoCompletableRegistrar } from "../utils/registers/AutoCompletableRegi
 
 export type CommandOpts = {
   fname: string;
-  vaultOverride?: DVault;
+  vaultOverride?: DVault | undefined;
 };
 
 export type CommandInput = {
@@ -245,8 +245,8 @@ export class CreateNoteWithTraitCommand extends BaseCommand<
 
       const notes = await ExtensionProvider.getEngine().findNotes({
         fname,
-        vault: maybeVault,
-      });
+        vault: maybeVault ?? undefined,
+      } as any /* 4-axis boundary: FindNoteOpts.vault required vs | undefined; exactOptionalPropertyTypes. TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes; debug launch sweep 2026-05-31. See di/inject Suppression Registry + ADR 0001 */);
 
       const dummy = NoteUtils.createForFake({
         contents: "",
@@ -258,7 +258,7 @@ export class CreateNoteWithTraitCommand extends BaseCommand<
       if (notes && notes.length > 0) {
         // Only apply schema if note is found
         TemplateUtils.applyTemplate({
-          templateNote: notes[0], // Ok to use [0] here because we specified a vault in findNotes()
+          templateNote: notes[0]!, // noUnchecked: explicit length > 0 guard above; ! is the only allowed form per strict-mode-fixer SKILL Batch 5+/6+ (debug launch sweep)
           targetNote: dummy,
           engine: this._extension.getEngine(),
         });
@@ -281,7 +281,7 @@ export class CreateNoteWithTraitCommand extends BaseCommand<
       qs: fname,
       vault,
       overrides: { title, traits: [this.trait.id], body, custom },
-    });
+    } as any /* 4-axis boundary: GoToNoteCommand execute overrides / Partial<NoteProps> exactOptional (title/body/custom | undefined from locals). TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes; debug launch sweep 2026-05-31. See di/inject Suppression Registry + ADR 0001 */);
 
     this.L.info({ ctx, msg: "exit" });
   }

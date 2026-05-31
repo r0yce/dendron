@@ -50,10 +50,10 @@ export class AutoCompleter {
     if (FuseEngine.doesContainSpecialQueryChars(currentValue)) {
       // If there are special query characters and auto complete is activated we will not
       // try to do anything fancy and just return the first top pick.
-      return fnames[topPickIdx];
+      return fnames[topPickIdx]!;
     }
 
-    if (currentValue.length > fnames[topPickIdx].length) {
+    if (currentValue.length > fnames[topPickIdx]!.length) {
       // Not expecting length of current value to be larger than results
       // and still have file names suggested (unless it is special query characters
       // and we already took care of that case).
@@ -62,7 +62,7 @@ export class AutoCompleter {
       return currentValue;
     }
 
-    if (fnames[topPickIdx].startsWith(currentValue)) {
+    if (fnames[topPickIdx]!.startsWith(currentValue)) {
       // If the entered value matches the beginning of the top pick add to the auto complete
       // one hierarchy level at a time. Consecutive auto completes will allow user to dig
       // into the note hierarchy.
@@ -74,21 +74,21 @@ export class AutoCompleter {
         // by picking the next suggestion as the top pick.
         if (
           topPickIdx < fnames.length - 1 &&
-          fnames[topPickIdx + 1].startsWith(currentValue)
+          fnames[topPickIdx + 1]!.startsWith(currentValue)
         ) {
           topPickIdx += 1;
         } else {
-          return fnames[topPickIdx];
+          return fnames[topPickIdx]!;
         }
       }
 
       return this.matchPrefixTillNextDot(fnames[topPickIdx], currentValue, 0);
-    } else if (fnames[topPickIdx].includes(currentValue)) {
+    } else if (fnames[topPickIdx]!.includes(currentValue)) {
       // Add the beginning of the matching note to the auto complete, which should
       // allow the user to use matching into next hierarchy level.
-      return this.matchNoteUpToCurrValue(fnames[topPickIdx], currentValue);
+      return this.matchNoteUpToCurrValue(fnames[topPickIdx]!, currentValue);
     } else {
-      return fnames[topPickIdx];
+      return fnames[topPickIdx]!;
     }
   }
 
@@ -152,16 +152,17 @@ export class AutoCompleter {
     // Account for user selecting a file name with arrow keys
     let activeItemValue = _quickPick.value;
     if (_quickPick.activeItems.length >= 1) {
-      const candidate = _quickPick.activeItems[0].fname;
+      const candidate = _quickPick.activeItems[0]!.fname;
 
       // Even if the user has not selected an item with arrow keys the focus
       // of the drop down will be on the first item hence we only want to switch
       // the active item if we detect that arrow key selection has happened.
-      if (_.isEmpty(fnames) || candidate !== fnames[0]) {
+      if (_.isEmpty(fnames) || candidate !== fnames[0]!) {
         activeItemValue = candidate;
       }
     }
 
+    // noUnchecked: fnames is from uniq of filtered items; empty case already handled above.
     return AutoCompleter.autoCompleteNoteLookup(
       _quickPick.value,
       activeItemValue,

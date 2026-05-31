@@ -45,7 +45,7 @@ export class CopyNoteURLCommand extends BasicCommand<
     const urlRoot =
       publishingConfig.siteUrl ||
       DendronExtension.configuration().get<string>(
-        CONFIG.COPY_NOTE_URL_ROOT.key
+        CONFIG.COPY_NOTE_URL_ROOT?.key ?? ""
       );
     const maybeTextEditor = VSCodeUtils.getActiveTextEditor();
 
@@ -77,9 +77,9 @@ export class CopyNoteURLCommand extends BasicCommand<
       config,
       note,
       vault,
-      urlRoot,
-      anchor,
-    });
+      urlRoot: urlRoot ?? undefined,
+      anchor: anchor ?? undefined,
+    } as any /* TODO: Monorepo 4-axis + exactOptionalPropertyTypes on WorkspaceUtils.getNoteUrl opts (common-server boundary); Batch 6+ debug launch sweep; see ADR 0001 */);
 
     this.showFeedback(link);
     clipboard.writeText(link);

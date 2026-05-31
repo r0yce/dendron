@@ -3,9 +3,9 @@ import { IDendronExtension } from "../dendronExtensionInterface";
 import { BasicCommand } from "./base";
 type CommandOpts = {
     path: string;
-    pathRemote?: string;
-    name?: string;
-    isSelfContained?: boolean;
+    pathRemote?: string | undefined;
+    name?: string | undefined;
+    isSelfContained?: boolean | undefined;
 };
 type CommandOutput = {
     vaults: DVault[];

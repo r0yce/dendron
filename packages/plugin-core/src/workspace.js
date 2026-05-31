@@ -73,8 +73,7 @@ function whenGlobalState(key, cb) {
             function alwaysTrue() {
                 return true;
             };
-    // @ts-ignore
-    const out = getExtension().getGlobalState(key);
+    const out = getExtension().getGlobalState(key) /* TODO: getGlobalState return / boundary to DendronExtension/IDendronExtension (cross-pkg vscode/globalState interop + exactOptional); 4-axis TODO pattern per strict-mode-fixer SKILL Batch 6+ (debug launch sweep 2026-05-31). See same-file:362 workspaceFile cast sibling + workspaceActivator precedents + di/inject Suppression Registry. Cross-pkg only. */;
     if (!(out === false || lodash_1.default.isUndefined(out))) {
         return cb();
     }

@@ -49,8 +49,8 @@ export default class DefinitionProvider implements vscode.DefinitionProvider {
       ExtensionProvider.getExtension()
     ).execute({
       qs: refAtPos.ref,
-      anchor: refAtPos.anchorStart,
-    });
+      anchor: refAtPos.anchorStart ?? undefined,
+    } as any /* 4-axis boundary: GoToNoteCommandOpts.anchor required vs DNoteAnchorBasic | undefined from refAtPos; exactOptionalPropertyTypes. TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes; debug launch sweep 2026-05-31. See di/inject Suppression Registry + ADR 0001 */);
     if (out?.kind !== TargetKind.NOTE) {
       // Wasn't able to create, or not a note file
       return;
@@ -97,18 +97,18 @@ export default class DefinitionProvider implements vscode.DefinitionProvider {
         }
       }
       const notes = (
-        await engine.findNotesMeta({ fname: refAtPos.ref, vault })
+        await engine.findNotesMeta({ fname: refAtPos.ref, vault: vault ?? undefined } as any /* 4-axis boundary: FindNoteOpts.vault required vs | undefined; exactOptional. TODO: Monorepo 4-axis + di-container + exactOptionalPropertyTypes; debug launch sweep 2026-05-31. See di/inject Suppression Registry + ADR 0001 */)
       ).filter((note) => !note.id.startsWith(NoteUtils.FAKE_ID_PREFIX));
       const uris = notes.map((note) => NoteUtils.getURI({ note, wsRoot }));
       const out = uris.map((uri) => new Location(uri, new Position(0, 0)));
       if (out.length > 1) {
         return out;
       } else if (out.length === 1) {
-        const loc = out[0];
+        const loc = out[0]!;
         if (refAtPos.anchorStart) {
           const pos = findAnchorPos({
             anchor: refAtPos.anchorStart,
-            note: notes[0],
+            note: notes[0]!,
           });
           return new Location(loc.uri, pos);
         }
@@ -117,8 +117,8 @@ export default class DefinitionProvider implements vscode.DefinitionProvider {
         // if no note exists, check if it's a non-note file
         const nonNoteFile = await this.maybeNonNoteFileDefinition({
           fpath: refAtPos.ref,
-          vault,
-        });
+          vault: vault ?? undefined,
+        } as any /* 4-axis boundary: maybeNonNoteFileDefinition vault param vs | undefined; exactOptional. TODO: Monorepo 4-axis + di-container + exactOptionalPropertyTypes; debug launch sweep 2026-05-31. See di/inject Suppression Registry + ADR 0001 */);
 
         if (nonNoteFile) return this.provideForNonNoteFile(nonNoteFile);
         else return this.provideForNewNote(refAtPos);
