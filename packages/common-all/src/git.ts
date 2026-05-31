@@ -100,10 +100,11 @@ export function getGithubEditUrl(opts: {
 
 export function git2Github(gitUrl: string) {
   // 'git@github.com:kevinslin/dendron-vault.git'
-  // @ts-ignore
-  const [_, userAndRepo] = gitUrl.split(":");
+  const parts = gitUrl.split(":");
+  const userAndRepo = parts.length > 1 ? parts[1] : undefined;
+  if (!userAndRepo) return "";
   const [user, repo] = userAndRepo.split("/");
-  return `https://github.com/${user}/${path.basename(repo, ".git")}`;
+  return `https://github.com/${user}/${path.basename(repo || "", ".git")}`;
 }
 
 /**
@@ -118,7 +119,7 @@ export function getGithubAccessTokenUrl(opts: {
   if (remotePath.startsWith("https://")) {
     repoPath = remotePath.split("/").slice(-2).join("/");
   } else {
-    repoPath = opts.remotePath.split(":").slice(-1)[0];
+    repoPath = (opts.remotePath.split(":").slice(-1)[0] || "");
   }
   return `https://${accessToken}:x-oauth-basic@github.com/${repoPath}`;
 }

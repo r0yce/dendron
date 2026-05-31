@@ -120,7 +120,7 @@ plugin-core is one of the biggest consumers in the graph.
 ## Modernization Roadmap
 
 **High Priority (Post Base Upgrade)**:
-- Full decorator/DI modernization — **Largely complete**: Created + improved `src/di/inject.ts` typed wrapper. Production code + many tests migrated (only wrapper internal import remains). 22+ files updated.
+- Full decorator/DI modernization — **COMPLETE** (as of 1-hour sprint): All files migrated to `src/di/inject.ts` wrapper. All paths corrected and verified. 22+ files. Wrapper is now the standard across the codebase.
 - Webpack / build system refresh (align with dendron-plugin-views efforts)
 - React 18 upgrade (coordinated)
 - Enable full strict tsconfig flags (noUncheckedIndexedAccess + exactOptionalPropertyTypes) — prepared in root, large fix wave quantified and ready

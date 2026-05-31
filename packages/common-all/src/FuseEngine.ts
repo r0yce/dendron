@@ -36,7 +36,7 @@ function createFuse<T>(
   },
   index?: Fuse.FuseIndex<T>
 ) {
-  const options: Fuse.IFuseOptions<T> = {
+  const baseOptions: Fuse.IFuseOptions<T> = {
     shouldSort: true,
     threshold: opts.threshold,
     distance: 15,
@@ -44,13 +44,11 @@ function createFuse<T>(
     keys: ["fname"],
     useExtendedSearch: true,
     includeScore: true,
-    // As long as we have ignoreLocation set to true location the location
-    // value should be ignored.
     location: 0,
     ignoreLocation: true,
     ignoreFieldNorm: true,
-    ...opts,
   };
+  const options = { ...baseOptions, ...opts } as any;
   if (opts.preset === "schema") {
     options.keys = ["fname", "id"];
   }
@@ -160,7 +158,7 @@ export class FuseEngine {
     let items: SchemaProps[];
     if (qs === "") {
       const results = this.schemaIndex.search("root");
-      items = [results[0].item];
+      items = [results[0]!.item];
     } else if (qs === "*") {
       // @ts-ignore
       items = this.schemaIndex._docs;
