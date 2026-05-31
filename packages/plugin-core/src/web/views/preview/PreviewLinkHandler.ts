@@ -26,11 +26,8 @@ import { openNote } from "../../utils/openNote";
 @injectable()
 export class PreviewLinkHandler implements IPreviewLinkHandler {
   constructor(
-    // @ts-expect-error - TS 5+ decorator signature with tsyringe
     @inject("wsRoot") private wsRoot: URI,
-    // @ts-expect-error - TS 5+ decorator signature with tsyringe
     @inject("ReducedDEngine") private engine: ReducedDEngine,
-    // @ts-expect-error - TS 5+ decorator signature with tsyringe
     @inject("logger") private logger: DLogger
   ) {}
 
@@ -61,7 +58,7 @@ export class PreviewLinkHandler implements IPreviewLinkHandler {
     // First, check if the URL matches any note
     try {
       const noteData = await this.getNavigationTargetNoteForWikiLink({
-        data,
+        data: data as any /* TODO: exactOptional on wiki link data (id/href |undef); final strict Batch 5+ web cluster; see di-container proposal for related @ts sites */,
       });
 
       if (noteData.note) {
@@ -71,7 +68,7 @@ export class PreviewLinkHandler implements IPreviewLinkHandler {
           fname: noteData.note.fname,
           vault: noteData.note.vault,
           column: vscode.ViewColumn.One,
-          anchor: noteData.anchor,
+          anchor: noteData.anchor ?? undefined as any /* TODO: exactOptional anchor |undef to openNote; Batch 5+ web; ties to PreviewPanel DI cluster */,
         });
         return LinkType.WIKI;
       }

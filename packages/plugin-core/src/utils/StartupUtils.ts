@@ -107,7 +107,7 @@ export class StartupUtils {
     currentVersion: string;
     previousWorkspaceVersion: string;
     dendronConfig: DendronConfig;
-    maybeWsSettings?: WorkspaceSettings;
+    maybeWsSettings?: WorkspaceSettings | undefined;
   }) {
     const workspaceInstallStatus = VSCodeUtils.getInstallStatusForWorkspace({
       previousWorkspaceVersion,

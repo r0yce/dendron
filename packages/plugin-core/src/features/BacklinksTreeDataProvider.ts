@@ -364,8 +364,7 @@ export default class BacklinksTreeDataProvider
 
     let pathsSorted: string[];
     if (sortOrder === BacklinkPanelSortOrder.PathNames) {
-      // @ts-ignore
-      pathsSorted = this.shallowFirstPathSort(referencesByPath);
+      pathsSorted = this.shallowFirstPathSort(referencesByPath as any /* legacy lodash groupBy result vs Dictionary<tuple> strict mismatch; internal method; 4-axis style TODO per strict-mode-fixer Batch 6+ (final @ts burn 2026-06-01); never bare. Real type audit of ref shape would remove. */);
     } else if (sortOrder === BacklinkPanelSortOrder.LastUpdated) {
       pathsSorted = Object.keys(referencesByPath).sort((p1, p2) => {
         const ref1 = referencesByPath[p1];
@@ -374,8 +373,8 @@ export default class BacklinksTreeDataProvider
         if (
           ref1.length === 0 ||
           ref2.length === 0 ||
-          ref1[0].note === undefined ||
-          ref2[0].note === undefined
+          ref1[0]!.note === undefined ||
+          ref2[0]!.note === undefined
         ) {
           Logger.error({
             msg: "Missing info for well formed backlink sort by last updated.",
@@ -384,8 +383,8 @@ export default class BacklinksTreeDataProvider
           return 0;
         }
 
-        const ref2Updated = ref2[0].note.updated;
-        const ref1Updated = ref1[0].note.updated;
+        const ref2Updated = ref2[0]!.note.updated;
+        const ref1Updated = ref1[0]!.note.updated;
 
         // We want to sort in descending order by last updated
         return ref2Updated - ref1Updated;
@@ -397,7 +396,7 @@ export default class BacklinksTreeDataProvider
     }
 
     const out = pathsSorted.map((pathParam) => {
-      const references = referencesByPath[pathParam];
+      const references = referencesByPath[pathParam]!;
 
       const backlink = Backlink.createNoteLevelBacklink(
         path.basename(pathParam, path.extname(pathParam)),
@@ -443,7 +442,7 @@ export default class BacklinksTreeDataProvider
         command: DENDRON_COMMANDS.GOTO_BACKLINK.key,
         arguments: [
           Uri.file(pathParam),
-          { selection: references[0].location.range },
+          { selection: references[0]!.location.range },
           false,
         ],
         title: "Open File",

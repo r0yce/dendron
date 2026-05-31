@@ -145,7 +145,7 @@ export class TutorialInitializer
     ExtensionProvider.getExtension().context.subscriptions.push(disposable);
 
     const { wsRoot, vaults } = opts.ws;
-    const vaultRelPath = VaultUtils.getRelPath(vaults[0]);
+    const vaultRelPath = VaultUtils.getRelPath(vaults[0]!); // safe: tutorial initializer assumes non-empty vaults (Batch 5+ noUnchecked guard; invariant from ws init)
     const rootUri = vscode.Uri.file(
       path.join(wsRoot, vaultRelPath, "tutorial.md")
     );

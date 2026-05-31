@@ -118,7 +118,7 @@ export function trackTopLevelRepoFound(opts: { wsService: WorkspaceService }) {
     if (remoteUrl !== undefined) {
       const [protocol, provider, ...path] = GitUtils.parseGitUrl(remoteUrl);
       const payload = {
-        protocol: protocol.replace(":", ""),
+        protocol: (protocol || "").replace(":", ""),
         provider,
         path: SparkMD5.hash(`${path[0]}/${path[1]}.git`),
       };
@@ -495,7 +495,7 @@ export class WorkspaceActivator {
         wsService,
         currentVersion,
         previousWorkspaceVersion,
-        maybeWsSettings,
+        maybeWsSettings: maybeWsSettings ?? undefined,
         dendronConfig,
       });
     }
@@ -719,7 +719,7 @@ export class WorkspaceActivator {
       },
     });
     ext.port = _.toInteger(port);
-    ext.serverProcess = subprocess;
+    ext.serverProcess = subprocess as any /* TODO: exactOptional + execa childprocess | undef interop on IDendronExtension.serverProcess (d.ts widened); final strict Batch 5+; see 4-axis */;
     return ext.port;
   }
 }

@@ -27,11 +27,8 @@ type WebViewThemeMap = {
 @injectable()
 export class WebViewUtils {
   constructor(
-    // @ts-expect-error - TS 5+ decorator signature with tsyringe
     @inject("wsRoot") private wsRoot: URI,
-    // @ts-expect-error - TS 5+ decorator signature with tsyringe
     @inject("port") private port: number,
-    // @ts-expect-error - TS 5+ decorator signature with tsyringe
     @inject("extensionUri") private extensionUri: URI
   ) {}
 

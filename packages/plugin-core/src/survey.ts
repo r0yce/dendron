@@ -558,9 +558,8 @@ export class SurveyUtils {
           AnalyticsUtils.track(SurveyEvents.InitialSurveyRejected);
         }
       })
-      // @ts-ignore
-      .catch((error: any) => {
-        Logger.error({ msg: error });
+      .catch((error: unknown) => {
+        Logger.error({ msg: error instanceof Error ? error.message : String(error) });
       });
   }
 
@@ -630,9 +629,8 @@ export class SurveyUtils {
           );
         }
       })
-      // @ts-ignore
-      .catch((error: any) => {
-        Logger.error({ msg: error });
+      .catch((error: unknown) => {
+        Logger.error({ msg: error instanceof Error ? error.message : String(error) });
       });
   }
 
@@ -669,9 +667,8 @@ export class SurveyUtils {
           AnalyticsUtils.track(SurveyEvents.InactiveUserSurveyRejected);
         }
       })
-      // @ts-ignore
-      .catch((error: any) => {
-        Logger.error({ msg: error });
+      .catch((error: unknown) => {
+        Logger.error({ msg: error instanceof Error ? error.message : String(error) });
       });
   }
 }

@@ -18,21 +18,21 @@ export enum DVaultSync {
 
 export type DVault = {
   /** Name of vault */
-  name?: string;
-  visibility?: DVaultVisibility;
+  name?: string | undefined;
+  visibility?: DVaultVisibility | undefined;
   /** Filesystem path to vault */
   fsPath: string;
   /**
    * Indicate the workspace that this vault is part of
    */
-  workspace?: string;
-  remote?: RemoteEndpoint;
+  workspace?: string | undefined;
+  remote?: RemoteEndpoint | undefined;
   // TODO
-  userPermission?: DPermission;
+  userPermission?: DPermission | undefined;
   /**
    * If this is enabled, don't apply workspace push commands
    */
-  noAutoPush?: boolean;
+  noAutoPush?: boolean | undefined;
   /**
    * How the vault should be handled when using "add and commit" and "sync" commands.
    *
@@ -46,20 +46,20 @@ export type DVault = {
    *
    * Defaults to `sync`.
    */
-  sync?: DVaultSync;
+  sync?: DVaultSync | undefined;
   /**
    * Id of a seed this vault belongs to
    */
-  seed?: string;
+  seed?: string | undefined;
   /** Marks the vault as a self-contained vault. This is (hopefully) temporary until we eventually drop support for non-self contained vaults. */
-  selfContained?: boolean;
+  selfContained?: boolean | undefined;
   /**
    * Published URL endpoint for the vault.
    * When wikilinks are exported from this vault, they will be converted with url defined here
    */
-  siteUrl?: string;
+  siteUrl?: string | undefined;
   /**
    * Index page for the vault
    */
-  siteIndex?: string;
+  siteIndex?: string | undefined;
 };

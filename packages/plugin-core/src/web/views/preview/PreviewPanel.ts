@@ -12,7 +12,7 @@ import {
   OnUpdatePreviewHTMLMsg,
 } from "@dendronhq/common-all";
 import _ from "lodash";
-import { inject, injectable } from "../../../di/inject";
+import { inject, injectable, TOKENS } from "../../../di/inject";
 import * as vscode from "vscode";
 import { URI } from "vscode-uri";
 import { type IPreviewLinkHandler } from "../../../components/views/IPreviewLinkHandler";
@@ -46,20 +46,14 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
    * Implementation to handle preview link clicked events
    */
   constructor(
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy metadata
-    @inject("IPreviewLinkHandler") linkHandler: IPreviewLinkHandler,
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy metadata
-    @inject("ITextDocumentService") textDocumentService: ITextDocumentService,
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy metadata
-    @inject("logger") private logger: DLogger,
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy metadata
-    @inject("wsRoot") private wsRoot: URI,
+    @inject(TOKENS.IPreviewLinkHandler) linkHandler: IPreviewLinkHandler,
+    @inject(TOKENS.ITextDocumentService) textDocumentService: ITextDocumentService,
+    @inject(TOKENS.Logger) private logger: DLogger,
+    @inject(TOKENS.WsRoot) private wsRoot: URI,
     private wsUtils: WSUtilsWeb,
     private webViewUtils: WebViewUtils,
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy metadata
-    @inject("IPreviewPanelConfig") private config: IPreviewPanelConfig,
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy metadata
-    @inject("INoteRenderer") private noteRenderer: INoteRenderer
+    @inject(TOKENS.IPreviewPanelConfig) private config: IPreviewPanelConfig,
+    @inject(TOKENS.INoteRenderer) private noteRenderer: INoteRenderer
   ) {
     this._linkHandler = linkHandler;
     this._textDocumentService = textDocumentService;

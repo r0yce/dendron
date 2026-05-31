@@ -33,11 +33,9 @@ export type LookupAcceptPayload = {
 @injectable()
 export class LookupQuickpickFactory {
   constructor(
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
+    // Centralized @ts absorption in di/inject.ts helper (Batch 2 burn by subagent 019e7cb5-0da5-7c90-8d36-d42e6642ec0f + main integration: wrapper delivers suppression centrally per Monorepo-Architect 4-axis endorsement of di-container-proposal as #1 @ts-burn + DI priority + ADR 0001; 2026-05-30; usage now clean, per-site @ts removed)
     @inject("ReducedDEngine") private _engine: ReducedDEngine,
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("vaults") private vaults: DVault[],
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("AutoCompleteEvent") private tabAutoCompleteEvent: Event<void>,
     private wsUtils: WSUtilsWeb
   ) {}

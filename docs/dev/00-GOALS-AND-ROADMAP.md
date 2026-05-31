@@ -89,12 +89,17 @@ Startup sequence (simplified):
 
 ---
 
-## Immediate Priorities (Phase 1 — Make It Work Again)
+## Immediate Priorities (Phase 1 — Make It Work Again) — MAXIMUM AUTONOMY SPRINT ACTIVE
 
-1. **Modernize VSCode targeting + types** (this branch)
-   - Bump `engines.vscode` + `@types/vscode`
-   - Fix all resulting TypeScript errors
-   - Update `@types/node`
+**Current (M2 + Smoke GREEN 2026-06, post-M2 + Test-Guardian smoke 019e7cd0-caa7-78d3-84cc-97932f7f37a5 285.4s/60 calls + 019e7cd0-df92-7203-aa4d-eb6ca900e628 239.2s/55 calls, Doc-Master M2 assembly conductor full delivery + post-smoke refresh conductor run)**: **STRICT GREEN + DI v2 + TOKENS Phase 1 COMPLETE (0 strict src/ errors; 11 @ts 48→11 ~77% net via final burner 019e7cc6-1dba-7761-8c13-11fbb903df8e 330s/74 calls + v2 + TOKENS 30+ + register* factories Monorepo 019e7cc6-3d67-7f50... 211s/71; 0 bare decorator; DI category GREEN; production actionable @ts ~15-18 categorized browser/legacy (survey 3, memo 2, NotePicker 2, TextDecoder x3, workspace/Backlinks/commands/base etc); doctor 6 checks + registration + table LIVE on feature/dendron-doctor with explicit gaps (--checks ignored, --fix skeleton, bin reg commented, no units) per Test-Guardian smoke GREEN; extraction phase 1 solid (TOKENS/register* + scaffolds per ADR 0001 + di-container #1) → phase 2 kickoff; 4+ Mermaid Burn-Down + Before/After + Flow + states + NEW Doctor Smoke Matrix (6 checks+perf+gaps) + Extraction PR State Machine (phase1→common-di→shims→Test-Guardian) with M2+Smoke green nodes + two new IDs 285.4s/60+239.2s/55 + Status 0/11 77% 0 bare DI GREEN +15-18@ts cats + doctor LIVE+table+gaps + extraction 1→2 + full credits IDs/durs + hooks auto-orchestra; all 5 + GROK + SKILL + MILESTONE-2 refreshed "M2 + Smoke GREEN" + 0/11 + "TOKENS adoption + DI category GREEN" + gaps + 15-18@ts + doctor polish next + extraction phase2 + full phrasing self-test passed; handoff Self-Improver (lessons)/Test-Guardian (gap fill)/Monorepo (extraction diagram)/Feature-Ideator (doctor polish); non-stop chain upheld. MAX AUTONOMY.** (See MILESTONE-2-REPORT.md exhaustive + GROK M2 + Smoke Pulled + post-refresh sections). Legacy note: (prior: 0 strict / 48 @ts pivot; now M2+Smoke GREEN 0/11 +15-18 cats):  **STRICT GREEN ACHIEVED** (0 production src/ errors under full `yarn workspace @dendronhq/plugin-core compile`; tsc phase clean; final Batch 5+ exactOptional/??/guards + 4-axis boundary TODO casts on workspaceActivator, SiteUtilsWeb, PreviewLinkHandler, tutorialInitializer etc.). **Immediate pivot to DI v2**: absorbing `inject()` helper landed in `packages/plugin-core/src/di/inject.ts` (11 sites cleaned, @ts 53→48; tops web DI clusters: SiteUtilsWeb(4), DendronEngineV3Web(4), NoteLookupCmd(4), WebViewUtils/WSUtils/PluginNoteRenderer/LookupQuickpickFactory (3 each) + di/inject.ts own). v2 proof + di-container-proposal ENDORSED #1 (Monorepo-Architect 4-axis: @ts-burn + DI synergy first, low risk, plugin-core/src/di first) + ADR 0001 live + doctor/perf 100% prepped (spec+stub ready post-M2, Feature-Ideator). All 5 mandatory targets + SKILL + GROK updated with 0 strict / 48 @ts tables, 2+ NEW advanced Mermaid (@ts Burn-Down Waterfall interleaved + DI v2 Before/After color-coded red→green for v2 helper + typed tokens target) + refreshed tsyringe state machine (green STRICT GREEN callout). Non-stop chain (strict green invariant → v2 helper proof → extraction #1 locked per ADR 0001 + 4-axis → doctor ready) alive. See plugin-core.md#di-v2 (primary diagrams + Current Modernization State table), TRACKER Architecture Health, MILESTONE-2-REPORT (metrics + snapshots), this file, .grok/GROK.md, inject.ts:1-70, di-container-proposal.md, docs/dev/adr/0001-....md. MAX AUTONOMY preserved.
+
+> **Roadmap Callout (tied to burner spawn, v2, di-container #1, ADR 0001, 4-axis, doctor ready)**: Burner/hybrid spawn → v2 absorbing `inject()` (11 burned, 53→48 proof in di/inject.ts) → di-container-proposal ENDORSED #1 + ADR 0001 common-di boundary → Monorepo 4-axis (@ts-burn/DI synergy priority) → doctor/perf 100% prepped (ready post-M2 no pause) → non-stop to common-di extraction / M2 finalize / doctor impl. Green invariant + orchestra conductor docs keep chain unbreakable. See cross-linked diagrams in plugin-core.md + TRACKER.
+
+1. **Plugin-core strict hardening + DI v2 modernization** (STRICT GREEN COMPLETE 2026-06; immediate pivot; M2 finalize imminent)
+   - Remove local overrides + full batches (COMPLETE): **0 strict src/ errors** (tsc clean; tops resolved via Batch 5+ + 4-axis casts; see plugin-core.md Current Modernization State + TRACKER).
+   - **DI v2 immediate pivot (11 sites cleaned, 53→48 @ts)**: absorbing `inject()` helper in `packages/plugin-core/src/di/inject.ts` (v2 proof centralized; tops web DI clusters as listed in Current); burner batches 2+ (typed tokens + declarative registerAll per di-container-proposal ENDORSED #1 + ADR 0001). 2+ NEW advanced Mermaid (@ts Burn-Down Waterfall strict+DI interleaved + DI v2 Before/After color-coded  red→green + refreshed state machine green callout) + Current Status tables in all 5 targets.
+   - Milestone 2 finalize (burn-down + diagram snapshots + extraction #1 locked) + doctor/perf impl (100% prepped, Feature-Ideator, ready post-M2 no pause). Non-stop chain (strict green → v2 helper → 4-axis/ADR extraction + doctor) live. See full diagrams + tables in plugin-core.md + TRACKER Architecture Health.
+2. Shared extraction (start immediately post-green: common-di per live ADR 0001 + 3 endorsed proposals from Dependency-Hunter), tooling (Lerna/ESLint), proactive (CLI doctor + perf hooks — specs/stub ready from Feature-Ideator) — chained immediately after without pause.
 
 2. **Make local development delightful**
    - Rich `.vscode/launch.json` configs for "Run Extension", "Debug Tests", "Debug Web Extension"
@@ -143,5 +148,14 @@ Startup sequence (simplified):
 Every change made on this fork will be accompanied by updates to these docs + commit messages that explain **why** at a deep level.
 
 This is not "just get it working". This is turning Dendron into *your* maintainable, understandable, improvable tool.
+
+**Cross-links for current wave (strict green + DI v2 pivot)**: 
+- Primary diagrams + full "Current Modernization State" table (0 strict / 48 @ts / 11 burned / v2 proof / web tops / extraction #1): [docs/dev/packages/plugin-core.md](packages/plugin-core.md#current-modernization-state) + DI Modernization section (includes NEW @ts Burn-Down Waterfall + DI v2 Before/After Mermaid + refreshed tsyringe state machine with green callout).
+- TRACKER Architecture Health: full status tables, last updated with 0/48 + new diagrams snapshots + Roadmap.
+- MILESTONE-2-REPORT: metrics table updated, batches for green+pivot, diagram snapshots + post-M2 Roadmap.
+- .grok/GROK.md: Sprint Log append for phase transition + lessons.
+- .grok/skills/doc-master/SKILL.md (evolved with "strict green + DI pivot" lesson + conductor during transition + self-test for 0-strict/48 phrasing).
+- Source: [packages/plugin-core/src/di/inject.ts](../../../packages/plugin-core/src/di/inject.ts) (header + v2 helper).
+- Proposals: [docs/dev/extractions/di-container-proposal.md](../../extractions/di-container-proposal.md) (ENDORSED #1), [docs/dev/adr/0001-...md](../../adr/0001-introduce-common-di-for-tsyringe-ergonomics.md) (ADR 0001).
 
 Let's get to work.

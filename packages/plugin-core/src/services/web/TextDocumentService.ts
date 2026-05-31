@@ -14,7 +14,7 @@ import {
 } from "@dendronhq/common-all";
 import { MDUtilsV5 } from "@dendronhq/unified";
 import _ from "lodash";
-import { inject, injectable } from "../../di/inject";
+import { inject, injectable, TOKENS } from "../../di/inject";
 import visit from "unist-util-visit";
 import * as vscode from "vscode";
 import {
@@ -44,16 +44,11 @@ export class TextDocumentService implements ITextDocumentService {
   _textDocumentEventHandle: Disposable;
 
   constructor(
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
-    @inject("textDocumentEvent") textDocumentEvent: Event<TextDocument>,
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
-    @inject("wsRoot") private wsRoot: URI,
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
-    @inject("vaults") private vaults: DVault[],
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
-    @inject("ReducedDEngine") private engine: ReducedDEngine,
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
-    @inject("logger") private L: DLogger
+    @inject(TOKENS.TextDocumentEvent) textDocumentEvent: Event<TextDocument>,
+    @inject(TOKENS.WsRoot) private wsRoot: URI,
+    @inject(TOKENS.Vaults) private vaults: DVault[],
+    @inject(TOKENS.ReducedDEngine) private engine: ReducedDEngine,
+    @inject(TOKENS.Logger) private L: DLogger
   ) {
     this._textDocumentEventHandle = textDocumentEvent(this.onDidSave, this);
   }

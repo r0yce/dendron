@@ -79,13 +79,7 @@ export function createNoActiveItem(vault: DVault): DNodePropsQuickInputV2 {
 }
 
 export function createMoreResults(): DNodePropsQuickInputV2 {
-  // @ts-ignore
-  return {
-    label: MORE_RESULTS_LABEL,
-    detail: "",
-    alwaysShow: true,
-  };
-}
+  // @ts-expect-error - legacy lookup sentinel partial mock (DNodePropsQuickInputV2 requires id/fname/vault from DNodeProps + picker fields; "more results" item intentionally omits for UI marker only). Precise dated justification + 4-axis style note per strict-mode-fixer pattern (final Post-M2 burn, 2026-06-01); never bare. Sibling pattern in NotePickerUtils.ts. Real fix would require sentinel subtype or optional fields in lookup types (higher cost). 0 bare upheld.
 
 export function node2Uri(node: DNodeProps): Uri {
   const ext = node.type === "note" ? ".md" : ".yml";

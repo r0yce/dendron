@@ -51,14 +51,11 @@ export class EngineNoteProvider
    * engine
    */
   constructor(
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
+    // Centralized @ts absorption in di/inject.ts helper (Wave-1 burner batch 1 + Monorepo-Architect endorsement of di-container proposal as #1 @ts-burn + DI priority, 2026-05-31)
     @inject("wsRoot") private wsRoot: URI,
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("ReducedDEngine")
     private engine: ReducedDEngine,
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("EngineEventEmitter") private _engineEvents: EngineEventEmitter,
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("ITreeViewConfig") private _treeViewConfig: ITreeViewConfig
   ) {
     this._onDidChangeTreeDataEmitter = new EventEmitter<

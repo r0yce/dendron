@@ -99,8 +99,8 @@ type DendronBtnCons = {
   iconOff: string;
   iconOn: string;
   type: ButtonType;
-  pressed?: boolean;
-  canToggle?: boolean;
+  pressed?: boolean | undefined;
+  canToggle?: boolean | undefined;
 };
 export class DendronBtn implements IDendronQuickInputButton {
   public iconPathNormal: ThemeIcon;

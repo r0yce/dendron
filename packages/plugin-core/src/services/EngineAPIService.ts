@@ -259,33 +259,5 @@ export class EngineAPIService
     return this._internalEngine.getDecorations(opts);
   }
 
-  /**
-   * Setup telemetry tracking on engine events to understand user engagement
-   * levels
-   */
-  // @ts-ignore
-  private setupEngineAnalyticsTracking() {
-    this._engineEventEmitter.onEngineNoteStateChanged((entries) => {
-      const createCount = extractNoteChangeEntriesByType(
-        entries,
-        "create"
-      ).length;
-
-      const updateCount = extractNoteChangeEntriesByType(
-        entries,
-        "update"
-      ).length;
-
-      const deleteCount = extractNoteChangeEntriesByType(
-        entries,
-        "delete"
-      ).length;
-
-      AnalyticsUtils.track(EngagementEvents.EngineStateChanged, {
-        created: createCount,
-        updated: updateCount,
-        deleted: deleteCount,
-      });
-    });
-  }
+  // NOTE: setupEngineAnalyticsTracking was dead code (call commented in init(); removed during final @ts burn 2026-06 to eliminate legacy suppression + unused method. If re-enabled, use typed event handler + unknown for entries.)
 }

@@ -35,7 +35,7 @@ export class Selection2LinkBtn extends DendronBtn {
   static create(pressed?: boolean) {
     return new Selection2LinkBtn({
       title: "Selection to Link",
-      description: MODIFIER_DESCRIPTIONS["selection2link"],
+      description: MODIFIER_DESCRIPTIONS["selection2link"] || "",
       iconOff: "link",
       iconOn: "menu-selection",
       type: "selection2link",
@@ -52,7 +52,7 @@ export class SelectionExtractBtn extends DendronBtn {
     });
     return new SelectionExtractBtn({
       title: "Selection Extract",
-      description: MODIFIER_DESCRIPTIONS["selectionExtract"],
+      description: MODIFIER_DESCRIPTIONS["selectionExtract"] || "",
       iconOff: "find-selection",
       iconOn: "menu-selection",
       type: "selectionExtract",
@@ -70,7 +70,7 @@ export class Selection2ItemsBtn extends DendronBtn {
     });
     return new Selection2ItemsBtn({
       title: "Selection to Items",
-      description: MODIFIER_DESCRIPTIONS["selection2Items"],
+      description: MODIFIER_DESCRIPTIONS["selection2Items"] || "",
       iconOff: "checklist",
       iconOn: "menu-selection",
       type: "selection2Items",

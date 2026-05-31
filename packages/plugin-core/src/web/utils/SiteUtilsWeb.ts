@@ -5,19 +5,15 @@ import {
   NoteProps,
 } from "@dendronhq/common-all";
 import _ from "lodash";
-import { inject, injectable } from "../../di/inject";
+import { inject, injectable, TOKENS } from "../../di/inject";
 
 @injectable()
 export class SiteUtilsWeb {
   constructor(
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
-    @inject("siteUrl") private siteUrl?: string,
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
-    @inject("siteIndex") private siteIndex?: string,
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
-    @inject("assetsPrefix") private assetsPrefix?: string,
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
-    @inject("enablePrettyLinks") private enablePrettyLinks?: boolean
+    @inject(TOKENS.SiteUrl) private siteUrl?: string,
+    @inject(TOKENS.SiteIndex) private siteIndex?: string,
+    @inject(TOKENS.AssetsPrefix) private assetsPrefix?: string,
+    @inject(TOKENS.EnablePrettyLinks) private enablePrettyLinks?: boolean
   ) {}
 
   getSiteUrlRootForVault({ vault }: { vault: DVault }): {
@@ -38,7 +34,7 @@ export class SiteUtilsWeb {
     indexNote,
     note,
   }: {
-    indexNote?: string;
+    indexNote?: string | undefined;
     note: NoteProps;
   }): boolean {
     return indexNote ? note.fname === indexNote : DNodeUtils.isRoot(note);
@@ -107,7 +103,7 @@ export class SiteUtilsWeb {
     const isIndex: boolean = _.isUndefined(note)
       ? false
       : this.isIndexNote({
-          indexNote: index,
+          indexNote: index ?? undefined,
           note,
         });
     const pathValue = note.id;

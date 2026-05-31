@@ -13,12 +13,9 @@ import { URI, Utils } from "vscode-uri";
 @injectable()
 export class WSUtilsWeb {
   constructor(
-    // @ts-expect-error - TS 5+ decorator signature with tsyringe
     @inject("ReducedDEngine")
     private engine: ReducedDEngine,
-    // @ts-expect-error - TS 5+ decorator signature with tsyringe
     @inject("wsRoot") private wsRoot: URI,
-    // @ts-expect-error - TS 5+ decorator signature with tsyringe
     @inject("vaults") private vaults: DVault[]
   ) {}
 

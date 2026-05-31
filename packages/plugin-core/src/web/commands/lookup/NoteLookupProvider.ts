@@ -19,7 +19,6 @@ import {
 @injectable()
 export class NoteLookupProvider implements ILookupProvider {
   constructor(
-    // @ts-expect-error - TS 5+ stricter decorator checking with tsyringe + legacy emitDecoratorMetadata
     @inject("ReducedDEngine") private engine: ReducedDEngine
   ) {}
 
