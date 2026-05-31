@@ -91,7 +91,7 @@ export class DConfig {
 
   static getSiteIndex(sconfig: DendronPublishingConfig): string {
     const { siteIndex, siteHierarchies } = sconfig;
-    return siteIndex || siteHierarchies[0];
+    return siteIndex || siteHierarchies[0] ?? "";
   }
 
   /**

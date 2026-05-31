@@ -135,9 +135,9 @@ class TemplateHelpers {
       }
       const { year, month, day } = resp;
       return new Date(
-        parseInt(year, 10),
-        parseInt(month, 10) - 1,
-        parseInt(day, 10)
+        parseInt(year ?? "0", 10),
+        parseInt(month ?? "0", 10) - 1,
+        parseInt(day ?? "0", 10)
       );
     },
 
@@ -210,7 +210,7 @@ export class TemplateUtils {
     });
 
     const maybeTemplate =
-      maybeSchema?.schemas[note.schema?.schemaId as string].data.template;
+      maybeSchema?.schemas[(note.schema?.schemaId ?? "") as string]?.data.template;
     let maybeVault: DVault | undefined;
 
     if (maybeTemplate) {
@@ -233,7 +233,7 @@ export class TemplateUtils {
         }
       }
 
-      const maybeNotes = await engine.findNotes({ fname, vault: maybeVault });
+      const maybeNotes = await engine.findNotes({ fname: fname as string, vault: maybeVault });
       const maybeTemplateNote = await pickNote(maybeNotes);
       if (maybeTemplateNote.error) {
         return { error: maybeTemplateNote.error };

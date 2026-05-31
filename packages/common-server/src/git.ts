@@ -68,7 +68,7 @@ export class GitUtils {
     vaultName: string;
     url?: string;
   }): string {
-    return CommonGitUtils.remoteUrlToDependencyPath({ vaultName, url });
+    return CommonGitUtils.remoteUrlToDependencyPath({ vaultName, url: url ?? undefined });
   }
 
   static getDependencyPathWithRemote({
