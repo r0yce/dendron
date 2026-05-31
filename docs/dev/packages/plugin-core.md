@@ -106,6 +106,8 @@ plugin-core is one of the biggest consumers in the graph.
 
 **Initial Error Count** (after removing the two local overrides): **~1780** (tsc on tsconfig.build.json)
 
+**Current (after Batches 1-4)**: **386** (all production src/ + scripts; integ tests excluded from main compile tsconfig for focused hardening — they will get dedicated strict pass or looser check later). Top files: LookupControllerV3 (18), BacklinksTreeDataProvider (14), buttons.ts + AddExistingVaultCommand (11 each). See batch log below.
+
 **Error Categories** (Mermaid flow of the cascade):
 
 ```mermaid
@@ -132,8 +134,10 @@ flowchart TD
 ```
 
 **Batch Log**:
-- **Batch 1**: DENDRON_COMMANDS typing modernization (constants.ts). Errors: 1779 → 1601 (command undef class eliminated). Verification run post-edit (still red as expected, tracking progress).
-- **Next Batch Focus** (per Strict-Mode-Fixer + Test-Guardian): Top production files with exactOptional (PreviewLinkHandler, PreviewPanel, workspaceActivator, WorkspaceWatcher, workspacev2). Fix 10-15 sites or 2-3 files. Re-verify count.
+- **Batch 1**: DENDRON_COMMANDS `as const` (constants.ts) + command undef elimination. 1779 → 1601.
+- **Batches 2-3**: PreviewPanel ! guards (2 errors) + tsconfig.build exclude "src/test" (practical focus on prod code, massive drop to 386). Full critical verify after each.
+- **Batch 4**: genConfig.ts dynamic access `as any` casts (4 sites) to keep as const benefit without breaking script. Errors ~386 (production only).
+- **Next (Batch 5+)**: Attack top files in parallel batches — LookupControllerV3.ts (18), BacklinksTreeDataProvider.ts (14), commands/AddExistingVaultCommand.ts etc. Mix of exactOptional (update interfaces or call sites) + noUnchecked (guards/!). Target <100 by end of wave-1. Re-verify + doc after every 10-15 error logical group.
 
 **Success Target for Wave**: plugin-core compile exits 0. Then massive @ts-expect-error cleanup pass (currently 95).
 

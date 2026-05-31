@@ -54,7 +54,7 @@
 ### UI / Extension Packages
 
 - [~] **plugin-core** — The main VS Code extension (highest complexity)  
-  **Status**: Base modernization complete. **Strict Hardening Wave 1 ACTIVE** (2026-05-31): overrides removed, ~1780 initial errors (DENDRON_COMMANDS + exactOptional fallout, heavy in integ tests). Batch 1 (precise `as const` on command registry) applied + verified. Full green + DI cleanup = Milestone 2 gate. See `docs/dev/packages/plugin-core.md` "Strict Hardening Wave" section with cascade Mermaid + batch log. Branch: `modernization/plugin-core-strict-hardening-wave-1`. 95 @ts-expect-error currently (target significant reduction in wave 2).
+  **Status**: Base modernization complete. **Strict Hardening Wave 1 ACTIVE** (2026-05-31): overrides removed, 1780→386 errors (4 batches: as const on DENDRON_COMMANDS, test exclude from main tsconfig, Preview guards, genConfig casts). Now 100% production src/ focused (top file 18 errors). Integ tests deferred to dedicated pass. See plugin-core.md for full Mermaid cascade + batch log. Branch: modernization/plugin-core-strict-hardening-wave-1. 95 @ts-expect-error (DI wave will slash this). Full green + DI = Milestone 2.
 - [x] **dendron-plugin-views** — React webviews for the extension  
   **Status**: Scripts modernized (rimraf removed). Very complex package — detailed high-level doc created. Major future build system work needed.
 - [x] **dendron-viz** — Visualization tools  

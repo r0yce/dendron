@@ -7,5 +7,5 @@
     "skipLibCheck": true,
     "strictNullChecks": true
   },
-  "exclude": ["node_modules", "lib", "local", ".vscode-test", "out", "dist", "src/test"]
+  "exclude": ["node_modules", "lib", "local", ".vscode-test", "out", "dist", "src/test", "src/web/test"]
 }
