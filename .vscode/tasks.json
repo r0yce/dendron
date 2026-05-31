@@ -55,6 +55,27 @@
       "presentation": {
         "reveal": "always"
       }
+    },
+    {
+      "label": "doctor:smoke (health --verbose + json)",
+      "type": "shell",
+      "command": "yarn workspace @dendronhq/dendron-cli build && node packages/dendron-cli/lib/bin/dendron-cli.js health --verbose --json",
+      "problemMatcher": [],
+      "group": "test",
+      "presentation": { "reveal": "always" }
+    },
+    {
+      "label": "tsc:plugin-core --noEmit (strict/DI wave)",
+      "type": "shell",
+      "command": "yarn workspace @dendronhq/plugin-core tsc --noEmit -p tsconfig.build.json",
+      "problemMatcher": ["$tsc"],
+      "group": "build"
+    },
+    {
+      "label": "Lerna: list packages (post A/B)",
+      "type": "shell",
+      "command": "npx lerna list --all",
+      "problemMatcher": []
     }
   ]
 }
