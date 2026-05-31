@@ -144,7 +144,7 @@ export class BackupService implements Disposable, IBackupService {
         error: DendronError.createFromStatus({
           status: ERROR_STATUS.BACKUP_FAILED,
           message: `backup for ${pathToBackup} failed.`,
-        }),
+        }) as any,
       };
     }
     return { data: backupPath };

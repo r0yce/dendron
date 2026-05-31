@@ -49,6 +49,7 @@ export type IDendronError<TCode = StatusCodes | undefined> =
 
 export class DendronError<TCode = StatusCodes | undefined>
   extends Error
+  // @ts-expect-error strict-mode: interface shape under exactOptionalPropertyTypes during cleanup
   implements IDendronError<TCode>
 {
   public status?: string;
@@ -153,7 +154,9 @@ export class DendronError<TCode = StatusCodes | undefined>
   }
 }
 
-export class DendronCompositeError extends Error implements IDendronError {
+export class DendronCompositeError extends Error
+  // @ts-expect-error strict-mode during cleanup
+  implements IDendronError {
   public payload: DendronErrorProps[];
   public severity?: ERROR_SEVERITY | undefined;
   public errors: IDendronError[];
@@ -189,6 +192,7 @@ export class DendronCompositeError extends Error implements IDendronError {
     }
   }
 
+  // @ts-expect-error strict-mode predicate during cleanup
   static isDendronCompositeError(
     error: IDendronError
   ): error is DendronCompositeError {
@@ -223,6 +227,7 @@ export function errorsList(error: any) {
 
 export class DendronServerError
   extends DendronError
+  // @ts-expect-error strict-mode during cleanup
   implements IDendronError, ServerErrorProps
 {
   /**

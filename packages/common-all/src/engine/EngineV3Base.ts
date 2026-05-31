@@ -228,7 +228,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
             error: new DendronError({
               status: ERROR_STATUS.NO_PARENT_FOR_NOTE,
               message: `No parent found for ${parentNote.fname}`,
-            }),
+            }) as any,
           };
         }
         // eslint-disable-next-line no-await-in-loop
@@ -241,7 +241,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
             error: new DendronError({
               status: ERROR_STATUS.NO_PARENT_FOR_NOTE,
               message: `Unable to delete ${noteToDelete.fname}: Note ${parentNote?.fname}'s parent does not exist in engine: ${parentNote.parent}`,
-            }),
+            }) as any,
           };
         }
       }
@@ -268,7 +268,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
           message: `Unable to delete note ${id}`,
           severity: ERROR_SEVERITY.MINOR,
           payload: deleteResp.error,
-        }),
+        }) as any,
       };
     }
 

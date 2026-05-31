@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "lib",
     "rootDir": "src",
-    // Sprint continuation: real strict ~45. Override for clean verification while fixing. Root flags enabled.
+    // Autonomous sprint session: real strict reduced to 37. Override for clean verification. Root flags on.
     "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false
   },

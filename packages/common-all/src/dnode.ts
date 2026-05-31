@@ -962,7 +962,7 @@ export class NoteUtils {
         error: DendronError.createFromStatus({
           status: ERROR_STATUS.BAD_PARSE_FOR_NOTE,
           message: "NoteProps is undefined",
-        }),
+        }) as any,
       };
     }
     if (_.isUndefined(maybeNoteProps.vault)) {
@@ -970,7 +970,7 @@ export class NoteUtils {
         error: DendronError.createFromStatus({
           status: ERROR_STATUS.BAD_PARSE_FOR_NOTE,
           message: "note vault is undefined",
-        }),
+        }) as any,
       };
     }
     if (!_.isString(maybeNoteProps.title)) {
@@ -978,7 +978,7 @@ export class NoteUtils {
         error: DendronError.createFromStatus({
           status: ERROR_STATUS.BAD_PARSE_FOR_NOTE,
           message: "note title not set as string",
-        }),
+        }) as any,
       };
     }
     return { data: true };

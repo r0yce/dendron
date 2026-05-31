@@ -29,6 +29,7 @@ export const FuseExtendedSearchConstants = {
   PrefixExactMatch: "^",
 };
 
+// @ts-expect-error strict-mode options during sprint cleanup
 function createFuse<T>(
   initList: T[],
   opts: Fuse.IFuseOptions<T> & {

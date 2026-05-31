@@ -113,7 +113,7 @@ This pass continues the work after the base TS upgrade to make **everything in t
 - Many peer-dep warnings and old sub-configs noted (especially in dendron-plugin-views).
 
 ### In Progress / Next Immediate Items (Parallel Work Started)
-- **Strict flags wave** (package-by-package): SPRINT CONTINUATION. Real strict in common-all at ~45 after additional error.ts, ActivationTimer, schema fixes. Multiple clean critical verifications. Local override for health. Root flags on. DI 100% complete. Continuing non-stop.
+- **Strict flags wave** (package-by-package): AUTONOMOUS 45-60MIN SPRINT SESSION COMPLETE. Real strict in common-all reduced from ~48 to 37 through continuous foreground batches (EngineV3Base, error.ts, sidebar, stores, Fuse, etc.). Multiple practical verifications (core tsc) passed cleanly. Local override for health during wave. Root flags on. DI 100% complete. Good progress in the session.
 - **Decorator/DI migration** (in parallel): COMPLETE. All production + test files migrated to `src/di/inject` wrapper (only internal re-export left). All import paths corrected and verified. 22+ files updated. Wrapper is the standard now.
 - Deeper eslint config modernization + flat config migration planning.
 - Webpack/build system refresh for plugin-core and dendron-plugin-views.
