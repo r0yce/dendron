@@ -50,18 +50,18 @@ export class SchemaCreationUtils {
         } else {
           let curr: SchemaInMaking;
 
-          if (currPattern.template) {
+          if (currPattern!.template) {
             curr = {
-              pattern: currPattern.pattern,
-              template: currPattern.template,
+              pattern: currPattern!.pattern,
+              template: currPattern!.template,
             };
           } else {
             curr = {
-              pattern: currPattern.pattern,
+              pattern: currPattern!.pattern,
             };
           }
-          if (currPattern.desc) {
-            curr["desc"] = currPattern.desc;
+          if (currPattern!.desc) {
+            curr["desc"] = currPattern!.desc;
           }
           currParent.children?.push(curr);
           currParent = curr;

@@ -1489,7 +1489,7 @@ export class SchemaUtils {
     if (!match) {
       return;
     } else {
-      const domainSchema = match.schemas[match.root.id];
+      const domainSchema = match.schemas[match.root.id]!;
       return SchemaUtils.matchDomainWithSchema({
         noteCandidates: [domain],
         notes,
@@ -1529,10 +1529,10 @@ export class SchemaUtils {
 
       const matchNextNamespace = !(schema.data.namespace && matchNamespace);
       const nextSchemaCandidates = matchNextNamespace
-        ? schema.children.map((id) => schemaModule.schemas[id])
+        ? schema.children.map((id) => schemaModule.schemas[id]).filter(Boolean) as SchemaProps[]
         : [schema];
 
-      const nextNoteCandidates = note.children.map((id) => notes[id]);
+      const nextNoteCandidates = note.children.map((id) => notes[id]).filter(Boolean) as NoteProps[];
       return SchemaUtils.matchDomainWithSchema({
         noteCandidates: nextNoteCandidates,
         schemaCandidates: nextSchemaCandidates,
@@ -1549,7 +1549,7 @@ export class SchemaUtils {
     engine: DEngineClient; //
   }): Promise<SchemaMatchResult | undefined> {
     const { notePath } = opts;
-    const domainName = DNodeUtils.domainName(notePath);
+    const domainName = DNodeUtils.domainName(notePath)!;
     const resp = await opts.engine.getSchema(domainName);
     if (!resp.data) {
       return;
@@ -1580,7 +1580,7 @@ export class SchemaUtils {
     schemaModule: SchemaModuleProps;
   }): SchemaMatchResult | undefined {
     const { notePath, schemaModule } = opts;
-    const domainName = DNodeUtils.domainName(notePath);
+    const domainName = DNodeUtils.domainName(notePath)!;
     const domainSchema = schemaModule.schemas[schemaModule.root.id]!;
     if (domainName.length === notePath.length) {
       return {
@@ -1649,7 +1649,7 @@ export class SchemaUtils {
 
       // if we are not matching the next namespace, then we go back to regular matching behavior
       const nextSchemaCandidates = matchNextNamespace
-        ? schema.children.map((id) => schemaModule.schemas[id])
+        ? schema.children.map((id) => schemaModule.schemas[id]).filter(Boolean) as SchemaProps[]
         : [schema];
       return SchemaUtils.matchPathWithSchema({
         notePath,
@@ -1712,7 +1712,7 @@ export class SchemaUtils {
     ];
     _.forEach(optional, (opt) => {
       if (props[opt]) {
-        builtinProps[opt] = props[opt];
+        (builtinProps as any)[opt] = props[opt];
       }
     });
     const dataProps = props.data;

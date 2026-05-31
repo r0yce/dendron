@@ -302,7 +302,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
       vault.selfContained = vault.selfContained === "true";
 
     const response = await this.queryStore.queryNotes(qs, {
-      onlyDirectChildren,
+      onlyDirectChildren: onlyDirectChildren as boolean | undefined,
       originalQS,
     });
     if (response.isErr()) {
@@ -420,7 +420,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
       const notes = await this.noteStore.find({
         fname: link.to.fname,
         vault: maybeVault,
-      });
+      } as any);
       if (notes.data) {
         return Promise.all(
           notes.data.map(async (note) => {
@@ -459,7 +459,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
       const notes = await this.noteStore.find({
         fname: link.to.fname,
         vault: maybeVault,
-      });
+      } as any);
       if (notes.data) {
         return Promise.all(
           notes.data.map(async (note) => {
