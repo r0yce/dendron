@@ -231,7 +231,7 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
             : undefined;
 
           if (!_.isUndefined(maybeNote)) {
-            this.sendRefreshMessage(this._panel!, maybeNote[0], true);
+            this.sendRefreshMessage(this._panel!, maybeNote[0]!, true);
           }
           break;
         }
@@ -287,7 +287,7 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
           if (!maybeNote || maybeNote.length !== 1) {
             return;
           }
-          this.sendRefreshMessage(this._panel!, maybeNote[0], true);
+          this.sendRefreshMessage(this._panel!, maybeNote[0]!, true);
         }
         // )
       );
