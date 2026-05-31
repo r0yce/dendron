@@ -58,6 +58,13 @@
       "pattern": "ALL_COMMANDS"
     },
     {
+      "title": "Major DI Modernization Win: v2 `inject()` Helper (Recent Landing)",
+      "description": "One of the biggest recent improvements (final strict + DI pivot wave): the creation of a thin absorbing wrapper in `di/inject.ts`.\n\n```ts\nexport function inject(token: string) {\n  // @ts-expect-error - TS 5+ stricter decorator checking (centralized here once)\n  return tsyringeInject(token);\n}\n```\n\nThis eliminated dozens of scattered bare `@ts-expect-error` comments around every `@inject` site (PreviewPanel, TextDocumentService, etc.) while keeping full runtime behavior. 0 bare decorator @ts now upheld in production src/.\n\nThis is the practical proof of the 4-axis + di-container-proposal direction.\n\n[Open the current di/inject.ts (v2 helper)](./packages/plugin-core/src/di/inject.ts)\n\nSee the [Advanced TypeScript Modernization tour][Advanced: TypeScript Modernization & Strict Mode] and the debugging tour for breakpoint recommendations around DI registration.",
+      "file": "packages/plugin-core/src/di/inject.ts",
+      "line": 1,
+      "pattern": "export function inject|tsyringeInject"
+    },
+    {
       "title": "ActivationTimer & Perf Instrumentation (Fork Addition)",
       "description": "The fork added `ActivationTimer` (see `src/utils/ActivationTimer.ts`) to measure exactly where time is spent during startup.\n\nIt is already wired in _activate:\n```ts\nconst activationTimer = new ActivationTimer();\nactivationTimer.mark(\"after:env-setup\");\n...\nactivationTimer.mark(\"before:telemetry-setup\");\n```\n\nLater milestones (engine init, index complete, tree views ready) are also marked.\n\nThis data feeds the `DENDRON_PERF` doctor reports and future performance work.\n\n[Open ActivationTimer](./packages/plugin-core/src/utils/ActivationTimer.ts)",
       "file": "packages/plugin-core/src/utils/ActivationTimer.ts",

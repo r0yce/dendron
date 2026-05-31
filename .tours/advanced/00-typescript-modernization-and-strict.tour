@@ -19,6 +19,12 @@
       "description": "Read the SKILL.md for each:\n- strict-mode-fixer/SKILL.md\n- ts-expect-error-burner/SKILL.md\n\nThey encode the exact small-batch, verify-religiously, lesson-learning workflow that has already cleaned up large parts of the monorepo.\n\nThese are the primary tools for any future strictness or decorator cleanup waves.",
       "file": ".grok/skills/strict-mode-fixer/SKILL.md",
       "line": 1
+    },
+    {
+      "title": "Latest Post-Merge State (Strict + DI + Debug Launch)",
+      "description": "The most recent work merged from main (final strict-debug-launch sweep) achieved:\n- 0 strict errors on the precise src/ surface that blocks \"Run Dendron Extension (Clean Host)\"\n- Full test suite + Clean Host smoke ownership\n- Complete documentation in .grok/reports/debug-launch-sweep-*-complete-*.md\n\nThe skills (strict-mode-fixer, ts-expect-error-burner, self-improver, codetour-expert) all received significant updates in that wave.\n\nThis is the current high-water mark of the fork's modernization.",
+      "file": ".grok/reports/debug-launch-sweep-complete-2026-05-31.md",
+      "line": 1
     }
   ]
 }
