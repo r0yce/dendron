@@ -12,6 +12,8 @@ module.exports = {
     "prettier",
     "plugin:@typescript-eslint/eslint-recommended"
   ],
+  // NOTE: This is still a legacy .eslintrc format.
+  // Full migration to ESLint 9 flat config is tracked as future modernization work.
   globals: {
     Atomics: "readonly",
     SharedArrayBuffer: "readonly",
@@ -71,11 +73,9 @@ module.exports = {
     // copy from packages/web-client/.eslintrc.json
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/no-explicit-any": "off",
-    "@typescript-eslint/ban-ts-ignore": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
     "@typescript-eslint/no-empty-interface": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
-    "@typescript-eslint/camelcase": "off",
-    "@typescript-eslint/interface-name-prefix": "off",
     "@typescript-eslint/no-unused-vars": "off",
 
     "no-use-before-define": "off",

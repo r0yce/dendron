@@ -39,9 +39,9 @@ import { BasicCommand } from "./base";
 type CommandOpts = {
   type: VaultRemoteSource;
   path: string;
-  pathRemote?: string;
-  name?: string;
-  isSelfContained?: boolean;
+  pathRemote?: string | undefined;
+  name?: string | undefined;
+  isSelfContained?: boolean | undefined;
 };
 
 type CommandOutput = { vaults: DVault[] };
@@ -90,6 +90,10 @@ export class VaultAddCommand extends BasicCommand<CommandOpts, CommandOutput> {
         qp.onDidAccept(async () => {
           const value = qp.value;
           const selected = qp.selectedItems[0];
+          if (!selected) {
+            qp.hide();
+            return resolve(undefined);
+          }
           if (selected.label === "custom") {
             if (PickerUtilsV2.isInputEmpty(value)) {
               return window.showInformationMessage("please enter an endpoint");
@@ -230,7 +234,7 @@ export class VaultAddCommand extends BasicCommand<CommandOpts, CommandOutput> {
 
   async handleRemoteRepo(
     opts: CommandOpts
-  ): Promise<{ vaults: DVault[]; workspace?: DWorkspace }> {
+  ): Promise<{ vaults: DVault[]; workspace?: DWorkspace | undefined }> {
     const { vaults, workspace } = await window.withProgress(
       {
         location: ProgressLocation.Notification,
@@ -250,7 +254,7 @@ export class VaultAddCommand extends BasicCommand<CommandOpts, CommandOutput> {
           repoUrl: opts.pathRemote!,
         });
         if (_.size(vaults) === 1 && opts.name) {
-          vaults[0].name = opts.name;
+          vaults[0]!.name = opts.name;
         }
         // add all vaults
         progress.report({

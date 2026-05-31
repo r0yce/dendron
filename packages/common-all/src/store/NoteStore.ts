@@ -96,7 +96,7 @@ export class NoteStore implements INoteStore<string> {
           status: ERROR_STATUS.BAD_PARSE_FOR_NOTE,
           message: `Frontmatter missing for file ${uri.fsPath} associated with note ${key}.`,
           severity: ERROR_SEVERITY.MINOR,
-        }),
+        }) as any,
       };
     }
   }
@@ -193,7 +193,7 @@ export class NoteStore implements INoteStore<string> {
           status: ERROR_STATUS.WRITE_FAILED,
           message: `Ids don't match between key ${key} and note meta ${noteMeta}.`,
           severity: ERROR_SEVERITY.MINOR,
-        }),
+        }) as any,
       };
     }
     return this._metadataStore.write(key, noteMeta);
@@ -254,7 +254,7 @@ export class NoteStore implements INoteStore<string> {
           status: ERROR_STATUS.CANT_DELETE_ROOT,
           message: `Cannot delete ${key}. Root notes cannot be deleted.`,
           severity: ERROR_SEVERITY.MINOR,
-        }),
+        }) as any,
       };
     }
 

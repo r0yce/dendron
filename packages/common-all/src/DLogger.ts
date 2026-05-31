@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 export type DLogger = {
-  name?: string;
+  name?: string | undefined;
   level: any;
   debug: (msg: any) => void;
   info: (msg: any) => void;

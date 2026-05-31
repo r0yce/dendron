@@ -13,7 +13,9 @@ import {
   memoize,
   DendronError,
   ConfigUtils,
+  PerformanceTimer,
 } from "@dendronhq/common-all";
+import { logPerfReport } from "../../utils/dev";
 import { DConfig } from "@dendronhq/common-server";
 import { WorkspaceUtils } from "@dendronhq/engine-server";
 import {
@@ -79,6 +81,9 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
    * Dendron note).
    */
   async show(note?: NoteProps): Promise<void> {
+    const perf = new PerformanceTimer({ timerName: "PreviewShow" });
+    perf.before("total");
+
     if (this._panel) {
       if (!this.isVisible()) {
         this._panel.reveal();
@@ -148,6 +153,12 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
 
     if (note && this.isVisible()) {
       this.sendRefreshMessage(this._panel, note, true);
+    }
+
+    perf.after("total");
+    const shouldLog = process.env.DENDRON_PERF === "1" || process.env.LOG_LEVEL === "debug";
+    if (shouldLog) {
+      logPerfReport("Preview", perf.report());
     }
   }
   hide(): void {

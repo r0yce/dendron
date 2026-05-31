@@ -18,7 +18,7 @@ export const CONFIG_TO_MINIMUM_COMPAT_MAPPING: {
 export class CompatUtils {
   static isSoftMapping(opts: { configVersion: number }) {
     const softMapping =
-      CONFIG_TO_MINIMUM_COMPAT_MAPPING[opts.configVersion].softMapping;
+      CONFIG_TO_MINIMUM_COMPAT_MAPPING[opts.configVersion]?.softMapping;
     return !_.isUndefined(softMapping) && softMapping;
   }
 }

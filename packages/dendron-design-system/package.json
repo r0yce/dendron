@@ -72,7 +72,7 @@
     "storybook-addon-performance": "^0.15.2",
     "tsdx": "^0.14.1",
     "tslib": "^2.1.0",
-    "typescript": "^4.2.3"
+    "typescript": "^5.5.4"
   },
   "dependencies": {
     "@chakra-ui/react": "^1.4.2",

@@ -1,5 +1,12 @@
 import "reflect-metadata"; // This needs to be the topmost import for tsyringe to work
 
+/**
+ * TypeScript 5.5+ Upgrade Note:
+ * Legacy decorators + tsyringe now require // @ts-expect-error on many @inject sites
+ * due to stricter decorator signature checking.
+ * This is a known temporary modernization cost. See docs/dev/09-TYPESCRIPT-UPGRADE-PLAN.md
+ */
+
 import {
   CONSTANTS,
   DWorkspaceV2,
@@ -79,6 +86,7 @@ import semver from "semver";
 import _ from "lodash";
 import { GotoNoteCommand } from "./commands/GotoNote";
 import { ActivationTimer } from "@dendronhq/common-all";
+import { getDevOutputChannel, setLastActivationReport } from "./utils/dev";
 
 const MARKDOWN_WORD_PATTERN = new RegExp("([\\w\\.]+)");
 // === Main
@@ -139,6 +147,9 @@ export async function _activate(
   // Performance instrumentation (go-to-work fork)
   const activationTimer = new ActivationTimer();
   activationTimer.mark("after:env-setup");
+
+  // Telemetry / Segment unlock
+  activationTimer.mark("before:telemetry-setup");
   const { workspaceFile, workspaceFolders } = vscode.workspace;
   const logLevel = process.env["LOG_LEVEL"];
   const { extensionPath, extensionUri, logUri } = context;
@@ -161,6 +172,8 @@ export async function _activate(
   // At this point, the segment client has not been created yet.
   // We need to check here if the uuid has been set for future references
   // because the Segment client constructor will go ahead and create one if it doesn't exist.
+  activationTimer.mark("after:telemetry-setup");
+
   const maybeUUIDPath = path.join(os.homedir(), CONSTANTS.DENDRON_ID);
   const UUIDPathExists = await fs.pathExists(maybeUUIDPath);
 
@@ -215,18 +228,20 @@ export async function _activate(
     const ws = await DendronExtension.getOrCreate(context, {
       skipSetup: stage === "test",
     });
+    activationTimer.mark("after:extension-singleton");
+
     const existingCommands = await vscode.commands.getCommands();
 
     // Setup the commands
     await _setupCommands({ ext: ws, context, requireActiveWorkspace: false });
     // Order matters. Need to register `Reload Index` command before activating workspace
     // Workspace activation calls `RELOAD_INDEX` via {@link WSUtils.reloadWorkspace}
-    if (!existingCommands.includes(DENDRON_COMMANDS.RELOAD_INDEX.key)) {
+    if (!existingCommands.includes(DENDRON_COMMANDS.RELOAD_INDEX!.key)) {
       context.subscriptions.push(
         vscode.commands.registerCommand(
-          DENDRON_COMMANDS.RELOAD_INDEX.key,
+          DENDRON_COMMANDS.RELOAD_INDEX!.key,
           sentryReportingCallback(async (silent?: boolean) => {
-            const out = await new ReloadIndexCommand().run({ silent });
+            const out = await new ReloadIndexCommand().run({ silent: silent as boolean | undefined });
             if (!silent) {
               vscode.window.showInformationMessage(`finish reload`);
             }
@@ -460,18 +475,45 @@ export async function _activate(
       }
       StartupUtils.showUninstallMarkdownLinksExtensionMessage();
       activationTimer.mark("activate:success");
-      activationTimer.finish();
+      logActivationReport(activationTimer);
       return true;
     }
     activationTimer.mark("activate:partial");
-    activationTimer.finish();
+    logActivationReport(activationTimer);
     return false;
   } catch (error) {
     activationTimer.mark("activate:error");
-    activationTimer.finish();
+    logActivationReport(activationTimer);
     Sentry.captureException(error);
     throw error;
   }
+}
+
+function logActivationReport(timer: ActivationTimer) {
+  const isDev = getStage() === "dev" || process.env.DENDRON_PERF === "1" || process.env.LOG_LEVEL === "debug";
+
+  timer.finish(); // always call finish
+
+  if (!isDev) {
+    return;
+  }
+
+  const report = timer.getDetailedReport();
+
+  // Store for the new dev command
+  setLastActivationReport(report);
+
+  // 1. Debug Console (what the user sees when attached)
+  console.log(report);
+
+  // 2. Clean dedicated "Dendron Dev" output channel (much nicer to read)
+  const devChannel = getDevOutputChannel();
+  devChannel.clear();
+  devChannel.appendLine(report);
+  devChannel.show(true); // show but don't steal focus
+
+  // 3. Also keep a compact version in the main Dendron channel
+  Logger.info({ ctx: "ActivationPerformance", totalMs: report.match(/Total: ([\d.]+)ms/)?.[1] ?? "unknown" });
 }
 
 function togglePluginActiveContext(enabled: boolean) {

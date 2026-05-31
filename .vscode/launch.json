@@ -15,7 +15,8 @@
       "preLaunchTask": "compile:plugin-core",
       "env": {
         "LOG_LEVEL": "debug",
-        "DENDRON_DEV_MODE": "1"
+        "DENDRON_DEV_MODE": "1",
+        "DENDRON_PERF": "1"
       },
       "presentation": {
         "group": "dendron-root"
@@ -34,7 +35,8 @@
       ],
       "env": {
         "LOG_LEVEL": "debug",
-        "DENDRON_DEV_MODE": "1"
+        "DENDRON_DEV_MODE": "1",
+        "DENDRON_PERF": "1"
       },
       "presentation": {
         "group": "dendron-root"

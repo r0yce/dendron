@@ -29,7 +29,7 @@ export class SchemaCreationUtils {
     tokenizedMatrix: SchemaToken[][];
   }): string {
     for (let r = 0; r < tokenizedMatrix.length; r += 1) {
-      const tokenizedRow = tokenizedMatrix[r];
+      const tokenizedRow = tokenizedMatrix[r]!;
 
       let currParent = topLevel;
       // Top level is already taken care of hence we start out and index 1.
@@ -37,7 +37,7 @@ export class SchemaCreationUtils {
         if (_.isUndefined(currParent["children"])) {
           currParent.children = [];
         }
-        const currPattern = tokenizedRow[i];
+        const currPattern = tokenizedRow[i]!;
 
         if (
           currParent.children?.some((ch) => ch.pattern === currPattern.pattern)
@@ -46,22 +46,22 @@ export class SchemaCreationUtils {
           // not double add it, find the matching element and assign it as parent for next iteration.
           currParent = currParent.children?.filter(
             (ch) => ch.pattern === currPattern.pattern
-          )[0];
+          )[0]!;
         } else {
           let curr: SchemaInMaking;
 
-          if (currPattern.template) {
+          if (currPattern!.template) {
             curr = {
-              pattern: currPattern.pattern,
-              template: currPattern.template,
+              pattern: currPattern!.pattern,
+              template: currPattern!.template,
             };
           } else {
             curr = {
-              pattern: currPattern.pattern,
+              pattern: currPattern!.pattern,
             };
           }
-          if (currPattern.desc) {
-            curr["desc"] = currPattern.desc;
+          if (currPattern!.desc) {
+            curr["desc"] = currPattern!.desc;
           }
           currParent.children?.push(curr);
           currParent = curr;

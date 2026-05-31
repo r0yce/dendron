@@ -46,6 +46,6 @@ export function string2Note({
     type: "note",
     vault,
     contentHash,
-  });
+  } as any);
   return note;
 }

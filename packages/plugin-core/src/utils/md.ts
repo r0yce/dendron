@@ -40,17 +40,17 @@ import { VSCodeUtils } from "../vsCodeUtils";
 export type RefT = {
   label: string;
   /** If undefined, then the file this reference is located in is the ref */
-  ref?: string;
-  anchorStart?: DNoteAnchorBasic;
-  anchorEnd?: DNoteAnchorBasic;
-  vaultName?: string;
+  ref?: string | undefined;
+  anchorStart?: DNoteAnchorBasic | undefined;
+  anchorEnd?: DNoteAnchorBasic | undefined;
+  vaultName?: string | undefined;
 };
 
 export type FoundRefT = {
   location: Location;
   matchText: string;
-  isCandidate?: boolean;
-  isFrontmatterTag?: boolean;
+  isCandidate?: boolean | undefined;
+  isFrontmatterTag?: boolean | undefined;
   note: NotePropsMeta;
 };
 
@@ -145,7 +145,7 @@ export const getURLAt = (editor: vscode.TextEditor | undefined): string => {
     }
 
     const leftSplit = docText.substring(0, offsetStart).split(regex);
-    const leftText = leftSplit[leftSplit.length - 1];
+    const leftText = leftSplit[leftSplit.length - 1]!;
     const selectStart = offsetStart - leftText.length;
 
     const rightSplit = docText.substring(offsetEnd, docText.length);
@@ -229,10 +229,10 @@ export type getReferenceAtPositionResp = {
   range: vscode.Range;
   ref: string;
   label: string;
-  anchorStart?: DNoteAnchorBasic;
-  anchorEnd?: DNoteAnchorBasic;
-  refType?: DLinkType;
-  vaultName?: string;
+  anchorStart?: DNoteAnchorBasic | undefined;
+  anchorEnd?: DNoteAnchorBasic | undefined;
+  refType?: DLinkType | undefined;
+  vaultName?: string | undefined;
   /** The full text inside the ref, e.g. for [[alias|foo.bar#anchor]] this is alias|foo.bar#anchor */
   refText: string;
 };
@@ -478,7 +478,7 @@ export const noteLinks2Locations = (note: NoteProps) => {
           new vscode.Position(lineNum + 1, 0)
         )
       ),
-      matchText: lines.slice(-1)[0],
+      matchText: lines.slice(-1)[0] || "",
       link,
     });
   });
@@ -487,7 +487,7 @@ export const noteLinks2Locations = (note: NoteProps) => {
 
 export async function findReferencesById(opts: {
   id: string;
-  isLinkCandidateEnabled?: boolean;
+  isLinkCandidateEnabled?: boolean | undefined;
 }) {
   const { id, isLinkCandidateEnabled } = opts;
   const refs: FoundRefT[] = [];
@@ -577,7 +577,7 @@ export async function findReferencesById(opts: {
       const location = new vscode.Location(vscode.Uri.file(fsPath), range);
       const foundRef: FoundRefT = {
         location,
-        matchText: lines.slice(-1)[0],
+        matchText: lines.slice(-1)[0] || "",
         note: noteWithRef,
       };
       if (link.type === "linkCandidate") {
@@ -685,7 +685,7 @@ export function getOneIndexedFrontmatterEndingLineNumber(
     return undefined;
   }
 
-  return _.countBy(input.slice(0, offset))["\n"] + 1;
+  return (_.countBy(input.slice(0, offset))["\n"] || 0) + 1;
 }
 
 /**
@@ -708,15 +708,16 @@ export function hasAnchorsToUpdate(
     let processed = wikiLinkMatch.groups.text;
     if (processed.includes("|")) {
       const [_alias, link] = processed.split("|");
-      processed = link;
+      processed = link || processed;
     }
 
     if (processed.includes("#")) {
       const [_fname, anchor] = processed.split("#");
-      if (anchor.startsWith("^")) {
-        return anchorNamesToUpdate.includes(anchor.substring(1));
+      const a = anchor!; // guarded by includes("#")
+      if (a.startsWith("^")) {
+        return anchorNamesToUpdate.includes(a.substring(1));
       }
-      return anchorNamesToUpdate.includes(anchor);
+      return anchorNamesToUpdate.includes(a);
     } else {
       return false;
     }

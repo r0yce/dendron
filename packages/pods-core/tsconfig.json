@@ -17,6 +17,10 @@
     "noFallthroughCasesInSwitch": true,
     // --- language features
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "paths": {
+      "emailjs": ["src/typings/emailjs.d.ts"]
+    }
   }
 }

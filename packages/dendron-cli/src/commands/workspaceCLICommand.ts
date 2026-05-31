@@ -81,8 +81,11 @@ export class WorkspaceCLICommand extends CLICommand<
         }
         case WorkspaceCommands.INFO: {
           const resp = await engine?.info();
-          // eslint-disable-next-line no-console
-          console.log(resp);
+          if (this.opts.json) {
+            this.printJson(resp);
+          } else {
+            this.print(resp);
+          }
           break;
         }
         case WorkspaceCommands.ADD_AND_COMMIT: {

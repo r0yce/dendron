@@ -23,7 +23,7 @@ export class PerformanceTimer {
   private readonly beforeStampsMillis: Map<string, number>;
   private readonly timingsMillis: Map<string, number>;
   private readonly errors: string[];
-  private readonly opts?: { timerName: string };
+  private readonly opts: { timerName: string } | undefined;
 
   constructor(opts?: { timerName: string }) {
     this.opts = opts;

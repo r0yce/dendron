@@ -11,7 +11,7 @@ import {
   NoteStore,
   type ReducedDEngine,
 } from "@dendronhq/common-all";
-import { container, Lifecycle } from "tsyringe";
+import { container, Lifecycle, TOKENS, registerInstance } from "../../di/inject";
 import * as vscode from "vscode";
 import { Event, EventEmitter, TextDocument, workspace } from "vscode";
 import { URI } from "vscode-uri";
@@ -63,60 +63,60 @@ export async function setupWebExtContainer(context: vscode.ExtensionContext) {
   const siteUrl = await getSiteUrl(wsRoot);
   const siteIndex = await getSiteIndex(wsRoot);
 
-  container.register<vscode.ExtensionContext>("extensionContext", {
+  container.register<vscode.ExtensionContext>(TOKENS.ExtensionContext, {
     useValue: context,
   });
 
   // The EngineEventEmitter is also DendronEngineV3Web, so reuse the same token
   // to supply any emitter consumers. This ensures the same engine singleton
   // gets used everywhere.
-  container.register<EngineEventEmitter>("EngineEventEmitter", {
-    useToken: "ReducedDEngine",
+  container.register<EngineEventEmitter>(TOKENS.EngineEventEmitter, {
+    useToken: TOKENS.ReducedDEngine,
   });
 
   container.register<ReducedDEngine>(
-    "ReducedDEngine",
+    TOKENS.ReducedDEngine,
     {
       useClass: DendronEngineV3Web,
     },
     { lifecycle: Lifecycle.Singleton }
   );
 
-  container.register<IFileStore>("IFileStore", {
+  container.register<IFileStore>(TOKENS.IFileStore, {
     useClass: VSCodeFileStore,
   });
 
   container.register<IDataStore<string, NotePropsMeta>>(
-    "IDataStore",
+    TOKENS.IDataStore,
     {
       useClass: NoteMetadataStore,
     },
     { lifecycle: Lifecycle.Singleton }
   );
 
-  container.register("wsRoot", { useValue: wsRoot });
-  container.register("vaults", { useValue: vaults });
-  container.register("assetsPrefix", { useValue: assetsPrefix });
-  container.register("enablePrettyLinks", { useValue: enablePrettyLinks });
-  container.register("siteUrl", { useValue: siteUrl });
-  container.register("siteIndex", { useValue: siteIndex });
+  container.register(TOKENS.WsRoot, { useValue: wsRoot });
+  container.register(TOKENS.Vaults, { useValue: vaults });
+  container.register(TOKENS.AssetsPrefix, { useValue: assetsPrefix });
+  container.register(TOKENS.EnablePrettyLinks, { useValue: enablePrettyLinks });
+  container.register(TOKENS.SiteUrl, { useValue: siteUrl });
+  container.register(TOKENS.SiteIndex, { useValue: siteIndex });
 
-  container.register<INoteStore<string>>("INoteStore", {
+  container.register<INoteStore<string>>(TOKENS.INoteStore, {
     useFactory: (container) => {
-      const fs = container.resolve<IFileStore>("IFileStore");
+      const fs = container.resolve<IFileStore>(TOKENS.IFileStore);
       const ds =
-        container.resolve<IDataStore<string, NotePropsMeta>>("IDataStore");
+        container.resolve<IDataStore<string, NotePropsMeta>>(TOKENS.IDataStore);
 
       return new NoteStore(fs, ds, wsRoot);
     },
   });
 
-  container.register<ILookupProvider>("NoteProvider", {
+  container.register<ILookupProvider>(TOKENS.NoteProvider, {
     useClass: NoteLookupProvider,
   });
 
   container.afterResolution<DendronEngineV3Web>(
-    "ReducedDEngine",
+    TOKENS.ReducedDEngine,
     (_t, result) => {
       if ("init" in result) {
         result.init().then(
@@ -130,52 +130,52 @@ export async function setupWebExtContainer(context: vscode.ExtensionContext) {
     { frequency: "Once" }
   );
 
-  container.register<ITreeViewConfig>("ITreeViewConfig", {
+  container.register<ITreeViewConfig>(TOKENS.ITreeViewConfig, {
     useClass: TreeViewDummyConfig,
   });
 
   setupTelemetry();
 
-  container.register<PreviewProxy>("PreviewProxy", {
+  container.register<PreviewProxy>(TOKENS.PreviewProxy, {
     useClass: PreviewPanel,
   });
 
-  container.register<URI>("extensionUri", {
+  container.register<URI>(TOKENS.ExtensionUri, {
     useValue: context.extensionUri,
   });
 
-  container.register<IPreviewLinkHandler>("IPreviewLinkHandler", {
+  container.register<IPreviewLinkHandler>(TOKENS.IPreviewLinkHandler, {
     useClass: PreviewLinkHandler,
   });
 
-  container.register<IPreviewPanelConfig>("IPreviewPanelConfig", {
+  container.register<IPreviewPanelConfig>(TOKENS.IPreviewPanelConfig, {
     useClass: DummyPreviewPanelConfig, // TODO: Add a real one
   });
 
-  container.register<ITextDocumentService>("ITextDocumentService", {
+  container.register<ITextDocumentService>(TOKENS.ITextDocumentService, {
     useClass: TextDocumentService,
   });
 
-  container.register<Event<TextDocument>>("textDocumentEvent", {
+  container.register<Event<TextDocument>>(TOKENS.TextDocumentEvent, {
     useValue: workspace.onDidSaveTextDocument,
   });
 
-  container.register<DLogger>("logger", {
+  container.register<DLogger>(TOKENS.Logger, {
     useClass: ConsoleLogger,
   });
 
   // Just use a dummy number - this isn't actually used by the web logic, but
   // it's a dependency in some util methods.
-  container.register<number>("port", {
+  container.register<number>(TOKENS.Port, {
     useValue: 1,
   });
 
-  container.register<INoteRenderer>("INoteRenderer", {
+  container.register<INoteRenderer>(TOKENS.INoteRenderer, {
     useClass: PluginNoteRenderer,
   });
 
   const config = await getWorkspaceConfig(wsRoot);
-  container.register<DendronConfig>("DendronConfig", {
+  container.register<DendronConfig>(TOKENS.DendronConfig, {
     useValue: config as DendronConfig,
   });
 
@@ -187,13 +187,13 @@ function setupTelemetry() {
 
   switch (stage) {
     case "prod": {
-      container.register<ITelemetryClient>("ITelemetryClient", {
+      container.register<ITelemetryClient>(TOKENS.ITelemetryClient, {
         useClass: WebTelemetryClient,
       });
       break;
     }
     default: {
-      container.register<ITelemetryClient>("ITelemetryClient", {
+      container.register<ITelemetryClient>(TOKENS.ITelemetryClient, {
         useClass: DummyTelemetryClient,
       });
       break;
@@ -207,10 +207,10 @@ function setupTabAutoComplete(context: vscode.ExtensionContext) {
   // Add to extension disposables for auto-cleanup:
   context.subscriptions.push(emitter);
 
-  container.registerInstance<EventEmitter<void>>(
-    "AutoCompleteEventEmitter",
+  registerInstance<EventEmitter<void>>(
+    TOKENS.AutoCompleteEventEmitter,
     emitter
   );
 
-  container.registerInstance<Event<void>>("AutoCompleteEvent", emitter.event);
+  registerInstance<Event<void>>(TOKENS.AutoCompleteEvent, emitter.event);
 }

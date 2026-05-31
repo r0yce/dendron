@@ -10,7 +10,9 @@ import {
   NoteProps,
   NoteUtils,
   OnDidChangeActiveTextEditorMsg,
+  PerformanceTimer,
 } from "@dendronhq/common-all";
+import { logPerfReport } from "../utils/dev";
 import { MetadataService, WorkspaceUtils } from "@dendronhq/engine-server";
 import _ from "lodash";
 import * as vscode from "vscode";
@@ -324,6 +326,9 @@ export class GraphPanel implements vscode.WebviewViewProvider {
   }
 
   public async refresh(note?: NoteProps, createStub?: boolean) {
+    const perf = new PerformanceTimer({ timerName: "GraphRefresh" });
+    perf.before("total");
+
     if (this._view) {
       if (note) {
         this._view.show?.(true);
@@ -340,6 +345,12 @@ export class GraphPanel implements vscode.WebviewViewProvider {
         },
         source: "vscode",
       } as OnDidChangeActiveTextEditorMsg);
+    }
+
+    perf.after("total");
+    const shouldLog = process.env.DENDRON_PERF === "1" || process.env.LOG_LEVEL === "debug";
+    if (shouldLog) {
+      logPerfReport("Graph", perf.report());
     }
   }
 }

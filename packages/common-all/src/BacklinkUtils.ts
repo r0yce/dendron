@@ -18,7 +18,7 @@ export class BacklinkUtils {
         type: "backlink",
         position: link.position,
         value: link.value,
-      };
+      } as BackLink;
     }
     return;
   }

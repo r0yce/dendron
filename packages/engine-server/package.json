@@ -23,15 +23,15 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "clean": "rimraf lib && rimraf coverage && rimraf src/drivers/generated-prisma-client",
-    "format": "echo nop",
-    "lint": "echo stub",
+    "clean": "node -e \"const fs=require('fs'); fs.rmSync('lib',{recursive:true,force:true}); fs.rmSync('coverage',{recursive:true,force:true}); fs.rmSync('src/drivers/generated-prisma-client',{recursive:true,force:true});\"",
+    "format": "echo 'format not configured'",
+    "lint": "echo 'lint not configured'",
     "buildPrismaClient": "yarn prisma generate && node copyPrismaClient.js",
     "prepublishOnly": "yarn build",
     "prebuild": "yarn clean && yarn format && yarn lint && echo Using TypeScript && tsc --version",
     "build": "yarn compile && yarn buildPrismaClient",
     "buildCI": "yarn compile && yarn buildPrismaClient",
-    "compile": "tsc -p tsconfig.build.json ",
+    "compile": "tsc -p tsconfig.build.json",
     "watch": "yarn compile --watch"
   },
   "dependencies": {
@@ -90,7 +90,7 @@
     "@types/lodash": "^4.14.156",
     "@types/lru-cache": "^5.1.1",
     "@types/mdast": "^3.0.3",
-    "@types/node": "13.11.0",
+    "@types/node": "^20.12.0",
     "@types/pino": "^6.3.0",
     "@types/remark-abbr": "^1.4.0",
     "@types/spark-md5": "^3.0.2",
@@ -100,7 +100,6 @@
     "coveralls": "^3.0.2",
     "cross-env": "^7.0.2",
     "prisma": "^4.1.1",
-    "rimraf": "^2.6.2",
     "ts-node": "^8.10.2",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.15.0"

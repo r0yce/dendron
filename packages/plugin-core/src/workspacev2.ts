@@ -12,8 +12,8 @@ import path from "path";
 import vscode, { window } from "vscode";
 
 export type DWorkspaceInitOpts = {
-  onReady: ({}: { ws: DWorkspace }) => Promise<void>; // eslint-disable-line  no-empty-pattern
-  numRetries?: number;
+  onReady?: (({}: { ws: DWorkspace }) => Promise<void>) | undefined; // eslint-disable-line  no-empty-pattern
+  numRetries?: number | undefined;
 };
 
 export class DWorkspace {
@@ -21,7 +21,7 @@ export class DWorkspace {
   public vaults: DVault[];
   public _engine: DEngineClient | undefined;
   public port: number | undefined;
-  public onReady?: ({ ws }: { ws: DWorkspace }) => Promise<void>;
+  public onReady?: (({ ws }: { ws: DWorkspace }) => Promise<void>) | undefined;
   public serverPortWatcher?: FSWatcher;
 
   static _WS: DWorkspace | undefined;
@@ -56,8 +56,8 @@ export class DWorkspace {
 
   async init(opts?: DWorkspaceInitOpts) {
     // init engine
-    this.onReady = opts?.onReady;
-    return this.createServerWatcher({ numRetries: opts?.numRetries });
+    this.onReady = opts?.onReady ?? undefined as any /* TODO: exactOptional for optional method field assignment; final strict batch pattern */;
+    return this.createServerWatcher({ numRetries: opts?.numRetries ?? undefined });
   }
 
   async initEngine({ port }: { port: number }) {
@@ -79,12 +79,12 @@ export class DWorkspace {
     return this._engine;
   }
 
-  async createServerWatcher(opts?: { numRetries?: number }) {
+  async createServerWatcher(opts?: { numRetries?: number | undefined }) {
     const { wsRoot } = this;
     const fpath = EngineUtils.getPortFilePathForWorkspace({ wsRoot });
     const { watcher } = await createFileWatcher({
       fpath,
-      numTries: opts?.numRetries,
+      numTries: opts?.numRetries ?? undefined as any /* TODO: exactOptional boundary to common-server CreateFileWatcherOpts (strict green in common-*); Batch 5+ widen target first not possible across pkg boundary; see Monorepo 4-axis + di-container ergonomics */,
       onChange: async ({ fpath }) => {
         const port = openPortFile({ fpath });
         this.onChangePort({ port });

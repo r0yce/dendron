@@ -14,7 +14,7 @@ import {
 } from "@dendronhq/common-all";
 import { MDUtilsV5 } from "@dendronhq/unified";
 import _ from "lodash";
-import { inject, injectable } from "tsyringe";
+import { inject, injectable, TOKENS } from "../../di/inject";
 import visit from "unist-util-visit";
 import * as vscode from "vscode";
 import {
@@ -44,11 +44,11 @@ export class TextDocumentService implements ITextDocumentService {
   _textDocumentEventHandle: Disposable;
 
   constructor(
-    @inject("textDocumentEvent") textDocumentEvent: Event<TextDocument>,
-    @inject("wsRoot") private wsRoot: URI,
-    @inject("vaults") private vaults: DVault[],
-    @inject("ReducedDEngine") private engine: ReducedDEngine,
-    @inject("logger") private L: DLogger
+    @inject(TOKENS.TextDocumentEvent) textDocumentEvent: Event<TextDocument>,
+    @inject(TOKENS.WsRoot) private wsRoot: URI,
+    @inject(TOKENS.Vaults) private vaults: DVault[],
+    @inject(TOKENS.ReducedDEngine) private engine: ReducedDEngine,
+    @inject(TOKENS.Logger) private L: DLogger
   ) {
     this._textDocumentEventHandle = textDocumentEvent(this.onDidSave, this);
   }

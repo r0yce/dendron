@@ -112,21 +112,22 @@ export class DNodeUtils {
     return cleanProps;
   }
 
-  static basename(nodePath: string, rmExtension?: boolean) {
+  static basename(nodePath: string, rmExtension?: boolean): string {
     //skip for nodePath that has a sub-hierarchy starting with .md eg: learn.mdone.test, learn.md-one.new
     if (rmExtension && nodePath.endsWith(".md")) {
-      nodePath = nodePath.slice(undefined, -3);
+      nodePath = nodePath.slice(0, -3);
     }
     const [first, ...rest] = nodePath.split(".");
-    return _.isEmpty(rest) ? first : rest.slice(-1)[0];
+    const last = rest.slice(-1)[0];
+    return (_.isEmpty(rest) ? first : last) ?? nodePath;
   }
 
   static dirName(nodePath: string) {
     return nodePath.split(".").slice(0, -1).join(".");
   }
 
-  static domainName(nodePath: string) {
-    return nodePath.split(".")[0];
+  static domainName(nodePath: string): string {
+    return nodePath.split(".")[0]!;
   }
 
   static fname(nodePath: string) {
@@ -224,7 +225,7 @@ export class DNodeUtils {
         vault,
       })[0];
       if (_.isUndefined(_node)) {
-        throw new DendronError({ message: `no root found for ${fpath}` });
+        throw new DendronError({ message: `no root found for ${fpath}` }) as any;
       }
       return _node;
     }
@@ -256,17 +257,17 @@ export class DNodeUtils {
     if (dirname === "") {
       const notes = await engine.findNotesMeta({ fname: "root", vault });
       if (notes.length === 0) {
-        throw new DendronError({ message: `no root found for ${fpath}` });
+        throw new DendronError({ message: `no root found for ${fpath}` }) as any;
       }
-      return notes[0];
+      return notes[0]!;
     }
     const maybeNotes = await engine.findNotesMeta({
       fname: dirname,
-      vault,
-      excludeStub,
-    });
+      vault: vault as DVault | undefined,
+      excludeStub: excludeStub as boolean | undefined,
+    } as any);
     if (maybeNotes.length > 0) {
-      return maybeNotes[0];
+      return maybeNotes[0]!;
     } else {
       return DNodeUtils.findClosestParentWithEngine(dirname, engine, opts);
     }
@@ -588,7 +589,7 @@ export class NoteUtils {
     schemaId: string;
     vault: DVault;
   }) {
-    const mschema = schemaModule.schemas[schemaId];
+    const mschema = schemaModule.schemas[schemaId]!;
     return NoteUtils.create({
       fname,
       schemaStub: true,
@@ -614,7 +615,7 @@ export class NoteUtils {
         throw Error("schema mod required");
       }
       const domain = schemaMod.root;
-      const schema = schemaMod.schemas[note.schema.schemaId];
+      const schema = schemaMod.schemas[note.schema.schemaId]!;
       // case: recognized schema
       prefixParts.push(`$(repo) ${domain.title || domain.id}`);
 
@@ -676,11 +677,11 @@ export class NoteUtils {
     const titleFromBasename = DNodeUtils.basename(fname, true);
     // check if title is unchanged from default. if so, add default title
     if (_.toLower(fname) === fname) {
-      fname = titleFromBasename.replace(/-/g, " ");
+      fname = titleFromBasename!.replace(/-/g, " ");
       return title(fname);
     }
     // if user customized title, return the title as user specified
-    return titleFromBasename;
+    return titleFromBasename!;
   }
 
   static genTitleFromFullFname(fname: string): string {
@@ -962,7 +963,7 @@ export class NoteUtils {
         error: DendronError.createFromStatus({
           status: ERROR_STATUS.BAD_PARSE_FOR_NOTE,
           message: "NoteProps is undefined",
-        }),
+        }) as any,
       };
     }
     if (_.isUndefined(maybeNoteProps.vault)) {
@@ -970,7 +971,7 @@ export class NoteUtils {
         error: DendronError.createFromStatus({
           status: ERROR_STATUS.BAD_PARSE_FOR_NOTE,
           message: "note vault is undefined",
-        }),
+        }) as any,
       };
     }
     if (!_.isString(maybeNoteProps.title)) {
@@ -978,7 +979,7 @@ export class NoteUtils {
         error: DendronError.createFromStatus({
           status: ERROR_STATUS.BAD_PARSE_FOR_NOTE,
           message: "note title not set as string",
-        }),
+        }) as any,
       };
     }
     return { data: true };
@@ -1069,7 +1070,7 @@ export class NoteUtils {
     if (note && note.color) {
       return { color: note.color, type: "configured" };
     }
-    return { color: randomColor(fname), type: "generated" };
+    return { color: randomColor(fname)!, type: "generated" };
   }
 
   /** Get the ancestors of a note, in the order of the closest to farthest.
@@ -1105,8 +1106,8 @@ export class NoteUtils {
     let note: NotePropsMeta | undefined = (
       await engine.findNotesMeta({
         fname,
-        vault,
-      })
+        vault: vault as DVault | undefined,
+      } as any)
     )[0];
 
     // Check if we need this note itself
@@ -1117,7 +1118,7 @@ export class NoteUtils {
     while (parts.length > 1) {
       parts = parts.slice(undefined, parts.length - 1);
       // eslint-disable-next-line no-await-in-loop
-      note = (await engine.findNotesMeta({ fname: parts.join("."), vault }))[0];
+      note = (await engine.findNotesMeta({ fname: parts.join("."), vault: vault as DVault | undefined } as any))[0];
       if (note && !(nonStubOnly && note.stub)) return note;
     }
 
@@ -1125,7 +1126,7 @@ export class NoteUtils {
     if (note) {
       // Yielded at least one note
       if (!vault) vault = note.vault;
-      note = (await engine.findNotesMeta({ fname: "root", vault }))[0];
+      note = (await engine.findNotesMeta({ fname: "root", vault: vault as DVault | undefined } as any))[0];
       return note;
     }
     return;
@@ -1250,7 +1251,7 @@ export class SchemaUtils {
         fname: "__empty",
       }),
       type: "schema",
-    });
+    } as any);
 
     if (opts.data?.isIdAutoGenerated) {
       node.data.isIdAutoGenerated = true;
@@ -1423,7 +1424,7 @@ export class SchemaUtils {
     if (_.isNull(schema.parent)) {
       return part;
     }
-    const parent: SchemaProps = schemas[schema.parent];
+    const parent: SchemaProps = schemas[schema.parent]!;
     if (parent && parent.id !== "root") {
       const prefix = SchemaUtils.getPatternRecursive(parent, schemas);
       return [prefix, part].join("/");
@@ -1489,7 +1490,7 @@ export class SchemaUtils {
     if (!match) {
       return;
     } else {
-      const domainSchema = match.schemas[match.root.id];
+      const domainSchema = match.schemas[match.root.id]!;
       return SchemaUtils.matchDomainWithSchema({
         noteCandidates: [domain],
         notes,
@@ -1529,10 +1530,10 @@ export class SchemaUtils {
 
       const matchNextNamespace = !(schema.data.namespace && matchNamespace);
       const nextSchemaCandidates = matchNextNamespace
-        ? schema.children.map((id) => schemaModule.schemas[id])
+        ? schema.children.map((id) => schemaModule.schemas[id]).filter(Boolean) as SchemaProps[]
         : [schema];
 
-      const nextNoteCandidates = note.children.map((id) => notes[id]);
+      const nextNoteCandidates = note.children.map((id) => notes[id]).filter(Boolean) as NoteProps[];
       return SchemaUtils.matchDomainWithSchema({
         noteCandidates: nextNoteCandidates,
         schemaCandidates: nextSchemaCandidates,
@@ -1549,19 +1550,19 @@ export class SchemaUtils {
     engine: DEngineClient; //
   }): Promise<SchemaMatchResult | undefined> {
     const { notePath } = opts;
-    const domainName = DNodeUtils.domainName(notePath);
+    const domainName = DNodeUtils.domainName(notePath)!;
     const resp = await opts.engine.getSchema(domainName);
     if (!resp.data) {
       return;
     } else {
-      const domainSchema = resp.data.schemas[resp.data.root.id];
+      const domainSchema = resp.data.schemas[resp.data.root.id]!;
       if (domainName.length === notePath.length) {
         return {
           schema: domainSchema,
           notePath,
           namespace: domainSchema.data.namespace || false,
           schemaModule: resp.data,
-        };
+        } as any;
       }
       return SchemaUtils.matchPathWithSchema({
         notePath,
@@ -1580,15 +1581,15 @@ export class SchemaUtils {
     schemaModule: SchemaModuleProps;
   }): SchemaMatchResult | undefined {
     const { notePath, schemaModule } = opts;
-    const domainName = DNodeUtils.domainName(notePath);
-    const domainSchema = schemaModule.schemas[schemaModule.root.id];
+    const domainName = DNodeUtils.domainName(notePath)!;
+    const domainSchema = schemaModule.schemas[schemaModule.root.id]!;
     if (domainName.length === notePath.length) {
       return {
         schema: domainSchema,
         notePath,
         namespace: domainSchema.data.namespace || false,
         schemaModule,
-      };
+      } as any;
     }
     return SchemaUtils.matchPathWithSchema({
       notePath,
@@ -1649,7 +1650,7 @@ export class SchemaUtils {
 
       // if we are not matching the next namespace, then we go back to regular matching behavior
       const nextSchemaCandidates = matchNextNamespace
-        ? schema.children.map((id) => schemaModule.schemas[id])
+        ? schema.children.map((id) => schemaModule.schemas[id]).filter(Boolean) as SchemaProps[]
         : [schema];
       return SchemaUtils.matchPathWithSchema({
         notePath,
@@ -1712,7 +1713,7 @@ export class SchemaUtils {
     ];
     _.forEach(optional, (opt) => {
       if (props[opt]) {
-        builtinProps[opt] = props[opt];
+        (builtinProps as any)[opt] = props[opt];
       }
     });
     const dataProps = props.data;

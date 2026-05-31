@@ -361,7 +361,7 @@ export const DENDRON_MENUS = {
   ],
 };
 
-export const DENDRON_COMMANDS: { [key: string]: CommandEntry } = {
+export const DENDRON_COMMANDS = {
   // --- backlinks panel buttons
   BACKLINK_SORT_BY_LAST_UPDATED: {
     key: "dendron.backlinks.sortByLastUpdated",
@@ -1050,6 +1050,16 @@ export const DENDRON_COMMANDS: { [key: string]: CommandEntry } = {
     title: `${CMD_PREFIX}Dev: Dev Trigger`,
     when: DendronContext.DEV_MODE,
   },
+  DEV_SHOW_ACTIVATION_REPORT: {
+    key: "dendron.dev.showActivationReport",
+    title: `${CMD_PREFIX}Dev: Show Last Activation Timings`,
+    when: DendronContext.DEV_MODE,
+  },
+  DEV_SHOW_ALL_PERF_REPORTS: {
+    key: "dendron.dev.showAllPerfReports",
+    title: `${CMD_PREFIX}Dev: Show All Perf Reports (Session)`,
+    when: DendronContext.DEV_MODE,
+  },
   RESET_CONFIG: {
     key: "dendron.dev.resetConfig",
     title: `${CMD_PREFIX}Dev: Reset Config`,
@@ -1302,7 +1312,7 @@ export const CONFIG: { [key: string]: ConfigEntry } = {
     description:
       "When enabled, newly created workspaces will be created as self contained vaults.",
   },
-};
+} as const;
 
 export const gdocRequiredScopes = [
   "https://www.googleapis.com/auth/documents",

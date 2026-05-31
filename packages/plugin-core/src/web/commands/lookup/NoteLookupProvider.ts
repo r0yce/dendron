@@ -5,7 +5,7 @@ import {
   TransformedQueryString,
   type ReducedDEngine,
 } from "@dendronhq/common-all";
-import { inject, injectable } from "tsyringe";
+import { inject, injectable } from "../../../di/inject";
 import { window } from "vscode";
 import {
   ILookupProvider,
@@ -18,7 +18,9 @@ import {
  */
 @injectable()
 export class NoteLookupProvider implements ILookupProvider {
-  constructor(@inject("ReducedDEngine") private engine: ReducedDEngine) {}
+  constructor(
+    @inject("ReducedDEngine") private engine: ReducedDEngine
+  ) {}
 
   async provideItems(opts: provideItemsProps): Promise<NoteQuickInputV2[]> {
     const { token, showDirectChildrenOnly, workspaceState } = opts;

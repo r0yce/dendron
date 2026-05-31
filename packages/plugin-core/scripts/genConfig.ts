@@ -41,11 +41,11 @@ function updateCommandPalettes() {
   console.log("updating command palettes...");
   const commandPalette = _.map(
     _.filter(DENDRON_COMMANDS, (ent) => {
-      return !_.isUndefined(ent.when);
+      return !_.isUndefined((ent as any).when);
     }),
     (ent) => {
-      const key = ent["key"];
-      const when = ent["when"];
+      const key = (ent as any)["key"];
+      const when = (ent as any)["when"];
       return {
         command: key,
         when,
@@ -58,8 +58,8 @@ function updateCommandPalettes() {
 function updateCommands() {
   console.log("update commands...");
   const commands = _.map(_.filter(DENDRON_COMMANDS), (ent) => {
-    const configProps = _.omit(ent, ["key", "keybindings", "when"]);
-    const key = ent["key"];
+    const configProps = _.omit(ent as any, ["key", "keybindings", "when"]);
+    const key = (ent as any)["key"];
     return {
       command: key,
       ...configProps,
@@ -72,10 +72,10 @@ function updateKeybindings() {
   console.log("update keybindings...");
   const bindings = _.filter(
     DENDRON_COMMANDS,
-    (ent) => !_.isEmpty(ent.keybindings)
+    (ent) => !_.isEmpty((ent as any).keybindings)
   ).map((keyEnt) => {
-    let configProps = keyEnt.keybindings;
-    const key = keyEnt["key"];
+    let configProps = (keyEnt as any).keybindings;
+    const key = (keyEnt as any)["key"];
 
     // sanity, if command depends on plugin being active, add same when clause to keybinding
     if (

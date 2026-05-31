@@ -16,7 +16,7 @@ import {
   IPreviewLinkHandler,
   LinkType,
 } from "../../../components/views/IPreviewLinkHandler";
-import { inject, injectable } from "tsyringe";
+import { inject, injectable } from "../../../di/inject";
 import { Utils } from "vscode-uri";
 import { openNote } from "../../utils/openNote";
 
@@ -58,7 +58,7 @@ export class PreviewLinkHandler implements IPreviewLinkHandler {
     // First, check if the URL matches any note
     try {
       const noteData = await this.getNavigationTargetNoteForWikiLink({
-        data,
+        data: data as any /* TODO: exactOptional on wiki link data (id/href |undef); final strict Batch 5+ web cluster; see di-container proposal for related @ts sites */,
       });
 
       if (noteData.note) {
@@ -68,7 +68,7 @@ export class PreviewLinkHandler implements IPreviewLinkHandler {
           fname: noteData.note.fname,
           vault: noteData.note.vault,
           column: vscode.ViewColumn.One,
-          anchor: noteData.anchor,
+          anchor: noteData.anchor ?? undefined as any /* TODO: exactOptional anchor |undef to openNote; Batch 5+ web; ties to PreviewPanel DI cluster */,
         });
         return LinkType.WIKI;
       }

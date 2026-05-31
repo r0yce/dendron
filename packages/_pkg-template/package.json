@@ -22,7 +22,7 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "clean": "rimraf lib && rimraf coverage",
+    "clean": "node -e \"const fs=require('fs'); fs.rmSync('lib',{recursive:true,force:true}); fs.rmSync('coverage',{recursive:true,force:true});\"",
     "prepublishOnly": "yarn build",
     "prebuild": "yarn clean",
     "build": "yarn compile",
@@ -32,9 +32,7 @@
   },
   "dependencies": {
   },
-  "devDependencies": {
-    "rimraf": "^2.6.2"
-  },
+  "devDependencies": {},
   "engines": {
     "node": ">=18.0.0"
   },

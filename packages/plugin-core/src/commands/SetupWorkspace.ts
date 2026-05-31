@@ -219,7 +219,7 @@ export class SetupWorkspaceCommand extends BasicCommand<
     if (
       !(await this.handleExistingRoot({
         rootDir,
-        skipConfirmation: opts.skipConfirmation,
+        skipConfirmation: opts.skipConfirmation ?? undefined,
       }))
     ) {
       return {};
@@ -243,8 +243,8 @@ export class SetupWorkspaceCommand extends BasicCommand<
       additionalVaults,
       wsRoot: rootDir,
       createCodeWorkspace,
-      useSelfContainedVault: selfContained,
-    });
+      useSelfContainedVault: selfContained ?? undefined,
+    } as any); // TODO: align WorkspaceServiceCreateOpts with |undefined per Monorepo 4-axis framework + di-container ergonomics
     Logger.info({
       ctx: `${ctx}:postCreateWorkspace`,
       wsRoot: rootDir,
@@ -256,7 +256,7 @@ export class SetupWorkspaceCommand extends BasicCommand<
         additionalVaults,
         wsRoot: rootDir,
         svc,
-      });
+      } as any); // TODO: tighten after engine-server WorkspaceServiceCreateOpts updated with |undefined per Monorepo framework
     }
 
     if (!skipOpenWs) {

@@ -444,6 +444,7 @@ export class WorkspaceWatcher {
     }
     try {
       const files = args.files[0];
+      if (!files) return;
       const { vaults, wsRoot } = this._extension.getDWorkspace();
       const { oldUri, newUri } = files;
 
@@ -497,6 +498,7 @@ export class WorkspaceWatcher {
     }
     try {
       const files = args.files[0];
+      if (!files) return;
       const { newUri } = files;
       const fname = DNodeUtils.fname(newUri.fsPath);
       const engine = this._extension.getEngine();

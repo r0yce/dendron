@@ -1,0 +1,24 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SeedRegistry = exports.SeedUtils = void 0;
+const common_all_1 = require("@dendronhq/common-all");
+class SeedUtils {
+    static getSeedId({ publisher, name }) {
+        return `${publisher}.${name}`;
+    }
+}
+exports.SeedUtils = SeedUtils;
+class SeedRegistry {
+    registry;
+    static create() {
+        return new SeedRegistry(common_all_1.SEED_REGISTRY);
+    }
+    constructor(registry) {
+        this.registry = registry;
+    }
+    info({ id }) {
+        return this.registry[id];
+    }
+}
+exports.SeedRegistry = SeedRegistry;
+//# sourceMappingURL=index.js.map

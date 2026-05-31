@@ -37,7 +37,7 @@ export const parse = <T extends z.ZodTypeAny>(
     return err(
       new DendronError({
         message: [
-          fromZodError(parsed.error, { prefix: msg }).message,
+          fromZodError(parsed.error, { prefix: msg } as any).message,
           ...(schema.description ? [`Schema:${schema.description}`] : []),
         ].join("\n"),
       })

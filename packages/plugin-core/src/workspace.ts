@@ -359,9 +359,9 @@ export class DendronExtension implements IDendronExtension {
     if (!_DendronWorkspace) {
       _DendronWorkspace = new DendronExtension(context, opts);
       _DendronWorkspace.type = await WorkspaceUtils.getWorkspaceType({
-        workspaceFile: vscode.workspace.workspaceFile,
-        workspaceFolders: vscode.workspace.workspaceFolders,
-      });
+        workspaceFile: vscode.workspace.workspaceFile ?? undefined as any /* TODO: vscode.Uri vs URI + exactOptional at getWorkspaceType boundary; Batch 5+ final; 4-axis */,
+        workspaceFolders: vscode.workspace.workspaceFolders ?? undefined as any /* TODO: exactOptional + WorkspaceFolderCode subtype interop at getWorkspaceType call; Batch 5+ final wave; see Monorepo 4-axis */,
+      } as any);
 
       ExtensionProvider.register(_DendronWorkspace);
     }

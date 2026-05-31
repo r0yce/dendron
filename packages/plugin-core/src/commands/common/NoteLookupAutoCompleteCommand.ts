@@ -1,4 +1,4 @@
-import { inject, injectable } from "tsyringe";
+import { inject, injectable } from "../../di/inject";
 import { EventEmitter } from "vscode";
 import { DENDRON_COMMANDS } from "../../constants";
 

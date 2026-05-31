@@ -9,7 +9,7 @@
 **Dendron** is an open-source, local-first, markdown-based **Personal Knowledge Management (PKM)** tool, delivered primarily as a **VS Code / VSCodium extension** plus supporting libraries, a CLI, an HTTP API server, and a Next.js static publishing template.
 
 - Repo: [github.com/dendronhq/dendron](https://github.com/dendronhq/dendron)
-- Branch in use: `master` (default)
+- Branch in use: `main` (default)
 - Monorepo version: `0.124.0` (see [lerna.json](lerna.json))
 - Status: **Maintenance only** — active development has ceased (see the project's GitHub Discussions banner). Bug-fix mindset; avoid speculative refactors.
 

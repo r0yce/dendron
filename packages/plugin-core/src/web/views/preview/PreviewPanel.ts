@@ -12,7 +12,7 @@ import {
   OnUpdatePreviewHTMLMsg,
 } from "@dendronhq/common-all";
 import _ from "lodash";
-import { inject, injectable } from "tsyringe";
+import { inject, injectable, TOKENS } from "../../../di/inject";
 import * as vscode from "vscode";
 import { URI } from "vscode-uri";
 import { type IPreviewLinkHandler } from "../../../components/views/IPreviewLinkHandler";
@@ -46,14 +46,14 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
    * Implementation to handle preview link clicked events
    */
   constructor(
-    @inject("IPreviewLinkHandler") linkHandler: IPreviewLinkHandler,
-    @inject("ITextDocumentService") textDocumentService: ITextDocumentService,
-    @inject("logger") private logger: DLogger,
-    @inject("wsRoot") private wsRoot: URI,
+    @inject(TOKENS.IPreviewLinkHandler) linkHandler: IPreviewLinkHandler,
+    @inject(TOKENS.ITextDocumentService) textDocumentService: ITextDocumentService,
+    @inject(TOKENS.Logger) private logger: DLogger,
+    @inject(TOKENS.WsRoot) private wsRoot: URI,
     private wsUtils: WSUtilsWeb,
     private webViewUtils: WebViewUtils,
-    @inject("IPreviewPanelConfig") private config: IPreviewPanelConfig,
-    @inject("INoteRenderer") private noteRenderer: INoteRenderer
+    @inject(TOKENS.IPreviewPanelConfig) private config: IPreviewPanelConfig,
+    @inject(TOKENS.INoteRenderer) private noteRenderer: INoteRenderer
   ) {
     this._linkHandler = linkHandler;
     this._textDocumentService = textDocumentService;
@@ -225,7 +225,7 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
             : undefined;
 
           if (!_.isUndefined(maybeNote)) {
-            this.sendRefreshMessage(this._panel!, maybeNote[0], true);
+            this.sendRefreshMessage(this._panel!, maybeNote[0]!, true);
           }
           break;
         }
@@ -281,7 +281,7 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
           if (!maybeNote || maybeNote.length !== 1) {
             return;
           }
-          this.sendRefreshMessage(this._panel!, maybeNote[0], true);
+          this.sendRefreshMessage(this._panel!, maybeNote[0]!, true);
         }
         // )
       );

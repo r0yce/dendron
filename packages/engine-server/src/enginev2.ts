@@ -60,6 +60,7 @@ import {
   GetNoteMetaResp,
   GetNoteResp,
   isNotUndefined,
+  PerformanceTimer,
 } from "@dendronhq/common-all";
 import {
   createLogger,
@@ -211,11 +212,18 @@ export class DendronEngineV2 implements DEngine {
       vaults: this.vaults,
       config: ConfigUtils.genDefaultConfig(),
     };
+    const perf = new PerformanceTimer({ timerName: "EngineInit" });
+    perf.before("total");
+    perf.before("storeInit");
+
     try {
       this.logger.info({ ctx, msg: "enter" });
       const { data, error: storeError } = await this.store.init();
+      perf.after("storeInit");
+
       if (_.isUndefined(data)) {
         this.logger.error({ ctx, msg: "store init error", error: storeError });
+        perf.after("total");
         return {
           data: defaultResp,
           error: DendronError.createFromStatus({
@@ -225,11 +233,16 @@ export class DendronEngineV2 implements DEngine {
         };
       }
       const { notes, schemas } = data;
+
+      perf.before("updateIndexNote");
       await this.updateIndex("note");
+      perf.after("updateIndexNote");
 
       // Set schemas locally in the engine:
       this.schemas = schemas;
+      perf.before("updateIndexSchema");
       await this.updateIndex("schema");
+      perf.after("updateIndexSchema");
       this.logger.info({ ctx, msg: "updated index" });
       const hookErrors: DendronError[] = [];
       this.hooks.onCreate = this.hooks.onCreate.filter((hook) => {
@@ -262,6 +275,12 @@ export class DendronEngineV2 implements DEngine {
 
       this.logger.info({ ctx: "init:ext", error, storeError, hookErrors });
 
+      perf.after("total");
+      // Log if in dev/perf mode (the caller will also surface it)
+      if (process.env.DENDRON_PERF === "1") {
+        this.logger.info({ ctx, msg: "perf-report", report: perf.report() });
+      }
+
       return {
         error,
         data: {
@@ -272,6 +291,7 @@ export class DendronEngineV2 implements DEngine {
         },
       };
     } catch (error: any) {
+      perf.after("total");
       this.logger.error({
         ctx,
         msg: "caught error",

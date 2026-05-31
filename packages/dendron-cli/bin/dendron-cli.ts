@@ -3,6 +3,7 @@
 import { env } from "@dendronhq/common-all";
 import _ from "lodash";
 import yargs from "yargs";
+import { CLIUtils } from "../src/utils/cli";
 import { PublishCLICommand } from "../src/commands";
 import { DevCLICommand } from "../src/commands/devCLICommand";
 import { DoctorCLICommand } from "../src/commands/doctor";
@@ -16,6 +17,7 @@ import { SeedCLICommand } from "../src/commands/seedCLICommand";
 import { VaultCLICommand } from "../src/commands/vaultCLICommand";
 import { WorkspaceCLICommand } from "../src/commands/workspaceCLICommand";
 import { VisualizeCLICommand } from "../src/commands/visualizeCLICommand";
+import { DoctorCommand } from "../src/commands/DoctorCommand";
 // import { WorkspaceCLICommand } from "../src/commands/workspace";
 
 if (_.isUndefined(env("LOG_LEVEL", { shouldThrow: false }))) {
@@ -29,6 +31,7 @@ new LaunchEngineServerCommand().buildCmd(buildYargs);
 new ImportPodCLICommand().buildCmd(buildYargs);
 new PublishPodCLICommand().buildCmd(buildYargs);
 new DoctorCLICommand().buildCmd(buildYargs);
+new DoctorCommand().buildCmd(buildYargs);  // "health" registered (6 checks + perf + table output + --json/--verbose/--fix skeletons; registration live + CLIUtils table per Test-Guardian matrix; safe collision with notes "doctor")
 new NoteCLICommand().buildCmd(buildYargs);
 new VaultCLICommand().buildCmd(buildYargs);
 new WorkspaceCLICommand().buildCmd(buildYargs);
@@ -39,4 +42,12 @@ new ExportPodV2CLICommand().buildCmd(buildYargs);
 new VisualizeCLICommand().buildCmd(buildYargs);
 
 // eslint-disable-next-line no-unused-expressions
-buildYargs.strictCommands().demandCommand(1).help().argv;
+buildYargs
+  .scriptName("dendron")
+  .strictCommands()
+  .demandCommand(1)
+  .version(CLIUtils.getClientVersion())
+  .alias("v", "version")
+  .help()
+  .completion("completion", "Generate shell completion script")
+  .argv;

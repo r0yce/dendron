@@ -42,7 +42,7 @@ export class NoteMetadataStore implements INoteMetadataStore {
           status: ERROR_STATUS.CONTENT_NOT_FOUND,
           message: `NoteProps metadata not found for key ${key}.`,
           severity: ERROR_SEVERITY.MINOR,
-        }),
+        }) as any,
       };
     }
   }

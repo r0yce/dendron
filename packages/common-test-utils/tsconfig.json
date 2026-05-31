@@ -10,6 +10,7 @@
     "esModuleInterop": true,
     "strict": true,
     "declaration": true,
+    "skipLibCheck": true,
     // --- checks
     "noUnusedLocals": true,
     "noUnusedParameters": true,

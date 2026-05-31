@@ -563,10 +563,10 @@ class FileUtils {
         )
         // we got to the end without a match
         .on("end", () => resolve({ data: false }))
-        .on("data", (chunk: Buffer) => {
+        .on("data", (chunk: string | Buffer) => {
           // eslint-disable-next-line no-plusplus
           for (let i = 0; i < chunk.length; i++) {
-            const a = String.fromCharCode(chunk[i]);
+            const a = String.fromCharCode(Number(chunk[i]));
             // not a match, return
             if (a !== prefix[i]) {
               resolve({ data: false });

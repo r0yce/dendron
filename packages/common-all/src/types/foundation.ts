@@ -15,7 +15,7 @@ export interface Point {
   /**
    * Character in a source file (0-indexed integer).
    */
-  offset?: number;
+  offset?: number | undefined;
 }
 
 export interface Position {
@@ -33,15 +33,15 @@ export interface Position {
    * Start column at each index (plus start line) in the source region,
    * for elements that span multiple lines.
    */
-  indent?: number[];
+  indent?: number[] | undefined;
 }
 
 export type DLoc = {
-  fname?: string;
-  id?: string;
-  vaultName?: string;
-  uri?: URI;
-  anchorHeader?: string;
+  fname?: string | undefined;
+  id?: string | undefined;
+  vaultName?: string | undefined;
+  uri?: URI | undefined;
+  anchorHeader?: string | undefined;
 };
 
 /**
@@ -50,13 +50,13 @@ export type DLoc = {
 export type DLink = {
   type: "ref" | "wiki" | "md" | "backlink" | "linkCandidate" | "frontmatterTag";
   value: string;
-  alias?: string;
-  position?: Position;
+  alias?: string | undefined;
+  position?: Position | undefined;
   from: DLoc;
-  to?: DLoc;
-  xvault?: boolean;
+  to?: DLoc | undefined;
+  xvault?: boolean | undefined;
   /** Denotes a same file link, for example `[[#anchor]]` */
-  sameFile?: boolean;
+  sameFile?: boolean | undefined;
 };
 
 export type DNodeType = "note" | "schema";
@@ -185,7 +185,7 @@ export type DNodeProps<T = any, TCustom = any> = DNodeExplicitProps & {
   /**
    * Schemas that apply to the note
    */
-  schema?: { moduleId: string; schemaId: string };
+  schema?: { moduleId: string; schemaId: string } | undefined;
   /**
    * The vault that a note belongs to
    */
@@ -194,16 +194,16 @@ export type DNodeProps<T = any, TCustom = any> = DNodeExplicitProps & {
   /**
    * Hash of note content
    */
-  contentHash?: string;
+  contentHash?: string | undefined;
 
   /** Override the randomly generated color for tag notes. Colors can be entered as `#12AC35`, `rgb(123, 56, 200)`, or `hsl(235, 100%, 50%)`. */
-  color?: string;
+  color?: string | undefined;
 
   /** One or more frontmatter tags attached to this note. */
-  tags?: string | string[];
+  tags?: string | string[] | undefined;
 
   /** To be used by social media platforms as a thumbnail/preview. */
-  image?: DNodeImage;
+  image?: DNodeImage | undefined;
 
   /** Any note traits that add special behavior to the note */
   traits?: string[];

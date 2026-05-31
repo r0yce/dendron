@@ -9,7 +9,7 @@ import { MetadataService } from "@dendronhq/engine-server";
 import { ENGINE_HOOKS_MULTI } from "@dendronhq/engine-test-utils";
 import _ from "lodash";
 import { describe, after } from "mocha";
-import { container } from "tsyringe";
+import { container } from "../../di/inject";
 import * as vscode from "vscode";
 import { EngineNoteProvider } from "../../views/common/treeview/EngineNoteProvider";
 import { ExtensionProvider } from "../../ExtensionProvider";

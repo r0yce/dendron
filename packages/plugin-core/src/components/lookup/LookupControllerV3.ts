@@ -59,14 +59,14 @@ export { LookupControllerV3CreateOpts };
  */
 export class LookupControllerV3 implements ILookupControllerV3 {
   public nodeType: DNodeType;
-  private _cancelTokenSource?: CancellationTokenSource;
+  private _cancelTokenSource?: CancellationTokenSource | undefined;
 
-  private _quickPick?: DendronQuickPickerV2;
+  private _quickPick?: DendronQuickPickerV2 | undefined;
 
   public fuzzThreshold: number;
-  private _provider?: ILookupProviderV3;
+  private _provider?: ILookupProviderV3 | undefined;
 
-  private _title?: string;
+  private _title?: string | undefined;
   private _viewModel: ILookupViewModel;
 
   private _initButtons: DendronBtn[];
@@ -777,31 +777,33 @@ export class LookupControllerV3 implements ILookupControllerV3 {
             })
           )[0];
 
-          const linksToUpdate = LinkUtils.findLinksFromBody({
-            note: noteToUpdate,
-            config,
-          })
-            .filter((link) => {
-              const fnameMatch =
-                link.to?.fname?.toLocaleLowerCase() ===
-                sourceNote.fname.toLowerCase();
-              if (!fnameMatch) return false;
-
-              if (!link.to?.anchorHeader) return false;
-              const anchorHeader = link.to.anchorHeader.startsWith("^")
-                ? link.to.anchorHeader.substring(1)
-                : link.to.anchorHeader;
-              return anchorNamesToUpdate.includes(anchorHeader);
+          if (noteToUpdate) {
+            const linksToUpdate = LinkUtils.findLinksFromBody({
+              note: noteToUpdate,
+              config,
             })
-            .map((link) => LinkUtils.dlink2DNoteLink(link));
-          const resp = await LinkUtils.updateLinksInNote({
-            linksToUpdate,
-            note: noteToUpdate,
-            destNote,
-            engine,
-          });
-          if (resp.data) {
-            changes = changes.concat(resp.data);
+              .filter((link) => {
+                const fnameMatch =
+                  link.to?.fname?.toLocaleLowerCase() ===
+                  sourceNote.fname.toLowerCase();
+                if (!fnameMatch) return false;
+
+                if (!link.to?.anchorHeader) return false;
+                const anchorHeader = link.to.anchorHeader.startsWith("^")
+                  ? link.to.anchorHeader.substring(1)
+                  : link.to.anchorHeader;
+                return anchorNamesToUpdate.includes(anchorHeader);
+              })
+              .map((link) => LinkUtils.dlink2DNoteLink(link));
+            const resp = await LinkUtils.updateLinksInNote({
+              linksToUpdate,
+              note: noteToUpdate,
+              destNote,
+              engine,
+            });
+            if (resp.data) {
+              changes = changes.concat(resp.data);
+            }
           }
         });
         return changes;

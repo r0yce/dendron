@@ -36,21 +36,19 @@ function createFuse<T>(
   },
   index?: Fuse.FuseIndex<T>
 ) {
-  const options: Fuse.IFuseOptions<T> = {
+  const baseOptions: Fuse.IFuseOptions<T> = {
     shouldSort: true,
-    threshold: opts.threshold,
+    threshold: opts.threshold ?? 0.6,
     distance: 15,
     minMatchCharLength: 1,
     keys: ["fname"],
     useExtendedSearch: true,
     includeScore: true,
-    // As long as we have ignoreLocation set to true location the location
-    // value should be ignored.
     location: 0,
     ignoreLocation: true,
     ignoreFieldNorm: true,
-    ...opts,
   };
+  const options = { ...baseOptions, ...opts } as any;
   if (opts.preset === "schema") {
     options.keys = ["fname", "id"];
   }
@@ -160,7 +158,7 @@ export class FuseEngine {
     let items: SchemaProps[];
     if (qs === "") {
       const results = this.schemaIndex.search("root");
-      items = [results[0].item];
+      items = [results[0]!.item];
     } else if (qs === "*") {
       // @ts-ignore
       items = this.schemaIndex._docs;
@@ -212,8 +210,8 @@ export class FuseEngine {
       results = this.postQueryFilter({
         results,
         queryString: formattedQS,
-        onlyDirectChildren,
-      });
+        onlyDirectChildren: onlyDirectChildren as boolean | undefined,
+      } as any);
 
       if (originalQS === undefined) {
         // TODO: add log WARN (does not appear to be easily accessible logger in common-all)
@@ -260,7 +258,7 @@ export class FuseEngine {
         vault,
         updated,
         stub,
-      }))
+      })) as any
     );
   }
 
@@ -397,7 +395,7 @@ export class FuseEngine {
       const idx = sorted.findIndex((res) => res.item.fname === originalQS);
       if (idx !== -1) {
         const [spliced] = sorted.splice(idx, 1);
-        sorted.unshift(spliced);
+        sorted.unshift(spliced!);
       }
     }
 

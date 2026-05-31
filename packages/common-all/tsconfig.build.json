@@ -3,6 +3,7 @@
   "compilerOptions": {
     "outDir": "lib",
     "rootDir": "src"
+    // Strict fully enabled (inherits noUncheckedIndexedAccess + exactOptionalPropertyTypes from root)
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "**/*-spec.ts", "**/*.d.ts"]

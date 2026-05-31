@@ -90,7 +90,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
       data: bulkResponses
         .flatMap((response) => response.data)
         .filter(isNotUndefined),
-    };
+    } as BulkGetNoteResp;
   }
 
   /**
@@ -108,7 +108,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
       data: bulkResponses
         .flatMap((response) => response.data)
         .filter(isNotUndefined),
-    };
+    } as BulkGetNoteMetaResp;
   }
 
   /**
@@ -143,7 +143,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
       data: writeResponses
         .flatMap((response) => response.data)
         .filter(isNotUndefined),
-    };
+    } as BulkWriteNotesResp;
   }
 
   /**
@@ -168,7 +168,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
         error: new DendronError({
           status: ERROR_STATUS.DOES_NOT_EXIST,
           message: `Unable to delete ${id}: Note does not exist`,
-        }),
+        }) as any,
       };
     }
     // Temp solution to get around current restrictions where NoteChangeEntry needs a NoteProp
@@ -183,7 +183,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
         error: new DendronError({
           status: ERROR_STATUS.NO_PARENT_FOR_NOTE,
           message: `No parent found for ${noteToDelete.fname}`,
-        }),
+        }) as any,
       };
     }
     const parentResp = await this.noteStore.get(noteToDelete.parent);
@@ -193,7 +193,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
           status: ERROR_STATUS.NO_PARENT_FOR_NOTE,
           message: `Unable to delete ${noteToDelete.fname}: Note's parent does not exist in engine: ${noteToDelete.parent}`,
           innerError: parentResp.error,
-        }),
+        }) as any,
       };
     }
 
@@ -228,7 +228,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
             error: new DendronError({
               status: ERROR_STATUS.NO_PARENT_FOR_NOTE,
               message: `No parent found for ${parentNote.fname}`,
-            }),
+            }) as any,
           };
         }
         // eslint-disable-next-line no-await-in-loop
@@ -241,7 +241,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
             error: new DendronError({
               status: ERROR_STATUS.NO_PARENT_FOR_NOTE,
               message: `Unable to delete ${noteToDelete.fname}: Note ${parentNote?.fname}'s parent does not exist in engine: ${parentNote.parent}`,
-            }),
+            }) as any,
           };
         }
       }
@@ -268,7 +268,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
           message: `Unable to delete note ${id}`,
           severity: ERROR_SEVERITY.MINOR,
           payload: deleteResp.error,
-        }),
+        }) as any,
       };
     }
 
@@ -302,9 +302,9 @@ export abstract class EngineV3Base implements ReducedDEngine {
       vault.selfContained = vault.selfContained === "true";
 
     const response = await this.queryStore.queryNotes(qs, {
-      onlyDirectChildren,
+      onlyDirectChildren: onlyDirectChildren as boolean | undefined,
       originalQS,
-    });
+    } as any);
     if (response.isErr()) {
       // TODO: need to return an error
       return [];
@@ -420,7 +420,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
       const notes = await this.noteStore.find({
         fname: link.to.fname,
         vault: maybeVault,
-      });
+      } as any);
       if (notes.data) {
         return Promise.all(
           notes.data.map(async (note) => {
@@ -459,7 +459,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
       const notes = await this.noteStore.find({
         fname: link.to.fname,
         vault: maybeVault,
-      });
+      } as any);
       if (notes.data) {
         return Promise.all(
           notes.data.map(async (note) => {

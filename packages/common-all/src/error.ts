@@ -13,35 +13,35 @@ export type DendronErrorProps<TCode = StatusCodes | undefined> = {
   /**
    * See {@link ERROR_SEVERITY}
    */
-  severity?: ERROR_SEVERITY;
+  severity?: ERROR_SEVERITY | undefined;
 
   /**
    * Optional HTTP status code for error
    */
-  code?: TCode;
+  code?: TCode | undefined;
 
   /**
    * @deprecated - should only used in DendronServerError
    * Custom status errors
    */
-  status?: string;
+  status?: string | undefined;
 
   /**
    * Inner Error object
    */
-  innerError?: Error;
+  innerError?: Error | undefined;
 } & Error;
 
 type ServerErrorProps = {
   /**
    * Custom status errors
    */
-  status?: string;
+  status?: string | undefined;
 
   /**
    * Optional HTTP status code for error
    */
-  code?: StatusCodes;
+  code?: StatusCodes | undefined;
 };
 
 export type IDendronError<TCode = StatusCodes | undefined> =
@@ -51,11 +51,11 @@ export class DendronError<TCode = StatusCodes | undefined>
   extends Error
   implements IDendronError<TCode>
 {
-  public status?: string;
-  public payload?: string;
-  public severity?: ERROR_SEVERITY;
-  public code?: TCode;
-  public innerError?: Error;
+  public status?: string | undefined;
+  public payload?: string | undefined;
+  public severity?: ERROR_SEVERITY | undefined;
+  public code?: TCode | undefined;
+  public innerError?: Error | undefined;
 
   /** The output that may be displayed to a person if they encounter this error. */
   public stringifyForHumanReading() {
@@ -148,14 +148,15 @@ export class DendronError<TCode = StatusCodes | undefined>
     this.code = code;
     this.innerError = innerError;
     if (innerError) {
-      this.stack = innerError.stack;
+      this.stack = innerError.stack!;
     }
   }
 }
 
-export class DendronCompositeError extends Error implements IDendronError {
+export class DendronCompositeError extends Error
+  implements IDendronError {
   public payload: DendronErrorProps[];
-  public severity?: ERROR_SEVERITY;
+  public severity?: ERROR_SEVERITY | undefined;
   public errors: IDendronError[];
 
   constructor(errors: IDendronError[]) {
@@ -181,7 +182,7 @@ export class DendronCompositeError extends Error implements IDendronError {
 
     // sometimes a composite error can be of size one. unwrap and show regular error message in this case
     if (this.errors.length === 1) {
-      this.message = this.errors[0].message;
+      this.message = this.errors[0]!.message;
     } else if (this.errors.length > 1) {
       const out = ["Multiple errors: "];
       const messages = this.errors.map((err) => ` - ${err.message}`);
@@ -228,12 +229,12 @@ export class DendronServerError
   /**
    * Optional HTTP status code for error
    */
-  public code?: StatusCodes;
+  declare public code?: StatusCodes | undefined;
 
   /**
    * Custom status errors
    */
-  public status?: string;
+  declare public status?: string | undefined;
 }
 
 export class IllegalOperationError extends DendronError {}
@@ -414,3 +415,14 @@ export function isTSError(err: any): err is Error {
     (err as Error).message !== undefined && (err as Error).name !== undefined
   );
 }
+
+/**
+ * === Enhance-in-place note (monorepo-architect common-errors phase, 2026-06) ===
+ * Error creation surface extended via src/errors/ barrel (IErrorService + DefaultErrorService + ERROR_SERVICE_TOKEN).
+ * Static ErrorFactory / DendronError / new Error* remain 100% stable + primary for non-DI code.
+ * DI registration happens in plugin-core/di (TOKENS.ErrorService) via existing register* (no change to this file's exports).
+ * See src/errors/ErrorService.ts + common-errors-proposal.md (Execution started) + ADR 0001 appendix.
+ * 4-axis: Vol 860+89 / DI HIGH (first post-common-di service) / @ts MED / Risk LOW (pure inside common-all).
+ * Worktree: subagent-monorepo-errors-019e7ce2-e26f-7531-9e1d-85bd985b9760 (feature/common-errors-enhance-in-place).
+ * Credits: Dep-Hunter 019e7cda-a3cc-7122-b0c6-b1f9de1b7ba7 266s/58 + pulled M2 Doc-Master 285.4s/60 + Test-Guardian 239.2s/55 + Monorepo scaffolds + burner 330s/74 + orchestra. THE CHAIN DOES NOT STOP.
+ */

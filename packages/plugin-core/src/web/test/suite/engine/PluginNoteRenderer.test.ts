@@ -5,7 +5,7 @@ import {
   NoteProps,
 } from "@dendronhq/common-all";
 import assert from "assert";
-import { container } from "tsyringe";
+import { container } from "../../../../di/inject";
 import { DendronEngineV3Web } from "../../../engine/DendronEngineV3Web";
 import { PluginNoteRenderer } from "../../../engine/PluginNoteRenderer";
 import { setupTestEngineContainer } from "../../helpers/setupTestEngineContainer";

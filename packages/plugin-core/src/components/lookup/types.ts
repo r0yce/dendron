@@ -35,88 +35,88 @@ export enum DendronQuickPickState {
 export type DendronQuickPickItemV2 = QuickPick<DNodePropsQuickInputV2>;
 export type DendronQuickPickerV2 = DendronQuickPickItemV2 & {
   // --- Private State
-  _justActivated?: boolean;
+  _justActivated?: boolean | undefined;
 
   // --- Public Props
   /**
    * Quickpick will hide results that aren't matched by VSCode internal filter.
    * Setting this true will always show ALL results that lookup returns
    */
-  alwaysShowAll?: boolean;
+  alwaysShowAll?: boolean | undefined;
   state: DendronQuickPickState;
   /**
    * Buttons control modifiers for lookup
    */
   buttons: DendronBtn[];
-  nonInteractive?: boolean;
-  prev?: { activeItems: any; items: any };
+  nonInteractive?: boolean | undefined;
+  prev?: { activeItems: any; items: any } | undefined;
   /**
    * Used by {@link DendronBtn} to store tmp state
    */
-  prevValue?: string;
+  prevValue?: string | undefined;
   /**
    * Previous value in quickpick
    */
-  prevQuickpickValue?: string;
+  prevQuickpickValue?: string | undefined;
 
   /**
    * Value before being modified
    */
   rawValue: string;
   prefix: string;
-  noteModifierValue?: string;
-  selectionModifierValue?: string;
-  onCreate?: (note: DNodeProps) => Promise<DNodeProps | undefined>;
+  noteModifierValue?: string | undefined;
+  selectionModifierValue?: string | undefined;
+  onCreate?: ((note: DNodeProps) => Promise<DNodeProps | undefined>) | undefined;
 
-  showDirectChildrenOnly?: boolean;
+  showDirectChildrenOnly?: boolean | undefined;
   // pagiation
-  offset?: number;
-  moreResults?: boolean;
-  allResults?: DNodeProps[];
+  offset?: number | undefined;
+  moreResults?: boolean | undefined;
+  allResults?: DNodeProps[] | undefined;
   /**
    * Should VSCode managing sorting of results?
    * Supported in VSCode but not added to the type definition files, see https://github.com/microsoft/vscode/issues/73904#issuecomment-680298036
    */
-  sortByLabel?: boolean;
+  sortByLabel?: boolean | undefined;
   /**
    * Vault for newly created note. If not specified in picker,
    * will be prmpted
    */
-  vault?: DVault;
+  vault?: DVault | undefined;
   // --- Methods
   /**
    * Filter results through filter middleware
    */
-  filterMiddleware?: FilterQuickPickFunction;
+  filterMiddleware?: FilterQuickPickFunction | undefined;
   /**
    * Modify picker value
    */
-  modifyPickerValueFunc?: ModifyPickerValueFunc;
+  modifyPickerValueFunc?: ModifyPickerValueFunc | undefined;
   /**
    * Method to process selected text in active note.
    */
-  selectionProcessFunc?: SelectionProcessFunc;
+  selectionProcessFunc?: SelectionProcessFunc | undefined;
   /**
    *
    */
-  itemsFromSelection?: DNodePropsQuickInputV2[];
+  itemsFromSelection?: DNodePropsQuickInputV2[] | undefined;
   /**
    * select all when quickpick is created and canSelectMany
    * NOTE: this is only used with multiSelect + selection2Items
    */
-  selectAll?: boolean;
+  selectAll?: boolean | undefined;
   /**
    * Method to copy note link
    */
-  copyNoteLinkFunc?: CopyNoteLinkFunc;
+  copyNoteLinkFunc?: CopyNoteLinkFunc | undefined;
   /**
    * Should show a subsequent picker?
    */
-  nextPicker?: (opts: any) => any;
+  nextPicker?: ((opts: any) => any) | undefined;
   /**
    * TODO: should be required
    */
-  showNote?: (uri: Uri) => Promise<TextEditor>;
+  showNote?: ((uri: Uri) => Promise<TextEditor>) | undefined;
 };
 
 export enum VaultSelectionMode {

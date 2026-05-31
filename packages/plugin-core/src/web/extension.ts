@@ -1,7 +1,7 @@
 import "reflect-metadata"; // This needs to be the topmost import for tsyringe to work
 
 import { TreeViewItemLabelTypeEnum, VSCodeEvents } from "@dendronhq/common-all";
-import { container } from "tsyringe";
+import { container } from "../di/inject";
 import * as vscode from "vscode";
 import { NoteLookupAutoCompleteCommand } from "../commands/common/NoteLookupAutoCompleteCommand";
 import { DENDRON_COMMANDS } from "../constants";

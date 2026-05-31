@@ -16,7 +16,7 @@ export type TreeMenuNode = {
   hasTitleNumberOutlined: boolean;
   vaultName: string;
   children?: TreeMenuNode[];
-  contextValue?: string;
+  contextValue?: string | undefined;
 };
 
 const treeMenuNodeSchema: z.ZodType<TreeMenuNode> = z.lazy(() =>
@@ -187,7 +187,7 @@ export class TreeUtils {
         .map((note) => this.createTreeFromEngine(allNotes, note));
 
       const fnames = note.fname.split(".");
-      return { fname: fnames[fnames.length - 1], children };
+      return { fname: fnames[fnames.length - 1]!, children };
     } else {
       throw new DendronError({
         message: `No note found in engine for "${rootNoteId}"`,
@@ -251,7 +251,7 @@ export class TreeUtils {
     }
 
     for (const [idx, value] of expectedTree.children.entries()) {
-      const resp = this.validateTreeNodes(value, actualTree.children[idx]);
+      const resp = this.validateTreeNodes(value, actualTree.children[idx]!);
       if (resp.error) {
         return {
           error: new DendronError({

@@ -1,10 +1,12 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "ES2019",
+    "moduleResolution": "node",
+    "target": "ES2022",
     "lib": [
-      "es2019",
-      "es2020.string"
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
     ],
     "sourceMap": true,
     "allowSyntheticDefaultImports": true,
@@ -21,6 +23,9 @@
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    // --- Full strict mode enabled (2026 Modernization Pass)
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     // --- language features
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,

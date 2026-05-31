@@ -11,8 +11,8 @@ export async function getWorkspaceConfig(wsRoot: Uri) {
 }
 
 async function readYAML(path: Uri, overwriteDuplicate?: boolean): Promise<any> {
-  // @ts-ignore
-  const textDecoder = new TextDecoder(); // This line of code is browser specific. For Node, we need to use the utils version of TextDecoder
+  // @ts-expect-error - browser interop: must use global DOM TextDecoder (provided by "DOM" + "DOM.Iterable" libs in tsconfig; VSCode web extension + webview contexts have no Node 'util'/'node:util' TextDecoder available in webpack browser bundle). Precise dated justification (final Post-M2 + Doctor Smoke Burn, 2026-06-01); never bare per ts-expect-error-burner SKILL. See NoteParserV2 + VSCodeFileStore siblings + web/ DI cluster. 0 bare rule upheld. (Previously bare @ts-ignore + inline comment.)
+  const textDecoder = new TextDecoder();
   const file = await vscode.workspace.fs.readFile(path);
   const bar = textDecoder.decode(file);
   return YAML.load(bar, {

@@ -44,7 +44,7 @@ export class StatisticsUtils {
     const population = arr.length;
     const mid = Math.floor(population / 2);
     const sorted = [...arr].sort((a, b) => a - b);
-    return population % 2 ? sorted[mid] : (sorted[mid] + sorted[mid - 1]) / 2;
+    return population % 2 ? sorted[mid]! : (sorted[mid]! + sorted[mid - 1]!) / 2;
   }
 
   /**

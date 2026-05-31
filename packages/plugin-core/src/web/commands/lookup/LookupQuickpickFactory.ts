@@ -7,7 +7,7 @@ import {
   type ReducedDEngine,
 } from "@dendronhq/common-all";
 import _ from "lodash";
-import { inject, injectable } from "tsyringe";
+import { inject, injectable } from "../../../di/inject";
 import * as vscode from "vscode";
 import { Event, QuickPick, QuickPickOptions } from "vscode";
 import { Utils } from "vscode-uri";
@@ -33,6 +33,7 @@ export type LookupAcceptPayload = {
 @injectable()
 export class LookupQuickpickFactory {
   constructor(
+    // Centralized @ts absorption in di/inject.ts helper (Batch 2 burn by subagent 019e7cb5-0da5-7c90-8d36-d42e6642ec0f + main integration: wrapper delivers suppression centrally per Monorepo-Architect 4-axis endorsement of di-container-proposal as #1 @ts-burn + DI priority + ADR 0001; 2026-05-30; usage now clean, per-site @ts removed)
     @inject("ReducedDEngine") private _engine: ReducedDEngine,
     @inject("vaults") private vaults: DVault[],
     @inject("AutoCompleteEvent") private tabAutoCompleteEvent: Event<void>,

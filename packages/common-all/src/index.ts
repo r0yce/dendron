@@ -10,6 +10,9 @@ export * from "./assert";
 export * from "./uuid";
 export * from "./constants";
 export * from "./error";
+// Enhance-in-place: ErrorService + token + typed v2 (common-errors priority #2 post common-di).
+// Barrel enables: import { IErrorService, DefaultErrorService, ERROR_SERVICE_TOKEN } from "@dendronhq/common-all"
+export * from "./errors";
 export * from "./time";
 export * from "./utils";
 export * from "./md";

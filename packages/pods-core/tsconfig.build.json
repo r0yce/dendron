@@ -3,6 +3,11 @@
   "compilerOptions": {
     "outDir": "lib",
     "rootDir": "src",
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "emailjs": ["src/typings/emailjs.d.ts"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "**/*-spec.ts"]

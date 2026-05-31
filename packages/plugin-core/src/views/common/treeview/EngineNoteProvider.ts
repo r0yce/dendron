@@ -6,7 +6,7 @@ import {
   TreeViewItemLabelTypeEnum,
 } from "@dendronhq/common-all";
 import _ from "lodash";
-import { inject, injectable } from "tsyringe";
+import { inject, injectable } from "../../../di/inject";
 import * as vscode from "vscode";
 import {
   Disposable,
@@ -51,6 +51,7 @@ export class EngineNoteProvider
    * engine
    */
   constructor(
+    // Centralized @ts absorption in di/inject.ts helper (Wave-1 burner batch 1 + Monorepo-Architect endorsement of di-container proposal as #1 @ts-burn + DI priority, 2026-05-31)
     @inject("wsRoot") private wsRoot: URI,
     @inject("ReducedDEngine")
     private engine: ReducedDEngine,
