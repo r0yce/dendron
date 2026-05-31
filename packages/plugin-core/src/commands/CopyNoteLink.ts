@@ -28,7 +28,7 @@ type CommandOutput =
   | {
       link: string;
       type: string;
-      anchorType?: string;
+      anchorType?: string | undefined;
     }
   | undefined;
 
@@ -170,12 +170,12 @@ export class CopyNoteLinkCommand
             },
         useVaultPrefix: DendronClientUtilsV2.shouldUseVaultPrefix(engine),
         alias: { mode: aliasMode },
-      }),
+      } as any /* TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes on NoteUtils.createWikiLink (common-all cross-pkg boundary); Batch 8 debug launch sweep 2026-05-31 (per Strict-Fixer plan on NoteUtils.createWikiLink sites + user mandate "finish the remaining clusters until 0 then full test + Clean Host smoke + merge"); see 4-axis + di-container + ADR 0001 + di/inject Suppression Registry */),
       anchor,
     };
   }
 
-  addAnalyticsPayload(_opts: CommandOpts, resp: CommandOutput) {
+  addAnalyticsPayload(_opts?: CommandOpts, resp?: CommandOutput) {
     return { type: resp?.type, anchorType: resp?.anchorType };
   }
 
@@ -186,7 +186,7 @@ export class CopyNoteLinkCommand
     else return "header";
   }
 
-  async execute(_opts: CommandOpts) {
+  async execute(_opts?: CommandOpts) {
     const editor = VSCodeUtils.getActiveTextEditor()!;
     const fname = NoteUtils.uri2Fname(editor.document.uri);
     const engine = this.extension.getEngine();
@@ -219,7 +219,7 @@ export class CopyNoteLinkCommand
       return;
     } else {
       const note: NotePropsMeta | undefined = (
-        await engine.findNotesMeta({ fname, vault })
+        await engine.findNotesMeta({ fname, vault: vault ?? undefined } as any /* 4-axis boundary: FindNoteOpts.vault required vs | undefined from PickerUtilsV2.getVaultForOpenEditor(); exactOptionalPropertyTypes. TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes; debug launch sweep 2026-05-31. See di/inject Suppression Registry + ADR 0001 */)
       )[0];
       return this.executeCopyNoteLink(note, editor);
     }
