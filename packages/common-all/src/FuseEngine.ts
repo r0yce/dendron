@@ -29,7 +29,6 @@ export const FuseExtendedSearchConstants = {
   PrefixExactMatch: "^",
 };
 
-// @ts-expect-error strict-mode options during sprint cleanup
 function createFuse<T>(
   initList: T[],
   opts: Fuse.IFuseOptions<T> & {
@@ -39,7 +38,7 @@ function createFuse<T>(
 ) {
   const baseOptions: Fuse.IFuseOptions<T> = {
     shouldSort: true,
-    threshold: opts.threshold,
+    threshold: opts.threshold ?? 0.6,
     distance: 15,
     minMatchCharLength: 1,
     keys: ["fname"],

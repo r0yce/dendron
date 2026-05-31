@@ -112,21 +112,22 @@ export class DNodeUtils {
     return cleanProps;
   }
 
-  static basename(nodePath: string, rmExtension?: boolean) {
+  static basename(nodePath: string, rmExtension?: boolean): string {
     //skip for nodePath that has a sub-hierarchy starting with .md eg: learn.mdone.test, learn.md-one.new
     if (rmExtension && nodePath.endsWith(".md")) {
-      nodePath = nodePath.slice(undefined, -3);
+      nodePath = nodePath.slice(0, -3);
     }
     const [first, ...rest] = nodePath.split(".");
-    return _.isEmpty(rest) ? first : rest.slice(-1)[0];
+    const last = rest.slice(-1)[0];
+    return (_.isEmpty(rest) ? first : last) ?? nodePath;
   }
 
   static dirName(nodePath: string) {
     return nodePath.split(".").slice(0, -1).join(".");
   }
 
-  static domainName(nodePath: string) {
-    return nodePath.split(".")[0];
+  static domainName(nodePath: string): string {
+    return nodePath.split(".")[0]!;
   }
 
   static fname(nodePath: string) {

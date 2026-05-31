@@ -13,35 +13,35 @@ export type DendronErrorProps<TCode = StatusCodes | undefined> = {
   /**
    * See {@link ERROR_SEVERITY}
    */
-  severity?: ERROR_SEVERITY;
+  severity?: ERROR_SEVERITY | undefined;
 
   /**
    * Optional HTTP status code for error
    */
-  code?: TCode;
+  code?: TCode | undefined;
 
   /**
    * @deprecated - should only used in DendronServerError
    * Custom status errors
    */
-  status?: string;
+  status?: string | undefined;
 
   /**
    * Inner Error object
    */
-  innerError?: Error;
+  innerError?: Error | undefined;
 } & Error;
 
 type ServerErrorProps = {
   /**
    * Custom status errors
    */
-  status?: string;
+  status?: string | undefined;
 
   /**
    * Optional HTTP status code for error
    */
-  code?: StatusCodes;
+  code?: StatusCodes | undefined;
 };
 
 export type IDendronError<TCode = StatusCodes | undefined> =
@@ -49,11 +49,10 @@ export type IDendronError<TCode = StatusCodes | undefined> =
 
 export class DendronError<TCode = StatusCodes | undefined>
   extends Error
-  // @ts-expect-error strict-mode: interface shape under exactOptionalPropertyTypes during cleanup
   implements IDendronError<TCode>
 {
-  public status?: string;
-  public payload?: string;
+  public status?: string | undefined;
+  public payload?: string | undefined;
   public severity?: ERROR_SEVERITY | undefined;
   public code?: TCode | undefined;
   public innerError?: Error | undefined;
@@ -134,7 +133,7 @@ export class DendronError<TCode = StatusCodes | undefined>
     super(message);
     this.name = "DendronError";
     this.status = status || "unknown";
-    this.severity = severity ?? undefined;
+    this.severity = severity;
     this.message = message || "";
     if (payload?.message && payload?.stack) {
       this.payload = JSON.stringify({
@@ -146,8 +145,8 @@ export class DendronError<TCode = StatusCodes | undefined>
     } else {
       this.payload = JSON.stringify(payload || {});
     }
-    this.code = code ?? undefined;
-    this.innerError = innerError ?? undefined;
+    this.code = code;
+    this.innerError = innerError;
     if (innerError) {
       this.stack = innerError.stack!;
     }
@@ -155,7 +154,6 @@ export class DendronError<TCode = StatusCodes | undefined>
 }
 
 export class DendronCompositeError extends Error
-  // @ts-expect-error strict-mode during cleanup
   implements IDendronError {
   public payload: DendronErrorProps[];
   public severity?: ERROR_SEVERITY | undefined;
@@ -192,7 +190,6 @@ export class DendronCompositeError extends Error
     }
   }
 
-  // @ts-expect-error strict-mode predicate during cleanup
   static isDendronCompositeError(
     error: IDendronError
   ): error is DendronCompositeError {
@@ -227,18 +224,17 @@ export function errorsList(error: any) {
 
 export class DendronServerError
   extends DendronError
-  // @ts-expect-error strict-mode during cleanup
   implements IDendronError, ServerErrorProps
 {
   /**
    * Optional HTTP status code for error
    */
-  declare public code?: StatusCodes;
+  declare public code?: StatusCodes | undefined;
 
   /**
    * Custom status errors
    */
-  declare public status?: string;
+  declare public status?: string | undefined;
 }
 
 export class IllegalOperationError extends DendronError {}

@@ -21,45 +21,45 @@ const searchModeSchema = z.enum([SearchMode.SEARCH, SearchMode.LOOKUP]);
  * Namespace for all publishing related configurations
  */
 export type DendronPublishingConfig = {
-  enableFMTitle?: boolean; // TODO: split implementation to respect non-global config
-  enableHierarchyDisplay?: boolean; // TODO: split
-  hierarchyDisplayTitle?: string; // TODO: split
-  enableNoteTitleForLink?: boolean; // TODO: split
-  enablePrettyRefs?: boolean;
-  enableBackLinks?: boolean;
-  enableKatex?: boolean;
+  enableFMTitle?: boolean | undefined; // TODO: split implementation to respect non-global config
+  enableHierarchyDisplay?: boolean | undefined; // TODO: split
+  hierarchyDisplayTitle?: string | undefined; // TODO: split
+  enableNoteTitleForLink?: boolean | undefined; // TODO: split
+  enablePrettyRefs?: boolean | undefined;
+  enableBackLinks?: boolean | undefined;
+  enableKatex?: boolean | undefined;
 
-  assetsPrefix?: string;
+  assetsPrefix?: string | undefined;
   copyAssets: boolean;
 
-  canonicalBaseUrl?: string;
-  customHeaderPath?: string;
-  ga?: GoogleAnalyticsConfig;
-  logoPath?: string;
-  siteFaviconPath?: string;
-  siteIndex?: string;
+  canonicalBaseUrl?: string | undefined;
+  customHeaderPath?: string | undefined;
+  ga?: GoogleAnalyticsConfig | undefined;
+  logoPath?: string | undefined;
+  siteFaviconPath?: string | undefined;
+  siteIndex?: string | undefined;
   siteHierarchies: string[];
   enableSiteLastModified: boolean;
   siteRootDir: string;
-  siteUrl?: string;
-  enableFrontmatterTags: boolean;
-  enableHashesForFMTags: boolean;
-  enableRandomlyColoredTags?: boolean;
-  enableTaskNotes?: boolean;
-  hierarchy?: { [key: string]: HierarchyConfig };
-  duplicateNoteBehavior?: DuplicateNoteBehavior;
+  siteUrl?: string | undefined;
+  enableFrontmatterTags: boolean | undefined;
+  enableHashesForFMTags: boolean | undefined;
+  enableRandomlyColoredTags?: boolean | undefined;
+  enableTaskNotes?: boolean | undefined;
+  hierarchy?: { [key: string]: HierarchyConfig } | undefined;
+  duplicateNoteBehavior?: DuplicateNoteBehavior | undefined;
   writeStubs: boolean;
   seo: SEOConfig;
-  github?: GithubConfig;
-  theme?: Theme;
-  segmentKey?: string;
-  cognitoUserPoolId?: string;
-  cognitoClientId?: string;
+  github?: GithubConfig | undefined;
+  theme?: Theme | undefined;
+  segmentKey?: string | undefined;
+  cognitoUserPoolId?: string | undefined;
+  cognitoClientId?: string | undefined;
   enablePrettyLinks: boolean;
-  siteBanner?: string;
-  giscus?: GiscusConfig;
-  sidebarPath?: string | false;
-  searchMode?: SearchMode;
+  siteBanner?: string | undefined;
+  giscus?: GiscusConfig | undefined;
+  sidebarPath?: string | false | undefined;
+  searchMode?: SearchMode | undefined;
 };
 
 export type CleanDendronPublishingConfig = DendronPublishingConfig &

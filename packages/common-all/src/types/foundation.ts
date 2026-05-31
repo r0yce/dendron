@@ -200,7 +200,7 @@ export type DNodeProps<T = any, TCustom = any> = DNodeExplicitProps & {
   color?: string;
 
   /** One or more frontmatter tags attached to this note. */
-  tags?: string | string[];
+  tags?: string | string[] | undefined;
 
   /** To be used by social media platforms as a thumbnail/preview. */
   image?: DNodeImage;

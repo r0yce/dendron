@@ -41,8 +41,8 @@ export function getTextRange(text: string, range: VSRange): string {
   const lines = text.split("\n").splice(start.line, end.line - start.line + 1);
   if (lines.length === 0) return "";
   // Do the end first in case there is just one line, otherwise the end of the string would shift
-  lines[lines.length - 1] = lines[lines.length - 1].substring(0, end.character);
-  lines[0] = lines[0].substring(start.character);
+  lines[lines.length - 1] = lines[lines.length - 1]!.substring(0, end.character);
+  lines[0] = lines[0]!.substring(start.character);
   return lines.join("\n");
 }
 

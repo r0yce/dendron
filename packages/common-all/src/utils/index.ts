@@ -427,7 +427,7 @@ export class TagUtils {
     newTag?: string;
   }) {
     if (_.isUndefined(note.tags) || _.isString(note.tags)) {
-      note.tags = newTag;
+      note.tags = newTag ?? undefined;
     } else {
       const index = _.findIndex(note.tags, (tag) => tag === oldTag);
       if (newTag) {
@@ -967,7 +967,7 @@ export class ConfigUtils {
     }
 
     const minCompatClientVersion =
-      CONFIG_TO_MINIMUM_COMPAT_MAPPING[configVersion].clientVersion;
+      CONFIG_TO_MINIMUM_COMPAT_MAPPING[configVersion]!.clientVersion;
 
     if (_.isUndefined(minCompatClientVersion)) {
       throw new DendronError({

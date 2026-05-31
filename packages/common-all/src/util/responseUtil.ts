@@ -19,7 +19,7 @@ export class ResponseUtil {
   static createUnhappyResponse<T>(input: { error: DendronError }): RespV2<T> {
     return {
       error: input.error,
-      data: undefined,
-    };
+      // data intentionally omitted (exactOptionalPropertyTypes)
+    } as RespV2<T>;
   }
 }

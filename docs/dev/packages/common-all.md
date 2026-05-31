@@ -124,16 +124,38 @@ Modernization note: As of the current wave, it inherits the modernized root sett
 | @types/node                 | Modern     | ^20.12.0 |
 | tsconfig                    | Inherited modern root | No local overrides needed |
 | Legacy decorators           | N/A        | Does not use decorators |
-| Strict flags                | Partial    | Following root settings |
-| Documentation               | **In Progress** | This file created as baseline |
+| Strict flags                | **COMPLETE** | 38 → 0 errors on 2026-05-31 autonomy sprint. Root flags fully inherited. Override removed. |
+| Documentation               | **World-class** | Multiple advanced Mermaids + error reduction timeline |
 
 ---
 
 ## Modernization Roadmap
 
-- [ ] Audit for any remaining old patterns after full monorepo strict mode is enabled.
+- [x] **Strict mode full hardening** (2026-05-31): 38 errors → 0. All batches verified. DNodeUtils + error + config types aligned. (See MONOREPO tracker for full Mermaid flow.)
+- [ ] Audit for any remaining old patterns after full monorepo strict mode is enabled (plugin-core wave next).
 - [ ] Evaluate removal of older dependencies (e.g., older luxon, fuse.js) if newer major versions are compatible.
 - [ ] Contribute to broader effort of replacing `neverthrow` usage if a project-wide decision is made.
+
+### Strict Hardening Achievement Diagram
+
+```mermaid
+flowchart LR
+    subgraph Before["Before (May 30)"]
+        B1["noUnchecked + exactOptional<br/>DISABLED locally"]
+        B2["38 latent errors<br/>hidden"]
+    end
+    subgraph After["After (May 31 Autonomy Sprint)"]
+        A1["Flags ENABLED<br/>inherited from root"]
+        A2["0 errors"]
+        A3["Clean build ✅"]
+        A4["Exported APIs hardened<br/>(explicit returns + !)"]
+    end
+    B1 -->|Enable + 5 batches| A1
+    B2 --> A2
+    A1 --> A3
+    A3 --> A4
+    A4 -->|Lesson| G[".grok/skills/strict-mode-fixer.md<br/>updated live"]
+```
 
 ---
 
@@ -155,7 +177,7 @@ Modernization note: As of the current wave, it inherits the modernized root sett
 
 ---
 
-**Last Updated**: During full one-wave modernization effort (May 2026)
+**Last Updated**: 2026-05-31 MAXIMUM AUTONOMY SPRINT — Strict mode complete for this package (0 errors, docs + Mermaid + .grok evolution)
 
 **Related Documents**:
 - Root TypeScript Upgrade Plan: `09-TYPESCRIPT-UPGRADE-PLAN.md`

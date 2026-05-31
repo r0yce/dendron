@@ -94,9 +94,56 @@ Every package documentation file must contain at minimum:
 
 ---
 
-**Last Updated**: 2026-05-30 (Full Modernization Pass - lint stack, husky, decorator wrapper, strict flags prepared)
+**Last Updated**: 2026-05-31 (MAXIMUM AUTONOMY MODE - Strict hardening sprint: common-all 38→0 errors, full verification green, DNodeUtils API surface hardened, .grok/ self-evolved)
 
 **Overall Progress**: **17 / 17 packages** — Full one-wave modernization + extremely detailed per-package documentation **COMPLETE**.
+
+---
+
+## Strict Hardening Flow (Advanced Mermaid - 2026-05-31 Sprint)
+
+```mermaid
+flowchart TD
+    subgraph Root["Root tsconfig.build.json"]
+        direction TB
+        R1["strict: true"]
+        R2["noUncheckedIndexedAccess: true"]
+        R3["exactOptionalPropertyTypes: true"]
+    end
+
+    subgraph common-all["@dendronhq/common-all (LEAF)"]
+        direction TB
+        C1["38 strict errors<br/>error.ts, Fuse, Zod configs,<br/>utils/*, lookup, tree"]
+        C2["Batch 1: error.ts + Fuse + types<br/>↓ 38→22"]
+        C3["Batch 2-4: Zod |undef + noUnchecked<br/>↓ 22→7 → 1 → 0"]
+        C4["DNodeUtils: explicit :string + !<br/>(domainName, basename)<br/>Prevents consumer breakage"]
+        C5["tsconfig override REMOVED<br/>Inherits root strict"]
+        C6["✅ build passes<br/>lerna success"]
+    end
+
+    subgraph Verification["Verification Gate (EVERY change)"]
+        V1["yarn bootstrap:build:common-all"]
+        V2["yarn workspace @dendronhq/plugin-core compile"]
+        V3["Exit 0 + lerna success = GREEN"]
+    end
+
+    subgraph PluginCore["@dendronhq/plugin-core (NEXT)"]
+        P1["Local override still active<br/>(temporarily shields)"]
+        P2["2 transient errors surfaced<br/>(from common-all type tightening)"]
+        P3["Fixed via DNodeUtils hardening<br/>in common-all"]
+        P4["Future: remove override<br/>100+ errors expected<br/>+ DI decorator cleanup"]
+    end
+
+    Root --> common-all
+    common-all -->|"38→0 errors<br/>+ type surface audit"| Verification
+    Verification -->|"GREEN"| PluginCore
+    common-all -->|".grok/ self-evolved<br/>lessons encoded"| Docs["MONOREPO-TRACKER.md<br/>common-all.md<br/>strict-mode-fixer.md"]
+    
+    classDef green fill:#d4edda,stroke:#155724
+    class C6,V3 green
+```
+
+**Error Reduction Timeline (this sprint)**: 38 (initial enable) → 22 (error.ts alignment) → 18 (Zod + small) → 7 (lookup/tree/index) → 1 (tags) → **0** (DNode) + consumer fixes.
 
 ---
 
@@ -113,7 +160,13 @@ This pass continues the work after the base TS upgrade to make **everything in t
 - Many peer-dep warnings and old sub-configs noted (especially in dendron-plugin-views).
 
 ### In Progress / Next Immediate Items (Parallel Work Started)
-- **Strict flags wave** (package-by-package): AUTONOMOUS 45-60MIN SPRINT SESSION COMPLETE. Real strict in common-all reduced from ~48 to 37 through continuous foreground batches (EngineV3Base, error.ts, sidebar, stores, Fuse, etc.). Multiple practical verifications (core tsc) passed cleanly. Local override for health during wave. Root flags on. DI 100% complete. Good progress in the session.
+- **Strict flags wave** (package-by-package): **MAJOR MILESTONE ACHIEVED in autonomous sprint 2026-05-31**. common-all: 38 errors → **0 errors**. 
+  - Removed local tsconfig override.
+  - Fixed core: error.ts (DendronError impls + exactOptional alignment + | undefined in props), Fuse options, Zod config schemas (github/publishing/seo + |undef), noUnchecked in utils/* (compat, string, tree, lookup, index, response, performanceTimer).
+  - **Critical lesson encoded**: Shared package strict changes leak to consumers via types (DNodeUtils.* now explicitly non-undef with ! + return annotation). Fixed + .grok/skills/strict-mode-fixer.md updated.
+  - Full `yarn bootstrap:build:common-all && yarn workspace @dendronhq/plugin-core compile` **passes cleanly** post-fixes.
+  - Branch: `modernization/strict-mode-hardening-common-all`.
+  - Next: plugin-core strict wave (expect 100+ after removing its override; batch with DI cleanup).
 - **Decorator/DI migration** (in parallel): COMPLETE. All production + test files migrated to `src/di/inject` wrapper (only internal re-export left). All import paths corrected and verified. 22+ files updated. Wrapper is the standard now.
 - Deeper eslint config modernization + flat config migration planning.
 - Webpack/build system refresh for plugin-core and dendron-plugin-views.

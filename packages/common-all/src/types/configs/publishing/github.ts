@@ -11,12 +11,12 @@ export type GithubEditViewMode = keyof typeof GithubEditViewModeEnum;
  * Namespace for publishing related github configs
  */
 export type GithubConfig = {
-  cname?: string;
+  cname?: string | undefined;
   enableEditLink: boolean;
-  editLinkText?: string;
-  editBranch?: string;
-  editViewMode?: GithubEditViewMode;
-  editRepository?: string;
+  editLinkText?: string | undefined;
+  editBranch?: string | undefined;
+  editViewMode?: GithubEditViewMode | undefined;
+  editRepository?: string | undefined;
 };
 
 export function genDefaultGithubConfig(): GithubConfig {

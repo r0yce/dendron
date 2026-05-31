@@ -28,7 +28,7 @@ export type DendronConfig = {
   workspace: DendronWorkspaceConfig;
   preview: DendronPreviewConfig;
   publishing: DendronPublishingConfig;
-  dev?: DendronDevConfig;
+  dev?: DendronDevConfig | undefined;
 };
 
 export type TopLevelDendronConfig = keyof DendronConfig;

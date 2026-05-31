@@ -2,10 +2,8 @@
   "extends": "../../tsconfig.build.json",
   "compilerOptions": {
     "outDir": "lib",
-    "rootDir": "src",
-    // Autonomous sprint session: real strict reduced to 37. Override for clean verification. Root flags on.
-    "noUncheckedIndexedAccess": false,
-    "exactOptionalPropertyTypes": false
+    "rootDir": "src"
+    // Strict fully enabled (inherits noUncheckedIndexedAccess + exactOptionalPropertyTypes from root)
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "**/*-spec.ts", "**/*.d.ts"]

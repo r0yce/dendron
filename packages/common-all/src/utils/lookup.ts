@@ -39,17 +39,17 @@ export type TransformedQueryString = {
    * as example querying for 'h1.h4 hi' will match all the values that are within the
    * 'h1...h4...' hierarchy that also contain token 'hi'.
    * */
-  splitByDots?: string[];
+  splitByDots?: string[] | undefined;
 
   /**
    * If there is clear vault name within the query will be set to such vault name
    * otherwise it will be undefined.
    * */
-  vaultName?: string;
+  vaultName?: string | undefined;
 
   /**
    * Set to true when we only want to match direct children of the hierarchy. */
-  onlyDirectChildren?: boolean;
+  onlyDirectChildren?: boolean | undefined;
 
   /** Original query string value */
   originalQuery: string;
@@ -104,12 +104,12 @@ export class NoteLookupUtils {
     // otherwise, query engine for results
     const transformedQuery = NoteLookupUtils.transformQueryString({
       query: qsRaw,
-      onlyDirectChildren: showDirectChildrenOnly,
+      onlyDirectChildren: showDirectChildrenOnly ?? false,
     });
     let nodes = await engine.queryNotes({
       qs: transformedQuery.queryString,
       originalQS: qsRaw,
-      onlyDirectChildren: showDirectChildrenOnly,
+      onlyDirectChildren: showDirectChildrenOnly ?? false,
     });
 
     // limit number of results. currently, this is hardcoded and we don't paginate
@@ -207,7 +207,7 @@ function regularTransform(
     // https://regex101.com/r/vMwX9C/2
     const dotCandidateMatch = queryString.match(/(^[^\s]*?\.[^\s]*)/);
     if (dotCandidateMatch) {
-      const dotCandidate = dotCandidateMatch[1];
+      const dotCandidate = dotCandidateMatch[1]!;
 
       splitByDots = dotCandidate.split(".");
 

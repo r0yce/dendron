@@ -4,11 +4,11 @@ import { z, schemaForType } from "../../../parse";
  * Namespace for SEO related site configurations.
  */
 export type SEOConfig = {
-  title?: string;
-  description?: string;
-  author?: string;
-  twitter?: string;
-  image?: SEOImage;
+  title?: string | undefined;
+  description?: string | undefined;
+  author?: string | undefined;
+  twitter?: string | undefined;
+  image?: SEOImage | undefined;
 };
 
 export type SEOImage = {
