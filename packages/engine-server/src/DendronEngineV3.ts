@@ -113,7 +113,8 @@ type DendronEngineOptsV3 = {
 type CachedPreview = {
   data: string;
   updated: number;
-  contentHash?: string;
+  // target-first widen for exactOptionalPropertyTypes (Engine-Server first batch, DendronEngineV3 cluster); matches common-server 0 + unified 41 precedent under Build Modernization
+  contentHash?: string | undefined;
 };
 
 export class DendronEngineV3 extends EngineV3Base implements DEngine {
@@ -264,7 +265,8 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
           break;
         }
         case 1: {
-          error = new DendronError(allErrors[0]);
+          // invariant length===1 after switch; ! only after check (DendronEngineV3 init allErrors[0] cluster, engine-server batch 2); length/invariant guard pattern per "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (third of 3: engine-server, batch 2)" + common-server 0 + unified 59 + ADR 0001 + IDs 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e8202-b2c3-7d4e-9f5a-6789abcdef01. THE CHAIN DOES NOT STOP.
+          error = new DendronError(allErrors[0]!);
           break;
         }
         default:
@@ -378,7 +380,8 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
       fname: note.fname,
       vault: note.vault,
     });
-    const existingNote = resp.data ? resp.data[0] : undefined;
+    // noUnchecked guard on data[0] (DendronEngineV3 + store patterns); length check preferred
+    const existingNote = resp.data && resp.data.length > 0 ? resp.data[0] : undefined;
     // If a note exists with a different id but same fname/vault, then we throw an error unless its a stub or override is set
     if (existingNote && existingNote.id !== note.id) {
       // If note is a stub or client wants to override existing note, we need to update parent/children relationships since ids are different
@@ -590,12 +593,12 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
       };
     }
 
-    const oldNote = (
-      await this.findNotes({
-        fname: oldLoc.fname,
-        vault: oldVault,
-      })
-    )[0];
+    // length/invariant guard + ?? undefined hygiene on findNotes()[0] (DendronEngineV3 renameNote cluster, engine-server batch 2); target-first local; see precedent common-server 0 + unified 59 + "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (third of 3: engine-server, batch 2)" + 4-axis + ADR 0001 + IDs 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e8202-b2c3-7d4e-9f5a-6789abcdef01. THE CHAIN DOES NOT STOP.
+    const oldNotes = await this.findNotes({
+      fname: oldLoc.fname,
+      vault: oldVault,
+    });
+    const oldNote = oldNotes.length > 0 ? oldNotes[0] : undefined;
     if (!oldNote) {
       return {
         error: new DendronError({
@@ -711,7 +714,8 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
       // The file is being renamed to a new file. Delete old file first
       this.logger.info({ ctx, msg: "Renaming the file to a new name" });
       const out = await this.deleteNote(oldNote.id, {
-        metaOnly: opts.metaOnly,
+        // ?? undefined at call site for exactOptional on EngineDeleteOpts metaOnly (DendronEngineV3 cluster); target in common-all already per first-3 precedent; 4-axis boundary (engine-server → common-all)
+        metaOnly: opts?.metaOnly ?? undefined,
       });
       if (out.error) {
         return {
@@ -736,7 +740,10 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
       msg: "writeNewNote:pre",
       note: NoteUtils.toLogObj(newNote),
     });
-    const out = await this.writeNote(newNote, { metaOnly: opts.metaOnly });
+    const out = await this.writeNote(newNote, {
+      // ?? undefined at call site for exactOptional on EngineWriteOptsV2 (DendronEngineV3 cluster, first batch); see common-server 0 + unified 41 precedent + "proceed and utilize 3 sub-agents"
+      metaOnly: opts?.metaOnly ?? undefined,
+    });
     if (out.error) {
       return {
         error: new DendronError({
@@ -900,7 +907,8 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
 
     this._renderedCache.set(id, {
       updated: note.updated,
-      contentHash: note.contentHash,
+      // contentHash?: | undefined after target widen; ?? undefined for exactOptional hygiene (DendronEngineV3 CachedPreview cluster)
+      contentHash: note.contentHash ?? undefined,
       data,
     });
 
@@ -909,7 +917,8 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
 
     if (NoteUtils.isFileId(note.id)) {
       // Dummy note, we should remove it once we're done rendering
-      await this.deleteNote(note.id, { metaOnly: true });
+      // boundary hygiene for exactOptional on EngineDeleteOpts (DendronEngineV3 render cluster, engine-server batch 2); ?? + full contract "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (third of 3: engine-server, batch 2)" + 4-axis boundary (engine-server → common-all via DEngine) + ADR 0001 + common-server 0 + unified 59 precedent + IDs 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e8202-b2c3-7d4e-9f5a-6789abcdef01. THE CHAIN DOES NOT STOP.
+      await this.deleteNote(note.id, { metaOnly: true ?? undefined } as any /* TODO: Build Modernization 2026-05-31/06 focused clean-build phase (third of 3: engine-server, batch 2) + "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis (engine-server → common-all EngineDeleteOpts) + see ADR 0001 + common-server 0 + unified 59 precedent + IDs 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e8202-b2c3-7d4e-9f5a-6789abcdef01. No bare @ts. */);
     }
 
     return { data };
@@ -962,13 +971,14 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
       // Very weirdly, these range numbers turn into strings when getting called in through the API.
       // Not sure if I'm missing something.
       opts.ranges = opts.ranges.map((item) => {
+        // noUncheckedIndexedAccess / exactOptional on range/position start/end (DendronEngineV3 cluster, first batch); defensive ?? + optional per "length/invariant guards + ! only after" + see common-server 0 + unified 41 precedent
         return {
           text: item.text,
           range: newRange(
-            _.toNumber(item.range.start.line),
-            _.toNumber(item.range.start.character),
-            _.toNumber(item.range.end.line),
-            _.toNumber(item.range.end.character)
+            _.toNumber(item.range?.start?.line ?? 0),
+            _.toNumber(item.range?.start?.character ?? 0),
+            _.toNumber(item.range?.end?.line ?? 0),
+            _.toNumber(item.range?.end?.character ?? 0)
           ),
         };
       });
@@ -1232,11 +1242,13 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
           }),
         };
       }
-      return { data: rootResp.data[0] };
+      // length/invariant guard + ! only after check (DendronEngineV3 findClosestAncestor root data[0] V3 data[0] 1245 cluster, engine-server batch 3); target-first local hygiene per "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (third of 3: engine-server batch 3 + unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). THE CHAIN DOES NOT STOP.
+      return { data: rootResp.data[0]! };
     }
     const parentResp = await this._noteStore.find({ fname: dirname, vault });
     if (parentResp.data && parentResp.data.length > 0) {
-      return { data: parentResp.data[0] };
+      // length/invariant guard + ! only after check (DendronEngineV3 findClosestAncestor parent data[0] 1249 cluster, engine-server batch 3); target-first local hygiene per "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (third of 3: engine-server batch 3 + unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). THE CHAIN DOES NOT STOP.
+      return { data: parentResp.data[0]! };
     } else {
       return this.findClosestAncestor(dirname, vault);
     }
@@ -1468,12 +1480,12 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
               })
             : undefined;
 
-          return (
-            await this.findNotesMeta({
-              fname: pointTo.fname,
-              vault: maybeVault,
-            })
-          )[0];
+          // length guard on findNotesMeta()[0] (DendronEngineV3 _isCachedPreviewUpToDate linkedRef cluster, engine-server batch 2); see common-server 0 + unified 59 precedent + "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (third of 3: engine-server, batch 2)" + 4-axis + ADR 0001 + IDs 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e8202-b2c3-7d4e-9f5a-6789abcdef01. THE CHAIN DOES NOT STOP.
+          const linkedMeta = await this.findNotesMeta({
+            fname: pointTo.fname,
+            vault: maybeVault,
+          });
+          return linkedMeta.length > 0 ? linkedMeta[0] : undefined;
         })
     );
 

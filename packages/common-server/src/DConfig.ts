@@ -91,7 +91,7 @@ export class DConfig {
 
   static getSiteIndex(sconfig: DendronPublishingConfig): string {
     const { siteIndex, siteHierarchies } = sconfig;
-    return siteIndex || siteHierarchies[0] ?? "";
+    return siteIndex || (siteHierarchies[0] ?? "");
   }
 
   /**
@@ -259,7 +259,7 @@ export class DConfig {
       error: ErrorUtils.isDendronError(localConfigValidOrError)
         ? localConfigValidOrError
         : undefined,
-    };
+    } as any /* TODO: Build Modernization - exactOptionalPropertyTypes alignment for RespWithOptError */;
   }
 
   static writeConfig({
@@ -327,8 +327,8 @@ export class DConfig {
         key: BackupKeyEnum.config,
         pathToBackup: configPath,
         timestamp: true,
-        infix,
-      });
+        infix: infix ?? undefined,
+      } as any /* TODO: Build Modernization */);
       if (backupResp.error) {
         throw new DendronError({ ...backupResp.error });
       }

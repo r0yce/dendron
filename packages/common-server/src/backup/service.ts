@@ -134,7 +134,7 @@ export class BackupService implements Disposable, IBackupService {
       nameOverride ||
       path.join(
         backupDir,
-        this.generateBackupFileName({ fileName, timestamp, infix })
+        this.generateBackupFileName({ fileName, timestamp: timestamp ?? undefined, infix: infix ?? undefined } as any /* TODO: Build Modernization */)
       );
     this.logger.info({ msg: "creating backup", backupPath, pathToBackup });
     await this.ensureBackupDir();

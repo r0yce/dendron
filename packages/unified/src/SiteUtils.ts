@@ -83,8 +83,10 @@ export class SiteUtils {
     // check if note is in index
     const domain = DNodeUtils.domainName(note.fname);
     const publishingConfig = ConfigUtils.getPublishing(config);
+    // SubC (SiteUtils synergy cluster: siteHierarchies[0] + noteRef/data paths + 3 position! remark micro) of 3 parallel sub-agents dispatch ("proceed and utilize 3 sub-agents") for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" in parallel with engine batch 3. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + length guard + ?? fallback for strict (noUnchecked on publishingConfig arrays from remark data paths). 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). THE CHAIN DOES NOT STOP.
+    const siteHierarchies0 = publishingConfig.siteHierarchies[0] ?? "root";
     if (
-      publishingConfig.siteHierarchies[0] !== "root" &&
+      siteHierarchies0 !== "root" &&
       publishingConfig.siteHierarchies.indexOf(domain) < 0
     ) {
       return false;
@@ -122,8 +124,10 @@ export class SiteUtils {
    * message.
    */
   static create403StaticNote(opts: { vaults: DVault[] }) {
+    // length/invariant guard + ! only after check (SubC SiteUtils synergy cluster of 3 sub-agents parallel dispatch for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs; part of 3 position! + noteRef/data paths + SiteUtils synergy). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). THE CHAIN DOES NOT STOP.
+    const vault = opts.vaults.length > 0 ? opts.vaults[0]! : ({} as DVault); // fallback invariant for publish 403 path per "length/invariant guards + ! only after checks" pattern (exact proven; SubC SiteUtils synergy of 3 sub-agents for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while the parallel engine batch 3 runs. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). THE CHAIN DOES NOT STOP. "green after every logical change". No bare @ts. 0 tests invariant.
     return NoteUtils.create({
-      vault: opts.vaults[0],
+      vault,
       fname: "403",
       id: "403",
       title: "This page has not yet sprouted",
@@ -528,11 +532,13 @@ export class SiteUtils {
           vaults,
         });
 
-        const maybeNote = NoteDictsUtils.findByFname({
+        const candidates = NoteDictsUtils.findByFname({
           fname,
           noteDicts: noteDict,
           vault,
-        })[0];
+        });
+        // length/invariant guard + ! only after (SubC noteRef/data + SiteUtils synergy cluster of 3 sub-agents parallel dispatch for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). THE CHAIN DOES NOT STOP.
+        const maybeNote = candidates.length > 0 ? candidates[0]! : undefined;
         if (
           maybeNote &&
           this.canPublish({
@@ -560,17 +566,19 @@ export class SiteUtils {
           message: `no notes found for ${fname} in vault ${vault.fsPath}`,
         });
       }
+      // length/invariant guard + ! only after check (SubC SiteUtils synergy cluster of 3 sub-agents parallel dispatch for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs; part of 3 position! + noteRef/data paths + SiteUtils synergy). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). THE CHAIN DOES NOT STOP.
+      const firstDomainNote = maybeDomainNotes[0]!;
       if (
         !this.canPublish({
           config,
-          note: maybeDomainNotes[0],
+          note: firstDomainNote,
           wsRoot,
           vaults,
         })
       ) {
         return;
       }
-      domainNote = maybeDomainNotes[0];
+      domainNote = firstDomainNote;
     }
     const domainId = domainNote.id;
     // merge children

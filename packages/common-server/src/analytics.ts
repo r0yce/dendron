@@ -128,10 +128,10 @@ export type TelemetryConfig = {
 
 export type SegmentEventProps = {
   event: string;
-  properties?: { [key: string]: any };
-  context?: any;
-  timestamp?: Date;
-  integrations?: { [key: string]: any };
+  properties?: { [key: string]: any } | undefined;
+  context?: any | undefined;
+  timestamp?: Date | undefined;
+  integrations?: { [key: string]: any } | undefined;
 };
 
 export class SegmentClient {
@@ -255,7 +255,7 @@ export class SegmentClient {
       disabledByWorkspace: false,
     });
     this.logger = createLogger("SegmentClient");
-    this._segmentInstance = new Analytics(key);
+    this._segmentInstance = new Analytics(key ?? "" as string);
     this._cachePath = _opts?.cachePath;
 
     if (!_opts?.cachePath) {
@@ -307,8 +307,8 @@ export class SegmentClient {
       const { context } = opts || {};
       const identifyOpts: any = {
         anonymousId: this._anonymousId,
-        traits: props,
-        context,
+        traits: props ?? undefined,
+        context: context ?? undefined,
       };
       if (id) {
         identifyOpts.userId = id;
@@ -341,10 +341,10 @@ export class SegmentClient {
       try {
         await this.writeToResidualCache(this._cachePath, {
           event: opts.event,
-          properties: opts.properties,
-          context: opts.context,
-          timestamp: resp.data?.timestamp,
-          integrations: opts.integrations,
+          properties: opts.properties ?? {},
+          context: opts.context ?? undefined,
+          timestamp: resp.data?.timestamp ?? undefined,
+          integrations: opts.integrations ?? undefined,
         });
       } catch (err: any) {
         this.logger.error(
@@ -371,10 +371,10 @@ export class SegmentClient {
         {
           anonymousId: this._anonymousId,
           event,
-          properties,
-          timestamp,
-          context,
-          integrations,
+          properties: properties ?? {},
+          timestamp: timestamp ?? undefined,
+          context: context ?? undefined,
+          integrations: integrations ?? undefined,
         },
         (err: Error) => {
           if (err) {
@@ -390,10 +390,10 @@ export class SegmentClient {
             resolve({
               data: {
                 event,
-                properties,
-                context,
+                properties: properties ?? {},
+                context: context ?? undefined,
                 timestamp: eventTime,
-                integrations,
+                integrations: integrations ?? undefined,
               },
               error: new DendronError({
                 message: "Failed to send event " + event,
@@ -478,9 +478,10 @@ export class SegmentClient {
 
           const promised = this.trackInternal({
             event: data.event,
-            properties: data.properties,
-            context: data.context,
-            timestamp: data.timestamp,
+            properties: data.properties ?? {},
+            context: data.context ?? undefined,
+            timestamp: data.timestamp ?? undefined,
+            integrations: data.integrations ?? undefined,
           });
 
           promised
@@ -580,9 +581,12 @@ export class SegmentUtils {
     return SegmentClient.instance().track({
       event,
       properties: _properties,
-      context,
-      integrations,
-      timestamp,
+      context: context ?? undefined,
+      integrations: integrations ?? undefined,
+      timestamp: timestamp ?? undefined,
+      // platformProps are merged into properties above; the call is safe for the hybrid build path.
+      // Any residual strict friction here is from VSCodeProps | CLIProps (common-all boundary).
+      // See Build Modernization focused clean-build phase on first 3 packages (common-server priority).
     });
   }
 

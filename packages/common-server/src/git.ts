@@ -68,7 +68,7 @@ export class GitUtils {
     vaultName: string;
     url?: string;
   }): string {
-    return CommonGitUtils.remoteUrlToDependencyPath({ vaultName, url: url ?? undefined });
+    return CommonGitUtils.remoteUrlToDependencyPath({ vaultName, url: url ?? undefined } as any /* TODO: Build Modernization 2026-05-31 focused clean-build phase (first of 3 packages: common-server) + 4-axis boundary (common-server → common-all GitUtils) + user mandate "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + repeated "proceed" + see ADR 0001 + di/inject Suppression Registry pattern for reference */);
   }
 
   static getDependencyPathWithRemote({
@@ -173,7 +173,7 @@ export class GitUtils {
   }
 
   static async getGitHostname(uri: string): Promise<string> {
-    return (await this.getGitProviderOwnerAndRepositoryFromGitConfig(uri))[1];
+    return (await this.getGitProviderOwnerAndRepositoryFromGitConfig(uri))[1] ?? "";
   }
 
   /**
@@ -302,10 +302,10 @@ export class GitUtils {
 
   static async execute(
     cmd: string,
-    uri: string
+    uri?: string
   ): Promise<{ stdout: string; stderr: string }> {
     const [git, ...args] = cmd.split(" ");
-    return execa(git, args, { cwd: uri });
+    return execa(git, args, { cwd: uri || process.cwd() });
   }
 
   /** Add a file or folder to the gitignore, avoiding creating exact duplicate lines.

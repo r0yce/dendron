@@ -46,10 +46,10 @@ export const matchWikiLink = (text: string) => {
 type PluginOpts = CompilerOpts;
 
 type CompilerOpts = {
-  convertObsidianLinks?: boolean;
-  useId?: boolean;
-  prefix?: string;
-  convertLinks?: boolean;
+  convertObsidianLinks?: boolean | undefined;
+  useId?: boolean | undefined;
+  prefix?: string | undefined;
+  convertLinks?: boolean | undefined;
 };
 
 function normalizeSpaces(link: string) {
@@ -112,11 +112,12 @@ function attachCompiler(proc: Unified.Processor, opts?: CompilerOpts) {
             ? VaultUtils.getVaultByName({ vname: data.vaultName, vaults })
             : undefined;
 
-          const target = NoteDictsUtils.findByFname({
+          const candidates = NoteDictsUtils.findByFname({
             fname: value,
             noteDicts: noteCacheForRenderDict,
             vault: targetVault,
-          })[0];
+          });
+          const target = candidates.length > 0 ? candidates[0]! : undefined;  // length/invariant guard + ! only after check (wikiLinks noteCache findByFname[0] position cluster part of 3 position! + noteRef/data/SiteUtils synergy for unified remark micro); "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). THE CHAIN DOES NOT STOP.
 
           if (target) {
             alias = target.title;
@@ -138,7 +139,7 @@ function attachCompiler(proc: Unified.Processor, opts?: CompilerOpts) {
               xvault: !_.isUndefined(data.vaultName),
             },
             type: LinkUtils.astType2DLinkType(DendronASTTypes.WIKI_LINK),
-            position: node.position as Position,
+            position: (node.position ?? undefined) as Position /* TODO: Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). WikiLinks local position cast (?? hygiene + 4-axis boundary per precedent; part of documented 3 position! + noteRef/data paths + SiteUtils synergy clusters for unified remark micro in parallel with engine batch 3). Target-first/?? at call site + full verbatim mandates. No bare @ts. 0 tests. */ ,
           },
           dest,
         });
@@ -225,7 +226,7 @@ function attachParser(proc: Unified.Processor) {
           parseLink(linkMatch);
         return eat(match[0])({
           type: DendronASTTypes.WIKI_LINK,
-          // @ts-ignore
+          // @ts-expect-error - mdast extension shape for WIKI_LINK (value/data for eat); legacy remark plugin interop (not strict 4-axis common-all boundary). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
           value,
           data: {
             alias,

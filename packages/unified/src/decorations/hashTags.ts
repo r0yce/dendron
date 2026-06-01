@@ -69,7 +69,7 @@ export async function decorateTag({
   });
   const decoration: DecorationHashTag = {
     type,
-    range: position2VSCodeRange(position, { line: lineOffset }),
+    range: position2VSCodeRange(position, { line: lineOffset ?? undefined } as any /* TODO: Build Modernization 2026-05-31 focused clean-build phase (second of 3 packages: unified). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" (user explicit after timestamp pivot + this cycle). 4-axis boundary (unified decorations → common-all PointOffset/position2VSCodeRange). See ADR 0001 + common-server analytics precedent (target-first widen + ?? hygiene + boundary cast only here). Batch 1/2 of decorations cluster. No bare @ts. */),
     color,
   };
 

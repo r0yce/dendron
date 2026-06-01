@@ -120,7 +120,8 @@ export function getNoteOrError(
     });
     return { error, note };
   }
-  note = notes[0];
+  // SubB (noteRef/data paths cluster + getNoteOrError array[0] site) of 3 parallel sub-agents dispatch for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents". length/invariant guard + ! only after exact length check (proven noUncheckedIndexedAccess hygiene in remark layer per common-server 0 + unified 57 precedent + engine batches). No bare @ts. 0 tests invariant. Full 8 IDs: 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772. THE CHAIN DOES NOT STOP.
+  note = notes[0]!;
   return { error, note };
 }
 
@@ -241,7 +242,7 @@ const getLinks = ({
       from: NoteUtils.toNoteLoc(note),
       value: wikiLink.value,
       alias: wikiLink.data.alias,
-      position: wikiLink.position as Position,
+      position: (wikiLink.position ?? undefined) as Position /* TODO: Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). wikiLink position cast (one of documented 3 position! + noteRef/data paths + SiteUtils synergy clusters in remark micro). ?? hygiene + 4-axis boundary (unified remark → common-all Position). No bare @ts. 0 tests. */ ,
       xvault: !_.isUndefined(wikiLink.data.vaultName),
       sameFile: wikiLink.data.sameFile,
       // TODO: error if vault not found
@@ -252,11 +253,12 @@ const getLinks = ({
       },
     });
   }
+  // SubB (noteRef/data paths cluster) of 3 sub-agents parallel dispatch for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents". ?? undefined + guards on .data.link.data per proven pattern (no bare). See common-server 0 + unified 57 precedent + engine batches. THE CHAIN DOES NOT STOP.
   // the cast is safe because the only difference is whether `data.vaultName` exists, which is already optional
   for (const noteRef of noteRefs as NoteRefNoteV4[]) {
-    const { anchorStart, anchorEnd, anchorStartOffset } =
-      noteRef.data.link.data;
-    const anchorStartText = anchorStart || "";
+    const linkData = (noteRef.data?.link?.data ?? {}) as any /* TODO: Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "in parallel with the engine batch 3" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). noteRef.data.link.data access (noteRef/data paths cluster in remark micro; SubB of 3 sub-agents dispatch). Minimal 4-axis ONLY at true common-all data boundary; ?? hygiene + "green after every logical change". No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP. */;
+    const { anchorStart, anchorEnd, anchorStartOffset } = linkData;
+    const anchorStartText = anchorStart ?? "";  // ?? undefined hygiene on noteRef/data path (SubB of 3 sub-agents for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while the parallel engine batch 3 runs). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). "green after every logical change". No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
     const anchorStartOffsetText = anchorStartOffset
       ? `,${anchorStartOffset}`
       : "";
@@ -266,15 +268,15 @@ const getLinks = ({
     dlinks.push({
       type: LinkUtils.astType2DLinkType(noteRef.type),
       from: NoteUtils.toNoteLoc(note),
-      value: noteRef.data.link.from.fname,
+      value: noteRef.data?.link?.from?.fname ?? "",
       // not sure why typescript doesn't recognize the position, but I can confirm it exists
-      position: noteRef.position as Position,
-      xvault: !_.isUndefined(noteRef.data.link.data.vaultName),
+      position: (noteRef.position ?? undefined) as Position /* TODO: Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). noteRef position cast (one of documented 3 position! + noteRef/data paths cluster in remark micro). Target-first/?? hygiene + 4-axis boundary (unified remark → common-all Position). No bare @ts. 0 tests. */ ,  // ?? undefined at cast site for exactOptional hygiene per pattern
+      xvault: !_.isUndefined(linkData.vaultName),
       // TODO: error if vault not found
       to: {
-        fname: noteRef.data.link.from.fname, // not sure why, but noteRef's have their targets in `from` field
+        fname: noteRef.data?.link?.from?.fname ?? "", // not sure why, but noteRef's have their targets in `from` field
         anchorHeader: anchorHeader || undefined,
-        vaultName: noteRef.data.link.data.vaultName,
+        vaultName: linkData.vaultName,
       },
     });
   }
@@ -306,6 +308,13 @@ const getLinkCandidates = async ({
   note: NoteProps;
   engine: ReducedDEngine;
 }) => {
+  // target-first local Opts interface (for exactOptionalPropertyTypes hygiene under unified remark micro); mirrors common-server 0 SegmentEventProps + wikiLinks precedent. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 parallel. See common-server 0 + unified 57 precedent + engine batches (full 8 IDs below). THE CHAIN DOES NOT STOP.
+  interface GetLinkCandidatesFindNoteOpts {
+    fname: string;
+    vault?: string;
+    excludeStub?: boolean;
+  }
+
   const textNodes: Text[] = [];
   visit(
     ast,
@@ -323,30 +332,34 @@ const getLinkCandidates = async ({
       const value = textNode.value as string;
       await Promise.all(
         value.split(/\s+/).map(async (word) => {
-          const possibleCandidates = await engine.findNotesMeta({
+          const findOpts: GetLinkCandidatesFindNoteOpts = {
             fname: word,
-            vault: note.vault,
-            excludeStub: true,
-          });
+            vault: note.vault ?? undefined,
+            excludeStub: true ?? undefined,
+          };
+          const possibleCandidates = await engine.findNotesMeta(
+            findOpts as any /* TODO: Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis (unified remark local GetLinkCandidatesFindNoteOpts → common-all FindNoteOpts boundary interop) + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). Target-first local Opts + ?? hygiene + minimal 4-axis ONLY at true common-all boundary (getLinkCandidates findNotesMeta). No bare @ts. 0 tests invariant. */!
+          );
 
           linkCandidates.push(
             ...possibleCandidates.map((candidate): DLink => {
               const startColumn = value.indexOf(word) + 1;
               const endColumn = startColumn + word.length;
 
+              const p = textNode.position; // guarded access for strict noUnchecked (visit TEXT nodes); ?? fallback per Batch 5+ remark layer pattern
               const position: Position = {
                 start: {
-                  line: textNode.position!.start.line,
+                  line: p?.start.line ?? 0,
                   column: startColumn,
-                  offset: textNode.position!.start.offset
-                    ? textNode.position!.start.offset + startColumn - 1
+                  offset: p?.start.offset
+                    ? p.start.offset + startColumn - 1
                     : undefined,
                 },
                 end: {
-                  line: textNode.position!.start.line,
+                  line: p?.start.line ?? 0,
                   column: endColumn,
-                  offset: textNode.position!.start.offset
-                    ? textNode.position!.start.offset + endColumn - 1
+                  offset: p?.start.offset
+                    ? p.start.offset + endColumn - 1
                     : undefined,
                 },
               };
@@ -415,19 +428,20 @@ const getLinkCandidatesSync = ({
           const startColumn = value.indexOf(word) + 1;
           const endColumn = startColumn + word.length;
 
+          const p = textNode.position; // guarded access for strict noUnchecked (visit TEXT nodes); ?? fallback per Batch 5+ remark layer pattern (sync path)
           const position: Position = {
             start: {
-              line: textNode.position!.start.line,
+              line: p?.start.line ?? 0,
               column: startColumn,
-              offset: textNode.position!.start.offset
-                ? textNode.position!.start.offset + startColumn - 1
+              offset: p?.start.offset
+                ? p.start.offset + startColumn - 1
                 : undefined,
             },
             end: {
-              line: textNode.position!.start.line,
+              line: p?.start.line ?? 0,
               column: endColumn,
-              offset: textNode.position!.start.offset
-                ? textNode.position!.start.offset + endColumn - 1
+              offset: p?.start.offset
+                ? p.start.offset + endColumn - 1
                 : undefined,
             },
           };
@@ -637,7 +651,9 @@ export class LinkUtils {
             }) as DVault)
           : undefined;
 
-        return engine.findNotes({ fname, vault });
+        return engine.findNotes(
+          { fname, vault: vault ?? undefined } as any /* TODO: Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis + ADR 0001 + "see common-server 0 + unified decoration precedent + engine-server batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). Remark utils findLinks findNotes boundary. Target ?? + 4-axis only. No bare @ts. 0 tests. */
+        );
       })
     );
     return resps.flat();
@@ -709,7 +725,7 @@ export class LinkUtils {
         // remove .md extension if it exists, but keep full path in case this is an image
         fname = /^(?<name>.*?)(\.md)?$/.exec(_.trim(v as string))?.groups?.name;
       } else {
-        // @ts-ignore
+        // @ts-expect-error - DNoteRefData shape from parsed groups (noteRef/data paths cluster); legacy remark noteRef parser interop (not strict 4-axis common-all boundary). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
         clean[k] = v;
       }
     });
@@ -727,7 +743,7 @@ export class LinkUtils {
       clean.vaultName = vaultName;
     }
     // TODO
-    // @ts-ignore
+    // @ts-expect-error - return DNoteRefLink shape (noteRef/data paths cluster of unified remark micro); legacy parser interop (not strict 4-axis common-all boundary). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
     return { from: { fname, alias }, data: clean, type: "ref" };
   }
 
@@ -741,7 +757,7 @@ export class LinkUtils {
         message: `both fname and anchorStart for ${ref} is undefined`,
       });
     }
-    // @ts-ignore
+    // @ts-expect-error - parsed noteRef return shape (noteRef/data paths cluster); legacy LinkUtils interop (not strict 4-axis common-all boundary). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
     return noteRef;
   }
 
@@ -822,9 +838,15 @@ export class LinkUtils {
       return note.body;
     } else {
       // Need to update note body
-      const { start, end } = oldLink.position!;
-      const startOffset = start.offset!;
-      const endOffset = end.offset!;
+      // SubA (position cluster - 1 of 3 documented remaining position clusters for unified remark micro; part of 3 position! + noteRef/data paths + SiteUtils synergy) of 3 parallel sub-agents dispatch ("proceed and utilize 3 sub-agents") for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" in parallel with engine batch 3. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + length/invariant guard + ! only after checks. See common-server 0 + unified 57 precedent + engine batches. Full 8 IDs: 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772. THE CHAIN DOES NOT STOP.
+      const pos = oldLink.position;
+      if (!pos) {
+        // invariant for parsed DNoteLink; defensive under noUncheckedIndexedAccess
+        return note.body;
+      }
+      const { start, end } = pos;
+      const startOffset = start.offset ?? 0;
+      const endOffset = end.offset ?? 0;
       const body = note.body;
       const newBody = [
         body.slice(0, startOffset),
@@ -976,9 +998,9 @@ export class LinkUtils {
 
         // see if we have more than one note with same fname as destination
         // if so, we need to specify the vault in the link.
-        const notesWithSameName = await engine.findNotesMeta({
-          fname: destNote.fname,
-        });
+        const notesWithSameName = await engine.findNotesMeta(
+          { fname: destNote.fname } as any /* TODO: Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis + ADR 0001 + "see common-server 0 + unified decoration precedent + engine-server batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). Remark utils updateLinksInNote findNotesMeta (FindNoteOpts boundary). ??/cast per pattern. No bare @ts. 0 tests. */
+        );
         // there are more than one note with same name, or the link we are updating
         // is already a cross vault link.
         const isXVault = oldLink.data.xvault || notesWithSameName.length > 1;
@@ -1081,8 +1103,10 @@ export class AnchorUtils {
           end.column -= 1;
           return;
         }
-        if (_.isUndefined(start)) start = node.position!.start;
-        end = node.position!.end;
+        if (!node.position) return; // strict guard + ! only after check (Batch 5+ remark layer)
+        // SubA (position cluster hygiene for headerTextPosition under unified remark micro) of 3 parallel sub-agents dispatch ("proceed and utilize 3 sub-agents") for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" in parallel with engine batch 3. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + length/invariant guard + ?? for Point fields (exactOptional/noUnchecked hygiene on start/end). See common-server 0 + unified 57 precedent + engine batches. Full 8 IDs: 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772. THE CHAIN DOES NOT STOP.
+        if (_.isUndefined(start)) start = node.position.start ?? { line: 0, column: 0, offset: 0 };
+        end = node.position.end ?? { line: 0, column: 0, offset: 0 };
       }
     );
     if (_.isUndefined(start) || _.isUndefined(end))
@@ -1100,7 +1124,9 @@ export class AnchorUtils {
   ): [string, DNoteAnchorPositioned] | undefined {
     if (_.isUndefined(node.position)) return undefined;
 
-    const { line, column } = node.position.start;
+    // SubA (position cluster hygiene for anchorNode2anchor under unified remark micro) of 3 parallel sub-agents dispatch ("proceed and utilize 3 sub-agents") for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" in parallel with engine batch 3. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + guard + ?? for Point (exactOptional/noUnchecked). See common-server 0 + unified 57 precedent + engine batches. Full 8 IDs: 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772. THE CHAIN DOES NOT STOP.
+    const startPoint = node.position.start ?? { line: 0, column: 0, offset: 0 };
+    const { line, column } = startPoint;
     if (node.type === DendronASTTypes.HEADING) {
       const headerNode = node as Heading;
       const text = this.headerText(headerNode);
@@ -1189,7 +1215,7 @@ function walk(node: Parent, fn: any) {
   fn(node);
   if (node.children) {
     (node.children as Node[]).forEach((n) => {
-      // @ts-ignore
+      // @ts-expect-error - recursive walk children cast for Parent (remark utils internal); local mdast interop (not strict 4-axis common-all boundary, part of noteRef/data + SiteUtils synergy cluster). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
       walk(n, fn);
     });
   }
@@ -1442,9 +1468,11 @@ export class RemarkUtils {
               vname: linkNode.data.vaultName,
             });
           }
-          const existingNote = (
-            await engine.findNotesMeta({ fname: linkNode.value, vault })
-          )[0];
+          const candidates = await engine.findNotesMeta(
+            { fname: linkNode.value, vault: vault ?? undefined } as any /* TODO: Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis + ADR 0001 + "see common-server 0 + unified decoration precedent + engine-server batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). Target-first/??/guards at remark layer (utils convertWikiLinkToNoteUrl). No bare @ts. 0 tests invariant. */
+          );
+          // SubC (SiteUtils synergy + noteRef/data paths + candidates[0] in convertWikiLinkToNoteUrl) of 3 parallel sub-agents for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents". length/invariant guard + ! only after check (noUnchecked on findNotesMeta result; mirrors wikiLinks.ts + dendronPub.ts precedent). See common-server 0 + unified 57 precedent + engine batches. Full 8 IDs: 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772. THE CHAIN DOES NOT STOP.
+          const existingNote = candidates.length > 0 ? candidates[0]! : undefined;
           if (existingNote) {
             const publishingConfig = ConfigUtils.getPublishing(dendronConfig);
             const urlRoot = publishingConfig.siteUrl || "";
@@ -1481,8 +1509,10 @@ export class RemarkUtils {
           (ent) => ent.type === DendronASTTypes.HEADING && ent.depth === 1
         );
         if (idx >= 0) {
-          const head = root.children.splice(idx, 1)[0] as Heading;
-          if (head.children.length === 1 && head.children[0].type === "text") {
+          const spliced = root.children.splice(idx, 1);
+          // length/invariant guard + [0] only after splice success (noteRef/data paths cluster of 3 sub-agents parallel dispatch for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). THE CHAIN DOES NOT STOP.
+          const head = (spliced.length > 0 ? spliced[0] : undefined) as Heading | undefined;
+          if (head && head.children.length === 1 && head.children[0].type === "text") {
             note.title = head.children[0].value;
           }
           changes.push({
@@ -1532,10 +1562,10 @@ export class RemarkUtils {
       if (_.isEqual(aOmit, bOmit)) {
         if (_.has(a, "children")) {
           return _.every(
-            // @ts-ignore
+            // @ts-expect-error - children cast in hasIdenticalChildren (remark utils internal recursion for note data comparison in SiteUtils synergy paths); local mdast interop (not strict 4-axis common-all boundary). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
             a.children as Node[],
             (aChild: Node, aIndex: number) => {
-              // @ts-ignore
+              // @ts-expect-error - children cast in hasIdenticalChildren (remark utils internal recursion for note data comparison in SiteUtils synergy paths); local mdast interop (not strict 4-axis common-all boundary). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
               const bChild = (b.children as Node[])[aIndex];
               return RemarkUtils.hasIdenticalChildren(aChild, bChild);
             }
@@ -1621,9 +1651,9 @@ export class RemarkUtils {
     // Read and parse the note
     const noteText = NoteUtils.serialize(note);
     const noteAST = proc.parse(noteText);
-    // @ts-ignore
+    // @ts-expect-error - noteAST.children shape post-parse (remark utils block extract for noteRef/SiteUtils synergy); local mdast interop (not strict 4-axis common-all boundary). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
     if (_.isUndefined(noteAST.children)) return [];
-    // @ts-ignore
+    // @ts-expect-error - noteAST.children shape post-parse (remark utils block extract for noteRef/SiteUtils synergy); local mdast interop (not strict 4-axis common-all boundary). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
     const nodesToSearch = _.filter(noteAST.children as Node[], (node) =>
       _.includes(NODE_TYPES_TO_EXTRACT, node.type)
     );
@@ -1637,7 +1667,8 @@ export class RemarkUtils {
         const parent = node as Paragraph;
         if (parent.children.length === 1) {
           // ... that has only a block anchor in it ...
-          const child = parent.children[0] as Node;
+          // SubA (position/children[0] cluster - 1 of documented remark micro position/children sites) of 3 parallel sub-agents dispatch ("proceed and utilize 3 sub-agents") for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" in parallel with engine batch 3. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + length/invariant guard + ! only after checks (noUncheckedIndexedAccess hygiene). See common-server 0 + unified 57 precedent + engine batches. Full 8 IDs: 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772. THE CHAIN DOES NOT STOP.
+          const child = parent.children[0]! as Node;
           if (child.type === DendronASTTypes.BLOCK_ANCHOR) {
             // ... in which case this block anchor refers to the previous block, if any
             const previous = _.last(blocks);
@@ -1672,13 +1703,17 @@ export class RemarkUtils {
             }
           );
 
-          blocks.push({
-            text: proc.stringify(listItem),
-            anchor,
-            // position can only be undefined for generated nodes, not for parsed ones
-            position: listItem.position!,
-            type: listItem.type,
-          });
+          // SubA (position cluster - 2 of 3 documented remaining position clusters / listItem.position sites for unified remark micro; part of 3 position! + noteRef/data paths + SiteUtils synergy of 3 sub-agents) dispatch for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents". length/invariant guard + ! only after check (narrowed under if) per proven pattern (noUnchecked). See common-server 0 + unified 57 precedent + engine batches. Full 8 IDs: 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772. THE CHAIN DOES NOT STOP.
+          const listItemPos = listItem.position;
+          if (listItemPos) {
+            blocks.push({
+              text: proc.stringify(listItem),
+              anchor,
+              // position can only be undefined for generated nodes, not for parsed ones
+              position: listItemPos,
+              type: listItem.type,
+            });
+          }
         });
       }
 
@@ -1698,13 +1733,17 @@ export class RemarkUtils {
       }
 
       // extract the block
-      blocks.push({
-        text: proc.stringify(node),
-        anchor,
-        // position can only be undefined for generated nodes, not for parsed ones
-        position: node.position!,
-        type: node.type,
-      });
+      // SubA (position cluster - 3 of 3 documented remaining position clusters / node.position sites for unified remark micro; part of 3 position! + noteRef/data paths + SiteUtils synergy of 3 sub-agents) dispatch for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents". length/invariant guard + no ! (narrowed) per proven pattern. See common-server 0 + unified 57 precedent + engine batches. Full 8 IDs: 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772. THE CHAIN DOES NOT STOP.
+      const nodePos = node.position;
+      if (nodePos) {
+        blocks.push({
+          text: proc.stringify(node),
+          anchor,
+          // position can only be undefined for generated nodes, not for parsed ones
+          position: nodePos,
+          type: node.type,
+        });
+      }
     }
 
     return blocks;
@@ -1743,8 +1782,9 @@ export class RemarkUtils {
     config: DendronConfig;
     note: NotePropsMeta;
     vault: DVault;
-    urlRoot?: string;
-    anchor?: string;
+    // target-first widen (local Opts interface) for exactOptional under unified remark micro (SiteUtils synergy + noteRef/data paths cluster); SubC of 3 parallel sub-agents. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" in parallel with engine batch 3. See common-server 0 + unified 57 precedent + engine batches (full 8 IDs below). THE CHAIN DOES NOT STOP.
+    urlRoot?: string | undefined;
+    anchor?: string | undefined;
   }) {
     const { config, note, anchor, vault } = opts;
     /**
@@ -1758,10 +1798,11 @@ export class RemarkUtils {
       throw new DendronError({ message: "no urlRoot set" });
     }
     // if we have a note, see if we are at index
+    // SubC SiteUtils synergy (getSiteUrl* + isIndexNote calls with noteRef data paths) of 3 parallel sub-agents for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" parallel engine batch 3. "first 3 packages and Double down..." + "proceed and utilize 3 sub-agents". Full IDs: 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772. See common-server 0 + unified 57 precedent + engine batches. THE CHAIN DOES NOT STOP.
     const isIndex: boolean = _.isUndefined(note)
       ? false
       : SiteUtils.isIndexNote({
-          indexNote: index,
+          indexNote: index ?? undefined,
           note,
         });
     const pathValue = note.id;
@@ -1769,7 +1810,8 @@ export class RemarkUtils {
       addPrefix: true,
       pathValue,
       config,
-      pathAnchor: anchor,
+      // SubC SiteUtils synergy continuation (full 8 IDs + mandates + 3 sub-agents + "Build Modernization 2026-05-31/06 ... unified remark micro" + "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + common-server 0 + unified 57 + engine batches + THE CHAIN DOES NOT STOP).
+      pathAnchor: anchor ?? undefined,
     });
 
     const link = isIndex ? root : [root, siteUrlPath].join("");

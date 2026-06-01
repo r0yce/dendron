@@ -28,8 +28,12 @@
     "build": "yarn copyNonTSFiles && yarn compile",
     "buildCI": "yarn copyNonTSFiles && yarn compile",
     "copyNonTSFiles": "node ./ensureDir && node copy",
-    "compile": "tsc -p tsconfig.build.json",
-    "watch": "yarn copyNonTSFiles && yarn compile --watch"
+    "compile": "yarn build:js && yarn build:types",
+    "watch": "tsup --watch",
+    "build:js": "tsup",
+    "build:types": "node --max-old-space-size=8192 ./scripts/build-types.js",
+    "build:modern": "yarn build:js && yarn build:types",
+    "compile:tsc": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
     "@dendronhq/common-all": "^0.124.0",

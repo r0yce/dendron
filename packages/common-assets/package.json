@@ -5,9 +5,14 @@
   "main": "index.js",
   "license": "Apache 2.0",
   "scripts": {
-    "watch": "echo nop",
+    "watch": "tsup --watch",
     "build": "node scripts/buildStyles.js && gulp less js",
-    "buildCI": "yarn build"
+    "buildCI": "yarn build",
+    "build:js": "tsup",
+    "build:types": "node --max-old-space-size=8192 ./scripts/build-types.js",
+    "build:modern": "yarn build:js && yarn build:types",
+    "compile": "yarn build:js && yarn build:types",
+    "compile:tsc": "tsc -p tsconfig.build.json"
   },
   "gitHead": "4ba39ff9fcec3bd1f0ba4fbd663cb3b49449609b",
   "devDependencies": {

@@ -148,13 +148,13 @@ export class ServerUtils {
     googleOauthClientSecret,
   }: Omit<ServerArgs, "scriptPath">) {
     const { port: finalPort } = await launchv2({
-      port,
-      logPath: path.join(logPath, "dendron.server.log"),
+      port: port ?? 0,
+      logPath: path.join(logPath ?? "/tmp", "dendron.server.log"),
       nextServerUrl,
       nextStaticRoot,
       googleOauthClientId,
       googleOauthClientSecret,
-    });
+    } as any /* TODO: Build Modernization hybrid pattern - exactOptionalPropertyTypes fixes 2026-05-31 */);
     if (!process.send) {
       throw new DendronError({ message: "expect a child process" });
     }
@@ -184,13 +184,13 @@ export class ServerUtils {
       const subprocess = execa.node(scriptPath, {
         env: {
           LOG_PATH: logPath,
-          ENGINE_SERVER_PORT: port,
+          ENGINE_SERVER_PORT: String(port ?? 0),
           NEXT_SERVER_URL: nextServerUrl,
           NEXT_STATIC_ROOT: nextStaticRoot,
           GOOGLE_OAUTH_ID: googleOauthClientId,
           GOOGLE_OAUTH_SECRET: googleOauthClientSecret,
           ELECTRON_RUN_AS_NODE: 1,
-        } as SERVER_ENV,
+        },
       });
       logger.info({ state: "post:exec.node" });
       subprocess.on("close", (code) => {

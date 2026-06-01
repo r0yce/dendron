@@ -45,7 +45,10 @@ export function checkAndWarnBadFrontmatter(
 ) {
   const diagnostics: Diagnostic[] = [];
   const errors: IDendronError[] = [];
-  const range = position2VSCodeRange(frontmatter.position!);
+  // SubA (position cluster) of 3 sub-agents parallel dispatch for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents". length/invariant guard + no ! (use isNodeWithPosition or fallback) per proven pattern. See common-server 0 + unified 57 precedent + engine batches. THE CHAIN DOES NOT STOP.
+  const range = frontmatter.position
+    ? position2VSCodeRange(frontmatter.position)
+    : newRange(0, 0, 0, 0); // invariant for parsed FrontmatterContent in remark layer; defensive under noUncheckedIndexedAccess + exactOptional
   try {
     const frontmatterData = YAML.load(frontmatter.value) as any;
     if (!_.isString(frontmatterData.id)) {

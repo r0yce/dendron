@@ -100,7 +100,13 @@
     "build:index": "node scripts/buildIndex.js",
     "test": "echo 0",
     "test-local": "node scripts/test.js",
-    "clean": "node -e \"const fs=require('fs'); ['build','public/static','public/index.html'].forEach(p => { try { fs.rmSync(p,{recursive:true,force:true}); } catch(e){} });\""
+    "clean": "node -e \"const fs=require('fs'); ['build','public/static','public/index.html'].forEach(p => { try { fs.rmSync(p,{recursive:true,force:true}); } catch(e){} });\"",
+    "build:js": "tsup",
+    "build:types": "node --max-old-space-size=8192 ./scripts/build-types.js",
+    "build:modern": "yarn build:js && yarn build:types",
+    "compile": "yarn build:js && yarn build:types",
+    "compile:tsc": "tsc -p tsconfig.build.json",
+    "watch": "tsup --watch"
   },
   "browserslist": {
     "production": [

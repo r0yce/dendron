@@ -30,8 +30,13 @@
     "prebuild": "yarn clean && yarn format && yarn lint && echo Using TypeScript && tsc --version",
     "build": "yarn compile",
     "buildCI": "yarn compile",
-    "compile": "tsc -p tsconfig.build.json",
-    "watch": "yarn compile --watch"
+    "compile": "yarn build:modern",
+    "watch": "tsup --watch",
+    "build:js": "tsup",
+    "build:types": "node --max-old-space-size=8192 ./scripts/build-types.js",
+    "build:modern": "yarn build:js && yarn build:types",
+    "build:timed": "echo \"=== TIMING common-server ===\" && time yarn build:modern 2>&1 | tee -a /tmp/dendron-build-modernization-trio-timing.log ; echo \"=== END === (see log)\"",
+    "compile:tsc": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
     "@dendronhq/common-all": "^0.124.0",

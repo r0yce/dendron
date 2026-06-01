@@ -18,7 +18,7 @@ export const decorateReference: Decorator<
     engine,
     note,
     vaults: config.workspace?.vaults ?? [],
-  });
+  } /* note: exactOptional on anchor/vaultName objects + FindNoteOpts inside linked; target widen + 4-axis in wikilinks.ts Batch 2 */);
 
   const decorationType =
     type === DECORATION_TYPES.brokenWikilink

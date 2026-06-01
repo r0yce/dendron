@@ -29,25 +29,30 @@ export const decorateFrontmatter: Decorator<
   // Decorate the timestamps
 
   const entries = contents.split("\n");
+  // position from DecoratorIn<FrontmatterContent> (NonOptional on "position"); start required per common-all Position
+  // Added defensive for noUncheckedIndexedAccess strict (unified decorations cluster, first-3 clean-build)
+  const fmStart = position.start;
   const lineOffset =
-    point2VSCodePosition(position.start).line +
+    point2VSCodePosition(fmStart).line +
     1; /* `---` line of frontmatter */
   const timestampDecorations = entries
     .map((entry, line): undefined | DecorationTimestamp => {
       const match = NoteUtils.RE_FM_UPDATED_OR_CREATED.exec(entry);
       if (!_.isNull(match) && match.groups?.timestamp) {
         const timestamp = _.toInteger(match.groups.timestamp);
+        // Safe under noUncheckedIndexedAccess (strict Batch for unified #2 of first 3): regex groups partial + beforeTimestamp access
+        // (see common-server analytics precedent for target-first + ?? hygiene)
+        const before = match.groups.beforeTimestamp ?? "";
+        const tsStr = match.groups.timestamp;
         const decoration: DecorationTimestamp = {
           range: {
             start: {
               line: line + lineOffset,
-              character: match.groups.beforeTimestamp.length,
+              character: before.length,
             },
             end: {
               line: line + lineOffset,
-              character:
-                match.groups.beforeTimestamp.length +
-                match.groups.timestamp.length,
+              character: before.length + tsStr.length,
             },
           },
           timestamp,
@@ -72,7 +77,7 @@ export const decorateFrontmatter: Decorator<
         config,
         engine,
         note,
-      });
+      }); // position/anchor optionals + PointOffset via decorateTag/position2VSCodeRange (Batch 1/2 decorations cluster; 4-axis in hashTags.ts)
       tagDecorations.push(...decorations);
       errors.push(...errors);
     })

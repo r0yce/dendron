@@ -15,7 +15,7 @@ export const decorateBlockAnchor: Decorator<
 
   const decoration: DecorationBlockAnchor = {
     type: DECORATION_TYPES.blockAnchor,
-    range: position2VSCodeRange(position),
+    range: position2VSCodeRange(position ?? { start: { line: 0, column: 0 }, end: { line: 0, column: 0 } }),
   };
   return {
     decorations: [decoration],

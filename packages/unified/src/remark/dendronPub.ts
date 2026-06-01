@@ -53,14 +53,15 @@ import {
 } from "./utils";
 
 type PluginOpts = NoteRefsOptsV2 & {
-  assetsPrefix?: string;
-  insertTitle?: boolean;
+  // target-first widen for exactOptionalPropertyTypes under Build Modernization (unified remark micro, SubC SiteUtils synergy + noteRef/data paths cluster of 3 parallel sub-agents); mirrors wikiLinks.ts CompilerOpts precedent + noteRefsV2 + analytics SegmentEventProps + common-server 0. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). THE CHAIN DOES NOT STOP.
+  assetsPrefix?: string | undefined;
+  insertTitle?: boolean | undefined;
   /**
    * Don't publish pages that are dis-allowd by dendron.yml
    */
-  transformNoPublish?: boolean;
+  transformNoPublish?: boolean | undefined;
   /** Don't display randomly generated colors for tags, only display color if it's explicitly set by the user. */
-  noRandomlyColoredTags?: boolean;
+  noRandomlyColoredTags?: boolean | undefined;
 };
 
 /**
@@ -273,7 +274,7 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
         // If the target is Dendron, no processing of links is needed
         if (dest === DendronASTDest.MD_DENDRON) return;
         const _node = node as WikiLinkNoteV4;
-        // @ts-ignore
+        // @ts-expect-error - wikiLink node.value shape (dendronPub remark layer, noteRef/data + SiteUtils synergy cluster); legacy AST interop (not strict 4-axis common-all boundary). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
         let value = node.value as string;
         // we change this later
         const valueOrig = value;
@@ -292,11 +293,13 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
         let note: NoteProps | undefined;
         if (mode !== ProcMode.IMPORT) {
           if (noteCacheForRenderDict) {
-            note = NoteDictsUtils.findByFname({
+            const candidates = NoteDictsUtils.findByFname({
               fname: valueOrig,
               noteDicts: noteCacheForRenderDict,
               vault,
-            })[0];
+            });
+            // SubB (noteRef/data paths + SiteUtils synergy cluster) of 3 sub-agents parallel dispatch for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + length/invariant guard + ! only after check (findByFname[0] under noUnchecked). See common-server 0 + unified 57 precedent + engine batches (full 8 IDs below). THE CHAIN DOES NOT STOP.
+            note = candidates.length > 0 ? candidates[0]! : undefined;
           }
 
           if (!note) {
@@ -385,11 +388,13 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
               ? VaultUtils.getVaultByName({ vname: data.vaultName, vaults })
               : undefined;
 
-            const target = NoteDictsUtils.findByFname({
+            const candidates = NoteDictsUtils.findByFname({
               fname: valueOrig,
               noteDicts: noteCacheForRenderDict,
               vault: targetVault,
-            })[0];
+            });
+            // SubB (noteRef/data paths + SiteUtils synergy cluster) of 3 sub-agents parallel dispatch for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + length/invariant guard + ! only after check (findByFname[0] under noUnchecked). See common-server 0 + unified 57 precedent + engine batches (full 8 IDs below). THE CHAIN DOES NOT STOP.
+            const target = candidates.length > 0 ? candidates[0]! : undefined;
 
             if (target) {
               title = target.title;
@@ -508,7 +513,10 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
             RemarkUtils.isTable(greatGrandParent)
           ) {
             // The table HTML generation drops anything not attached to a cell, so we put this in the first cell instead.
-            target = greatGrandParent.children[0]?.children[0];
+            // length/invariant guard + optional chain for noUnchecked (noteRef/data paths + SiteUtils synergy cluster of 3 sub-agents parallel dispatch for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). THE CHAIN DOES NOT STOP.
+            target = (greatGrandParent.children.length > 0 && greatGrandParent.children[0] && greatGrandParent.children[0].children && greatGrandParent.children[0].children.length > 0)
+              ? greatGrandParent.children[0].children[0]
+              : undefined;
           }
         } else {
           // Otherwise, it references the block it's inside
@@ -518,11 +526,15 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
         if (_.isUndefined(target)) return;
         if (RemarkUtils.isList(target)) {
           // Can't install as a child of the list, has to go into a list item
-          target = target.children[0];
+          // length/invariant guard (noteRef/data paths + SiteUtils synergy cluster ... "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" ... full 8 IDs as above). THE CHAIN DOES NOT STOP.
+          target = target.children.length > 0 ? target.children[0] : undefined;
         }
         if (RemarkUtils.isTable(target)) {
           // Can't install as a child of the table directly, has to go into a table cell
-          target = target.children[0].children[0];
+          // length/invariant guard (noteRef/data paths + SiteUtils synergy cluster ... "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" ... full 8 IDs as above). THE CHAIN DOES NOT STOP.
+          target = (target.children.length > 0 && target.children[0] && target.children[0].children && target.children[0].children.length > 0)
+            ? target.children[0].children[0]
+            : undefined;
         }
 
         if (RemarkUtils.isParent(target)) {

@@ -118,6 +118,8 @@ export async function runAllDecorators(
         allDecorations.push(
           ...decorations.map((decoration) => {
             // Add the offset from the start of the range so these decorations match up in the original document
+            // PointOffset construction: { line: number } (present value) compatible; offsetRange/compat under strict exactOptional handled in common-all side.
+            // Decorations cluster Batch 2 note (unified first-3). See position2VSCodeRange 4-axis in hashTags.
             decoration.range = offsetRange(decoration.range, {
               line: range.start.line,
             });

@@ -50,8 +50,10 @@ async function canShowDiff(opts: {
   const canPublishChecks = await Promise.all(
     vaults.map(async (vault) => {
       if (filePath.startsWith(vault.fsPath) && filePath.endsWith(".md")) {
-        const fname = path.basename(filePath.split(vault.fsPath)[1], ".md");
-        const note = (await engine.findNotesMeta({ fname, vault }))[0];
+        const parts = filePath.split(vault.fsPath);
+        const fname = path.basename(parts[1] ?? "", ".md");
+        const notes = await engine.findNotesMeta({ fname, vault });
+        const note = notes.length > 0 ? notes[0] : undefined;
         if (!note) {
           return false;
         }
@@ -79,7 +81,8 @@ function getLastChangelogCommit(engine: DEngineClient): undefined | string {
     return undefined;
   } else {
     const data: Commits = fs.readJSONSync(changesPath);
-    return data.commits[0].commitHash;
+    // noUncheckedIndexedAccess guard (changelog cluster Batch 1); see common-server 0 + unified 41 precedent
+    return data.commits.length > 0 ? data.commits[0]!.commitHash : undefined;
   }
 }
 
@@ -119,7 +122,8 @@ async function getChanges(opts: { commitHash: string; engine: DEngineClient }) {
   const status = stdout.split("\n");
   await asyncLoopOneAtATime(status, async (result) => {
     if (result.startsWith("M")) {
-      const filePath = result.split(" ")[0].substring(2);
+      const parts = result.split(" ");
+      const filePath = (parts[0] ?? "").substring(2);
       if (await canShowDiff({ filePath, engine })) {
         filesChanged.push(filePath);
         changes.push({
@@ -128,7 +132,8 @@ async function getChanges(opts: { commitHash: string; engine: DEngineClient }) {
         });
       }
     } else if (result.startsWith("A")) {
-      const filePath = result.split(" ")[0].substring(2);
+      const parts = result.split(" ");
+      const filePath = (parts[0] ?? "").substring(2);
       if (await canShowDiff({ filePath, engine })) {
         filesChanged.push(filePath);
         changes.push({
@@ -161,9 +166,10 @@ async function getChanges(opts: { commitHash: string; engine: DEngineClient }) {
     }
   );
   const date = stdOut2.split(/\s+/).slice(1, 5);
-  const day = date[0];
-  const month = date[1];
-  const year = date[3];
+  // noUncheckedIndexedAccess guards for date parts (changelog cluster, Engine-Server first batch); length not guaranteed after slice
+  const day = date[0] ?? "";
+  const month = date[1] ?? "";
+  const year = date[3] ?? "";
   commitDate = `${day} ${month} ${year}`;
 
   return {

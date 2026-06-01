@@ -143,7 +143,8 @@ export class FileStorage implements DStore {
       }
 
       const { notes, schemas, config } = this;
-      let error: IDendronError | undefined = errors[0];
+      // noUncheckedIndexedAccess guard on errors[0] (storev2.ts engine cluster, first batch); see precedent common-server 0 + unified 41
+      let error: IDendronError | undefined = errors.length > 0 ? errors[0] : undefined;
       if (errors.length > 1) {
         error = new DendronCompositeError(errors);
       }
@@ -168,7 +169,9 @@ export class FileStorage implements DStore {
     let fileName = USER_MESSAGES.UNKNOWN;
     try {
       if (resp.error && resp.error.payload) {
-        fileName = JSON.parse(JSON.parse(resp.error.payload)[0].payload).fpath;
+        const p0 = JSON.parse(resp.error.payload);
+        // noUnchecked guard on parsed [0] (storev2 createMalformedSchemaError, engine-server batch 2); length + try/catch per "first 3 packages..." + "proceed and utilize 3 sub-agents" + batch 2 + common-server 0 + unified 59 + IDs 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e8202-b2c3-7d4e-9f5a-6789abcdef01. THE CHAIN DOES NOT STOP.
+        fileName = p0.length > 0 ? JSON.parse(p0[0].payload).fpath : fileName;
       }
     } catch (parseErr) {
       fileName = USER_MESSAGES.UNKNOWN;
@@ -177,9 +180,9 @@ export class FileStorage implements DStore {
     let fullPath;
     try {
       if (resp.error && resp.error.payload) {
-        fullPath = JSON.parse(
-          JSON.parse(resp.error.payload)[0].payload
-        ).fullPath;
+        const p0 = JSON.parse(resp.error.payload);
+        // noUnchecked guard on parsed [0] (storev2 createMalformedSchemaError fullPath, engine-server batch 2); see full IDs + mandates above. THE CHAIN DOES NOT STOP.
+        fullPath = p0.length > 0 ? JSON.parse(p0[0].payload).fullPath : undefined;
       }
     } catch (parseErr) {
       fullPath = undefined;
@@ -188,7 +191,9 @@ export class FileStorage implements DStore {
     let reason = USER_MESSAGES.UNKNOWN;
     try {
       if (resp.error && resp.error.payload) {
-        reason = JSON.parse(JSON.parse(resp.error.payload)[0].payload).message;
+        const p0 = JSON.parse(resp.error.payload);
+        // noUnchecked guard on parsed [0] (storev2 createMalformedSchemaError reason, engine-server batch 2); "first 3 packages and Double down..." + batch2 + common 0 + unified 59 + all 5 IDs. THE CHAIN DOES NOT STOP.
+        reason = p0.length > 0 ? JSON.parse(p0[0].payload).message : reason;
       }
     } catch (parseErr) {
       reason = USER_MESSAGES.UNKNOWN;
@@ -1300,11 +1305,13 @@ export class FileStorage implements DStore {
       note: NoteUtils.toLogObj(note),
     });
     // check if note might already exist
-    const maybeNote = NoteDictsUtils.findByFname({
+    const findRes = NoteDictsUtils.findByFname({
       fname: note.fname,
       noteDicts: { notesById: this.notes, notesByFname: this.noteFnames },
       vault: note.vault,
-    })[0];
+    });
+    // noUnchecked guard on [0] result (storev2 writeNote, engine first batch); length guard + precedent
+    const maybeNote = findRes.length > 0 ? findRes[0] : undefined;
     this.logger.info({
       ctx,
       msg: "check:existing",

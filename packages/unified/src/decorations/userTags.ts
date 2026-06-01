@@ -13,7 +13,7 @@ export const decorateUserTag: Decorator<UserTag, DecorationWikilink> = async (
     fname: userTag.fname,
     engine,
     vaults: config.workspace?.vaults ?? [],
-  });
+  }); // target-widened sig (wikilinks Batch 2) + FindNoteOpts 4-axis inside linkedNoteType (unified decorations first-3)
 
   const decoration: DecorationWikilink = {
     type,

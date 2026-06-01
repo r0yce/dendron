@@ -30,7 +30,6 @@ import {
   ErrorFactory,
   IDendronError,
 } from "../error";
-import { ERROR_SEVERITY } from "../constants";
 
 /** Branded/nominal token type for future common-di (string compatible today). */
 export type ErrorServiceToken = "ErrorService";
@@ -97,12 +96,12 @@ export class DefaultErrorService implements IErrorService {
     // v2: central place for any future normalization / severity defaults / strict guards
     return new DendronError<TCode>({
       ...props,
-      name: "DendronError",
+      // name is intentionally omitted here to satisfy the Omit<..., "name"> contract
       // Future: e.g. ensure severity defaults based on code
     });
   }
 
-  onError?(error: IDendronError): void {
+  onError?(_error: IDendronError): void {
     // No-op default (pure). Override in registration (afterResolution hook) or plugin-core adapter.
     // Example future: DI-registered telemetry client could be injected here in enhanced impl.
   }

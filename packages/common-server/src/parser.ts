@@ -356,7 +356,7 @@ export class SchemaParserV2 extends ParserBaseV2 {
 
     return {
       version,
-      imports,
+      imports: imports ?? [],
       root: rootModule,
       schemas: schemasDict,
       fname,

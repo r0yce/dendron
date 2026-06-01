@@ -132,7 +132,8 @@ export class NoteParser extends ParserBase {
       config,
       errors,
     });
-    const rootNote = rootProps.changeEntries[0].note;
+    // invariant: parseNoteProps for root always yields >=1 changeEntry on success path (no error thrown); ! after parse (drivers/file/noteParser root cluster, engine-server batch 2); length/invariant guard pattern "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (third of 3: engine-server, batch 2)" + common-server 0 + unified 59 + ADR 0001 + IDs 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e8202-b2c3-7d4e-9f5a-6789abcdef01. THE CHAIN DOES NOT STOP.
+    const rootNote = rootProps.changeEntries[0]!.note;
     this.logger.info({ ctx, msg: "post:parseRootNote" });
     if (!rootProps.matchHash) {
       cacheUpdates[rootNote.fname] = createCacheEntry({
@@ -158,7 +159,8 @@ export class NoteParser extends ParserBase {
               config,
               errors,
             });
-            const parsedNote = out.changeEntries[0].note;
+            // invariant parse yields entry (drivers/file/noteParser hierarchy loop cluster, engine-server batch 2); ! after; see full mandate "first 3 packages and Double down..." + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (third of 3: engine-server, batch 2)" + common-server 0 + unified 59 + ADR 0001 + IDs 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e8202-b2c3-7d4e-9f5a-6789abcdef01. THE CHAIN DOES NOT STOP.
+            const parsedNote = out.changeEntries[0]!.note;
             unseenKeys.delete(parsedNote.fname);
             if (!out.matchHash) {
               cacheUpdates[parsedNote.fname] = createCacheEntry({
@@ -218,7 +220,8 @@ export class NoteParser extends ParserBase {
                 config,
                 errors,
               });
-              const parsedNote = resp.changeEntries[0].note;
+              // invariant parse yields entry (drivers/file/noteParser lvl loop cluster, engine-server batch 2); ! after per length/invariant "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (third of 3: engine-server, batch 2)" + common-server 0 + unified 59 + ADR 0001 + IDs 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e8202-b2c3-7d4e-9f5a-6789abcdef01. THE CHAIN DOES NOT STOP.
+              const parsedNote = resp.changeEntries[0]!.note;
               unseenKeys.delete(parsedNote.fname);
 
               // this indicates that the contents of the note was different

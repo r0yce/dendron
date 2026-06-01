@@ -157,7 +157,7 @@ export async function getAllFiles(
   opts: GetAllFilesOpts
 ): Promise<RespV2<string[]>> {
   const out = await getAllFilesWithTypes(opts);
-  const data = out.data?.map((item) => item.name);
+  const data = out.data?.map((item) => item.name) ?? [];
   return { error: out.error, data };
 }
 

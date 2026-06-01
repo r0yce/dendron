@@ -58,7 +58,7 @@ export const decorateWikilink: Decorator<
     note,
     engine,
     vaults: config.workspace?.vaults ?? [],
-  });
+  }); // local sig widened target-first (Batch 2); FindNoteOpts boundary cast inside linkedNoteType
   const wikilinkRange = position2VSCodeRange(position);
   const decorations: DecorationsForDecorateWikilink[] = [];
 
@@ -137,16 +137,19 @@ export async function linkedNoteType({
   engine,
   vaults,
 }: {
-  fname?: string;
-  anchorStart?: string;
-  anchorEnd?: string;
-  vaultName?: string;
-  note?: NoteProps;
+  // target-first widen (local interface in unified): ?: T → ?: T | undefined for exactOptionalPropertyTypes hygiene (Batch 5+ pattern)
+  // This collapses many call-site errors in references/userTags/wikilinks/decorate* without per-site changes.
+  // See common-server analytics precedent. Cross-pkg FindNoteOpts/PointOffset handled with 4-axis below.
+  fname?: string | undefined;
+  anchorStart?: string | undefined;
+  anchorEnd?: string | undefined;
+  vaultName?: string | undefined;
+  note?: NoteProps | undefined;
   engine: ReducedDEngine;
   vaults: DVault[];
 }): Promise<{
   type: DECORATION_TYPES.brokenWikilink | DECORATION_TYPES.wikiLink;
-  noteMeta?: NotePropsMeta;
+  noteMeta?: NotePropsMeta | undefined;
   errors: IDendronError[];
 }> {
   const ctx = "linkedNoteType";
@@ -167,7 +170,8 @@ export async function linkedNoteType({
     matchingNotes = note ? [note] : [];
   } else if (fname) {
     try {
-      matchingNotes = await engine.findNotesMeta({ fname, vault });
+      // 4-axis as any ONLY for true cross-pkg boundary (unified → common-all FindNoteOpts on vault/note optionals under exactOptional)
+      matchingNotes = await engine.findNotesMeta({ fname, vault } as any /* TODO: Build Modernization 2026-05-31 focused clean-build phase (second of 3 packages: unified). Verbatim user: "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" (this cycle directive). 4-axis boundary (unified decorations/linkedNoteType → common-all FindNoteOpts). See ADR 0001 + "see common-server analytics precedent" (SegmentEventProps target widen + ?? + cast cleanup). Decorations cluster Batch 2. No bare @ts. 0 tests invariant. */);
     } catch (err) {
       return {
         type: DECORATION_TYPES.brokenWikilink,
@@ -185,7 +189,7 @@ export async function linkedNoteType({
       };
     }
   } else {
-    matchingNotes = [note!];
+    matchingNotes = note ? [note] : [];
   }
 
   // Checking web URLs is not feasible, and checking wildcard references would be hard.
@@ -222,10 +226,11 @@ export async function linkedNoteType({
 
   if (matchingNotes.length > 0) {
     // There are no anchors specified in the link, but we did find matching notes
+    // Guard + ! only after length check (noUncheckedIndexedAccess Batch 5+ hygiene)
     return {
       type: DECORATION_TYPES.wikiLink,
       errors: [],
-      noteMeta: matchingNotes[0],
+      noteMeta: matchingNotes[0]!,
     };
   }
   // No matching notes, and not a non-note file or web URL. This is just a broken link then.

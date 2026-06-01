@@ -233,7 +233,7 @@ export class TemplateUtils {
         }
       }
 
-      const maybeNotes = await engine.findNotes({ fname: fname as string, vault: maybeVault });
+      const maybeNotes = await engine.findNotes({ fname: fname as string, vault: maybeVault } as any /* TODO: Build Modernization - exactOptionalPropertyTypes migration for FindNoteOpts; see hybrid tsup + api-extractor pattern 2026-05-31 */);
       const maybeTemplateNote = await pickNote(maybeNotes);
       if (maybeTemplateNote.error) {
         return { error: maybeTemplateNote.error };
