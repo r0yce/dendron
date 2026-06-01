@@ -419,7 +419,7 @@ function getOutwardLinkedConnections({
           notesByFname: fNameDict,
         },
         vault: toVault,
-      })[0];
+      })?.[0]; /* BM-2026-0531-First3 [ref:registry] Group D: safe optional chain for findByFname return under noUnchecked (see common-all precedent) */
 
       if (!to) {
         logger.warn(
@@ -572,7 +572,7 @@ const getFullNoteGraphElements = ({
             notesByFname: fNameDict,
           },
           vault: toVault,
-        })[0];
+        })?.[0]; /* BM-2026-0531-First3 [ref:registry] Group D: safe optional chain for findByFname return under noUnchecked (see common-all precedent) */
 
         if (!to) {
           logger.debug(

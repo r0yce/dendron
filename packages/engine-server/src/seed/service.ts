@@ -26,14 +26,14 @@ export enum SeedInitMode {
 export type SeedSvcResp = {
   data?: {
     seed: SeedConfig;
-    seedPath?: string; // optional, not set if we're working with metadata only
-  };
-  error?: DendronError;
+    seedPath?: string | undefined; // optional, not set if we're working with metadata only
+  } | undefined;
+  error?: DendronError | undefined;
 };
 
 export class SeedService {
   public wsRoot: string;
-  public registryFile?: string;
+  public registryFile?: string | undefined;
   protected registry: SeedRegistry;
 
   /**
@@ -47,8 +47,8 @@ export class SeedService {
     registry,
   }: {
     wsRoot: string;
-    registryFile?: string;
-    registry?: SeedRegistry;
+    registryFile?: string | undefined;
+    registry?: SeedRegistry | undefined;
   }) {
     this.wsRoot = wsRoot;
     this.registryFile = registryFile;
@@ -75,9 +75,9 @@ export class SeedService {
     onUpdatedWorkspace,
   }: {
     id: string;
-    metaOnly?: boolean;
-    onUpdatingWorkspace?: () => Promise<void>;
-    onUpdatedWorkspace?: () => Promise<void>;
+    metaOnly?: boolean | undefined;
+    onUpdatingWorkspace?: () => Promise<void> | undefined;
+    onUpdatedWorkspace?: () => Promise<void> | undefined;
   }): Promise<SeedSvcResp> {
     const seedOrError = await this.getSeedOrErrorFromId(id);
     if (seedOrError instanceof DendronError) {
@@ -114,8 +114,8 @@ export class SeedService {
   }: {
     seed: SeedConfig;
     wsRoot: string;
-    onUpdatingWorkspace?: () => Promise<void>;
-    onUpdatedWorkspace?: () => Promise<void>;
+    onUpdatingWorkspace?: () => Promise<void> | undefined;
+    onUpdatedWorkspace?: () => Promise<void> | undefined;
   }) {
     const ws = new WorkspaceService({ wsRoot });
     const config = DConfig.readConfigSync(wsRoot);
@@ -226,8 +226,8 @@ export class SeedService {
     onUpdatedWorkspace,
   }: {
     id: string;
-    onUpdatingWorkspace?: () => Promise<void>;
-    onUpdatedWorkspace?: () => Promise<void>;
+    onUpdatingWorkspace?: () => Promise<void> | undefined;
+    onUpdatedWorkspace?: () => Promise<void> | undefined;
   }): Promise<SeedSvcResp> {
     const config = WorkspaceService.getOrCreateConfig(this.wsRoot);
 
@@ -268,8 +268,8 @@ export class SeedService {
     onUpdatedWorkspace,
   }: {
     seed: SeedConfig;
-    onUpdatingWorkspace?: () => Promise<void>;
-    onUpdatedWorkspace?: () => Promise<void>;
+    onUpdatingWorkspace?: () => Promise<void> | undefined;
+    onUpdatedWorkspace?: () => Promise<void> | undefined;
   }) {
     const ws = new WorkspaceService({ wsRoot: this.wsRoot });
 

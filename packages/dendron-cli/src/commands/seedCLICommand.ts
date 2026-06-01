@@ -19,13 +19,13 @@ import {
 
 type CommandCLIOpts = {
   wsRoot: string;
-  vault?: string;
+  vault?: string | undefined;
   cmd: SeedCommands;
   id: string;
   // INIT
-  mode?: SeedInitMode;
-  config?: SeedConfig;
-  registryFile?: string;
+  mode?: SeedInitMode | undefined;
+  config?: SeedConfig | undefined;
+  registryFile?: string | undefined;
 };
 
 type CommandOpts = CommandCLIOpts & SetupEngineOpts & CommandCommonProps;

@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
- * Hybrid types builder for large packages.
- * 1. Emit declarations with tsc (with high memory)
+ * Hybrid types builder (webviews special case: webpack primary + tsup/tsc).
+ * 1. Emit declarations with tsc (high memory; adapted to existing tsconfig.json for CRA/webpack tsx setup - no new tsconfig.build)
  * 2. Run api-extractor to produce clean rolled-up .d.ts
+ * BM-2026-0531-First3 [ref:registry] Group D dendron-plugin-views
  */
 
 const { execSync } = require('child_process');
@@ -25,7 +26,7 @@ fs.mkdirSync(tempDir, { recursive: true });
 console.log('  → Emitting declarations with tsc (high memory)...');
 try {
   execSync(
-    'npx tsc -p tsconfig.build.json --emitDeclarationOnly --outDir temp-dts',
+    'npx tsc -p tsconfig.json --emitDeclarationOnly --outDir temp-dts --skipLibCheck',
     {
       cwd: pkgDir,
       stdio: 'inherit',

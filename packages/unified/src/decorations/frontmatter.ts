@@ -40,10 +40,10 @@ export const decorateFrontmatter: Decorator<
       const match = NoteUtils.RE_FM_UPDATED_OR_CREATED.exec(entry);
       if (!_.isNull(match) && match.groups?.timestamp) {
         const timestamp = _.toInteger(match.groups.timestamp);
-        // Safe under noUncheckedIndexedAccess (strict Batch for unified #2 of first 3): regex groups partial + beforeTimestamp access
-        // (see common-server analytics precedent for target-first + ?? hygiene)
-        const before = match.groups.beforeTimestamp ?? "";
-        const tsStr = match.groups.timestamp;
+        // Lean v2: ! after groups guard for noUncheckedIndexedAccess on regex (groups partials guaranteed); ?? hygiene
+        const groups = match.groups!;
+        const before = groups.beforeTimestamp ?? "";
+        const tsStr = groups.timestamp ?? "";
         const decoration: DecorationTimestamp = {
           range: {
             start: {

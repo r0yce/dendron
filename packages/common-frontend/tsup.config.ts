@@ -13,5 +13,5 @@ export default defineConfig({
   bundle: false,
   legacyOutput: false,
   ignoreWatch: ['**/*.test.ts', '**/*-spec.ts', 'src/test/**'],
-  // Hybrid strategy: tsup handles JS (fast), separate tsc --emitDeclarationOnly handles types (more reliable on large packages)
+  // BM-2026-0531-First3 [ref:registry] hybrid (tsup JS + tsc types) per Wave 2 Group C. Minimal.
 });

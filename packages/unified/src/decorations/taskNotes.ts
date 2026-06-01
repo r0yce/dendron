@@ -38,10 +38,9 @@ export async function decorateTaskNote({
         })
       : undefined;
 
-  // 4-axis boundary cast ONLY for true cross-pkg (unified → common-all FindNoteOpts exactOptional on vault/note optionals)
-  // Full dated per Strict-Mode-Fixer Batch 5+/Build Modernization mandate. See common-server analytics precedent.
-  // length guard + ! only after (noUnchecked hygiene, Batch 5+ pattern)
-  const matching = await engine.findNotesMeta({ fname, vault } as any /* TODO: Build Modernization 2026-05-31 focused clean-build phase (second of 3 packages: unified) + "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis boundary (unified → common-all FindNoteOpts vault?: DVault) + see ADR 0001 + common-server analytics precedent. Decorations cluster Batch 1. */ );
+  // Lean v2: conditional object literals (no undef-valued keys) for exactOptionalPropertyTypes on FindNoteOpts; length guard + ! (noUnchecked)
+  const findOpts = vault ? { fname, vault } : { fname };
+  const matching = await engine.findNotesMeta(findOpts);
   const note = matching.length > 0 ? matching[0]! : undefined;
   if (!note || !TaskNoteUtils.isTaskNote(note)) return;
 

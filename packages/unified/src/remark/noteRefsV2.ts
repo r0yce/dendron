@@ -178,7 +178,8 @@ function attachParser(proc: Unified.Processor) {
     const procOpts = MDUtilsV5.getProcOpts(proc);
     const match = LINK_REGEX.exec(value);
     if (match) {
-      const linkMatch = match[1].trim();
+      // Lean v2: ! after match guard for noUncheckedIndexedAccess (noteRef regex captures)
+      const linkMatch = match[1]!.trim();
       if (procOpts?.mode === ProcMode.NO_DATA) {
         const link = LinkUtils.parseNoteRefRaw(linkMatch);
         const { value } = LinkUtils.parseLink(linkMatch);
@@ -189,7 +190,7 @@ function attachParser(proc: Unified.Processor) {
           },
           value,
         };
-        return eat(match[0])(refNote);
+        return eat(match[0]!)(refNote);
       } else {
         const link = LinkUtils.parseNoteRef(linkMatch);
         // If the link is same file [[#header]], it's implicitly to the same file it's located in
@@ -204,7 +205,7 @@ function attachParser(proc: Unified.Processor) {
           },
           value,
         };
-        return eat(match[0])(refNote);
+        return eat(match[0]!)(refNote);
       }
     }
     return;

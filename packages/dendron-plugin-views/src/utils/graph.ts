@@ -13,10 +13,10 @@ export type GraphElements = {
 export type GraphConfigItem<T> = {
   value: T;
   mutable: boolean;
-  label?: string;
-  color?: string;
-  placeholder?: string;
-  singleSelect?: boolean;
+  label?: string | undefined;
+  color?: string | undefined;
+  placeholder?: string | undefined;
+  singleSelect?: boolean | undefined;
 };
 
 export type CoreGraphConfig = {

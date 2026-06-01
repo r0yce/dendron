@@ -323,8 +323,7 @@ export default function Graph({
         ...c,
         ...additionalChanges,
         [key]: {
-          // @ts-ignore
-          ...c[key],
+          ...c[key]! /* BM-2026-0531-First3 [ref:registry] Group D: graph config partial (post GraphConfigItem widen); ! safe in update path, no bare @ts */,
           value,
         },
       };

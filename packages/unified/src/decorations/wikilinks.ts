@@ -3,6 +3,7 @@ import {
   DendronError,
   DNoteRefLink,
   DVault,
+  FindNoteOpts,
   getTextRange,
   IDendronError,
   isNotUndefined,
@@ -114,7 +115,8 @@ function checkIfAnchorIsValid({
   anchor,
   allAnchors,
 }: {
-  anchor?: string;
+  // Lean v2: widened for exactOptionalPropertyTypes
+  anchor?: string | undefined;
   allAnchors: string[];
 }): boolean {
   // if there's no anchor, there's nothing that could be invalid
@@ -170,8 +172,10 @@ export async function linkedNoteType({
     matchingNotes = note ? [note] : [];
   } else if (fname) {
     try {
-      // 4-axis as any ONLY for true cross-pkg boundary (unified → common-all FindNoteOpts on vault/note optionals under exactOptional)
-      matchingNotes = await engine.findNotesMeta({ fname, vault } as any /* TODO: Build Modernization 2026-05-31 focused clean-build phase (second of 3 packages: unified). Verbatim user: "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" (this cycle directive). 4-axis boundary (unified decorations/linkedNoteType → common-all FindNoteOpts). See ADR 0001 + "see common-server analytics precedent" (SegmentEventProps target widen + ?? + cast cleanup). Decorations cluster Batch 2. No bare @ts. 0 tests invariant. */);
+      // Lean v2: conditional opts (no undef keys) + FindNoteOpts type for exactOptionalPropertyTypes hygiene at common-all boundary; no cast needed
+      const findOpts: FindNoteOpts = { fname };
+      if (vault !== undefined) findOpts.vault = vault;
+      matchingNotes = await engine.findNotesMeta(findOpts);
     } catch (err) {
       return {
         type: DECORATION_TYPES.brokenWikilink,

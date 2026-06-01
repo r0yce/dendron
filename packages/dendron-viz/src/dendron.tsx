@@ -40,7 +40,7 @@ export async function generateSVG(args: VisualizationInput) {
         <Tree
           data={data}
           maxDepth={+maxDepth}
-          colorEncoding={colorEncoding as any}
+          colorEncoding={colorEncoding as any /* BM-2026-0531-First3 [ref:registry] as-any for viz color prop interop (string|enum boundary to Tree; minimal justified, no intra). Group C. 0 bare @ts. */}
           customFileColors={customFileColors}
         />
       );

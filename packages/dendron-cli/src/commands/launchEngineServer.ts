@@ -15,23 +15,23 @@ import { CLICommand, CommandCommonProps } from "./base";
 type CommandOutput = { port: number; server: any } & CommandCommonProps;
 type CommandOpts = Required<Omit<CommandCLIOpts, keyof CommandCLIOnlyOpts>> & {
   server: any;
-  serverSockets?: Set<Socket>;
+  serverSockets?: Set<Socket> | undefined;
 } & CommandCommonProps;
 type CommandCLIOnlyOpts = {
   /**
    *
    * Whether Dendron should write the port to the * {@link file | https://wiki.dendron.so/notes/446723ba-c310-4302-a651-df14ce6e002b.html#dendron-port-file }
    */
-  noWritePort?: boolean;
+  noWritePort?: boolean | undefined;
 };
 type CommandCLIOpts = {
-  port?: number;
-  init?: boolean;
+  port?: number | undefined;
+  init?: boolean | undefined;
   wsRoot: string;
   /**
    * Fast boot mode for engine. Don't index
    */
-  fast?: boolean;
+  fast?: boolean | undefined;
 } & CommandCLIOnlyOpts;
 
 export { CommandCLIOpts as LaunchEngineServerCLIOpts };

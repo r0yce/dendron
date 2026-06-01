@@ -17,13 +17,13 @@ import yargs from "yargs";
 import { setupEngine, SetupEngineCLIOpts, SetupEngineResp } from "./utils";
 
 export type PodCLIOpts = {
-  podConfig?: URI;
-  inlineConfig?: string[];
-  configValues?: { [key: string]: any };
-  vault?: string;
-  fname?: string;
-  hierarchy?: string;
-  podId?: string;
+  podConfig?: URI | undefined;
+  inlineConfig?: string[] | undefined;
+  configValues?: { [key: string]: any } | undefined;
+  vault?: string | undefined;
+  fname?: string | undefined;
+  hierarchy?: string | undefined;
+  podId?: string | undefined;
 };
 
 export type PodCommandCLIOpts = {} & SetupEngineCLIOpts & PodCLIOpts;

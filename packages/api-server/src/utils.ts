@@ -33,20 +33,20 @@ export async function getWSEngine({ ws }: { ws: string }) {
 type ServerArgs = {
   scriptPath: string;
   logPath: string;
-  port?: number;
-  nextServerUrl?: string;
-  nextStaticRoot?: string;
-  googleOauthClientId?: string;
-  googleOauthClientSecret?: string;
+  port?: number | undefined;
+  nextServerUrl?: string | undefined;
+  nextStaticRoot?: string | undefined;
+  googleOauthClientId?: string | undefined;
+  googleOauthClientSecret?: string | undefined;
 };
 
 type SERVER_ENV = {
-  NEXT_SERVER_URL?: string;
-  NEXT_STATIC_ROOT?: string;
-  ENGINE_SERVER_PORT?: string;
+  NEXT_SERVER_URL?: string | undefined;
+  NEXT_STATIC_ROOT?: string | undefined;
+  ENGINE_SERVER_PORT?: string | undefined;
   LOG_PATH: string;
-  GOOGLE_OAUTH_ID?: string;
-  GOOGLE_OAUTH_SECRET?: string;
+  GOOGLE_OAUTH_ID?: string | undefined;
+  GOOGLE_OAUTH_SECRET?: string | undefined;
 };
 
 export enum SubProcessExitType {
@@ -154,7 +154,7 @@ export class ServerUtils {
       nextStaticRoot,
       googleOauthClientId,
       googleOauthClientSecret,
-    } as any /* TODO: Build Modernization hybrid pattern - exactOptionalPropertyTypes fixes 2026-05-31 */);
+    } as any /* BM-2026-0531-First3 [ref:registry] 4-axis boundary (api-server LaunchOpts -> common) */);
     if (!process.send) {
       throw new DendronError({ message: "expect a child process" });
     }

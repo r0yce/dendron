@@ -20,11 +20,11 @@ import yargs from "yargs";
 import { CLIAnalyticsUtils } from "../utils/analytics";
 import { CLIUtils } from "../utils/cli";
 
-type BaseCommandOpts = { quiet?: boolean; dev?: boolean; json?: boolean };
+type BaseCommandOpts = { quiet?: boolean | undefined; dev?: boolean | undefined; json?: boolean | undefined };
 
 export type CommandCommonProps = {
-  error?: DendronError;
-  exit?: boolean;
+  error?: DendronError | undefined;
+  exit?: boolean | undefined;
 };
 
 export abstract class BaseCommand<

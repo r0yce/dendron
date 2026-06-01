@@ -95,8 +95,9 @@ export class SiteUtils {
     // check if note is in index
     const domain = DNodeUtils.domainName(note.fname);
     const publishingConfig = ConfigUtils.getPublishing(config);
+    // siteHierarchies[0] safe (BM-2026-0531-First3 [ref:registry])
     if (
-      publishingConfig.siteHierarchies[0] !== "root" &&
+      publishingConfig.siteHierarchies[0]! !== "root" &&
       publishingConfig.siteHierarchies.indexOf(domain) < 0
     ) {
       return false;
@@ -111,7 +112,7 @@ export class SiteUtils {
     /**
      * Delete existing siteAssets
      */
-    deleteSiteAssetsDir?: boolean;
+    deleteSiteAssetsDir?: boolean | undefined;
   }) {
     const { wsRoot, vault, siteAssetsDir, deleteSiteAssetsDir } = opts;
     const vaultAssetsDir = path.join(vault2Path({ wsRoot, vault }), "assets");
@@ -136,7 +137,7 @@ export class SiteUtils {
   static create403StaticNote(opts: { engine: DEngineClient }) {
     const { engine } = opts;
     const vaults = engine.vaults;
-    // vault[0] (topics/site create403StaticNote cluster, engine-server batch 2); assume >=1 vault for site publish path (invariant in caller contexts); ! after semantic check per length/invariant pattern "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (third of 3: engine-server, batch 2)" + common-server 0 + unified 59 + ADR 0001 + IDs 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e8202-b2c3-7d4e-9f5a-6789abcdef01. THE CHAIN DOES NOT STOP.
+    // vault[0]! (BM-2026-0531-First3 [ref:registry])
     return NoteUtils.create({
       vault: vaults[0]!,
       fname: "403",
@@ -159,7 +160,7 @@ export class SiteUtils {
   static async filterByConfig(opts: {
     engine: DEngineClient;
     config: DendronConfig;
-    noExpandSingleDomain?: boolean;
+    noExpandSingleDomain?: boolean | undefined;
   }): Promise<{ notes: NotePropsByIdDict; domains: NoteProps[] }> {
     const logger = createLogger(LOGGER_NAME);
     const { engine, config } = opts;
@@ -209,7 +210,7 @@ export class SiteUtils {
       siteHierarchies.length === 1 &&
       domains.length === 1
     ) {
-      const rootDomain = domains[0];
+      const rootDomain = domains[0]!; // length===1 guard (BM-2026-0531-First3 [ref:registry])
       // special case, check if any of these children were supposed to be hidden
       domains = domains
         .concat((await engine.bulkGetNotes(rootDomain.children)).data)
@@ -282,7 +283,7 @@ export class SiteUtils {
       return;
     } else {
       // get the note
-      domainNote = { ...notes[0] };
+      domainNote = { ...notes[0]! }; // length===1 from else (BM-2026-0531-First3 [ref:registry])
     }
 
     // if no note found or can't publish, then stop here
@@ -480,11 +481,11 @@ export class SiteUtils {
     addPrefix,
     note,
   }: {
-    pathValue?: string;
-    pathAnchor?: string;
+    pathValue?: string | undefined;
+    pathAnchor?: string | undefined;
     config: DendronConfig;
-    addPrefix?: boolean;
-    note?: NoteProps;
+    addPrefix?: boolean | undefined;
+    note?: NoteProps | undefined;
   }): string {
     // add path prefix if valid
     let pathPrefix: string = "";
@@ -519,8 +520,8 @@ export class SiteUtils {
   }
 
   static async handleDup(opts: {
-    dupBehavior?: DuplicateNoteBehavior;
-    allowStubs?: boolean;
+    dupBehavior?: DuplicateNoteBehavior | undefined;
+    allowStubs?: boolean | undefined;
     engine: DEngineClient;
     fname: string;
     config: DendronConfig;
@@ -548,7 +549,7 @@ export class SiteUtils {
           vaults: engine.vaults,
         });
         const findNotesResp = await engine.findNotes({ fname, vault });
-        // length/invariant guard + [0] only after check (topics/site handleDup findNotes[0] 550 cluster, engine-server batch 3); target-first local hygiene + ?? at boundary per "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (third of 3: engine-server batch 3 + unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). THE CHAIN DOES NOT STOP.
+        // length guard + [0] (BM-2026-0531-First3 [ref:registry])
         const maybeNote = findNotesResp.length > 0 ? findNotesResp[0] : undefined;
         if (maybeNote && maybeNote.stub && !allowStubs) {
           return;
@@ -594,13 +595,13 @@ export class SiteUtils {
       if (
         !this.canPublish({
           config,
-          note: maybeDomainNotes[0],
+          note: maybeDomainNotes[0]!, // length >=1 (BM-2026-0531-First3 [ref:registry])
           engine,
         })
       ) {
         return;
       }
-      domainNote = maybeDomainNotes[0];
+      domainNote = maybeDomainNotes[0]!; // length >=1 (BM-2026-0531-First3 [ref:registry])
     }
     const domainId = domainNote.id;
     // merge children
@@ -629,14 +630,14 @@ export class SiteUtils {
     indexNote,
     note,
   }: {
-    indexNote?: string;
+    indexNote?: string | undefined;
     note: NoteProps;
   }): boolean {
     return indexNote ? note.fname === indexNote : DNodeUtils.isRoot(note);
   }
 
   static validateConfig(sconfig: DendronPublishingConfig): {
-    error?: IDendronError;
+    error?: IDendronError | undefined;
   } {
     // asset prefix needs one slash
     if (!_.isUndefined(sconfig.assetsPrefix)) {

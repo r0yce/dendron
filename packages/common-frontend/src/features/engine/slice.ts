@@ -110,7 +110,7 @@ export const syncNote = createAsyncThunk(
       notes: data.length < 10 ? data.map(NoteUtils.toLogObj) : null,
     });
     if (data?.length) {
-      dispatch(updateNote(data[0]));
+      dispatch(updateNote(data[0]!)); // BM-2026-0531-First3 [ref:registry] length guard + ! post (noUnchecked data[0] in frontend engine slice; target-first hygiene on note update paths). Group C batch. 0 bare @ts.
       dispatch(setError(undefined));
     }
     logger.info({ state: "post:setNotes" });

@@ -69,11 +69,13 @@ const plugin: Plugin = function (this: Unified.Processor) {
         return false;
       }
 
-      const note = NoteDictsUtils.findByFname({
+      // Lean v2: length guard + ! for noUncheckedIndexedAccess on findByFname result (proven pattern)
+      const found = NoteDictsUtils.findByFname({
         fname: backlink.from.fname!,
         noteDicts: noteCacheForRenderDict,
         vault,
-      })[0];
+      });
+      const note = found.length > 0 ? found[0]! : undefined;
 
       // if note doesn't exist, don't include in backlinks
       if (!note) {
@@ -109,7 +111,8 @@ const plugin: Plugin = function (this: Unified.Processor) {
               }),
             });
 
-            const note = notes[0];
+            // Lean v2: length guard + ! for noUncheckedIndexedAccess (backlinks note lookup)
+            const note = notes.length > 0 ? notes[0]! : undefined;
 
             if (note) {
               alias =

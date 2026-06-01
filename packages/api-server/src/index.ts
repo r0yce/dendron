@@ -7,13 +7,13 @@ export { ServerUtils, SubProcessExitType } from "./utils";
 export { express, launchv2 };
 
 type LaunchOpts = {
-  port?: number;
-  logPath?: string;
-  logLevel?: LogLvl;
-  nextServerUrl?: string;
-  nextStaticRoot?: string;
-  googleOauthClientId?: string;
-  googleOauthClientSecret?: string;
+  port?: number | undefined;
+  logPath?: string | undefined;
+  logLevel?: LogLvl | undefined;
+  nextServerUrl?: string | undefined;
+  nextStaticRoot?: string | undefined;
+  googleOauthClientId?: string | undefined;
+  googleOauthClientSecret?: string | undefined;
 };
 
 export type ServerClose = ReturnType<
@@ -37,10 +37,10 @@ function launchv2(
     const appModule = require("./Server").appModule;
     const app = appModule({
       logPath: LOG_DST,
-      nextServerUrl: opts?.nextServerUrl,
-      nextStaticRoot: opts?.nextStaticRoot,
-      googleOauthClientId: opts?.googleOauthClientId,
-      googleOauthClientSecret: opts?.googleOauthClientSecret,
+      nextServerUrl: opts?.nextServerUrl ?? undefined,
+      nextStaticRoot: opts?.nextStaticRoot ?? undefined,
+      googleOauthClientId: opts?.googleOauthClientId ?? undefined,
+      googleOauthClientSecret: opts?.googleOauthClientSecret ?? undefined,
     });
 
     const serverSockets = new Set<Socket>();

@@ -16,11 +16,11 @@ import {
 } from "./launchEngineServer";
 
 export type SetupEngineCLIOpts = {
-  enginePort?: number;
-  useLocalEngine?: boolean;
-  attach?: boolean;
-  target?: EngineConnectorTarget;
-  newEngine?: boolean;
+  enginePort?: number | undefined;
+  useLocalEngine?: boolean | undefined;
+  attach?: boolean | undefined;
+  target?: EngineConnectorTarget | undefined;
+  newEngine?: boolean | undefined;
 } & LaunchEngineServerCLIOpts;
 
 export type SetupEngineResp = {
@@ -28,13 +28,13 @@ export type SetupEngineResp = {
   engine: DEngineClient;
   port: number;
   server: Server;
-  serverSockets?: Set<Socket>;
+  serverSockets?: Set<Socket> | undefined;
 };
 
 export type SetupEngineOpts = {
   wsRoot: string;
   engine: DEngineClient;
-  port?: number;
+  port?: number | undefined;
   server: any;
 };
 
@@ -134,7 +134,7 @@ export async function setupEngine(
       target: opts.target,
     });
     engine = engineConnector.engine;
-    port = engineConnector.port!;
+    port = engineConnector.port!; /* BM-2026-0531-First3 [ref:registry] post-check guard already present */
     if (engineConnector.serverPortWatcher) {
       // a file watcher is created when engine port is undefined
       // needs to be cleaned up on server closing

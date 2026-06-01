@@ -37,7 +37,8 @@
     "build:js": "tsup",
     "build:types": "node --max-old-space-size=8192 ./scripts/build-types.js",
     "build:modern": "yarn build:js && yarn build:types",
-    "compile:tsc": "tsc -p tsconfig.build.json"
+    "compile:tsc": "tsc -p tsconfig.build.json",
+    "build:timed": "time yarn build:modern 2>&1 | tee -a /tmp/dendron-build-modernization-v2.log"
   },
   "devDependencies": {
     "@types/cors": "^2.8.10",

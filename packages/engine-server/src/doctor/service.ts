@@ -57,16 +57,16 @@ export enum DoctorActionsEnum {
 
 export type DoctorServiceOpts = {
   action: DoctorActionsEnum;
-  query?: string;
-  candidates?: NoteProps[];
-  limit?: number;
-  dryRun?: boolean;
-  exit?: boolean;
-  quiet?: boolean;
+  query?: string | undefined;
+  candidates?: NoteProps[] | undefined;
+  limit?: number | undefined;
+  dryRun?: boolean | undefined;
+  exit?: boolean | undefined;
+  quiet?: boolean | undefined;
   engine: DEngineClient;
-  podId?: string;
-  hierarchy?: string;
-  vault?: DVault | string;
+  podId?: string | undefined;
+  hierarchy?: string | undefined;
+  vault?: DVault | string | undefined;
 };
 
 /** DoctorService is a disposable, you **must** dispose instances you create
@@ -115,11 +115,12 @@ export class DoctorService implements Disposable {
         if (!vault) return false;
       }
       const isMultiVault = vaults.length > 1;
-      const noteExists: NoteProps | undefined = NoteDictsUtils.findByFname({
+      const findRes = NoteDictsUtils.findByFname({
         fname: link.to!.fname as string,
         noteDicts,
         vault: hasVaultPrefix ? vault! : note.vault,
-      })[0];
+      });
+      const noteExists: NoteProps | undefined = findRes.length > 0 ? findRes[0]! : undefined;
       if (hasVaultPrefix) {
         // true: link w/ vault prefix that points to nothing. (candidate for sure)
         // false: link w/ vault prefix that points to a note. (valid link)

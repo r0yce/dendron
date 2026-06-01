@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Hybrid types builder for large packages.
- * 1. Emit declarations with tsc (with high memory)
- * 2. Run api-extractor to produce clean rolled-up .d.ts
+ * Hybrid types builder. BM-2026-0531-First3 [ref:registry] Wave 2 Group C.
+ * 1. Emit declarations with tsc (high mem)
+ * 2. api-extractor rollup.
  */
 
 const { execSync } = require('child_process');

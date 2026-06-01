@@ -35,11 +35,11 @@ export const processDir = async ({
   async function getNote(fname: string): Promise<NoteProps> {
     const note = await engine.findNotes({ fname, vault });
 
-    if (note === undefined) {
+    if (note === undefined || note.length === 0) {
       throw new Error(`Issue trying to find the note ${fname}`);
     }
 
-    return note[0];
+    return note[0]!; // BM-2026-0531-First3 [ref:registry] length guard + ! (noUnchecked on findNotes[0] in viz note processing; mirrors engine/V3 clusters). Group C larger batch. 0 bare @ts.
   }
 
   /* Given a note, get file stats needed for Tree React component */

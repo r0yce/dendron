@@ -13,14 +13,14 @@ import {
 
 type CommandCLIOpts = {
   action: DoctorActionsEnum;
-  query?: string;
+  query?: string | undefined;
   /**
    * pass in note candidates directly to
    * limit what notes should be used in the command.
    */
-  candidates?: NoteProps[];
-  limit?: number;
-  dryRun?: boolean;
+  candidates?: NoteProps[] | undefined;
+  limit?: number | undefined;
+  dryRun?: boolean | undefined;
   /**
    * When set to true, calls process.exit when command is done.
    *
@@ -28,15 +28,15 @@ type CommandCLIOpts = {
    * forever. when run from the plugin, we re-use the existing server
    * so we don't want it to exit.
    */
-  exit?: boolean;
+  exit?: boolean | undefined;
   /**
    * pod Id used to export Note(s) to Airtable
    */
-  podId?: string;
+  podId?: string | undefined;
 } & SetupEngineCLIOpts;
 
 type CommandOpts = CommandCLIOpts & SetupEngineOpts & CommandCommonProps;
-type CommandOutput = { resp?: any } & CommandCommonProps;
+type CommandOutput = { resp?: any | undefined } & CommandCommonProps;
 
 export { CommandOpts as DoctorCLICommandOpts };
 export class DoctorCLICommand extends CLICommand<CommandOpts, CommandOutput> {

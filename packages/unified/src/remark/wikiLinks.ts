@@ -34,9 +34,10 @@ const parseWikiLink = (linkMatch: string) => {
 export const matchWikiLink = (text: string) => {
   const match = LINK_REGEX_LOOSE.exec(text);
   if (match) {
+    // Lean v2: ! after match for noUncheckedIndexedAccess (wiki link regex)
     const start = match.index;
-    const end = match.index + match[0].length;
-    const linkMatch = match[1].trim();
+    const end = match.index + match[0]!.length;
+    const linkMatch = match[1]!.trim();
     const link = parseWikiLink(linkMatch);
     return { link, start, end };
   }
@@ -220,11 +221,12 @@ function attachParser(proc: Unified.Processor) {
   function inlineTokenizer(eat: Eat, value: string) {
     const match = LINK_REGEX.exec(value);
     if (match) {
-      const linkMatch = match[1].trim();
+      // Lean v2: ! guards after match for noUncheckedIndexedAccess (regex [0]/[1])
+      const linkMatch = match[1]!.trim();
       try {
         const { value, alias, anchorHeader, vaultName, sameFile } =
           parseLink(linkMatch);
-        return eat(match[0])({
+        return eat(match[0]!)({
           type: DendronASTTypes.WIKI_LINK,
           // @ts-expect-error - mdast extension shape for WIKI_LINK (value/data for eat); legacy remark plugin interop (not strict 4-axis common-all boundary). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
           value,

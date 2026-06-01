@@ -46,9 +46,10 @@ export async function decorateTag({
   fname: string;
   engine: ReducedDEngine;
   position: Position;
-  lineOffset?: number;
+  // Lean v2: widened local interface for exactOptionalPropertyTypes hygiene (target-first pattern)
+  lineOffset?: number | undefined;
   config: DendronConfig;
-  note?: NoteProps;
+  note?: NoteProps | undefined;
 }) {
   let color: string | undefined;
   const { color: foundColor, type: colorType } = NoteUtils.color({
@@ -67,9 +68,11 @@ export async function decorateTag({
     engine,
     vaults: config.workspace?.vaults ?? [],
   });
+  // Lean v2: conditional offset (no explicit undef literal) to satisfy exactOptional on PointOffset; eliminates boundary cast
+  const offset = lineOffset != null ? { line: lineOffset } : undefined;
   const decoration: DecorationHashTag = {
     type,
-    range: position2VSCodeRange(position, { line: lineOffset ?? undefined } as any /* TODO: Build Modernization 2026-05-31 focused clean-build phase (second of 3 packages: unified). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" (user explicit after timestamp pivot + this cycle). 4-axis boundary (unified decorations → common-all PointOffset/position2VSCodeRange). See ADR 0001 + common-server analytics precedent (target-first widen + ?? hygiene + boundary cast only here). Batch 1/2 of decorations cluster. No bare @ts. */),
+    range: position2VSCodeRange(position, offset),
     color,
   };
 

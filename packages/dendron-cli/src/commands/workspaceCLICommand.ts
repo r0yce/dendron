@@ -11,8 +11,8 @@ import {
 
 type CommandCLIOpts = {
   wsRoot: string;
-  vault?: string;
-  enginePort?: number;
+  vault?: string | undefined;
+  enginePort?: number | undefined;
   cmd: WorkspaceCommands;
 };
 

@@ -349,7 +349,7 @@ export class WorkspaceUtils {
     return matchingResults.map((result) => {
       // Display the vault names for info/error messages
       if (result.vaults.length === 1) {
-        return VaultUtils.getName(result.vaults[0]);
+        return VaultUtils.getName(result.vaults[0]!); // length===1 (BM-2026-0531-First3 [ref:registry])
       }
       // But if there's more than one vault in the repo, then use the repo path which is easier to interpret
       return result.repo;

@@ -424,5 +424,5 @@ export function isTSError(err: any): err is Error {
  * See src/errors/ErrorService.ts + common-errors-proposal.md (Execution started) + ADR 0001 appendix.
  * 4-axis: Vol 860+89 / DI HIGH (first post-common-di service) / @ts MED / Risk LOW (pure inside common-all).
  * Worktree: subagent-monorepo-errors-019e7ce2-e26f-7531-9e1d-85bd985b9760 (feature/common-errors-enhance-in-place).
- * Credits: Dep-Hunter 019e7cda-a3cc-7122-b0c6-b1f9de1b7ba7 266s/58 + pulled M2 Doc-Master 285.4s/60 + Test-Guardian 239.2s/55 + Monorepo scaffolds + burner 330s/74 + orchestra. THE CHAIN DOES NOT STOP.
+ * Credits: BM-2026-0531-First3 [ref:registry] (prior M2/strict/Test-Guardian etc). "THE CHAIN DOES NOT STOP"
  */

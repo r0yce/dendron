@@ -4,12 +4,12 @@ import { BaseCommand, CommandCommonProps } from "./base";
 
 type CommandOpts = {
   engine: DEngineClient;
-  note?: NoteProps;
+  note?: NoteProps | undefined;
 } & CommonOpts &
   CommandCommonProps;
 
 type CommonOpts = {
-  overwriteFields?: string[];
+  overwriteFields?: string[] | undefined;
 };
 
 type CommandOutput = CommandCommonProps;

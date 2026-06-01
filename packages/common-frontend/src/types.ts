@@ -29,9 +29,9 @@ export function verifyEngineSliceState(
 export type WorkspaceProps = {
   url: string;
   ws: string;
-  theme?: string;
+  theme?: string | undefined;
   /**
    * workspace loaded through browser
    */
-  browser?: boolean;
-};
+  browser?: boolean | undefined;
+}; // BM-2026-0531-First3 [ref:registry] target-first widen on WorkspaceProps optionals (exactOptional hygiene for frontend props; Group C). 0 bare @ts.

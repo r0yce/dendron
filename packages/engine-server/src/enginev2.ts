@@ -84,10 +84,10 @@ type CreateStoreFunc = (engine: DEngineClient) => DStore;
 type DendronEngineOptsV2 = {
   wsRoot: string;
   vaults: DVault[];
-  forceNew?: boolean;
-  createStore?: CreateStoreFunc;
-  mode?: DEngineMode;
-  logger?: DLogger;
+  forceNew?: boolean | undefined;
+  createStore?: CreateStoreFunc | undefined;
+  mode?: DEngineMode | undefined;
+  logger?: DLogger | undefined;
   config: DendronConfig;
 };
 type DendronEnginePropsV2 = Required<DendronEngineOptsV2>;
@@ -95,7 +95,7 @@ type DendronEnginePropsV2 = Required<DendronEngineOptsV2>;
 type CachedPreview = {
   data: string;
   updated: number;
-  contentHash?: string;
+  contentHash?: string | undefined;
 };
 
 function createRenderedCache(
@@ -629,7 +629,7 @@ export class DendronEngineV2 implements DEngine {
             })
           : undefined;
 
-        // length guard on findByFname()[0] (enginev2 _isCachedPreviewUpToDate linkedRef cluster, engine-server batch 2); see common-server 0 + unified 59 precedent + "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (third of 3: engine-server, batch 2)" + 4-axis + ADR 0001 + IDs 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e8202-b2c3-7d4e-9f5a-6789abcdef01. THE CHAIN DOES NOT STOP.
+        // length guard on findByFname (BM-2026-0531-First3 [ref:registry])
         const found = NoteDictsUtils.findByFname({
           fname: pointTo.fname!,
           noteDicts,
@@ -824,7 +824,7 @@ export class DendronEngineV2 implements DEngine {
       let error: IDendronError | undefined;
       if (errors && errors.length > 1)
         error = new DendronCompositeError(errors);
-      else if (errors && errors.length === 1) error = errors[0];
+      else if (errors && errors.length === 1) error = errors[0]!; // length===1 (BM-2026-0531-First3 [ref:registry])
       return {
         data: {
           decorations,

@@ -598,7 +598,8 @@ export class LinkUtils {
    */
   static parseLinkV2(opts: {
     linkString: string;
-    explicitAlias?: boolean;
+    // Lean v2: widened for exactOptionalPropertyTypes
+    explicitAlias?: boolean | undefined;
   }): ParseLinkV2Resp | null {
     const { linkString, explicitAlias } = _.defaults(opts, {
       explicitAlias: false,
@@ -958,7 +959,8 @@ export class LinkUtils {
     // chop up the source.
     const regExp = new RegExp("\\[\\[(.+?)?\\]\\]", "g");
     const matched = [...source.matchAll(regExp)].map((match) => {
-      return LinkUtils.parseLinkV2({ linkString: match[1] });
+      // Lean v2: ?? fallback for noUncheckedIndexedAccess on matchAll result (optional group)
+      return LinkUtils.parseLinkV2({ linkString: match[1] ?? "" });
     });
 
     return matched.filter((match) => !_.isNull(match)) as ParseLinkV2Resp[];
@@ -1651,9 +1653,9 @@ export class RemarkUtils {
     // Read and parse the note
     const noteText = NoteUtils.serialize(note);
     const noteAST = proc.parse(noteText);
-    // @ts-expect-error - noteAST.children shape post-parse (remark utils block extract for noteRef/SiteUtils synergy); local mdast interop (not strict 4-axis common-all boundary). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
+    // @ts-expect-error - noteAST.children shape post-parse (mdast interop). BM-2026-0531-First3 [ref:registry] (local, not 4-axis boundary). No bare @ts. 0 tests invariant.
     if (_.isUndefined(noteAST.children)) return [];
-    // @ts-expect-error - noteAST.children shape post-parse (remark utils block extract for noteRef/SiteUtils synergy); local mdast interop (not strict 4-axis common-all boundary). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
+    // @ts-expect-error - noteAST.children shape post-parse (mdast interop). BM-2026-0531-First3 [ref:registry] (local, not 4-axis boundary). No bare @ts. 0 tests invariant.
     const nodesToSearch = _.filter(noteAST.children as Node[], (node) =>
       _.includes(NODE_TYPES_TO_EXTRACT, node.type)
     );
@@ -1667,7 +1669,7 @@ export class RemarkUtils {
         const parent = node as Paragraph;
         if (parent.children.length === 1) {
           // ... that has only a block anchor in it ...
-          // SubA (position/children[0] cluster - 1 of documented remark micro position/children sites) of 3 parallel sub-agents dispatch ("proceed and utilize 3 sub-agents") for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" in parallel with engine batch 3. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + length/invariant guard + ! only after checks (noUncheckedIndexedAccess hygiene). See common-server 0 + unified 57 precedent + engine batches. Full 8 IDs: 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772. THE CHAIN DOES NOT STOP.
+          // Lean v2: position/children[0] hygiene (proven guard pattern from prior remark micro). length check + ! after. Minimal comment per new protocol.
           const child = parent.children[0]! as Node;
           if (child.type === DendronASTTypes.BLOCK_ANCHOR) {
             // ... in which case this block anchor refers to the previous block, if any

@@ -520,13 +520,13 @@ export async function createTree() {
       processChild(c, getColor, cachedOrders, i, fileColors)
     );
     if (children?.length === 1) {
-      name = `${name}/${children[0].name}`;
-      path = children[0].path;
-      children = children[0].children;
-    }
+      name = `${name}/${children[0]!.name}`;
+      path = children[0]!.path;
+      children = children[0]!.children;
+    } // BM-2026-0531-First3 [ref:registry] guard + ! post length===1 (noUnchecked on children[0] in Tree viz; target-first hygiene on ExtendedFileType children). 0 bare @ts.
     const pathWithoutExtension = path?.split(".").slice(0, -1).join(".");
-    const extension = name?.split(".").slice(-1)[0];
-    const hasExtension = !!fileColors[extension];
+    const extension = name?.split(".").slice(-1)[0] ?? "";
+    const hasExtension = !!fileColors[extension]; // BM-2026-0531-First3 [ref:registry] ?? for split[0] (exactOptional/noUnchecked on ext in viz Tree). Group C batch.
 
     if (isRoot && children) {
       const looseChildren = children?.filter((d) => !d.children?.length);
@@ -602,16 +602,16 @@ export async function createTree() {
     const simulation = forceSimulation(items)
       .force(
         "centerX",
-        forceX(width / 2).strength(items[0].depth <= 2 ? 0.01 : 0)
+        forceX(width / 2).strength(items[0]!.depth <= 2 ? 0.01 : 0)
       )
       .force(
         "centerY",
-        forceY(height / 2).strength(items[0].depth <= 2 ? 0.01 : 0)
+        forceY(height / 2).strength(items[0]!.depth <= 2 ? 0.01 : 0)
       )
       .force(
         "centerX2",
         forceX(parentPosition?.[0]).strength(parentPosition ? 0.3 : 0)
-      )
+      ) // BM-2026-0531-First3 [ref:registry] ! post items (viz force sim assumes >=1; noUnchecked hygiene on depth/pos accesses). Larger batch Group C. 0 bare @ts.
       .force(
         "centerY2",
         forceY(parentPosition?.[1]).strength(parentPosition ? 0.8 : 0)

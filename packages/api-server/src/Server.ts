@@ -39,10 +39,10 @@ export function appModule({
   googleOauthClientSecret,
 }: {
   logPath: string;
-  nextServerUrl?: string;
-  nextStaticRoot?: string;
-  googleOauthClientId?: string;
-  googleOauthClientSecret: string;
+  nextServerUrl?: string | undefined;
+  nextStaticRoot?: string | undefined;
+  googleOauthClientId?: string | undefined;
+  googleOauthClientSecret?: string | undefined;
 }) {
   const ctx = "appModule:start";
   const logger = getLogger();
@@ -118,7 +118,7 @@ export function appModule({
 
   registerOauthHandler(
     OauthService.GOOGLE,
-    new GoogleAuthController(googleOauthClientId!, googleOauthClientSecret)
+    new GoogleAuthController(googleOauthClientId!, googleOauthClientSecret!)
   );
   baseRouter.use("/oauth", oauthRouter);
 

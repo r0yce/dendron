@@ -366,7 +366,7 @@ export class Git {
     // If that fails, just default to the first remote the user has.
     try {
       const { stdout } = await this._execute("git remote");
-      const remote = _.trim(stdout.split("\n")[0]);
+      const remote = _.trim(stdout.split("\n")[0] ?? ""); // split[0] guard (BM-2026-0531-First3 [ref:registry])
       if (_.isEmpty(remote)) return undefined;
       return remote;
     } catch {
