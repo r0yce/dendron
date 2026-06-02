@@ -50,6 +50,14 @@ export class NotionExportPodV2 implements ExportPodV2<NotionExportReturnType> {
 
   async exportNotes(notes: NoteProps[]): Promise<NotionExportReturnType> {
     const { parentPageId } = this._config;
+    if (!parentPageId) {
+      return {
+        data: {},
+        error: new DendronError({
+          message: "parentPageId is required for Notion export",
+        }),
+      };
+    }
     const blockPagesArray = this.convertMdToNotionBlock(notes, parentPageId);
     const { data, errors } = await this.createPagesInNotion(blockPagesArray);
     const createdNotes = data.filter(
@@ -140,6 +148,7 @@ export class NotionExportPodV2 implements ExportPodV2<NotionExportReturnType> {
         parentPageId: {
           description: "ID of parent page in notion",
           type: "string",
+          nullable: true,
         },
       },
     }) as JSONSchemaType<NotionV2PodConfig>;

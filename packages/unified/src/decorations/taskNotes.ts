@@ -11,8 +11,8 @@ import { Decoration, DECORATION_TYPES } from "./utils";
 
 export type DecorationTaskNote = Decoration & {
   type: DECORATION_TYPES.taskNote;
-  beforeText?: string;
-  afterText?: string;
+  beforeText?: string | undefined;
+  afterText?: string | undefined;
 };
 
 /** Decorates the note `fname` in vault `vaultName` if the note is a task note. */
@@ -26,7 +26,7 @@ export async function decorateTaskNote({
   engine: ReducedDEngine;
   range: VSRange;
   fname: string;
-  vaultName?: string;
+  vaultName?: string | undefined;
   config: DendronConfig;
 }) {
   const taskConfig = ConfigUtils.getTask(config);
@@ -66,11 +66,10 @@ export async function decorateTaskNote({
   const decoration: DecorationTaskNote = {
     type: DECORATION_TYPES.taskNote,
     range,
-    beforeText: status ? `${status} ` : undefined,
-    afterText:
-      decorationString.length > 0
-        ? ` ${decorationString.join(" ")}`
-        : undefined,
+    ...(status ? { beforeText: `${status} ` } : {}),
+    ...(decorationString.length > 0
+      ? { afterText: ` ${decorationString.join(" ")}` }
+      : {}),
   };
   return decoration;
 }

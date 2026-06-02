@@ -17,6 +17,9 @@ export class Git {
 
   async _execute(cmd: string) {
     const [git, ...args] = cmd.split(" ");
+    if (!git) {
+      throw new Error("empty git command");
+    }
     return execa(git, args, { cwd: this.opts.localUrl });
   }
 

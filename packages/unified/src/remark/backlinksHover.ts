@@ -65,8 +65,14 @@ export function backlinksHover(
 
           // Count the last line of YAML as the 0 indexed start of the body of the document
           // SubA (position / children[0] remark cluster) of 3 sub-agents for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" parallel to engine batch 3. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + length/invariant guard + ! only after check (noUnchecked on children[0] + position). See common-server 0 + unified 57 precedent + engine batches (full 8 IDs). THE CHAIN DOES NOT STOP.
-          if (node.children && node.children.length > 0 && RemarkUtils.isYAML(node.children[0])) {
-            const yamlChild = node.children[0]!; // guard + ! post length check per proven pattern
+          const yamlCandidate = node.children?.[0];
+          if (
+            node.children &&
+            node.children.length > 0 &&
+            yamlCandidate !== undefined &&
+            RemarkUtils.isYAML(yamlCandidate)
+          ) {
+            const yamlChild = yamlCandidate;
             documentBodyStartLine = yamlChild.position?.end.line ?? 0;
           }
         }

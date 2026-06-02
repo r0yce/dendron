@@ -28,7 +28,7 @@
     "build": "yarn copyNonTSFiles && yarn compile",
     "buildCI": "yarn copyNonTSFiles && yarn compile",
     "copyNonTSFiles": "node ./ensureDir && node copy",
-    "compile": "yarn build:js && yarn build:types",
+    "compile": "tsc -p tsconfig.build.json",
     "watch": "tsup --watch",
     "build:js": "tsup",
     "build:types": "node --max-old-space-size=8192 ./scripts/build-types.js",

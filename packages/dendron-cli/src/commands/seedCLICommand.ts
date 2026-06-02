@@ -110,8 +110,8 @@ export class SeedCLICommand extends CLICommand<CommandOpts, CommandOutput> {
           );
           const seed = SeedUtils.genDefaultConfig({
             id: opts.id,
-            seed: config,
             ...initOpts,
+            ...(config !== undefined ? { seed: config } : {}),
           });
           const resp = await seedService.init({ wsRoot, mode, seed });
           this.print(`success - initialized seed: ${id}`);

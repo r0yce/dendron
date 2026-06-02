@@ -3,8 +3,8 @@
   "compilerOptions": {
     "outDir": "./lib",
     "rootDirs": ["src", "bin"],
-    "skipLibCheck": true,
+    "skipLibCheck": true
   },
   "include": ["src/**/*", "bin/*"],
-  "exclude": ["node_modules", "**/*-spec.ts"]
+  "exclude": ["node_modules", "**/*-spec.ts", "**/*.test.ts"]
 }

@@ -76,7 +76,17 @@ export class MarkdownExportPodV2
     const config = { ...DConfig.readConfigSync(this._engine.wsRoot) };
 
     if (destination === "clipboard") {
-      const exportedNotes = await this.renderNote({ note: notes[0], config });
+      const clipboardNote = notes[0];
+      if (!clipboardNote) {
+        return {
+          data: {},
+          error: new DendronError({ message: "No notes to export to clipboard" }),
+        };
+      }
+      const exportedNotes = await this.renderNote({
+        note: clipboardNote,
+        config,
+      });
       return ResponseUtil.createHappyResponse({
         data: {
           exportedNotes,
@@ -156,7 +166,10 @@ export class MarkdownExportPodV2
     const vaultsArray: DVault[] = [];
     switch (exportScope) {
       case PodExportScope.Vault: {
-        vaultsArray.push(notes[0].vault);
+        const vaultNote = notes[0];
+        if (vaultNote) {
+          vaultsArray.push(vaultNote.vault);
+        }
         break;
       }
       case PodExportScope.Workspace: {

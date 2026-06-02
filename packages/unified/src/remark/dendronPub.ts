@@ -74,7 +74,7 @@ function getVault({
   vault,
   vaults,
 }: {
-  vaultName?: string;
+  vaultName?: string | undefined;
   vaultMissingBehavior: VaultMissingBehavior;
   vault: DVault;
   vaults: DVault[];
@@ -121,7 +121,7 @@ type DendronUnifiedHandlerMatchOpts = {
 type DendronUnifiedHandlerHandleOpts<T = any> = {
   proc: Processor;
   parent: Node;
-  cOpts?: T;
+  cOpts?: T | undefined;
 };
 
 type DendronUnifiedHandlerNextAction = undefined | number;
@@ -286,7 +286,7 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
           vault,
           vaults,
           vaultMissingBehavior: VaultMissingBehavior.FALLBACK_TO_ORIGINAL_VAULT,
-          vaultName: data.vaultName,
+          ...(data.vaultName !== undefined ? { vaultName: data.vaultName } : {}),
         });
 
         let error: DendronError | undefined;
@@ -391,7 +391,7 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
             const candidates = NoteDictsUtils.findByFname({
               fname: valueOrig,
               noteDicts: noteCacheForRenderDict,
-              vault: targetVault,
+              ...(targetVault !== undefined ? { vault: targetVault } : {}),
             });
             // SubB (noteRef/data paths + SiteUtils synergy cluster) of 3 sub-agents parallel dispatch for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + length/invariant guard + ! only after check (findByFname[0] under noUnchecked). See common-server 0 + unified 57 precedent + engine batches (full 8 IDs below). THE CHAIN DOES NOT STOP.
             const target = candidates.length > 0 ? candidates[0]! : undefined;
@@ -407,15 +407,20 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
           addPrefix: pOpts.flavor === ProcFlavor.PUBLISHING,
           pathValue: value,
           config,
-          pathAnchor: data.anchorHeader,
-          note,
+          ...(data.anchorHeader !== undefined
+            ? { pathAnchor: data.anchorHeader }
+            : {}),
+          ...(note !== undefined ? { note } : {}),
         });
         const exists = true;
         // for rehype
         //_node.value = newValue;
         //_node.value = alias;
 
-        const { before, after } = linkExtras({ note, config });
+        const { before, after } = linkExtras({
+          ...(note !== undefined ? { note } : {}),
+          config,
+        });
 
         _node.data = {
           vaultName: data.vaultName,
@@ -505,7 +510,10 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
             // There's an actual block before the anchor
             target = previous;
           }
-        } else if (RemarkUtils.isTableRow(grandParent)) {
+        } else if (
+          isNotUndefined(grandParent) &&
+          RemarkUtils.isTableRow(grandParent)
+        ) {
           // An anchor inside a table references the whole table.
           const greatGrandParent = ancestors[ancestors.length - 3];
           if (
@@ -523,12 +531,12 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
           target = parent;
         }
 
-        if (_.isUndefined(target)) return;
+        if (target === undefined) return;
         if (RemarkUtils.isList(target)) {
           // Can't install as a child of the list, has to go into a list item
-          // length/invariant guard (noteRef/data paths + SiteUtils synergy cluster ... "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" ... full 8 IDs as above). THE CHAIN DOES NOT STOP.
           target = target.children.length > 0 ? target.children[0] : undefined;
         }
+        if (target === undefined) return;
         if (RemarkUtils.isTable(target)) {
           // Can't install as a child of the table directly, has to go into a table cell
           // length/invariant guard (noteRef/data paths + SiteUtils synergy cluster ... "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" ... full 8 IDs as above). THE CHAIN DOES NOT STOP.
@@ -537,20 +545,23 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
             : undefined;
         }
 
+        if (target === undefined) return;
         if (RemarkUtils.isParent(target)) {
           // Install the block anchor at the target node
           target.children.unshift(anchorHTML);
         } else if (RemarkUtils.isRoot(target)) {
           // If the anchor is the first thing in the note, anchorHTML goes to the start of the document
           target.children.unshift(anchorHTML);
-        } else if (RemarkUtils.isParent(grandParent)) {
+        } else if (
+          isNotUndefined(grandParent) &&
+          RemarkUtils.isParent(grandParent)
+        ) {
           // For some elements (for example code blocks) we can't install the block anchor on them.
           // In that case we at least put a link before the element so that the link will at least work.
           const targetIndex = _.indexOf(grandParent.children, target);
-          const targetWrapper = paragraph([
-            anchorHTML,
-            grandParent.children[targetIndex],
-          ]);
+          const targetChild = grandParent.children[targetIndex];
+          if (targetChild === undefined) return;
+          const targetWrapper = paragraph([anchorHTML, targetChild]);
           grandParent.children.splice(targetIndex, 1, targetWrapper);
         }
         // Remove the block anchor itself since we install the anchor at the target
@@ -575,7 +586,7 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
         const { nextAction } = NodeUrlHandler.handle(node as Image, {
           proc,
           parent,
-          cOpts: opts,
+          ...(opts !== undefined ? { cOpts: opts } : {}),
         });
         if (nextAction) {
           return nextAction;

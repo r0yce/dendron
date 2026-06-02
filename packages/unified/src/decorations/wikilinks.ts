@@ -27,7 +27,7 @@ export type WikiLinkDecorator = Decoration & {
 };
 
 export type NoteRefDecorator = Required<
-  Decoration<{ link: DNoteRefLink; noteMeta?: NotePropsMeta }>
+  Decoration<{ link: DNoteRefLink; noteMeta?: NotePropsMeta | undefined }>
 > & {
   type: DECORATION_TYPES.noteRef | DECORATION_TYPES.brokenNoteRef;
 };
@@ -60,6 +60,9 @@ export const decorateWikilink: Decorator<
     engine,
     vaults: config.workspace?.vaults ?? [],
   }); // local sig widened target-first (Batch 2); FindNoteOpts boundary cast inside linkedNoteType
+  if (!position) {
+    return { decorations: [], errors: [] };
+  }
   const wikilinkRange = position2VSCodeRange(position);
   const decorations: DecorationsForDecorateWikilink[] = [];
 
@@ -93,7 +96,7 @@ export const decorateWikilink: Decorator<
     const taskDecoration = await decorateTaskNote({
       range: wikilinkRange,
       fname,
-      vaultName,
+      ...(vaultName !== undefined ? { vaultName } : {}),
       engine,
       config,
     });

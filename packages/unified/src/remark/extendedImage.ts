@@ -47,7 +47,7 @@ function attachParser(proc: Unified.Processor) {
     if (match && match.groups?.url) {
       let props: { [key: string]: any } = {};
       try {
-        props = YAML.load(match.groups.props) as any;
+        props = YAML.load(match.groups.props ?? "") as any;
       } catch {
         // Reject bad props so that it falls back to a regular image
         return;

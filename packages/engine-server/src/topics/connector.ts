@@ -53,7 +53,7 @@ export class EngineConnector {
   //public vaults: DVault[];
   public _engine: DEngineClient | undefined;
   public port: number | undefined;
-  public onReady?: ({ ws }: { ws: EngineConnector }) => Promise<void>;
+  public onReady?: (({ ws }: { ws: EngineConnector }) => Promise<void>) | undefined;
   public serverPortWatcher?: FSWatcher;
   public initialized: boolean;
   public config: DendronConfig;
@@ -74,11 +74,14 @@ export class EngineConnector {
     force,
   }: {
     wsRoot: string;
-    logger?: DLogger;
-    force?: boolean;
+    logger?: DLogger | undefined;
+    force?: boolean | undefined;
   }) {
     if (!this._ENGINE_CONNECTOR || force) {
-      return new EngineConnector({ wsRoot, logger });
+      return new EngineConnector({
+        wsRoot,
+        ...(logger !== undefined ? { logger } : {}),
+      });
     }
     return this._ENGINE_CONNECTOR;
   }
@@ -104,7 +107,9 @@ export class EngineConnector {
     const ctx = "EngineConnector:init";
     // init engine
     this.logger.info({ ctx, msg: "enter", opts });
-    this.onReady = opts?.onReady;
+    if (opts?.onReady !== undefined) {
+      this.onReady = opts.onReady;
+    }
     if (opts?.portOverride) {
       const engine = await this.tryToConnect({ port: opts.portOverride });
       if (!engine) {
@@ -113,12 +118,13 @@ export class EngineConnector {
       await this.initEngine({
         engine,
         port: opts.portOverride,
-        init: opts.init,
+        ...(opts.init !== undefined ? { init: opts.init } : {}),
       });
     } else {
       return this.createServerWatcher({
-        numRetries: opts?.numRetries,
-        ...opts,
+        ...(opts?.numRetries !== undefined ? { numRetries: opts.numRetries } : {}),
+        ...(opts?.init !== undefined ? { init: opts.init } : {}),
+        ...(opts?.target !== undefined ? { target: opts.target } : {}),
       });
     }
   }
@@ -206,7 +212,10 @@ export class EngineConnector {
         this.logger.info({ ctx, msg: "checking for engine" });
         if (maybeEngine) {
           this.logger.info({ ctx, msg: "found engine" });
-          await this.initEngine({ ...maybeEngine, init: opts.init });
+          await this.initEngine({
+            ...maybeEngine,
+            ...(opts.init !== undefined ? { init: opts.init } : {}),
+          });
           await (!_.isUndefined(this.onReady) && this.onReady({ ws: this }));
           resolve(undefined);
         }
@@ -229,13 +238,16 @@ export class EngineConnector {
     // try to connect to file
     while (!this.initialized) {
       // eslint-disable-next-line no-await-in-loop
-      await this.connectAndInit({ wsRoot, init: opts?.init });
+      await this.connectAndInit({
+        wsRoot,
+        ...(opts?.init !== undefined ? { init: opts.init } : {}),
+      });
     }
 
     // create file watcher in case file changes
     const { watcher } = await createFileWatcher({
       fpath: portFilePath,
-      numTries: opts?.numRetries,
+      ...(opts?.numRetries !== undefined ? { numTries: opts.numRetries } : {}),
       onChange: async ({ fpath }) => {
         const port = openPortFile({ fpath });
         this.logger.info({ ctx, msg: "fileWatcher:onChange", port });

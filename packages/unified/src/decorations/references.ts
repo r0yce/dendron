@@ -24,12 +24,15 @@ export const decorateReference: Decorator<
     type === DECORATION_TYPES.brokenWikilink
       ? DECORATION_TYPES.brokenNoteRef
       : DECORATION_TYPES.noteRef;
+  if (!position) {
+    return { errors, decorations: [] };
+  }
   const decoration: DecorationWikilink = {
     type: decorationType,
     range: position2VSCodeRange(position),
     data: {
       link: reference.data.link,
-      noteMeta,
+      ...(noteMeta !== undefined ? { noteMeta } : {}),
     },
   };
 

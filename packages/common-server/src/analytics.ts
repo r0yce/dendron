@@ -256,7 +256,9 @@ export class SegmentClient {
     });
     this.logger = createLogger("SegmentClient");
     this._segmentInstance = new Analytics(key ?? "" as string);
-    this._cachePath = _opts?.cachePath;
+    if (_opts?.cachePath !== undefined) {
+      this._cachePath = _opts.cachePath;
+    }
 
     if (!_opts?.cachePath) {
       this.logger.info(

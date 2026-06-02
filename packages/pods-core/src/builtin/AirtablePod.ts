@@ -530,7 +530,11 @@ export class AirtablePublishPod extends PublishPod<AirtablePublishConfig> {
     const base = new Airtable({ apiKey }).base(baseId);
     if (!_.isEmpty(update)) {
       const out = await base(tableName).update(update);
-      return out[0].getId();
+      const first = out[0];
+      if (!first) {
+        throw new DendronError({ message: "Airtable update returned no records" });
+      }
+      return first.getId();
     } else {
       const created = await base(tableName).create(create);
       await AirtableUtils.updateAirtableIdForNewlySyncedNotes({
@@ -538,7 +542,11 @@ export class AirtablePublishPod extends PublishPod<AirtablePublishConfig> {
         engine,
         logger,
       });
-      return created[0].getId();
+      const firstCreated = created[0];
+      if (!firstCreated) {
+        throw new DendronError({ message: "Airtable create returned no records" });
+      }
+      return firstCreated.getId();
     }
   }
 }

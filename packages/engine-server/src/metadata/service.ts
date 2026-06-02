@@ -130,7 +130,7 @@ type Metadata = Partial<{
    * Responses from this user to the initial survey about prior note-taking
    * tools used.
    */
-  priorTools: [PriorTools];
+  priorTools?: PriorTools[] | undefined;
 
   /**
    * The most recently opened Dendron workspaces
@@ -281,7 +281,7 @@ export class MetadataService {
     return this.getMeta().graphPanelShowHierarchy;
   }
 
-  setMeta(key: keyof Metadata, value: any) {
+  setMeta<K extends keyof Metadata>(key: K, value: Metadata[K]) {
     const stateFromFile = this.getMeta();
     stateFromFile[key] = value;
     fs.writeJSONSync(MetadataService.metaFilePath(), stateFromFile, {

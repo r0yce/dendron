@@ -125,8 +125,8 @@ export function enrichPodArgs(opts: {
       pods,
       podType,
       podSource,
-      podPkg,
       wsRoot,
+      ...(podPkg !== undefined ? { podPkg } : {}),
     });
 
     // if show config, output configuration and exit
@@ -174,7 +174,9 @@ export function enrichPodArgs(opts: {
     if (config) {
       config.split(",").map((ent) => {
         const [k, v] = ent.split("=");
-        cleanConfig[k] = v;
+        if (k !== undefined && v !== undefined) {
+          cleanConfig[k] = v;
+        }
       });
     }
 

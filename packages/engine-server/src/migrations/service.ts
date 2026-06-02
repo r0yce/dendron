@@ -102,7 +102,11 @@ export class MigrationService {
         const { data } = await prev;
         logger.info({ ctx: "applyMigrationChange", name: change.name });
         const { dendronConfig, wsConfig } = data;
-        const out = await change.func({ dendronConfig, wsConfig, wsService });
+        const out = await change.func({
+          dendronConfig,
+          ...(wsConfig !== undefined ? { wsConfig } : {}),
+          wsService,
+        });
         const changeStatus: MigrationChangeSetStatus = {
           data: {
             changeName: change.name,

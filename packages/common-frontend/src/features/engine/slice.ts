@@ -136,7 +136,11 @@ export const renderNote = createAsyncThunk(
       apiPath: "api",
       logger,
     });
-    const resp = await api.noteRender({ id, ws, note });
+    const resp = await api.noteRender({
+      id,
+      ws,
+      ...(note !== undefined ? { note } : {}),
+    });
     if (resp.error) {
       dispatch(setError(stringifyError(resp.error)));
       return resp;

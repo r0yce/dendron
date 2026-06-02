@@ -27,7 +27,7 @@
     "prebuild": "yarn clean && yarn format && yarn lint && echo Using TypeScript && tsc --version",
     "build": "yarn compile",
     "buildCI": "yarn compile",
-    "compile": "yarn build:js && yarn build:types",
+    "compile": "tsc -p tsconfig.build.json",
     "watch": "tsup --watch",
     "start:local:old": "cross-env PORT=3005 LOG_LEVEL=info npx ts-node ./src/start.ts",
     "start:local": "cross-env PORT=3005 LOG_LEVEL=info nodemon --watch 'src/**/*.ts' lib/start.js",

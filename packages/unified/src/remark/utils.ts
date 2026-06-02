@@ -6,6 +6,7 @@ import {
   CONSTANTS,
   DendronError,
   DEngineClient,
+  FindNoteOpts,
   DLink,
   DNodeProps,
   DNoteAnchor,
@@ -187,7 +188,7 @@ const getLinks = ({
 }: {
   ast: DendronASTNode;
   note: NoteProps;
-  filter: LinkFilter;
+  filter?: LinkFilter;
 }) => {
   const wikiLinks: WikiLinkNoteV4[] = [];
   const noteRefs: NoteRefNoteV4[] = [];
@@ -308,13 +309,6 @@ const getLinkCandidates = async ({
   note: NoteProps;
   engine: ReducedDEngine;
 }) => {
-  // target-first local Opts interface (for exactOptionalPropertyTypes hygiene under unified remark micro); mirrors common-server 0 SegmentEventProps + wikiLinks precedent. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 parallel. See common-server 0 + unified 57 precedent + engine batches (full 8 IDs below). THE CHAIN DOES NOT STOP.
-  interface GetLinkCandidatesFindNoteOpts {
-    fname: string;
-    vault?: string;
-    excludeStub?: boolean;
-  }
-
   const textNodes: Text[] = [];
   visit(
     ast,
@@ -332,14 +326,11 @@ const getLinkCandidates = async ({
       const value = textNode.value as string;
       await Promise.all(
         value.split(/\s+/).map(async (word) => {
-          const findOpts: GetLinkCandidatesFindNoteOpts = {
-            fname: word,
-            vault: note.vault ?? undefined,
-            excludeStub: true ?? undefined,
-          };
-          const possibleCandidates = await engine.findNotesMeta(
-            findOpts as any /* TODO: Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis (unified remark local GetLinkCandidatesFindNoteOpts → common-all FindNoteOpts boundary interop) + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). Target-first local Opts + ?? hygiene + minimal 4-axis ONLY at true common-all boundary (getLinkCandidates findNotesMeta). No bare @ts. 0 tests invariant. */!
-          );
+          const findOpts: FindNoteOpts = { fname: word, excludeStub: true };
+          if (note.vault !== undefined) {
+            findOpts.vault = note.vault;
+          }
+          const possibleCandidates = await engine.findNotesMeta(findOpts);
 
           linkCandidates.push(
             ...possibleCandidates.map((candidate): DLink => {
@@ -476,17 +467,21 @@ export class LinkUtils {
   static dlink2DNoteLink(link: DLink): DNoteLink {
     return {
       data: {
-        xvault: link.xvault,
-        sameFile: link.sameFile,
+        ...(link.xvault !== undefined ? { xvault: link.xvault } : {}),
+        ...(link.sameFile !== undefined ? { sameFile: link.sameFile } : {}),
       },
       from: {
         fname: link.value,
-        alias: link.alias,
-        anchorHeader: link.to?.anchorHeader,
-        vaultName: link.from.vaultName,
+        ...(link.alias !== undefined ? { alias: link.alias } : {}),
+        ...(link.to?.anchorHeader !== undefined
+          ? { anchorHeader: link.to.anchorHeader }
+          : {}),
+        ...(link.from.vaultName !== undefined
+          ? { vaultName: link.from.vaultName }
+          : {}),
       },
       type: link.type,
-      position: link.position,
+      ...(link.position !== undefined ? { position: link.position } : {}),
     };
   }
 
@@ -511,7 +506,7 @@ export class LinkUtils {
       case "regular":
         links = LinkUtils.findLinksFromBody({
           note,
-          filter,
+          ...(filter !== undefined ? { filter } : {}),
           config,
         });
         break;
@@ -561,7 +556,7 @@ export class LinkUtils {
     const out = remark.parse(content) as DendronASTNode;
     const links: DLink[] = getLinks({
       ast: out,
-      filter: { loc: filter?.loc },
+      ...(filter?.loc !== undefined ? { filter: { loc: filter.loc } } : {}),
       note,
     });
     return links;
@@ -586,7 +581,8 @@ export class LinkUtils {
 
   static parseAliasLink(link: string) {
     const [alias, value] = link.split("|").map(_.trim);
-    return { alias, value: NoteUtils.normalizeFname(value) };
+    const normalized = NoteUtils.normalizeFname(value ?? link);
+    return { alias: alias ?? normalized, value: normalized };
   }
 
   /** Either value or anchorHeader will always be present if the function did not
@@ -621,12 +617,21 @@ export class LinkUtils {
         }
         aliasToUse = alias ? _.trim(alias) : undefined;
       }
+      if (_.isUndefined(value)) {
+        if (!anchor) return null;
+        return {
+          sameFile: true as const,
+          anchorHeader: anchor,
+          ...(aliasToUse !== undefined ? { alias: aliasToUse } : {}),
+          ...(vaultName !== undefined ? { vaultName } : {}),
+        };
+      }
       return {
-        alias: aliasToUse,
+        sameFile: false as const,
         value,
-        anchorHeader: anchor,
-        vaultName,
-        sameFile: _.isUndefined(value),
+        ...(aliasToUse !== undefined ? { alias: aliasToUse } : {}),
+        ...(anchor !== undefined ? { anchorHeader: anchor } : {}),
+        ...(vaultName !== undefined ? { vaultName } : {}),
       };
     } else {
       return null;
@@ -671,10 +676,14 @@ export class LinkUtils {
     }
     if (out.value.indexOf("#") !== -1) {
       const [value, anchorHeader] = out.value.split("#").map(_.trim);
-      out.value = value;
-      out.anchorHeader = anchorHeader;
+      if (value !== undefined) {
+        out.value = value;
+      }
+      if (anchorHeader !== undefined) {
+        out.anchorHeader = anchorHeader;
+      }
       // if we didn't have an alias, links with a # anchor shouldn't have # portion be in the title
-      if (!LinkUtils.isAlias(linkMatch)) {
+      if (!LinkUtils.isAlias(linkMatch) && value !== undefined) {
         out.alias = value;
       }
     }
@@ -703,15 +712,18 @@ export class LinkUtils {
     // pre-parse alias if it exists
     let alias: string | undefined;
     const [aliasPartFirst, aliasPartSecond] = ref.split("|");
-    if (_.isUndefined(aliasPartSecond)) ref = aliasPartFirst;
-    else {
+    if (_.isUndefined(aliasPartSecond)) {
+      ref = aliasPartFirst ?? ref;
+    } else {
       alias = aliasPartFirst;
       ref = aliasPartSecond;
     }
 
     // pre-parse vault name if it exists
     let vaultName: string | undefined;
-    ({ vaultName, link: ref } = parseDendronURI(ref));
+    const parsedUri = parseDendronURI(ref ?? "");
+    vaultName = parsedUri.vaultName;
+    ref = parsedUri.link ?? ref ?? "";
 
     const groups = reLink.exec(ref)?.groups;
     const clean: DNoteRefData = {
@@ -733,7 +745,7 @@ export class LinkUtils {
     if (clean.anchorStart && clean.anchorStart.indexOf(",") >= 0) {
       const [anchorStart, offset] = clean.anchorStart.split(",");
       clean.anchorStart = anchorStart;
-      clean.anchorStartOffset = parseInt(offset, 10);
+      clean.anchorStartOffset = parseInt(offset ?? "0", 10);
     }
     if (_.isUndefined(fname) && _.isUndefined(clean.anchorStart)) {
       throw new DendronError({
@@ -835,7 +847,11 @@ export class LinkUtils {
       // Just change the prop
       const oldTag = oldLink.from.alias!;
       const newTag = newLink.from.alias;
-      TagUtils.replaceTag({ note, oldTag, newTag });
+      TagUtils.replaceTag({
+        note,
+        oldTag,
+        ...(newTag !== undefined ? { newTag } : {}),
+      });
       return note.body;
     } else {
       // Need to update note body
@@ -1513,9 +1529,17 @@ export class RemarkUtils {
         if (idx >= 0) {
           const spliced = root.children.splice(idx, 1);
           // length/invariant guard + [0] only after splice success (noteRef/data paths cluster of 3 sub-agents parallel dispatch for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). THE CHAIN DOES NOT STOP.
-          const head = (spliced.length > 0 ? spliced[0] : undefined) as Heading | undefined;
-          if (head && head.children.length === 1 && head.children[0].type === "text") {
-            note.title = head.children[0].value;
+          const head = (spliced.length > 0 ? spliced[0] : undefined) as
+            | Heading
+            | undefined;
+          const firstChild = head?.children[0];
+          if (
+            head !== undefined &&
+            head.children.length === 1 &&
+            firstChild !== undefined &&
+            firstChild.type === "text"
+          ) {
+            note.title = firstChild.value;
           }
           changes.push({
             note,
@@ -1562,13 +1586,16 @@ export class RemarkUtils {
       const aOmit = _.omit(a, ["position", "children"]);
       const bOmit = _.omit(b, ["position", "children"]);
       if (_.isEqual(aOmit, bOmit)) {
-        if (_.has(a, "children")) {
+        if (_.has(a, "children") && _.has(b, "children")) {
+          const aChildren = (a as Parent).children;
+          const bChildren = (b as Parent).children;
           return _.every(
-            // @ts-expect-error - children cast in hasIdenticalChildren (remark utils internal recursion for note data comparison in SiteUtils synergy paths); local mdast interop (not strict 4-axis common-all boundary). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
-            a.children as Node[],
+            aChildren,
             (aChild: Node, aIndex: number) => {
-              // @ts-expect-error - children cast in hasIdenticalChildren (remark utils internal recursion for note data comparison in SiteUtils synergy paths); local mdast interop (not strict 4-axis common-all boundary). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
-              const bChild = (b.children as Node[])[aIndex];
+              const bChild = bChildren[aIndex];
+              if (bChild === undefined) {
+                return false;
+              }
               return RemarkUtils.hasIdenticalChildren(aChild, bChild);
             }
           );
@@ -1674,10 +1701,14 @@ export class RemarkUtils {
           if (child.type === DendronASTTypes.BLOCK_ANCHOR) {
             // ... in which case this block anchor refers to the previous block, if any
             const previous = _.last(blocks);
-            if (!_.isUndefined(previous))
-              [, previous.anchor] =
+            if (!_.isUndefined(previous)) {
+              const [, anchor] =
                 AnchorUtils.anchorNode2anchor(child as BlockAnchor, slugger) ||
                 [];
+              if (anchor !== undefined) {
+                previous.anchor = anchor;
+              }
+            }
             // Block anchors themselves are not blocks, don't extract them
             continue;
           }
@@ -1710,8 +1741,7 @@ export class RemarkUtils {
           if (listItemPos) {
             blocks.push({
               text: proc.stringify(listItem),
-              anchor,
-              // position can only be undefined for generated nodes, not for parsed ones
+              ...(anchor !== undefined ? { anchor } : {}),
               position: listItemPos,
               type: listItem.type,
             });
@@ -1740,8 +1770,7 @@ export class RemarkUtils {
       if (nodePos) {
         blocks.push({
           text: proc.stringify(node),
-          anchor,
-          // position can only be undefined for generated nodes, not for parsed ones
+          ...(anchor !== undefined ? { anchor } : {}),
           position: nodePos,
           type: node.type,
         });
@@ -1804,7 +1833,7 @@ export class RemarkUtils {
     const isIndex: boolean = _.isUndefined(note)
       ? false
       : SiteUtils.isIndexNote({
-          indexNote: index ?? undefined,
+          ...(index !== undefined ? { indexNote: index } : {}),
           note,
         });
     const pathValue = note.id;
@@ -1812,8 +1841,7 @@ export class RemarkUtils {
       addPrefix: true,
       pathValue,
       config,
-      // SubC SiteUtils synergy continuation (full 8 IDs + mandates + 3 sub-agents + "Build Modernization 2026-05-31/06 ... unified remark micro" + "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + common-server 0 + unified 57 + engine batches + THE CHAIN DOES NOT STOP).
-      pathAnchor: anchor ?? undefined,
+      ...(anchor !== undefined ? { pathAnchor: anchor } : {}),
     });
 
     const link = isIndex ? root : [root, siteUrlPath].join("");

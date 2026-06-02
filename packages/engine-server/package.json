@@ -31,7 +31,7 @@
     "prebuild": "yarn clean && yarn format && yarn lint && echo Using TypeScript && tsc --version",
     "build": "yarn compile && yarn buildPrismaClient",
     "buildCI": "yarn compile && yarn buildPrismaClient",
-    "compile": "yarn build:modern",
+    "compile": "tsc -p tsconfig.build.json && yarn buildPrismaClient",
     "watch": "tsup --watch",
     "build:js": "tsup",
     "build:types": "node --max-old-space-size=8192 ./scripts/build-types.js",

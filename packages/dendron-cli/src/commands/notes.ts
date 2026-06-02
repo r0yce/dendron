@@ -2,10 +2,12 @@ import {
   assertUnreachable,
   DendronError,
   DEngineClient,
+  DVault,
   ErrorFactory,
   NoteLookupUtils,
   NoteProps,
   NoteUtils,
+  RespV3,
   VaultUtils,
 } from "@dendronhq/common-all";
 import { TemplateUtils } from "@dendronhq/common-server";
@@ -88,15 +90,18 @@ function checkQuery(opts: CommandOpts) {
   return opts.query;
 }
 
-function checkVault(opts: CommandOpts) {
+function checkVault(opts: CommandOpts): DVault {
   const vaults = opts.engine.vaults;
   if (_.size(vaults) > 1 && !opts.vault) {
     throw Error("need to specify vault");
-  } else {
-    return opts.vault
-      ? VaultUtils.getVaultByNameOrThrow({ vaults, vname: opts.vault })
-      : vaults[0];
   }
+  const vault = opts.vault
+    ? VaultUtils.getVaultByNameOrThrow({ vaults, vname: opts.vault })
+    : vaults[0];
+  if (!vault) {
+    throw Error("no vault found");
+  }
+  return vault;
 }
 
 function checkFname(opts: CommandOpts) {
@@ -312,20 +317,22 @@ export class NoteCLICommand extends CLICommand<CommandOpts, CommandOutput> {
             // Until we support user prompt, pick template note for them if there are multiple matches in order of
             // 1. Template note that lies in same vault as note to lookup
             // 2. First note in list
-            await TemplateUtils.findAndApplyTemplate({
+            const applyTemplateOpts = {
               note,
               engine,
-              pickNote: async (choices: NoteProps[]) => {
+              pickNote: async (
+                choices: NoteProps[]
+              ): Promise<RespV3<NoteProps | undefined>> => {
                 const sameVaultNote = choices.find((ent) => {
                   return VaultUtils.isEqual(vault, ent.vault, engine.wsRoot);
                 });
                 if (sameVaultNote) {
                   return { data: sameVaultNote };
-                } else {
-                  return { data: choices[0] };
                 }
+                return { data: choices[0] };
               },
-            });
+            } as Parameters<typeof TemplateUtils.findAndApplyTemplate>[0];
+            await TemplateUtils.findAndApplyTemplate(applyTemplateOpts);
             const resp = await engine.writeNote(note);
             if (resp.error) {
               return {
@@ -336,7 +343,11 @@ export class NoteCLICommand extends CLICommand<CommandOpts, CommandOutput> {
               };
             }
           } else {
-            note = notes[0];
+            const existingNote = notes[0];
+            if (!existingNote) {
+              throw Error("unexpected empty notes");
+            }
+            note = existingNote;
             // If note exists and its a stub note, delete stub and create new note
             if (note.stub) {
               delete note.stub;
@@ -373,12 +384,18 @@ export class NoteCLICommand extends CLICommand<CommandOpts, CommandOutput> {
 
           // If note doesn't exist, create new note
           if (notes.length === 0) {
-            note = NoteUtils.create({ fname, vault, body });
+            note = NoteUtils.create({
+              fname,
+              vault,
+              ...(body !== undefined ? { body } : {}),
+            });
             status = "CREATE";
           } else {
             // If note exists, update note body
+            const existingNote = notes[0]!;
             const newBody = body || "";
-            note = { ...notes[0], body: newBody };
+            existingNote.body = newBody;
+            note = existingNote;
             status = "UPDATE";
           }
           const resp = await engine.writeNote(note);

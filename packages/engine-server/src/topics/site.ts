@@ -452,21 +452,30 @@ export class SiteUtils {
   }: {
     vault: DVault;
     config: DendronConfig;
-  }): { url?: string; index?: string } {
+  }): { url?: string | undefined; index?: string | undefined } {
     if (vault.seed) {
       const seeds = ConfigUtils.getWorkspace(config).seeds;
       if (seeds && seeds[vault.seed]) {
         const maybeSite = seeds[vault.seed]?.site;
         if (maybeSite) {
-          return { url: maybeSite.url, index: maybeSite.index };
+          return {
+            ...(maybeSite.url !== undefined ? { url: maybeSite.url } : {}),
+            ...(maybeSite.index !== undefined ? { index: maybeSite.index } : {}),
+          };
         }
       }
     }
     if (vault.siteUrl) {
-      return { url: vault.siteUrl, index: vault.siteIndex };
+      return {
+        url: vault.siteUrl,
+        ...(vault.siteIndex !== undefined ? { index: vault.siteIndex } : {}),
+      };
     }
     const { siteUrl, siteIndex } = ConfigUtils.getPublishing(config);
-    return { url: siteUrl, index: siteIndex };
+    return {
+      ...(siteUrl !== undefined ? { url: siteUrl } : {}),
+      ...(siteIndex !== undefined ? { index: siteIndex } : {}),
+    };
   }
 
   static getSitePrefixForNote(config: DendronConfig) {

@@ -256,11 +256,18 @@ function DendronGreenTooltip(props: React.PropsWithChildren<any>) {
   );
 }
 
+function modifierDescription(key: string): string | undefined {
+  if (key in MODIFIER_DESCRIPTIONS) {
+    return MODIFIER_DESCRIPTIONS[key as keyof typeof MODIFIER_DESCRIPTIONS];
+  }
+  return undefined;
+}
+
 function OptionWithTooltip(key: string) {
   return (
     <>
       <Option value={key}>
-        <DendronGreenTooltip title={MODIFIER_DESCRIPTIONS[key]}>
+        <DendronGreenTooltip title={modifierDescription(key)}>
           {key}
         </DendronGreenTooltip>
       </Option>

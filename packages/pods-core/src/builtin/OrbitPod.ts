@@ -211,7 +211,8 @@ export class OrbitImportPod extends ImportPod<OrbitImportPodConfig> {
   }
 
   getNameFromEmail(email: string): string {
-    return email.split("@")[0];
+    const [localPart] = email.split("@");
+    return localPart ?? email;
   }
 
   /**
@@ -276,6 +277,9 @@ export class OrbitImportPod extends ImportPod<OrbitImportPodConfig> {
     } = opts;
     let { index } = opts;
     const conflict = conflicts[index];
+    if (!conflict) {
+      return;
+    }
     const resp = await handleConflict(conflict, conflictResolveOpts);
     switch (resp) {
       case MergeConflictOptions.OVERWRITE_LOCAL: {

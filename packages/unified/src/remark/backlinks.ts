@@ -102,13 +102,16 @@ const plugin: Plugin = function (this: Unified.Processor) {
           backlinksToPublish.map((mdLink) => {
             let alias;
 
+            const vaultFromName = mdLink.from.vaultName
+              ? VaultUtils.getVaultByName({
+                  vaults,
+                  vname: mdLink.from.vaultName,
+                })
+              : undefined;
             const notes = NoteDictsUtils.findByFname({
               fname: mdLink.from.fname!,
               noteDicts: noteCacheForRenderDict!,
-              vault: VaultUtils.getVaultByName({
-                vaults,
-                vname: mdLink.from.vaultName!,
-              }),
+              ...(vaultFromName !== undefined ? { vault: vaultFromName } : {}),
             });
 
             // Lean v2: length guard + ! for noUncheckedIndexedAccess (backlinks note lookup)

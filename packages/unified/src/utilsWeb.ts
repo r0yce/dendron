@@ -1,3 +1,4 @@
+import "./module-shims";
 import {
   assertUnreachable,
   DendronError,

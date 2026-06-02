@@ -1563,6 +1563,7 @@
   "dependencies": {
     "@dendronhq/api-server": "^0.124.0",
     "@dendronhq/common-all": "^0.124.0",
+    "@dendronhq/common-di": "^0.124.0",
     "@dendronhq/common-server": "^0.124.0",
     "@dendronhq/engine-server": "^0.124.0",
     "@dendronhq/pods-core": "^0.124.0",

@@ -20,7 +20,7 @@ export const CONFIG_MIGRATIONS: Migrations = {
           return {
             data: {
               dendronConfig,
-              wsConfig,
+              ...(wsConfig !== undefined ? { wsConfig } : {}),
             },
             error: new DendronError({
               message:
@@ -110,7 +110,12 @@ export const CONFIG_MIGRATIONS: Migrations = {
           defaultV5Config
         );
 
-        return { data: { dendronConfig: migratedConfig, wsConfig } };
+        return {
+          data: {
+            dendronConfig: migratedConfig,
+            ...(wsConfig !== undefined ? { wsConfig } : {}),
+          },
+        };
       },
     },
   ],

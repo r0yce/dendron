@@ -277,7 +277,7 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
         hookErrors,
       });
       return {
-        error,
+        ...(error !== undefined ? { error } : {}),
         data: {
           notes: notesById,
           wsRoot: this.wsRoot,
@@ -712,8 +712,7 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
       // The file is being renamed to a new file. Delete old file first
       this.logger.info({ ctx, msg: "Renaming the file to a new name" });
       const out = await this.deleteNote(oldNote.id, {
-        // ?? undefined at call site for exactOptional on EngineDeleteOpts metaOnly (DendronEngineV3 cluster); target in common-all already per first-3 precedent; 4-axis boundary (engine-server → common-all)
-        metaOnly: opts?.metaOnly ?? undefined,
+        ...(opts?.metaOnly !== undefined ? { metaOnly: opts.metaOnly } : {}),
       });
       if (out.error) {
         return {
@@ -739,8 +738,7 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
       note: NoteUtils.toLogObj(newNote),
     });
     const out = await this.writeNote(newNote, {
-      // ?? undefined at call site for exactOptional on EngineWriteOptsV2 (DendronEngineV3 cluster, first batch); see common-server 0 + unified 41 precedent + "proceed and utilize 3 sub-agents"
-      metaOnly: opts?.metaOnly ?? undefined,
+      ...(opts?.metaOnly !== undefined ? { metaOnly: opts.metaOnly } : {}),
     });
     if (out.error) {
       return {
@@ -994,10 +992,10 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
       else if (errors && errors.length === 1) error = errors[0]!; // length===1 (BM-2026-0531-First3 [ref:registry])
       return {
         data: {
-          decorations,
-          diagnostics,
+          ...(decorations !== undefined ? { decorations } : {}),
+          ...(diagnostics !== undefined ? { diagnostics } : {}),
         },
-        error,
+        ...(error !== undefined ? { error } : {}),
       };
     } catch (err: any) {
       return {
@@ -1049,9 +1047,9 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
           }
           return {
             data: schemas,
-            error: _.isNull(errors)
-              ? undefined
-              : new DendronCompositeError(errors),
+            ...(!_.isNull(errors)
+              ? { error: new DendronCompositeError(errors) }
+              : {}),
           };
         })
       );
@@ -1060,7 +1058,9 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
       .filter(isNotUndefined);
 
     return {
-      error: errors.length > 0 ? new DendronCompositeError(errors) : undefined,
+      ...(errors.length > 0
+        ? { error: new DendronCompositeError(errors) }
+        : {}),
       data: schemaResponses
         .flatMap((response) => response.data)
         .filter(isNotUndefined),
@@ -1151,8 +1151,9 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
         notesById: allNotes,
         notesByFname: notesFname,
       },
-      error:
-        errors.length === 0 ? undefined : new DendronCompositeError(errors),
+      ...(errors.length > 0
+        ? { error: new DendronCompositeError(errors) }
+        : {}),
     };
   }
 
@@ -1407,6 +1408,9 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
   private referenceRangeParts(anchorHeader?: string): string[] {
     if (!anchorHeader || anchorHeader.indexOf(":") === -1) return [];
     let [start, end] = anchorHeader.split(":");
+    if (start === undefined || end === undefined) {
+      return [];
+    }
     start = start.replace(/^#*/, "");
     end = end.replace(/^#*/, "");
     return [start, end];
@@ -1486,6 +1490,9 @@ export class DendronEngineV3 extends EngineV3Base implements DEngine {
     );
 
     for (const linkedNote of linkedRefNotes) {
+      if (linkedNote === undefined) {
+        continue;
+      }
       // Recurse into each child reference linked note.
       if (
         // eslint-disable-next-line no-await-in-loop

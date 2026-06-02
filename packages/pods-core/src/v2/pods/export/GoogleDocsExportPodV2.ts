@@ -112,7 +112,7 @@ export class GoogleDocsExportPodV2
       docToCreate,
       accessToken,
       limiter,
-      parentFolderId,
+      ...(parentFolderId !== undefined ? { parentFolderId } : {}),
     });
     const updateRequest = await this.overwriteGdoc({
       docToUpdate,

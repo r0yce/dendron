@@ -116,7 +116,9 @@ function getNoteDependencies(ast: Node<Data>): DNodeCompositeKey[] {
     (wikilink: WikiLinkNoteV4, _index) => {
       renderDependencies.push({
         fname: wikilink.value,
-        vaultName: wikilink.data.vaultName,
+        ...(wikilink.data.vaultName !== undefined
+          ? { vaultName: wikilink.data.vaultName }
+          : {}),
       });
     }
   );
@@ -157,12 +159,16 @@ async function getRecursiveNoteDependencies(
       if (noteRef.data.link.from.fname.endsWith("*")) {
         wildCards.push({
           fname: noteRef.data.link.from.fname,
-          vaultName: noteRef.data.link.data.vaultName,
+          ...(noteRef.data.link.data.vaultName !== undefined
+            ? { vaultName: noteRef.data.link.data.vaultName }
+            : {}),
         });
       } else {
         renderDependencies.push({
           fname: noteRef.data.link.from.fname,
-          vaultName: noteRef.data.link.data.vaultName,
+          ...(noteRef.data.link.data.vaultName !== undefined
+            ? { vaultName: noteRef.data.link.data.vaultName }
+            : {}),
         });
       }
     }

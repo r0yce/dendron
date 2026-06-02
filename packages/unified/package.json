@@ -27,7 +27,7 @@
     "prebuild": "yarn clean",
     "build": "yarn compile",
     "buildCI": "yarn compile",
-    "compile": "yarn build:modern",
+    "compile": "tsc -p tsconfig.build.json",
     "watch": "tsup --watch",
     "build:js": "tsup",
     "build:types": "node --max-old-space-size=8192 ./scripts/build-types.js",

@@ -40,15 +40,6 @@ type ServerArgs = {
   googleOauthClientSecret?: string | undefined;
 };
 
-type SERVER_ENV = {
-  NEXT_SERVER_URL?: string | undefined;
-  NEXT_STATIC_ROOT?: string | undefined;
-  ENGINE_SERVER_PORT?: string | undefined;
-  LOG_PATH: string;
-  GOOGLE_OAUTH_ID?: string | undefined;
-  GOOGLE_OAUTH_SECRET?: string | undefined;
-};
-
 export enum SubProcessExitType {
   EXIT = "exit",
   SIGINT = "SIGINT",
@@ -189,7 +180,7 @@ export class ServerUtils {
           NEXT_STATIC_ROOT: nextStaticRoot,
           GOOGLE_OAUTH_ID: googleOauthClientId,
           GOOGLE_OAUTH_SECRET: googleOauthClientSecret,
-          ELECTRON_RUN_AS_NODE: 1,
+          ELECTRON_RUN_AS_NODE: "1",
         },
       });
       logger.info({ state: "post:exec.node" });

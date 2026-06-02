@@ -281,7 +281,8 @@ export class GDocImportPod extends ImportPod<GDocImportPodConfig> {
         } else {
           comments = JSON.stringify(comments);
         }
-        response.body = response.body?.concat(`### Comments\n\n ${comments}`);
+        const existingBody = response.body ?? "";
+        response.body = `${existingBody}### Comments\n\n ${comments}`;
       }
     } catch (error: any) {
       this.L.error({
@@ -473,7 +474,12 @@ export class GDocImportPod extends ImportPod<GDocImportPodConfig> {
     });
 
     let response = await this.getDataFromGDoc(
-      { documentId, accessToken, hierarchyDestination, importComments },
+      {
+        documentId,
+        accessToken,
+        hierarchyDestination,
+        ...(importComments !== undefined ? { importComments } : {}),
+      },
       config,
       assetDir
     );
@@ -485,7 +491,7 @@ export class GDocImportPod extends ImportPod<GDocImportPodConfig> {
     }
     const note: NoteProps = await this._docs2Notes(response, {
       vault,
-      fnameAsId,
+      ...(fnameAsId !== undefined ? { fnameAsId } : {}),
     });
     const createdNotes = await this.createNote({
       note,
@@ -493,13 +499,14 @@ export class GDocImportPod extends ImportPod<GDocImportPodConfig> {
       wsRoot,
       vault,
       confirmOverwrite,
-      onPrompt,
-      importComments,
+      ...(onPrompt !== undefined ? { onPrompt } : {}),
+      ...(importComments !== undefined ? { importComments } : {}),
     });
 
     const importedNotes: NoteProps[] =
       createdNotes === undefined ? [] : [createdNotes];
-    if (importedNotes.length > 0) openFileInEditor(importedNotes[0]);
+    const firstImported = importedNotes[0];
+    if (firstImported) openFileInEditor(firstImported);
     return { importedNotes };
   }
 }

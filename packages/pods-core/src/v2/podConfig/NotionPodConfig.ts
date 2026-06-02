@@ -46,7 +46,7 @@ export function isRunnableNotionV2PodConfig(
 export function createRunnableNotionV2PodConfigSchema(): JSONSchemaType<RunnableNotionV2PodConfig> {
   return {
     type: "object",
-    required: ["apiKey", "exportScope", "parentPageId"],
+    required: ["apiKey", "exportScope"],
     properties: {
       apiKey: {
         type: "string",
@@ -56,6 +56,7 @@ export function createRunnableNotionV2PodConfigSchema(): JSONSchemaType<Runnable
       },
       parentPageId: {
         type: "string",
+        nullable: true,
       },
     },
   };

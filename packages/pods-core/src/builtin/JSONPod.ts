@@ -40,8 +40,8 @@ export class JSONImportPod extends ImportPod {
     const entries = fs.readJSONSync(src.fsPath);
     const notes = await this._entries2Notes(entries, {
       vault,
-      destName,
-      concatenate,
+      ...(destName !== undefined ? { destName } : {}),
+      ...(concatenate !== undefined ? { concatenate } : {}),
     });
     await Promise.all(_.map(notes, (n) => engine.writeNote(n)));
     return { importedNotes: notes };

@@ -25,13 +25,13 @@ type InitialState = {
   };
   seedsInWorkspace: string[] | undefined; // Contains the seed ID's
   lookupModifiers: LookupModifierStatePayload | undefined;
-  tree?: TreeMenu;
-  graphTheme?: GraphThemeEnum;
-  graphDepth?: number;
-  showBacklinks?: boolean;
-  showOutwardLinks?: boolean;
-  showHierarchy?: boolean;
-  isLocked?: boolean;
+  tree?: TreeMenu | undefined;
+  graphTheme?: GraphThemeEnum | undefined;
+  graphDepth?: number | undefined;
+  showBacklinks?: boolean | undefined;
+  showOutwardLinks?: boolean | undefined;
+  showHierarchy?: boolean | undefined;
+  isLocked?: boolean | undefined;
   previewHTML: string;
 };
 

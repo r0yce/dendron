@@ -67,18 +67,26 @@ type CommandOpts = Omit<CommandCLIOpts, "overrides"> & Partial<ExportCmdOpts>;
 
 type CommandOutput = Partial<{ error: DendronError; data: any }>;
 
+type PublishBuildOverrides = Pick<
+  DendronPublishingConfig,
+  "siteUrl" | "assetsPrefix"
+>;
+
 type BuildCmdOpts = Omit<CommandCLIOpts, keyof CommandCLIOnlyOpts> & {
   /**
    * Use existing engine instead of spawning a new one
    */
-  attach?: boolean;
+  attach?: boolean | undefined;
   /**
    * Override site config with custom values
    */
-  overrides?: BuildOverrides;
+  overrides?: PublishBuildOverrides | undefined;
 };
-type DevCmdOpts = BuildCmdOpts & { noBuild?: boolean };
-type ExportCmdOpts = DevCmdOpts & { target?: PublishTarget; yes?: boolean };
+type DevCmdOpts = BuildCmdOpts & { noBuild?: boolean | undefined };
+type ExportCmdOpts = DevCmdOpts & {
+  target?: PublishTarget | undefined;
+  yes?: boolean | undefined;
+};
 
 export { CommandOpts as PublishCLICommandOpts };
 export { CommandCLIOpts as PublishCLICommandCLIOpts };
@@ -87,12 +95,17 @@ const getNextRoot = (wsRoot: string) => {
   return path.join(wsRoot, ".next");
 };
 
-const isBuildOverrideKey = (key: string): key is keyof BuildOverrides => {
-  const allowedKeys = [
+const isBuildOverrideKey = (
+  key: string | undefined
+): key is keyof PublishBuildOverrides => {
+  if (key === undefined) {
+    return false;
+  }
+  const allowedKeys: (keyof PublishBuildOverrides)[] = [
     "siteUrl",
     "assetsPrefix",
-  ] as (keyof DendronPublishingConfig)[];
-  return allowedKeys.includes(key as any);
+  ];
+  return (allowedKeys as string[]).includes(key);
 };
 
 /**
@@ -147,7 +160,7 @@ export class PublishCLICommand extends CLICommand<CommandOpts, CommandOutput> {
   async enrichArgs(args: CommandCLIOpts) {
     this.addArgsToPayload({ cmd: args.cmd });
     let error: DendronError | undefined;
-    const coverrides: BuildOverrides = {};
+    const coverrides: PublishBuildOverrides = {};
     if (!_.isUndefined(args.overrides)) {
       args.overrides.split(",").map((ent) => {
         const [k, v] = _.trim(ent).split("=");
@@ -164,7 +177,14 @@ export class PublishCLICommand extends CLICommand<CommandOpts, CommandOutput> {
       return { error };
     }
     return {
-      data: { ..._.omit(args, "overrides"), overrides: coverrides },
+      data: {
+        ..._.omit(args, "overrides"),
+        overrides: coverrides,
+        ...(args.attach !== undefined ? { attach: args.attach } : {}),
+        ...(args.dest !== undefined ? { dest: args.dest } : {}),
+        ...(args.sitemap !== undefined ? { sitemap: args.sitemap } : {}),
+        ...(args.error !== undefined ? { error: args.error } : {}),
+      },
     };
   }
 
@@ -262,7 +282,7 @@ export class PublishCLICommand extends CLICommand<CommandOpts, CommandOutput> {
       return { error: resp.error };
     }
     const opts = resp.data;
-    opts.config.overrides = overrides || {};
+    opts.config.overrides = (overrides || {}) as BuildOverrides;
 
     // if no siteUrl set, override with localhost
     const config = DConfig.readConfigSync(opts.engine.wsRoot);
@@ -464,9 +484,9 @@ export class PublishCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     const { error } = await this._buildNextData({
       wsRoot,
       stage: getStage(),
-      dest,
       attach,
-      overrides,
+      ...(dest !== undefined ? { dest } : {}),
+      ...(overrides !== undefined ? { overrides } : {}),
     });
     if (error) {
       this.print("ERROR: " + error.message);

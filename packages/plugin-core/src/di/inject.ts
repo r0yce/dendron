@@ -46,39 +46,28 @@
  * - Handoff: Test-Guardian gap fill + surface coverage; Monorepo extraction phase2; Feature-Ideator doctor polish; Self-Improver lessons. Non-stop. THE CHAIN DOES NOT STOP.
  */
 
+// Core DI surface from @dendronhq/common-di (ADR 0001 phase 2). Full TOKENS + register* stay here.
 import {
-  inject as tsyringeInject,
-  injectable as tsyringeInjectable,
-  singleton as tsyringeSingleton,
-  container as tsyringeContainer,
+  inject,
+  injectable,
+  singleton,
+  container,
+  rawContainer,
   Lifecycle,
-  registry as tsyringeRegistry,
-} from "tsyringe";
+  registry,
+  registerInstance,
+} from "@dendronhq/common-di";
 
-// Re-export the raw container (use sparingly)
-export const container = tsyringeContainer;
-export { tsyringeContainer as rawContainer, Lifecycle };
-
-// Safe type for parameter decorator factory that satisfies TS experimentalDecorators + emitDecoratorMetadata checker
-// (avoids TS1239 "Unable to resolve signature of parameter decorator" at clean usage sites).
-type SafeDecoratorFactory = (token: string | symbol) => any;
-
-// Note: injectable/singleton/registry are safe re-exports (no decorator signature issues on class level).
-export const injectable = tsyringeInjectable;
-export const singleton = tsyringeSingleton;
-export const registry = tsyringeRegistry;
-
-/**
- * v2 Absorbing @inject (type-level centralization).
- *
- * The suppression + any-cast lives ONCE here on the exported symbol's declaration/assignment.
- * Consumers get a SafeDecoratorFactory-typed decorator, so `@inject("Token")` (or @inject(TOKENS.FOO))
- * at ctor param sites type-checks cleanly with NO per-site @ts-expect-error.
- *
- * This is the key enabler for Batch 2+ mass removal of 30+ bare comments across 13+ web/ files.
- * Per di-container-proposal (typed tokens + reg) + 4-axis (@ts-burn + DI synergy first).
- */
- export const inject: SafeDecoratorFactory = tsyringeInject as any; // v2 centralized absorption (TS5+ decorator metadata + tsyringe). Permanent single @ts site. See Suppression Registry.
+export {
+  inject,
+  injectable,
+  singleton,
+  container,
+  rawContainer,
+  Lifecycle,
+  registry,
+  registerInstance,
+};
 
 /**
  * Typed DI Tokens starter (v2, per di-container-proposal).
@@ -204,10 +193,6 @@ export async function registerAllDependencies(opts: {
     registerDesktopDependencies(opts.desktopOpts);
   }
 }
-
-// Ergonomics (low-risk, delivered + proven in ts-expect-error-burner Batch 2 subagent 019e7cb5-0da5-7c90-8d36-d42e6642ec0f): 
-// prefer registerInstance for ready instances (shorthand vs register(token, { useValue: inst })). Exported for consistency.
-export const registerInstance = tsyringeContainer.registerInstance.bind(tsyringeContainer);
 
 /**
  * === Expect-Error Burn Batch 2 (ts-expect-error-burner subagent 019e7cb5-0da5-7c90-8d36-d42e6642ec0f, 2026-05-30, 252.4s / 82 tool calls, isolated worktree) ===

@@ -162,7 +162,12 @@ router.get(
     const engine = await getWSEngine({ ws: ws || "" });
     ExpressUtils.setResponse(
       res,
-      await engine.getNoteBlocks({ id, filterByAnchorType })
+      await engine.getNoteBlocks({
+        id,
+        ...(filterByAnchorType !== undefined
+          ? { filterByAnchorType }
+          : {}),
+      })
     );
   })
 );

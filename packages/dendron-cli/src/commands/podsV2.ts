@@ -117,9 +117,14 @@ export async function enrichPodArgs(
   if (inlineConfig) {
     inlineConfig.map((conf) => {
       const [k, v] = conf.split(",");
+      if (k === undefined || v === undefined) {
+        return;
+      }
       const key = k.split("=")[1];
       const value = v.split("=")[1];
-      configValues[key] = value;
+      if (key !== undefined && value !== undefined) {
+        configValues[key] = value;
+      }
     });
   }
 
@@ -159,20 +164,23 @@ export async function enrichPodArgs(
       payload = await getPropsForWorkspaceScope(engine);
       break;
     case PodExportScope.Vault:
-      payload = await getPropsForVaultScope({ engine, vaultName: args.vault });
+      payload = await getPropsForVaultScope({
+        engine,
+        ...(args.vault !== undefined ? { vaultName: args.vault } : {}),
+      });
       break;
     case PodExportScope.Note:
       payload = await getPropsForNoteScope({
         engine,
-        vaultName: args.vault,
-        fname: args.fname,
+        ...(args.vault !== undefined ? { vaultName: args.vault } : {}),
+        ...(args.fname !== undefined ? { fname: args.fname } : {}),
       });
       break;
     case PodExportScope.Hierarchy:
       payload = await getPropsForHierarchyScope({
         engine,
-        hierarchy: args.hierarchy,
-        vaultName: args.vault,
+        ...(args.hierarchy !== undefined ? { hierarchy: args.hierarchy } : {}),
+        ...(args.vault !== undefined ? { vaultName: args.vault } : {}),
       });
       break;
     default:
@@ -209,7 +217,10 @@ const getPropsForVaultScope = async (opts: {
   vaultName?: string;
 }): Promise<NoteProps[]> => {
   const { engine, vaultName } = opts;
-  const vault = checkVaultArgs({ engine, vaultName });
+  const vault = checkVaultArgs({
+    engine,
+    ...(vaultName !== undefined ? { vaultName } : {}),
+  });
   return engine.findNotes({ excludeStub: true, vault });
 };
 
@@ -219,7 +230,10 @@ const getPropsForNoteScope = async (opts: {
   fname?: string;
 }): Promise<NoteProps[]> => {
   const { engine, fname, vaultName } = opts;
-  const vault = checkVaultArgs({ engine, vaultName });
+  const vault = checkVaultArgs({
+    engine,
+    ...(vaultName !== undefined ? { vaultName } : {}),
+  });
 
   if (!fname) {
     throw new DendronError({
@@ -246,7 +260,10 @@ const getPropsForHierarchyScope = async (opts: {
       message: "Please provide hierarchy in --hierarchy arg",
     });
   }
-  const vault = checkVaultArgs({ engine, vaultName });
+  const vault = checkVaultArgs({
+    engine,
+    ...(vaultName !== undefined ? { vaultName } : {}),
+  });
   const notes = await engine.findNotes({ excludeStub: true, vault });
   return notes.filter((value) => value.fname.startsWith(hierarchy));
 };
@@ -266,9 +283,14 @@ const checkVaultArgs = (opts: {
     throw new DendronError({
       message: "Please provide vault name in --vault arg",
     });
-  } else {
-    return vaultName
-      ? VaultUtils.getVaultByNameOrThrow({ vaults, vname: vaultName })
-      : vaults[0];
   }
+  const vault = vaultName
+    ? VaultUtils.getVaultByNameOrThrow({ vaults, vname: vaultName })
+    : vaults[0];
+  if (!vault) {
+    throw new DendronError({
+      message: "workspace has no vaults",
+    });
+  }
+  return vault;
 };

@@ -701,9 +701,11 @@ export async function createTree() {
             const childCachedPosition =
               repositionedCachedPositions[child.data.path];
             if (childCachedPosition) {
+              const dx = itemPositionDiffFromCached[0] ?? 0;
+              const dy = itemPositionDiffFromCached[1] ?? 0;
               repositionedCachedPositions[child.data.path] = [
-                childCachedPosition[0] + itemPositionDiffFromCached[0],
-                childCachedPosition[1] + itemPositionDiffFromCached[1],
+                childCachedPosition[0] + dx,
+                childCachedPosition[1] + dy,
               ];
             } else {
               // const diff = getPositionFromAngleAndDistance(100, item.r);

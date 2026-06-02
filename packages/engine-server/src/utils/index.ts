@@ -158,8 +158,10 @@ export function parseFileLink(ref: string): DNoteRefLink {
   }
   if (clean.anchorStart && clean.anchorStart.indexOf(",") >= 0) {
     const [anchorStart, offset] = clean.anchorStart.split(",");
-    clean.anchorStart = anchorStart;
-    clean.anchorStartOffset = parseInt(offset, 10);
+    if (anchorStart !== undefined && offset !== undefined) {
+      clean.anchorStart = anchorStart;
+      clean.anchorStartOffset = parseInt(offset, 10);
+    }
   }
   return { from: { fname }, data: clean, type: "ref" };
 }

@@ -26,11 +26,12 @@ export const decorateFrontmatter: Decorator<
 > = async (opts) => {
   const { node: frontmatter, config, engine, note } = opts;
   const { value: contents, position } = frontmatter;
+  if (!position) {
+    return { decorations: [], errors: [] };
+  }
   // Decorate the timestamps
 
   const entries = contents.split("\n");
-  // position from DecoratorIn<FrontmatterContent> (NonOptional on "position"); start required per common-all Position
-  // Added defensive for noUncheckedIndexedAccess strict (unified decorations cluster, first-3 clean-build)
   const fmStart = position.start;
   const lineOffset =
     point2VSCodePosition(fmStart).line +

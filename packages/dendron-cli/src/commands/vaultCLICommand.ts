@@ -97,8 +97,8 @@ export class VaultCLICommand extends CLICommand<CommandOpts> {
             };
             resp = await wsService.createVault({
               vault,
-              noAddToConfig,
               addToCodeWorkspace: true,
+              ...(noAddToConfig !== undefined ? { noAddToConfig } : {}),
             });
           }
           this.print(`${vaultPath} created`);

@@ -12,16 +12,13 @@ import {
   OptionalExceptFor,
   ProcFlavor,
 } from "@dendronhq/common-all";
-// @ts-expect-error - @mapbox/rehype-prism CJS interop for v5 proc (SiteUtils + noteRef/data + position clusters unified remark micro); not 4-axis common-all boundary per "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
+import "./module-shims";
 import rehypePrism from "@mapbox/rehype-prism";
-// @ts-expect-error - @dendronhq/remark-mermaid CJS interop for v5 proc (SiteUtils + noteRef/data + position clusters unified remark micro); not 4-axis common-all boundary per "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
 import mermaid from "@dendronhq/remark-mermaid";
 import _ from "lodash";
 import link from "rehype-autolink-headings";
 import math from "remark-math";
-// @ts-expect-error - remark-variables CJS interop for v5 proc (SiteUtils + noteRef/data + position clusters unified remark micro); not 4-axis common-all boundary per "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
 import variables from "remark-variables";
-// @ts-expect-error - rehype-katex CJS interop for v5 proc (SiteUtils + noteRef/data + position clusters unified remark micro); not 4-axis common-all boundary per "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
 import katex from "rehype-katex";
 import raw from "rehype-raw";
 import slug from "rehype-slug";
@@ -112,7 +109,7 @@ export type ProcDataFullOptsV5 = {
   backlinkHoverOpts?: BacklinkOpts;
   wsRoot?: string;
   noteToRender: NotePropsMeta;
-  noteCacheForRenderDict?: NoteDicts;
+  noteCacheForRenderDict?: NoteDicts | undefined;
 };
 
 /**
@@ -138,7 +135,7 @@ export type ProcDataFullV5 = {
   noteRefLvl: number;
 
   noteToRender: NotePropsMeta;
-  noteCacheForRenderDict?: NoteDicts;
+  noteCacheForRenderDict?: NoteDicts | undefined;
 };
 
 function checkProps({
@@ -149,11 +146,9 @@ function checkProps({
   data: any;
 }): { valid: true } | { valid: false; missing: string[] } {
   const hasAllProps = _.map(requiredProps, (prop) => {
-    // @ts-expect-error - dynamic prop check on any data for v5 proc validation (noteRef/data paths + SiteUtils synergy cluster of unified remark micro); local any interop (not strict 4-axis common-all) per "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
     return !_.isUndefined(data[prop]);
   });
   if (!_.every(hasAllProps)) {
-    // @ts-expect-error - dynamic filter on any data for v5 proc validation (noteRef/data paths + SiteUtils synergy cluster of unified remark micro); local any interop (not strict 4-axis common-all) per "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
     const missing = _.filter(requiredProps, (prop) =>
       // dynamic undefined check on any data for v5 proc validation (noteRef/data paths + SiteUtils synergy cluster of unified remark micro); local any interop (not strict 4-axis common-all) — directive removed (unused post prior hygiene). Per "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro + v5 ProcOptsV5 final)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772 + 019e81fe-eefb-73a2-ad2c-5fa4efebcad7 + 019e81fb-4a4c-7580-bd41-51cbe849ae9c + 019e81ff-4b05-72f0-bf68-6b320c74dbdf + 019e81fe-7bd6-77c1-a74c-a24ea27983bd + 019e81fe-a131-7082-ba77-e9397743ac84 + 019e81fd-2f81-7950-9dba-7168c5cfa65f + 019e81fb-9696-7652-b2ef-60a63adb907e). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
       _.isUndefined(data[prop])
@@ -464,7 +459,7 @@ export class MDUtilsV5 {
 
   static procRemarkFull(
     data: ProcDataFullOptsV5,
-    opts?: { mode?: ProcMode; flavor?: ProcFlavor }
+    opts?: { mode?: ProcMode; flavor?: ProcFlavor | undefined }
   ) {
     return this._procRemark(
       {

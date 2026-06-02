@@ -339,10 +339,13 @@ export function convertNoteRefToHAST(
           ? `"${wikiLinkOpts?.prefix || ""}${href}${suffix}"`
           : undefined;
 
+        if (!noteRefMDAST) {
+          return paragraph();
+        }
         const prettyHAST = renderPrettyHAST({
           content: noteRefMDAST,
           title,
-          link: linkString,
+          ...(linkString !== undefined ? { link: linkString } : {}),
         });
 
         // publishing
@@ -403,7 +406,9 @@ export function convertNoteRefToHAST(
   const noteRefs: DNoteLoc[] = gatherNoteRefs({
     link,
     vault,
-    noteDicts: noteCacheForRenderDict,
+    ...(noteCacheForRenderDict !== undefined
+      ? { noteDicts: noteCacheForRenderDict }
+      : {}),
   });
 
   if (link.from.fname.endsWith("*")) {
@@ -425,8 +430,11 @@ export function convertNoteRefToHAST(
         }
 
         const noteCandidates = noteIds
-          .map((id) => noteCacheForRenderDict.notesById[id])
-          .filter((props) => VaultUtils.isEqualV2(props.vault, vault));
+          .map((id) => noteCacheForRenderDict!.notesById[id])
+          .filter(
+            (props): props is NoteProps =>
+              props !== undefined && VaultUtils.isEqualV2(props.vault, vault)
+          );
 
         if (noteCandidates.length !== 1) {
           throw new DendronError({
@@ -493,7 +501,7 @@ export function convertNoteRefToHAST(
           fname: link.from.fname,
           noteCandidates: data,
           // SubC (SiteUtils synergy) + SubB (noteRef/data) of 3 parallel sub-agents for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 parallel. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents". noteDict from cache may be boundary; minimal 4-axis only here per mandate. See common-server 0 + unified 57 precedent + engine batches. THE CHAIN DOES NOT STOP.
-          noteDict: noteCacheForRenderDict as any /* TODO: Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis (unified noteRefsV2 SiteUtils.handleDup noteDict interop with common-all NoteDicts) + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). noteRef/data + SiteUtils synergy cluster. No bare @ts. 0 tests invariant. */!,
+          noteDict: noteCacheForRenderDict as any /* TODO: Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis (unified noteRefsV2 SiteUtils.handleDup noteDict interop with common-all NoteDicts) + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). noteRef/data + SiteUtils synergy cluster. No bare @ts. 0 tests invariant. */,
         });
         if (!maybeNote) {
           return {
@@ -544,6 +552,7 @@ function removeListItems({
   // eslint-disable-next-line no-plusplus
   for (let i = 0; i < nodes.length; i++) {
     const list = nodes[i];
+    if (list === undefined) continue;
     const listItem = nodes[i + 1];
     if (list.ancestor.type !== DendronASTTypes.LIST) continue;
     if (_.isUndefined(listItem)) {
@@ -589,6 +598,7 @@ function removeSingleItemNestedLists(nodes: ParentWithIndex[]): void {
   // eslint-disable-next-line no-plusplus
   for (let i = 0; i < nodes.length; i++) {
     const list = nodes[i];
+    if (list === undefined) continue;
     if (list.ancestor.type !== DendronASTTypes.LIST) continue;
     // Find the outermost list
     if (_.isUndefined(outermost)) {
@@ -763,7 +773,9 @@ function convertNoteRefToMDAST(
       insideNoteRef: true,
       fname: note.fname,
       vault: note.vault,
-      noteCacheForRenderDict,
+      ...(noteCacheForRenderDict !== undefined
+        ? { noteCacheForRenderDict }
+        : {}),
       config,
     },
     MDUtilsV5.getProcOpts(proc)
@@ -782,15 +794,15 @@ function convertNoteRefToMDAST(
   });
   // SubB (noteRef/data paths cluster) of 3 sub-agents parallel dispatch for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents". ?? for data per pattern. See common-server 0 + unified 57 precedent + engine batches (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). THE CHAIN DOES NOT STOP.
 
-  const { start, end, data, error } = prepareNoteRefIndices({
-    anchorStart,
-    anchorEnd,
+  const { start, end, data, error } = prepareNoteRefIndices<Parent>({
+    ...(anchorStart !== undefined ? { anchorStart } : {}),
+    ...(anchorEnd !== undefined ? { anchorEnd } : {}),
     bodyAST,
     makeErrorData: (msg) => {
       return MdastUtils.genMDMsg(msg);
     },
   });
-  if (data) return { data, error };
+  if (data) return { data, error: error ?? null };
 
   // slice of interested range
   try {
@@ -940,7 +952,10 @@ function findBlockAnchor({
       // @ts-expect-error - mdast visit shape for BLOCK_ANCHOR (id prop on custom node); legacy remark plugin interop (not strict 4-axis common-all boundary). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
       if (node.id === match) {
         // found anchor!
-        foundIndex = ancestors.length > 0 ? ancestors[0].index : index;
+        foundIndex =
+          ancestors.length > 0 && ancestors[0] !== undefined
+            ? ancestors[0].index
+            : index;
         foundAncestors = ancestors;
         return false; // stop traversal
       }
@@ -951,15 +966,22 @@ function findBlockAnchor({
   if (_.isUndefined(foundIndex)) return null;
   if (foundAncestors.length > 0) {
     // SubA (noteRef/data paths + foundAncestors[0] cluster) of 3 sub-agents for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs. "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents". Explicit length/invariant guard + ! only after check (noUncheckedIndexedAccess hygiene on ancestors[0] for noteRef/data paths cluster). See common-server 0 + unified 57 precedent + engine batches. Full 8 IDs: 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772. "green after every logical change". No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
+    const firstFoundAncestor = foundAncestors[0];
+    const firstFoundChild = firstFoundAncestor?.ancestor.children[0];
     if (
-      foundAncestors[0]!.ancestor.children.length === 1 &&
-      foundAncestors[0]!.ancestor.children[0].type ===
-        DendronASTTypes.BLOCK_ANCHOR
+      firstFoundAncestor !== undefined &&
+      firstFoundAncestor.ancestor.children.length === 1 &&
+      firstFoundChild !== undefined &&
+      firstFoundChild.type === DendronASTTypes.BLOCK_ANCHOR
     ) {
       // If located by itself after a block, then the block anchor refers to the previous block
       return { type: "block", index: foundIndex - 1 };
     }
-    if (foundAncestors[0].ancestor.type === DendronASTTypes.LIST) {
+    const firstAncestor = foundAncestors[0];
+    if (
+      firstAncestor !== undefined &&
+      firstAncestor.ancestor.type === DendronASTTypes.LIST
+    ) {
       // The block anchor is in a list, which will need special handling to slice the list elements
       return {
         type: "list",

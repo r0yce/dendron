@@ -305,25 +305,37 @@ export default function Graph({
 
   const updateConfigField = (key: string, value: string | number | boolean) => {
     setConfig((c) => {
-      let additionalChanges = {};
+      let additionalChanges: Partial<GraphConfig> = {};
       if (key === "options.show-local-graph") {
         // Show loading spinner when switching graph types
         setIsReady(false);
 
         // By default, hide links from full graph and show links for local graph
-        additionalChanges = {
-          "connections.links": {
-            ...c["connections.links"],
-            value,
-          },
-        };
+        const links = c["connections.links"];
+        if (links) {
+          additionalChanges = {
+            "connections.links": {
+              ...links,
+              value: Boolean(value),
+            },
+          };
+        }
       }
 
-      const newConfig = {
+      if (!(key in c)) {
+        return c;
+      }
+      const configKey = key as keyof GraphConfig;
+      const existing = c[configKey];
+      if (!existing) {
+        return c;
+      }
+
+      const newConfig: GraphConfig = {
         ...c,
         ...additionalChanges,
-        [key]: {
-          ...c[key]! /* BM-2026-0531-First3 [ref:registry] Group D: graph config partial (post GraphConfigItem widen); ! safe in update path, no bare @ts */,
+        [configKey]: {
+          ...existing,
           value,
         },
       };

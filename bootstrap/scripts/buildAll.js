@@ -17,6 +17,7 @@ const ws = (pkg, script = "build") => {
 
 console.log("building all...");
 ws("@dendronhq/common-all");
+ws("@dendronhq/common-di");
 ws("@dendronhq/unified");
 ws("@dendronhq/common-server");
 ws("@dendronhq/dendron-viz");

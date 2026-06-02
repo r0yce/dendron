@@ -56,7 +56,7 @@ function getFileMeta(fpaths: string[]): FileMetaDict {
     if (!_.has(metaDict, lvl)) {
       metaDict[lvl] = [];
     }
-    metaDict[lvl].push({ fpath });
+    metaDict[lvl]!.push({ fpath });
   });
   return metaDict;
 }
@@ -180,7 +180,7 @@ export class NoteParserV2 {
 
             // Check for duplicate IDs when adding notes to the map
             if (notesById[parsedNote.id] !== undefined) {
-              const duplicate = notesById[parsedNote.id];
+              const duplicate = notesById[parsedNote.id]!;
               errors.push(
                 new DuplicateNoteError({
                   noteA: duplicate,
@@ -237,7 +237,7 @@ export class NoteParserV2 {
                   ent.status === "create" &&
                   notesById[note.id] !== undefined
                 ) {
-                  const duplicate = notesById[note.id];
+                  const duplicate = notesById[note.id]!;
                   errors.push(
                     new DuplicateNoteError({
                       noteA: duplicate,
@@ -265,10 +265,10 @@ export class NoteParserV2 {
     this.logger.info({ ctx, msg: "post:parseAllNotes" });
 
     // Add schemas
-    const domains = notesById[rootNote.id].children.map(
-      (ent) => notesById[ent]
-    );
-    domains.map((domain) => {
+    const domains = notesById[rootNote.id]!.children
+      .map((ent) => notesById[ent])
+      .filter((domain): domain is NoteProps => domain !== undefined);
+    domains.forEach((domain) => {
       SchemaUtils.matchDomain(domain, notesById, schemas);
     });
 

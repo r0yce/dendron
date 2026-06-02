@@ -51,11 +51,10 @@ export class WorkspaceController {
     if (error) {
       error2 = error2PlainObject(error);
     }
-    const payload = {
-      error: error2,
+    return {
       data,
+      ...(error2 !== undefined ? { error: error2 } : {}),
     };
-    return payload;
   }
 
   async sync({ ws }: WorkspaceSyncRequest): Promise<DEngineInitResp> {

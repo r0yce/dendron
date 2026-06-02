@@ -217,6 +217,9 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
         );
         this.print(`creating ${numNotes} ${key} notes...`);
         const vault = svc.vaults[_.random(0, vaultTotal - 1)];
+        if (!vault) {
+          throw new Error("workspace has no vaults");
+        }
         const notes: NoteProps[] = await Promise.all(
           _.times(numNotes, async (i) => {
             return NoteUtils.create({ fname: `${key}.${i}`, vault });
@@ -549,6 +552,9 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     );
 
     treatmentNames.forEach((treatmentName) => {
+      if (!treatmentName) {
+        return;
+      }
       // create directories for treatment
       const treatmentNameDirPath = path.join(treatmentsDirPath, treatmentName);
       fs.ensureDirSync(treatmentNameDirPath);
@@ -664,7 +670,13 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     );
 
     // run it
-    const currentVersion = migrationsToRun[0].version;
+    const migration = migrationsToRun[0];
+    if (!migration) {
+      throw new Error(
+        `no migration found for version ${opts.migrationVersion}`
+      );
+    }
+    const currentVersion = migration.version;
     const wsService = new WorkspaceService({ wsRoot: opts.wsRoot! });
     const configPath = DConfig.configPath(opts.wsRoot!);
     const dendronConfig = readYAML(configPath);

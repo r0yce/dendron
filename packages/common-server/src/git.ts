@@ -305,6 +305,9 @@ export class GitUtils {
     uri?: string
   ): Promise<{ stdout: string; stderr: string }> {
     const [git, ...args] = cmd.split(" ");
+    if (!git) {
+      return { stdout: "", stderr: "empty git command" };
+    }
     return execa(git, args, { cwd: uri || process.cwd() });
   }
 

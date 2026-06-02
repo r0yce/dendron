@@ -138,11 +138,14 @@ export class DendronEngineV2 implements DEngine {
 
   constructor(props: DendronEnginePropsV2) {
     this.wsRoot = props.wsRoot;
-    this.logger = props.logger;
+    this.logger = props.logger ?? createLogger();
     this.fuseEngine = new FuseEngine({
       fuzzThreshold: ConfigUtils.getLookup(props.config).note.fuzzThreshold,
     });
     this._vaults = props.vaults;
+    if (props.createStore === undefined) {
+      throw new DendronError({ message: "createStore is required" });
+    }
     this.store = props.createStore(this);
     const hooks: DHookDict = ConfigUtils.getWorkspace(props.config).hooks || {
       onCreate: [],
@@ -283,7 +286,7 @@ export class DendronEngineV2 implements DEngine {
       }
 
       return {
-        error,
+        ...(error !== undefined ? { error } : {}),
         data: {
           notes,
           wsRoot: this.wsRoot,
@@ -325,9 +328,9 @@ export class DendronEngineV2 implements DEngine {
 
   async bulkGetNotes(ids: string[]): Promise<BulkGetNoteResp> {
     return {
-      data: ids.map((id) => {
-        return this.notes[id];
-      }),
+      data: ids
+        .map((id) => this.notes[id])
+        .filter((n): n is NoteProps => n !== undefined),
     };
   }
 
@@ -366,7 +369,7 @@ export class DendronEngineV2 implements DEngine {
         changed,
         (ent) => ent.note.id === id
       ) as NoteChangeEntry;
-      if (noteChangeEntry.status === "delete") {
+      if (noteChangeEntry.status === "delete" && note !== undefined) {
         await this.fuseEngine.removeNoteFromIndex(note);
       }
       return {
@@ -374,7 +377,6 @@ export class DendronEngineV2 implements DEngine {
       };
     } catch (err: any) {
       return {
-        data: [],
         error: err,
       };
     }
@@ -417,7 +419,6 @@ export class DendronEngineV2 implements DEngine {
     const version = NodeJSUtils.getVersionFromPkg();
     if (!version) {
       return {
-        data: undefined,
         error: DendronError.createPlainError({
           message: "Unable to read Dendron version",
         }),
@@ -461,8 +462,8 @@ export class DendronEngineV2 implements DEngine {
 
     const items = this.fuseEngine.queryNote({
       qs,
-      onlyDirectChildren,
       originalQS,
+      ...(onlyDirectChildren !== undefined ? { onlyDirectChildren } : {}),
     });
 
     if (items.length === 0) {
@@ -472,11 +473,13 @@ export class DendronEngineV2 implements DEngine {
     this.logger.info({ ctx, msg: "exit" });
     let notes = items.map((ent) => this.notes[ent.id]);
     if (!_.isUndefined(vault)) {
-      notes = notes.filter((ent) => {
-        return VaultUtils.isEqual(vault, ent.vault, this.wsRoot);
-      });
+      notes = notes.filter(
+        (ent): ent is NoteProps =>
+          ent !== undefined &&
+          VaultUtils.isEqual(vault, ent.vault, this.wsRoot)
+      );
     }
-    return notes;
+    return notes.filter((ent): ent is NoteProps => ent !== undefined);
   }
 
   async renderNote({
@@ -633,7 +636,7 @@ export class DendronEngineV2 implements DEngine {
         const found = NoteDictsUtils.findByFname({
           fname: pointTo.fname!,
           noteDicts,
-          vault: maybeVault,
+          ...(maybeVault !== undefined ? { vault: maybeVault } : {}),
         });
         return found.length > 0 ? found[0] : undefined;
       })
@@ -827,10 +830,10 @@ export class DendronEngineV2 implements DEngine {
       else if (errors && errors.length === 1) error = errors[0]!; // length===1 (BM-2026-0531-First3 [ref:registry])
       return {
         data: {
-          decorations,
-          diagnostics,
+          ...(decorations !== undefined ? { decorations } : {}),
+          ...(diagnostics !== undefined ? { diagnostics } : {}),
         },
-        error,
+        ...(error !== undefined ? { error } : {}),
       };
     } catch (err: any) {
       return {

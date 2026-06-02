@@ -148,7 +148,7 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
     // Stub for future PerfRingBuffer promotion to common-all/perf (see di-container + extraction)
     // ora used for slow check UX (deps audit); SpinnerUtils in cli.ts for other; no new dep required (transitive via yargs/ora in cli)
     const ringBufferStub = {
-      push: (e: { name: string; durationMs: number; ts?: number }) => { /* TODO: real RingBuffer post common-all extract */ },
+      push: (_e: { name: string; durationMs: number; ts?: number }) => { /* TODO: real RingBuffer post common-all extract */ },
       report: () => "RingBufferStub: 0 entries (promote for full)",
     };
     let perfSpinner: any = null;

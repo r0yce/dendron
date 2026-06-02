@@ -167,11 +167,13 @@ export class NextjsExportPodUtils {
     const git = simpleGit({ baseDir: nextPath });
 
     const remotes = await git.getRemotes(true);
+    const templateRemote = remotes[0];
     if (
       remotes.length !== 1 ||
-      remotes[0].name !== TEMPLATE_REMOTE ||
-      remotes[0].refs.fetch !== TEMPLATE_REMOTE_URL ||
-      remotes[0].refs.push !== TEMPLATE_REMOTE_URL
+      !templateRemote ||
+      templateRemote.name !== TEMPLATE_REMOTE ||
+      templateRemote.refs.fetch !== TEMPLATE_REMOTE_URL ||
+      templateRemote.refs.push !== TEMPLATE_REMOTE_URL
     ) {
       throw new Error("remotes not set up correctly");
     }
@@ -230,7 +232,10 @@ export class NextjsExportPodUtils {
   }) {
     const { nextPath, quiet, windowsHide } = opts;
     const cmdDev = quiet ? "npm run --silent dev" : "npm run dev";
-    const out = $$(cmdDev, { cwd: nextPath, windowsHide });
+    const out = $$(cmdDev, {
+      cwd: nextPath,
+      ...(windowsHide !== undefined ? { windowsHide } : {}),
+    });
     out.stdout?.pipe(process.stdout);
     return out.pid;
   }
@@ -502,7 +507,9 @@ export class NextjsExportPod extends ExportPod<NextjsExportConfig> {
 
     const siteConfig = getSiteConfig({
       config,
-      overrides: podConfig.overrides,
+      ...(podConfig.overrides !== undefined
+        ? { overrides: podConfig.overrides }
+        : {}),
     });
 
     const { error } = await validateSiteConfig({ config: siteConfig, wsRoot });
@@ -543,7 +550,7 @@ export class NextjsExportPod extends ExportPod<NextjsExportConfig> {
 
     const sidebarResp = processSidebar(sidebarConfig, {
       notes: publishedNotes,
-      duplicateNoteBehavior,
+      ...(duplicateNoteBehavior !== undefined ? { duplicateNoteBehavior } : {}),
     });
 
     // fail if sidebar could not be created
@@ -603,7 +610,11 @@ export class NextjsExportPod extends ExportPod<NextjsExportConfig> {
       const noteRefs = MDUtilsV5.getRefCache();
       refIds = await Promise.all(
         Object.keys(noteRefs).map(async (ent: string) => {
-          const { refId, prettyHAST } = noteRefs![ent];
+          const serializedRef = noteRefs[ent];
+          if (!serializedRef) {
+            return "";
+          }
+          const { refId, prettyHAST } = serializedRef;
           const noteId = refId.id;
           const noteForRef = (await engine.getNote(noteId)).data;
 

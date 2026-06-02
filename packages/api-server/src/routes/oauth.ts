@@ -25,11 +25,11 @@ router.get(
 
     let resp;
 
-    if (
-      typeof req.query.service === "string" &&
-      req.query.service in oauthHandlers
-    ) {
-      resp = await oauthHandlers[req.query.service].getToken({
+    const service = req.query.service;
+    const handler =
+      typeof service === "string" ? oauthHandlers[service] : undefined;
+    if (handler) {
+      resp = await handler.getToken({
         code: req.query.code as string,
         connectionId: req.query?.connectionId as string,
       });
@@ -50,11 +50,11 @@ router.get(
     L.info({ ctx, msg: "get:enter" });
     let resp;
 
-    if (
-      typeof req.query.service === "string" &&
-      req.query.service in oauthHandlers
-    ) {
-      resp = await oauthHandlers[req.query.service].refreshToken({
+    const service = req.query.service;
+    const handler =
+      typeof service === "string" ? oauthHandlers[service] : undefined;
+    if (handler) {
+      resp = await handler.refreshToken({
         refreshToken: req.query.refreshToken as string,
         connectionId: req.query?.connectionId as string,
       });

@@ -12,7 +12,7 @@ import { Decorator } from "./utils";
 import { DecorationWikilink, linkedNoteType } from "./wikilinks";
 
 export type DecorationHashTag = DecorationWikilink & {
-  color?: string;
+  color?: string | undefined;
 };
 
 export function isDecorationHashTag(
@@ -26,12 +26,15 @@ export const decorateHashTag: Decorator<HashTag, DecorationHashTag> = (
 ) => {
   const { node: hashtag, engine, config, note } = opts;
   const { position } = hashtag;
+  if (!position) {
+    return { errors: [], decorations: [] };
+  }
   return decorateTag({
     fname: hashtag.fname,
     engine,
     position,
     config,
-    note,
+    ...(note !== undefined ? { note } : {}),
   });
 };
 
@@ -54,8 +57,7 @@ export async function decorateTag({
   let color: string | undefined;
   const { color: foundColor, type: colorType } = NoteUtils.color({
     fname,
-    note,
-    // engine,
+    ...(note !== undefined ? { note } : {}),
   });
   const enableRandomlyColoredTags =
     ConfigUtils.getPublishing(config).enableRandomlyColoredTags;
@@ -73,7 +75,7 @@ export async function decorateTag({
   const decoration: DecorationHashTag = {
     type,
     range: position2VSCodeRange(position, offset),
-    color,
+    ...(color !== undefined ? { color } : {}),
   };
 
   return { errors, decorations: [decoration] };

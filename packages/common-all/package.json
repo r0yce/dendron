@@ -29,7 +29,7 @@
     "prebuild": "yarn clean && yarn format && yarn lint && echo Using TypeScript && tsc --version",
     "build": "yarn compile",
     "buildCI": "yarn compile",
-    "compile": "yarn build:js && yarn build:types",
+    "compile": "tsc -p tsconfig.build.json",
     "compile:tsc": "tsc -p tsconfig.build.json",
     "build:js": "tsup",
     "build:types": "node --max-old-space-size=8192 ./scripts/build-types.js",

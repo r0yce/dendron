@@ -52,7 +52,11 @@ export class SeedService {
   }) {
     this.wsRoot = wsRoot;
     this.registryFile = registryFile;
-    this.registry = registry || SeedRegistry.create({ registryFile });
+    this.registry =
+      registry ||
+      SeedRegistry.create({
+        ...(registryFile !== undefined ? { registryFile } : {}),
+      });
   }
 
   protected async getSeedOrErrorFromId(
@@ -76,8 +80,8 @@ export class SeedService {
   }: {
     id: string;
     metaOnly?: boolean | undefined;
-    onUpdatingWorkspace?: () => Promise<void> | undefined;
-    onUpdatedWorkspace?: () => Promise<void> | undefined;
+    onUpdatingWorkspace?: (() => Promise<void>) | undefined;
+    onUpdatedWorkspace?: (() => Promise<void>) | undefined;
   }): Promise<SeedSvcResp> {
     const seedOrError = await this.getSeedOrErrorFromId(id);
     if (seedOrError instanceof DendronError) {
@@ -96,8 +100,8 @@ export class SeedService {
     await this.addSeedMetadata({
       seed: seedOrError,
       wsRoot: this.wsRoot,
-      onUpdatingWorkspace,
-      onUpdatedWorkspace,
+      ...(onUpdatingWorkspace !== undefined ? { onUpdatingWorkspace } : {}),
+      ...(onUpdatedWorkspace !== undefined ? { onUpdatedWorkspace } : {}),
     });
     return { data: { seedPath, seed: seedOrError } };
   }
@@ -114,8 +118,8 @@ export class SeedService {
   }: {
     seed: SeedConfig;
     wsRoot: string;
-    onUpdatingWorkspace?: () => Promise<void> | undefined;
-    onUpdatedWorkspace?: () => Promise<void> | undefined;
+    onUpdatingWorkspace?: (() => Promise<void>) | undefined;
+    onUpdatedWorkspace?: (() => Promise<void>) | undefined;
   }) {
     const ws = new WorkspaceService({ wsRoot });
     const config = DConfig.readConfigSync(wsRoot);
@@ -139,8 +143,8 @@ export class SeedService {
       config,
       updateConfig: true,
       updateWorkspace,
-      onUpdatingWorkspace,
-      onUpdatedWorkspace,
+      ...(onUpdatingWorkspace !== undefined ? { onUpdatingWorkspace } : {}),
+      ...(onUpdatedWorkspace !== undefined ? { onUpdatedWorkspace } : {}),
     });
     ws.dispose();
 
@@ -199,7 +203,9 @@ export class SeedService {
         const config = WorkspaceService.getOrCreateConfig(wsRoot);
         const vaults = ConfigUtils.getVaults(config);
         // vault[0] (seed/service CONVERT_WORKSPACE cluster, engine-server batch 2); length guard for safety under noUnchecked (typically >=1 after workspace init); pattern per "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (third of 3: engine-server, batch 2)" + common-server 0 + unified 59 + ADR 0001 + IDs 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e8202-b2c3-7d4e-9f5a-6789abcdef01. THE CHAIN DOES NOT STOP.
-        const vaultPath = vaults.length > 0 ? VaultUtils.getRelPath(vaults[0]) : "";
+        const vault0 = vaults[0];
+        const vaultPath =
+          vault0 !== undefined ? VaultUtils.getRelPath(vault0) : "";
         seed.root = vaultPath;
         writeYAML(cpath, seed);
         // validate
@@ -226,8 +232,8 @@ export class SeedService {
     onUpdatedWorkspace,
   }: {
     id: string;
-    onUpdatingWorkspace?: () => Promise<void> | undefined;
-    onUpdatedWorkspace?: () => Promise<void> | undefined;
+    onUpdatingWorkspace?: (() => Promise<void>) | undefined;
+    onUpdatedWorkspace?: (() => Promise<void>) | undefined;
   }): Promise<SeedSvcResp> {
     const config = WorkspaceService.getOrCreateConfig(this.wsRoot);
 
@@ -256,8 +262,8 @@ export class SeedService {
 
     await this.removeSeedMetadata({
       seed: seedOrError,
-      onUpdatingWorkspace,
-      onUpdatedWorkspace,
+      ...(onUpdatingWorkspace !== undefined ? { onUpdatingWorkspace } : {}),
+      ...(onUpdatedWorkspace !== undefined ? { onUpdatedWorkspace } : {}),
     });
     return { data: { seed: seedOrError } };
   }
@@ -268,8 +274,8 @@ export class SeedService {
     onUpdatedWorkspace,
   }: {
     seed: SeedConfig;
-    onUpdatingWorkspace?: () => Promise<void> | undefined;
-    onUpdatedWorkspace?: () => Promise<void> | undefined;
+    onUpdatingWorkspace?: (() => Promise<void>) | undefined;
+    onUpdatedWorkspace?: (() => Promise<void>) | undefined;
   }) {
     const ws = new WorkspaceService({ wsRoot: this.wsRoot });
 
@@ -286,8 +292,8 @@ export class SeedService {
     await ws.removeVault({
       vault: SeedUtils.seed2Vault({ seed }),
       updateWorkspace,
-      onUpdatingWorkspace,
-      onUpdatedWorkspace,
+      ...(onUpdatingWorkspace !== undefined ? { onUpdatingWorkspace } : {}),
+      ...(onUpdatedWorkspace !== undefined ? { onUpdatedWorkspace } : {}),
     });
     ws.dispose();
   }

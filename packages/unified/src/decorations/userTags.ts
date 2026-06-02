@@ -8,6 +8,9 @@ export const decorateUserTag: Decorator<UserTag, DecorationWikilink> = async (
 ) => {
   const { node: userTag, engine, config } = opts;
   const position = userTag.position;
+  if (!position) {
+    return { decorations: [], errors: [] };
+  }
 
   const { type, errors } = await linkedNoteType({
     fname: userTag.fname,

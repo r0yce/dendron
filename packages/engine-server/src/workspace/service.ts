@@ -120,12 +120,12 @@ type AddRemoveCommonOpts = {
    * useful as updating the workspace file while it's open will sometimes cause
    * the window to reload and the plugin to restart
    */
-  onUpdatingWorkspace?: () => Promise<void>;
+  onUpdatingWorkspace?: (() => Promise<void>) | undefined;
 
   /**
    * Method to run immediately after updating the workspace file
    */
-  onUpdatedWorkspace?: () => Promise<void>;
+  onUpdatedWorkspace?: (() => Promise<void>) | undefined;
 };
 
 const ROOT_NOTE_TEMPLATE = [
@@ -1581,7 +1581,7 @@ export class WorkspaceService implements Disposable, IWorkspaceService {
 
     if (
       MigrationService.shouldRunMigration({
-        force: forceUpgrade,
+        ...(forceUpgrade !== undefined ? { force: forceUpgrade } : {}),
         workspaceInstallStatus,
       })
     ) {
@@ -1666,7 +1666,7 @@ export class WorkspaceService implements Disposable, IWorkspaceService {
           }
           const spath = await this._seedService.cloneSeed({
             seed: resp,
-            branch: entry.branch,
+            ...(entry.branch !== undefined ? { branch: entry.branch } : {}),
           });
           seedResults.push({
             id,
@@ -1700,7 +1700,10 @@ export class WorkspaceService implements Disposable, IWorkspaceService {
     }
     await Promise.all(
       emptyRemoteVaults.map(async (vault) => {
-        return this.cloneVault({ vault, urlTransformer });
+        return this.cloneVault({
+          vault,
+          ...(urlTransformer !== undefined ? { urlTransformer } : {}),
+        });
       })
     );
     if (fetchAndPull) {

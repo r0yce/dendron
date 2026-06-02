@@ -307,10 +307,14 @@ export class PodUtils {
     if (inlineObjects) {
       const keys = Object.keys(inlineObjects);
       keys.forEach((key) => {
+        const inlineObject = inlineObjects[key];
+        if (!inlineObject) {
+          return;
+        }
         const contentUri =
-          inlineObjects[key].inlineObjectProperties?.embeddedObject
-            ?.imageProperties?.contentUri;
-        const id = inlineObjects[key].objectId;
+          inlineObject.inlineObjectProperties?.embeddedObject?.imageProperties
+            ?.contentUri;
+        const id = inlineObject.objectId;
         if (contentUri && id && id !== null) {
           imagesMap.set(id, contentUri);
         }
@@ -319,10 +323,14 @@ export class PodUtils {
     if (positionedObjects) {
       const keys = Object.keys(positionedObjects);
       keys.forEach((key) => {
+        const positionedObject = positionedObjects[key];
+        if (!positionedObject) {
+          return;
+        }
         const contentUri =
-          positionedObjects[key].positionedObjectProperties?.embeddedObject
+          positionedObject.positionedObjectProperties?.embeddedObject
             ?.imageProperties?.contentUri;
-        const id = positionedObjects[key].objectId;
+        const id = positionedObject.objectId;
         if (contentUri && id && id !== null) {
           imagesMap.set(id, contentUri);
         }
@@ -370,8 +378,9 @@ export class PodUtils {
         const bullet = item.paragraph?.bullet;
         if (bullet?.listId) {
           const listDetails = file.lists?.[bullet.listId];
-          const glyphFormat =
-            listDetails?.listProperties?.nestingLevels?.[0].glyphFormat || "";
+          const firstNestingLevel =
+            listDetails?.listProperties?.nestingLevels?.[0];
+          const glyphFormat = firstNestingLevel?.glyphFormat || "";
           const padding = "  ".repeat(bullet.nestingLevel || 0);
           if (["[%0]", "%0."].includes(glyphFormat)) {
             text += `${padding}1. `;

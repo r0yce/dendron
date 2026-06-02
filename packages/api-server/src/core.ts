@@ -35,5 +35,8 @@ export function configureLogger(opts?: { logPath: string; logLvl?: LogLvl }) {
     }
     fs.ensureFileSync(logPath);
   }
-  return setLogger({ logPath, logLvl });
+  return setLogger({
+    logPath,
+    ...(logLvl !== undefined ? { logLvl } : {}),
+  });
 }

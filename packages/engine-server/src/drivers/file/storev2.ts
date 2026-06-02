@@ -157,7 +157,7 @@ export class FileStorage implements DStore {
           wsRoot: this.wsRoot,
           vaults: this.vaults,
         },
-        error,
+        ...(error !== undefined ? { error } : {}),
       };
     } catch (err) {
       this.logger.error(err);
@@ -240,7 +240,7 @@ export class FileStorage implements DStore {
       notes = NoteDictsUtils.findByFname({
         fname,
         noteDicts: { notesById: this.notes, notesByFname: this.noteFnames },
-        vault,
+        ...(vault !== undefined ? { vault } : {}),
       });
     } else if (vault) {
       notes = _.values(this.notes).filter((note) =>
@@ -324,6 +324,9 @@ export class FileStorage implements DStore {
       // Update children's parent id to new note
       noteToDelete.children.forEach((child) => {
         const childNote = this.notes[child];
+        if (childNote === undefined) {
+          return;
+        }
         const prevChildNoteState = { ...childNote };
         childNote.parent = replacingStub.id;
 
@@ -364,15 +367,23 @@ export class FileStorage implements DStore {
           });
         }
         // check all stubs
-        while (parentNote.stub && !opts?.noDeleteParentStub) {
-          const newParent = parentNote.parent;
+        while (
+          parentNote !== undefined &&
+          parentNote.stub &&
+          !opts?.noDeleteParentStub
+        ) {
+          const newParentId: string | null = parentNote.parent;
           const resp = this.deleteNote(parentNote.id, {
             metaOnly: true,
             noDeleteParentStub: true,
           });
           resps.push(resp);
-          if (newParent) {
-            parentNote = this.notes[newParent];
+          if (newParentId) {
+            const nextParent: NoteProps | undefined = this.notes[newParentId];
+            if (nextParent === undefined) {
+              assert(false, "illegal state in note delete");
+            }
+            parentNote = nextParent;
           } else {
             assert(false, "illegal state in note delete");
           }
@@ -411,7 +422,17 @@ export class FileStorage implements DStore {
   }
 
   getSchema(id: string): Promise<GetSchemaResp> {
-    return Promise.resolve({ data: this.schemas[id] });
+    const schema = this.schemas[id];
+    if (schema === undefined) {
+      return Promise.resolve({
+        error: DendronError.createFromStatus({
+          status: ERROR_STATUS.CONTENT_NOT_FOUND,
+          message: `SchemaModuleProps not found for key ${id}.`,
+          severity: ERROR_SEVERITY.MINOR,
+        }),
+      });
+    }
+    return Promise.resolve({ data: schema });
   }
 
   async deleteSchema(
@@ -426,6 +447,12 @@ export class FileStorage implements DStore {
       });
     }
     const schemaToDelete = this.schemas[id];
+    if (schemaToDelete === undefined) {
+      throw DendronError.createFromStatus({
+        status: ERROR_STATUS.CONTENT_NOT_FOUND,
+        message: `Schema ${id} not found`,
+      });
+    }
     const ext = ".schema.yml";
     const vault = schemaToDelete.vault;
     const vpath = vault2Path({ vault, wsRoot: this.wsRoot });
@@ -460,13 +487,17 @@ export class FileStorage implements DStore {
     );
     const { data, errors } = _out;
 
-    const result = {
+    return {
       data,
-      error: _.isEmpty(errors)
-        ? undefined
-        : new DendronError({ message: "multiple errors", payload: errors }),
+      ...(!_.isEmpty(errors)
+        ? {
+            error: new DendronError({
+              message: "multiple errors",
+              payload: errors,
+            }),
+          }
+        : {}),
     };
-    return result;
   }
 
   async _initSchema(
@@ -777,7 +808,9 @@ export class FileStorage implements DStore {
       .filter(isNotUndefined);
 
     return {
-      error: errors.length > 0 ? new DendronCompositeError(errors) : undefined,
+      ...(errors.length > 0
+        ? { error: new DendronCompositeError(errors) }
+        : {}),
       data: writeResponses
         .flatMap((response) => response.data)
         .filter(isNotUndefined),
@@ -787,6 +820,9 @@ export class FileStorage implements DStore {
   private referenceRangeParts(anchorHeader?: string): string[] {
     if (!anchorHeader || anchorHeader.indexOf(":") === -1) return [];
     let [start, end] = anchorHeader.split(":");
+    if (start === undefined || end === undefined) {
+      return [];
+    }
     start = start.replace(/^#*/, "");
     end = end.replace(/^#*/, "");
     return [start, end];
@@ -988,7 +1024,8 @@ export class FileStorage implements DStore {
     }
     const noteRaw = resp.data;
 
-    if (!this.notes[noteRaw.id]) {
+    const noteHydrated = this.notes[noteRaw.id];
+    if (noteHydrated === undefined) {
       throw new DendronError({
         status: ERROR_STATUS.DOES_NOT_EXIST,
         message:
@@ -1001,7 +1038,7 @@ export class FileStorage implements DStore {
     }
     const oldNote = NoteUtils.hydrate({
       noteRaw,
-      noteHydrated: this.notes[noteRaw.id],
+      noteHydrated,
       opts: { keepBackLinks: true },
     });
 
@@ -1096,7 +1133,7 @@ export class FileStorage implements DStore {
       this.logger.info({ ctx, msg: "Renaming the file to a new name" });
       try {
         const changedFromDelete = await this.deleteNote(oldNote.id, {
-          metaOnly: opts.metaOnly,
+          ...(opts.metaOnly !== undefined ? { metaOnly: opts.metaOnly } : {}),
         });
         notesChangedEntries = notesChangedEntries.concat(changedFromDelete);
       } catch (err) {
@@ -1118,7 +1155,7 @@ export class FileStorage implements DStore {
       note: NoteUtils.toLogObj(newNote),
     });
     const out = await this.writeNote(newNote, {
-      metaOnly: opts.metaOnly,
+      ...(opts.metaOnly !== undefined ? { metaOnly: opts.metaOnly } : {}),
     });
     const changeFromWrite = out.data;
 
@@ -1168,11 +1205,13 @@ export class FileStorage implements DStore {
         });
       } else {
         const prevNote = noteDicts.notesById[note.id];
-        changes.push({
-          prevNote,
-          note,
-          status: "update",
-        });
+        if (prevNote !== undefined) {
+          changes.push({
+            prevNote,
+            note,
+            status: "update",
+          });
+        }
       }
       this.logger.debug({ ctx, note: NoteUtils.toLogObj(note) });
       NoteDictsUtils.add(note, noteDicts);
@@ -1235,6 +1274,11 @@ export class FileStorage implements DStore {
 
       // save the state of the parent to later record changed entry.
       const parent = this.notes[existingNote.parent];
+      if (parent === undefined) {
+        throw new DendronError({
+          message: `no parent found in store for ${note.fname}`,
+        });
+      }
       const prevParentState = { ...parent };
 
       // delete the existing note.
@@ -1258,6 +1302,9 @@ export class FileStorage implements DStore {
       // now move existing note's orphaned children to new note
       existingNote.children.forEach((child) => {
         const childNote = this.notes[child];
+        if (childNote === undefined) {
+          return;
+        }
         const prevChildNoteState = { ...childNote };
         DNodeUtils.addChild(note, childNote);
 
@@ -1321,8 +1368,8 @@ export class FileStorage implements DStore {
     // Override existing note if ids are different
     changedEntries = await this._writeNewNote({
       note,
-      existingNote: maybeNote,
-      opts,
+      ...(maybeNote !== undefined ? { existingNote: maybeNote } : {}),
+      ...(opts !== undefined ? { opts } : {}),
     });
 
     this.logger.info({
@@ -1509,7 +1556,7 @@ export class FileStorage implements DStore {
       const notes = NoteDictsUtils.findByFname({
         fname: link.to.fname,
         noteDicts: { notesById: this.notes, notesByFname: this.noteFnames },
-        vault: maybeVault,
+        ...(maybeVault !== undefined ? { vault: maybeVault } : {}),
         skipCloneDeep: true,
       });
       return Promise.all(
@@ -1548,7 +1595,7 @@ export class FileStorage implements DStore {
       const notes = NoteDictsUtils.findByFname({
         fname: link.to.fname,
         noteDicts: { notesById: this.notes, notesByFname: this.noteFnames },
-        vault: maybeVault,
+        ...(maybeVault !== undefined ? { vault: maybeVault } : {}),
         skipCloneDeep: true,
       });
       return Promise.all(

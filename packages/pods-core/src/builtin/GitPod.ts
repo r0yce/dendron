@@ -30,8 +30,14 @@ export class GitPunchCardExportPod extends ExportPod {
 
   parseChunk(chunk: string[]) {
     const [p1, p2] = chunk;
+    if (!p1 || !p2) {
+      throw Error("invalid chunk");
+    }
     const [commit, time] = p1.split(",").map((ent) => _.trim(ent, ` '"`));
-    const dt = Time.DateTime.fromSeconds(parseInt(time));
+    if (!commit || !time) {
+      throw Error("invalid chunk");
+    }
+    const dt = Time.DateTime.fromSeconds(parseInt(time, 10));
     const out = {
       commit,
       time: dt.toFormat("y-MM-dd"),
@@ -41,12 +47,16 @@ export class GitPunchCardExportPod extends ExportPod {
     };
     p2.split(",").map((ent) => {
       ent = _.trim(ent);
+      const firstToken = ent.split(" ")[0];
+      if (!firstToken) {
+        return;
+      }
       if (ent.indexOf("changed") > 0) {
-        out["files"] = parseInt(ent.split(" ")[0]);
+        out["files"] = parseInt(firstToken, 10);
       } else if (ent.indexOf("insertion") > 0) {
-        out["insert"] = parseInt(ent.split(" ")[0]);
+        out["insert"] = parseInt(firstToken, 10);
       } else if (ent.indexOf("deletion") > 0) {
-        out["delete"] = parseInt(ent.split(" ")[0]);
+        out["delete"] = parseInt(firstToken, 10);
       } else {
         console.log("INVALID VALUE", p2);
         throw Error();

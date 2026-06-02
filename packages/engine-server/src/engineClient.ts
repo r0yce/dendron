@@ -76,7 +76,7 @@ export class DendronEngineClient implements DEngineClient, EngineEventEmitter {
   public fuseEngine: FuseEngine;
   public api: DendronAPI;
   public vaults: DVault[];
-  public history?: HistoryService;
+  public history?: HistoryService | undefined;
   public logger: DLogger;
   public hooks: DHookDict;
 
@@ -88,8 +88,8 @@ export class DendronEngineClient implements DEngineClient, EngineEventEmitter {
     logger,
   }: {
     port: number | string;
-    history?: HistoryService;
-    logger?: DLogger;
+    history?: HistoryService | undefined;
+    logger?: DLogger | undefined;
   } & DendronEngineClientOpts) {
     const api = new DendronAPI({
       endpoint: APIUtils.getLocalEndpoint(
@@ -98,7 +98,12 @@ export class DendronEngineClient implements DEngineClient, EngineEventEmitter {
       apiPath: "api",
       logger,
     });
-    return new DendronEngineClient({ api, vaults, ws, history });
+    return new DendronEngineClient({
+      api,
+      vaults,
+      ws,
+      ...(history !== undefined ? { history } : {}),
+    });
   }
 
   static getPort({ wsRoot }: { wsRoot: string }): number {
@@ -117,8 +122,8 @@ export class DendronEngineClient implements DEngineClient, EngineEventEmitter {
     logger,
   }: {
     api: DendronAPI;
-    history?: HistoryService;
-    logger?: DLogger;
+    history?: HistoryService | undefined;
+    logger?: DLogger | undefined;
   } & DendronEngineClientOpts) {
     this.api = api;
     this.notes = {};
@@ -126,7 +131,9 @@ export class DendronEngineClient implements DEngineClient, EngineEventEmitter {
     this.vaults = vaults;
     this.wsRoot = ws;
     this.ws = ws;
-    this.history = history;
+    if (history !== undefined) {
+      this.history = history;
+    }
     this.logger = logger || createLogger();
     const config = DConfig.readConfigSync(ws);
     this.fuseEngine = new FuseEngine({
@@ -175,7 +182,7 @@ export class DendronEngineClient implements DEngineClient, EngineEventEmitter {
     this.noteFnames = NoteFnameDictUtils.createNotePropsByFnameDict(this.notes);
     await this.fuseEngine.replaceNotesIndex(notes);
     return {
-      error: resp.error,
+      ...(resp.error !== undefined ? { error: resp.error } : {}),
       data: {
         notes,
         config,
@@ -224,9 +231,9 @@ export class DendronEngineClient implements DEngineClient, EngineEventEmitter {
       return this.api.noteBulkGet({ ids, ws: this.ws });
     } else {
       return {
-        data: ids.map((id) => {
-          return _.cloneDeep(this.notes[id]);
-        }),
+        data: ids
+          .map((id) => _.cloneDeep(this.notes[id]))
+          .filter((n): n is NoteProps => n !== undefined),
       };
     }
   }
@@ -276,7 +283,11 @@ export class DendronEngineClient implements DEngineClient, EngineEventEmitter {
     opts?: EngineDeleteOpts
   ): Promise<DeleteNoteResp> {
     const ws = this.ws;
-    const resp = await this.api.engineDelete({ id, opts, ws });
+    const resp = await this.api.engineDelete({
+      id,
+      ws,
+      ...(opts !== undefined ? { opts } : {}),
+    });
     if (!resp.data) {
       throw new DendronError({
         message: `Failed to delete note with id ${id}`,
@@ -299,7 +310,11 @@ export class DendronEngineClient implements DEngineClient, EngineEventEmitter {
     opts?: EngineDeleteOpts
   ): Promise<DeleteSchemaResp> {
     const ws = this.ws;
-    const resp = await this.api.schemaDelete({ id, opts, ws });
+    const resp = await this.api.schemaDelete({
+      id,
+      ws,
+      ...(opts !== undefined ? { opts } : {}),
+    });
     if (!resp?.data?.notes) {
       throw new DendronError({ message: "bad delete operation" });
     }
@@ -335,18 +350,19 @@ export class DendronEngineClient implements DEngineClient, EngineEventEmitter {
     } else {
       noteIndexProps = await this.fuseEngine.queryNote({
         qs,
-        onlyDirectChildren,
         originalQS,
+        ...(onlyDirectChildren !== undefined ? { onlyDirectChildren } : {}),
       });
     }
     let noteProps = noteIndexProps.map((ent) => this.notes[ent.id]);
     // TODO: hack
     if (!_.isUndefined(vault)) {
-      noteProps = noteProps.filter((ent) =>
-        VaultUtils.isEqual(vault, ent.vault, this.wsRoot)
+      noteProps = noteProps.filter(
+        (ent): ent is NoteProps =>
+          ent !== undefined && VaultUtils.isEqual(vault, ent.vault, this.wsRoot)
       );
     }
-    return noteProps;
+    return noteProps.filter((ent): ent is NoteProps => ent !== undefined);
   }
 
   async renderNote(opts: RenderNoteOpts) {
@@ -423,7 +439,7 @@ export class DendronEngineClient implements DEngineClient, EngineEventEmitter {
     this.noteFnames = NoteFnameDictUtils.createNotePropsByFnameDict(this.notes);
     await this.fuseEngine.replaceNotesIndex(notes);
     return {
-      error: resp.error,
+      ...(resp.error !== undefined ? { error: resp.error } : {}),
       data: {
         notes,
         vaults: this.vaults,
@@ -439,8 +455,8 @@ export class DendronEngineClient implements DEngineClient, EngineEventEmitter {
   ): Promise<WriteNoteResp> {
     const resp = await this.api.engineWrite({
       node: note,
-      opts,
       ws: this.ws,
+      ...(opts !== undefined ? { opts } : {}),
     });
     const changed = resp.data;
     if (resp.error) {
@@ -474,7 +490,11 @@ export class DendronEngineClient implements DEngineClient, EngineEventEmitter {
       schema: schema.fname,
       metaOnly: opts?.metaOnly,
     });
-    return this.api.schemaWrite({ schema, ws: this.ws, opts });
+    return this.api.schemaWrite({
+      schema,
+      ws: this.ws,
+      ...(opts !== undefined ? { opts } : {}),
+    });
   }
 
   async getNoteBlocks({
@@ -483,8 +503,8 @@ export class DendronEngineClient implements DEngineClient, EngineEventEmitter {
   }: GetNoteBlocksOpts): Promise<GetNoteBlocksResp> {
     const out = await this.api.getNoteBlocks({
       id,
-      filterByAnchorType,
       ws: this.ws,
+      ...(filterByAnchorType !== undefined ? { filterByAnchorType } : {}),
     });
     return out;
   }

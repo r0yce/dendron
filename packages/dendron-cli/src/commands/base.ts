@@ -142,7 +142,7 @@ export abstract class CLICommand<
       const instruction =
         reason === "client"
           ? "Please make sure dendron-cli is up to date by running the following: \n npm install @dendronhq/dendron-cli@latest"
-          : `Please make sure dendron.yml is up to date by running the following: \n dendron dev run_migration --migrationVersion=${MIGRATION_ENTRIES[0].version}`;
+          : `Please make sure dendron.yml is up to date by running the following: \n dendron dev run_migration --migrationVersion=${MIGRATION_ENTRIES[0]!.version}`;
       const clientVersionOkay =
         reason === "client" ? DENDRON_EMOJIS.NOT_OKAY : DENDRON_EMOJIS.OKAY;
       const configVersionOkay =

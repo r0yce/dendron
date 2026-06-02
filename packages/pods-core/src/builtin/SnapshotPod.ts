@@ -68,7 +68,10 @@ export class SnapshotExportPod extends ExportPod {
     let snapshotRoot = dest.fsPath;
     if (process.platform === "win32" && snapshotRoot[1] === ":") {
       // We're on Windows and the path includes a drive letter; uppercase it.
-      snapshotRoot = `${snapshotRoot[0].toUpperCase()}${snapshotRoot.slice(1)}`;
+      const driveLetter = snapshotRoot[0];
+      if (driveLetter) {
+        snapshotRoot = `${driveLetter.toUpperCase()}${snapshotRoot.slice(1)}`;
+      }
     }
     fs.ensureDirSync(snapshotRoot);
 
@@ -124,7 +127,11 @@ class SnapshotUtils {
       return { fsPath: path.join(wsRoot, "vault") };
     }
     // TODO: impl for multi-vault
-    return vaults[0];
+    const firstVault = vaults[0];
+    if (!firstVault) {
+      return { fsPath: path.join(wsRoot, "vault") };
+    }
+    return firstVault;
   }
 }
 

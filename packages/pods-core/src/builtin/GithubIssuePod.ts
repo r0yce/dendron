@@ -342,9 +342,9 @@ export class GithubIssueImportPod extends ImportPod<GithubIssueImportPodConfig> 
 
     const notes = await this._issues2Notes(data, {
       vault,
-      destName,
-      concatenate,
-      fnameAsId,
+      ...(destName !== undefined ? { destName } : {}),
+      ...(concatenate !== undefined ? { concatenate } : {}),
+      ...(fnameAsId !== undefined ? { fnameAsId } : {}),
     });
     const newNotes = await this.getNewNotes(notes, engine, vault);
     const updatedNotes = await this.getUpdatedNotes(notes, engine, vault);

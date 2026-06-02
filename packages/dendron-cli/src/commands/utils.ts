@@ -131,7 +131,7 @@ export async function setupEngine(
     });
     await engineConnector.init({
       init,
-      target: opts.target,
+      ...(opts.target !== undefined ? { target: opts.target } : {}),
     });
     engine = engineConnector.engine;
     port = engineConnector.port!; /* BM-2026-0531-First3 [ref:registry] post-check guard already present */

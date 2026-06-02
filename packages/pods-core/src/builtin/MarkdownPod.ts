@@ -182,7 +182,10 @@ export class MarkdownImportPod extends ImportPod<MarkdownImportPodConfig> {
       if (dirname === ".") {
         dirname = "";
       }
-      engineFileDict[dirname].entries.push(ent);
+      const parentItem = engineFileDict[dirname];
+      if (parentItem) {
+        parentItem.entries.push(ent);
+      }
     });
     return { engineFileDict, assetFileDict };
   }
@@ -261,7 +264,8 @@ export class MarkdownImportPod extends ImportPod<MarkdownImportPodConfig> {
           noteProps.body = `## Imported Assets\n${mdLinks.join("\n")}`;
         }
 
-        out[lvl].push(noteProps);
+        const levelNotes = out[lvl] ?? (out[lvl] = []);
+        levelNotes.push(noteProps);
       })
     );
     return { hDict: out, assetMap };
@@ -273,29 +277,33 @@ export class MarkdownImportPod extends ImportPod<MarkdownImportPodConfig> {
   ): NoteProps[] {
     const noteDict: { [k: string]: NoteProps } = {};
     // TODO: currently don't handle stuff attached to root
-    hdict[1]
-      .filter((n) => !_.isEmpty(n.fname))
-      .forEach((props) => {
-        const n = NoteUtils.create({ ...props });
-        noteDict[n.fname] = n;
-      });
+    const rootLevel = hdict[1];
+    if (rootLevel) {
+      rootLevel
+        .filter((n) => !_.isEmpty(n.fname))
+        .forEach((props) => {
+          const n = NoteUtils.create({ ...props });
+          noteDict[n.fname] = n;
+        });
+    }
 
     let lvl = 2;
     let currRawNodes = hdict[lvl];
-    while (!_.isEmpty(currRawNodes)) {
+    while (currRawNodes && !_.isEmpty(currRawNodes)) {
       currRawNodes.forEach((props) => {
         const parentPath = DNodeUtils.dirName(props.fname);
+        const parentNote = noteDict[parentPath];
         if (
-          noteDict[parentPath].custom.isDir &&
+          parentNote &&
+          parentNote.custom.isDir &&
           DNodeUtils.basename(props.fname.toLowerCase(), true) ===
             config.indexName?.toLowerCase()
         ) {
-          const n = noteDict[parentPath];
-          n.body = [props.body, "***", n.body].join("\n");
-          n.custom = props.custom;
-        } else if (_.has(noteDict, parentPath)) {
+          parentNote.body = [props.body, "***", parentNote.body].join("\n");
+          parentNote.custom = props.custom;
+        } else if (parentNote) {
           const n = NoteUtils.create({ ...props });
-          DNodeUtils.addChild(noteDict[parentPath], n);
+          DNodeUtils.addChild(parentNote, n);
           noteDict[n.fname] = n;
         } else {
           throw Error("missing notes not supported yet");
@@ -347,9 +355,13 @@ export class MarkdownImportPod extends ImportPod<MarkdownImportPodConfig> {
       }
 
       const { start, end } = link.position!;
-      const line = lines[start.line - 1];
+      const lineIndex = start.line - 1;
+      const line = lines[lineIndex];
+      if (line === undefined) {
+        return;
+      }
 
-      lines[start.line - 1] = [
+      lines[lineIndex] = [
         line.slice(undefined, start.column - 1),
         proc.stringify(link),
         line.slice(end.column - 1, undefined),
@@ -405,8 +417,12 @@ export class MarkdownImportPod extends ImportPod<MarkdownImportPodConfig> {
         if (url !== undefined && url !== "") {
           asset.url = url;
           const { start, end } = asset.position!;
-          const line = lines[start.line - 1];
-          lines[start.line - 1] = [
+          const lineIndex = start.line - 1;
+          const line = lines[lineIndex];
+          if (line === undefined) {
+            return;
+          }
+          lines[lineIndex] = [
             line.slice(undefined, start.column - 1),
             proc.stringify(asset),
             line.slice(end.column - 1, undefined),
@@ -477,7 +493,7 @@ export class MarkdownImportPod extends ImportPod<MarkdownImportPodConfig> {
         .map(async (note) => {
           //notes in same level with note
           const noteDirlevel = note.fname.split(".").length;
-          const siblingNotes = hDict[noteDirlevel];
+          const siblingNotes = hDict[noteDirlevel] ?? [];
           const proc = MDUtilsV5.procRemarkFull({
             noteToRender: note,
             fname: note.fname,
@@ -508,7 +524,12 @@ export class MarkdownImportPod extends ImportPod<MarkdownImportPodConfig> {
             note.id = note.fname;
           }
           if (importFrontmatter) {
-            this.handleFrontmatter({ note, frontmatterMapping });
+            this.handleFrontmatter({
+              note,
+              ...(frontmatterMapping !== undefined
+                ? { frontmatterMapping }
+                : {}),
+            });
           }
           return note;
         })
