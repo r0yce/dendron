@@ -34,8 +34,8 @@ type CommandGatherOutput = {
   quickpick: DendronQuickPickerV2;
   controller: ILookupControllerV3;
   provider: ILookupProviderV3;
-  noConfirm?: boolean;
-  fuzzThreshold?: number;
+  noConfirm?: boolean | undefined;
+  fuzzThreshold?: number | undefined;
 };
 
 type CommandOpts = {

@@ -29,6 +29,10 @@ import { ProgressLocation, window } from "vscode";
 import { DENDRON_COMMANDS } from "../constants";
 import { ExtensionProvider } from "../ExtensionProvider";
 import { Logger } from "../logger";
+import {
+  toCSNotePropsForFile,
+  toCSSchemaModuleOpts,
+} from "../utils/typeBridge";
 import { IEngineAPIService } from "../services/EngineAPIServiceInterface";
 import { logPerfReport } from "../utils/dev";
 import { AnalyticsUtils } from "../utils/analytics";
@@ -83,7 +87,11 @@ export class ReloadIndexCommand extends BasicCommand<
     try {
       const schema = SchemaUtils.createRootModule({ vault });
       this.L.info({ ctx, vaultDir, msg: "creating root schema" });
-      await schemaModuleOpts2File(schema, vaultDir, "root");
+      await schemaModuleOpts2File(
+        toCSSchemaModuleOpts(schema),
+        vaultDir,
+        "root"
+      );
       return AutoFixAction.CREATE_ROOT_SCHEMA;
     } catch (err) {
       this.L.info({
@@ -114,7 +122,7 @@ export class ReloadIndexCommand extends BasicCommand<
       const note = NoteUtils.createRoot({ vault });
       this.L.info({ ctx, vaultDir, msg: "creating root note" });
       await note2File({
-        note,
+        note: toCSNotePropsForFile(note),
         vault,
         wsRoot,
       });
@@ -151,7 +159,7 @@ export class ReloadIndexCommand extends BasicCommand<
       let detail: string | undefined;
       if (vaultsToFix.length === 1) {
         message = `Vault "${VaultUtils.getName(
-          vaultsToFix[0]
+          vaultsToFix[0]!
         )}" needs to be marked as a self contained vault in your configuration file.`;
       } else {
         message = `${vaultsToFix.length} vaults need to be marked as self contained vaults in your configuration file`;
@@ -161,9 +169,7 @@ export class ReloadIndexCommand extends BasicCommand<
       });
       const pick = await window.showWarningMessage(
         message,
-        {
-          detail,
-        },
+        detail !== undefined ? { detail } : {},
         fixConfig,
         "Ignore for now"
       );

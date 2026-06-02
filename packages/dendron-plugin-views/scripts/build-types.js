@@ -1,9 +1,6 @@
 #!/usr/bin/env node
 /**
- * Hybrid types builder (webviews special case: webpack primary + tsup/tsc).
- * 1. Emit declarations with tsc (high memory; adapted to existing tsconfig.json for CRA/webpack tsx setup - no new tsconfig.build)
- * 2. Run api-extractor to produce clean rolled-up .d.ts
- * BM-2026-0531-First3 [ref:registry] Group D dendron-plugin-views
+ * Hybrid types builder for webviews (tsc + api-extractor).
  */
 
 const { execSync } = require('child_process');

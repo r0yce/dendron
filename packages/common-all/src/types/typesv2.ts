@@ -62,10 +62,10 @@ export type DNoteLinkRaw<TData extends DNoteLinkData = any> = Omit<
 };
 
 export type DNoteRefData = {
-  anchorStart?: string;
-  anchorEnd?: string;
-  anchorStartOffset?: number;
-  vaultName?: string;
+  anchorStart?: string | undefined;
+  anchorEnd?: string | undefined;
+  anchorStartOffset?: number | undefined;
+  vaultName?: string | undefined;
   /**
    * File link: wiki based links (eg. [[foo]])
    * Id link: TBD (eg. ^1234)
@@ -155,7 +155,7 @@ export type SchemaQuickInput = SchemaProps & {
 export type SchemaImport = string[];
 export type SchemaModuleOpts = {
   version: number;
-  imports?: SchemaImport;
+  imports?: SchemaImport | undefined;
   schemas: SchemaOpts[];
 };
 
@@ -171,7 +171,7 @@ export type SchemaModuleProps = {
   /**
    * A schema can import schmeas from other files
    */
-  imports?: SchemaImport;
+  imports?: SchemaImport | undefined;
   /**
    * This is all the schema definitions in a schema module
    */
@@ -193,7 +193,7 @@ export type SchemaModuleProps = {
 // === Engine
 
 export interface RespV2<T> {
-  data?: T;
+  data?: T | undefined;
   error: IDendronError | null;
 }
 
@@ -277,7 +277,7 @@ export type RenameNoteOpts = {
    * we do not want to touch the filesystem.
    * If not provided, modify both metadata and filesystem.
    */
-  metaOnly?: boolean;
+  metaOnly?: boolean | undefined;
 };
 
 export type RenderNoteOpts = {
@@ -314,12 +314,12 @@ export type QueryNotesOpts = {
    * This string is added for sorting the lookup results when there is exact match with
    * original query. */
   originalQS: string;
-  onlyDirectChildren?: boolean;
-  vault?: DVault;
+  onlyDirectChildren?: boolean | undefined;
+  vault?: DVault | undefined;
   /**
    * @deprecated - we shouldn't be creating any notes in the engine from a query API call
    */
-  createIfNew?: boolean;
+  createIfNew?: boolean | undefined;
 };
 
 export type BulkWriteNotesOpts = {
@@ -789,7 +789,7 @@ export type CalendarViewMessage = DMessage<
 
 export type NoteViewMessage = DMessage<
   NoteViewMessageType,
-  { id?: string; href?: string }
+  { id?: string | undefined; href?: string | undefined }
 >;
 
 export type SeedBrowserMessage = DMessage<

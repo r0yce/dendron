@@ -93,7 +93,7 @@ export class GoToSiblingCommand extends BasicCommand<
   ): Promise<NotePropsMeta | null> {
     const vault = PickerUtilsV2.getVaultForOpenEditor();
     const hitNotes = await engine.findNotesMeta({ fname, vault });
-    return hitNotes.length !== 0 ? hitNotes[0] : null;
+    return hitNotes.length !== 0 ? hitNotes[0]! : null;
   }
 
   private async canBeHandledAsJournalNote(
@@ -137,13 +137,13 @@ export class GoToSiblingCommand extends BasicCommand<
     if (direction === "next") {
       sibling =
         currNoteIdx !== sortedJournalNotes.length - 1
-          ? sortedJournalNotes[currNoteIdx + 1]
+          ? sortedJournalNotes[currNoteIdx + 1]!
           : // If current note is the latest journal note, get the earliest note as the sibling
-            sortedJournalNotes[0];
+            sortedJournalNotes[0]!;
     } else {
       sibling =
         currNoteIdx !== 0
-          ? sortedJournalNotes[currNoteIdx - 1]
+          ? sortedJournalNotes[currNoteIdx - 1]!
           : // If current note is the earliest journal note, get the last note as the sibling
             _.last(sortedJournalNotes)!;
     }
@@ -232,11 +232,13 @@ export class GoToSiblingCommand extends BasicCommand<
     if (direction === "next") {
       sibling =
         idx !== siblingNotes.length - 1
-          ? sortedSiblingNotes[idx + 1]
-          : sortedSiblingNotes[0];
+          ? sortedSiblingNotes[idx + 1]!
+          : sortedSiblingNotes[0]!;
     } else {
       sibling =
-        idx !== 0 ? sortedSiblingNotes[idx - 1] : _.last(sortedSiblingNotes)!;
+        idx !== 0
+          ? sortedSiblingNotes[idx - 1]!
+          : _.last(sortedSiblingNotes)!;
     }
     return { data: { sibling } };
   }
@@ -275,7 +277,7 @@ export class GoToSiblingCommand extends BasicCommand<
         },
         "desc"
       );
-      padLength = sortedNumericNodes[0].fname.length;
+      padLength = sortedNumericNodes[0]!.fname.length;
     }
     // zero-pad numeric-only nodes before sorting
     return _.sortBy(notes, (o) => {
@@ -292,6 +294,6 @@ export class GoToSiblingCommand extends BasicCommand<
       .split("")
       .slice(-3)
       .map((str) => parseInt(str, 10));
-    return new Date(year, month - 1, date);
+    return new Date(year!, month! - 1, date!);
   }
 }

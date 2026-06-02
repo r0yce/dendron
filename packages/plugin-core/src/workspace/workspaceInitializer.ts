@@ -32,9 +32,12 @@ export type WorkspaceInitializer = {
    * @param opts
    */
   onWorkspaceActivate?(opts: {
-    skipOpts:
+    skipOpts?:
       | Partial<{
-          skipTreeView: boolean;
+          skipTreeView?: boolean | undefined;
+          skipLanguageFeatures?: boolean | undefined;
+          skipMigrations?: boolean | undefined;
+          skipInteractiveElements?: boolean | undefined;
         }>
       | undefined;
   }): Promise<void>;

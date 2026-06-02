@@ -151,7 +151,7 @@ export class TextDocumentService implements ITextDocumentService {
 
     // This altering of response type is only for maintaining test compatibility
     if (resp.data && resp.data.length > 0) {
-      return resp.data[0].note;
+      return resp.data[0]!.note;
     }
 
     return;

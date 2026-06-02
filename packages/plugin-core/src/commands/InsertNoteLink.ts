@@ -155,7 +155,10 @@ export class InsertNoteLinkCommand extends BasicCommand<
             links.push(
               NoteUtils.createWikiLink({
                 note,
-                alias: { mode: "value", value },
+                alias: {
+                  mode: "value",
+                  ...(value !== undefined ? { value } : {}),
+                },
               })
             );
           } else {

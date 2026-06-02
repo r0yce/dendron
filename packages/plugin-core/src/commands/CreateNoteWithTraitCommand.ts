@@ -24,6 +24,7 @@ import { VaultSelectionModeConfigUtils } from "../components/lookup/vaultSelecti
 import { NoteLookupProviderUtils } from "../components/lookup/NoteLookupProviderUtils";
 import { TemplateUtils } from "@dendronhq/common-server";
 import { AnalyticsUtils } from "../utils/analytics";
+import { toCSNoteProps, toDEngineClient } from "../utils/typeBridge";
 import { TraitUtils } from "../traits/TraitUtils";
 import _ from "lodash";
 import { Disposable } from "vscode";
@@ -258,9 +259,9 @@ export class CreateNoteWithTraitCommand extends BaseCommand<
       if (notes && notes.length > 0) {
         // Only apply schema if note is found
         TemplateUtils.applyTemplate({
-          templateNote: notes[0]!, // noUnchecked: explicit length > 0 guard above; ! is the only allowed form per strict-mode-fixer SKILL Batch 5+/6+ (debug launch sweep)
-          targetNote: dummy,
-          engine: this._extension.getEngine(),
+          templateNote: toCSNoteProps(notes[0]!),
+          targetNote: toCSNoteProps(dummy),
+          engine: toDEngineClient(this._extension.getEngine()),
         });
 
         body = dummy.body;

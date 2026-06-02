@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 /**
- * Compiles all code for Dendron Plugin
+ * Compiles all packages for local development (yarn workspaces; no lerna).
  */
 
 const execa = require("execa");
@@ -11,22 +11,24 @@ const $ = (cmd) => {
   return execa.commandSync(cmd, { stdout: process.stdout, buffer: false });
 };
 
+const ws = (pkg, script = "build") => {
+  $(`yarn workspace ${pkg} run ${script}`);
+};
+
 console.log("building all...");
-$(`npx lerna run build --scope @dendronhq/common-all`);
-$(
-  `npx lerna run build --parallel --scope "@dendronhq/{unified,common-server}"`
-);
-$(`npx lerna run build --scope @dendronhq/dendron-viz `);
-$(`npx lerna run build --scope @dendronhq/engine-server `);
-$(`npx lerna run build --scope @dendronhq/pods-core `);
-$(
-  `npx lerna run build --parallel --scope "@dendronhq/{common-test-utils,api-server,common-assets}"`
-);
-$(
-  `npx lerna run build --parallel --scope "@dendronhq/{common-frontend,dendron-cli}"`
-);
-$(`npx lerna run build --scope "@dendronhq/engine-test-utils"`);
-$(`npx lerna run build --scope "@dendronhq/dendron-plugin-views"`);
-$(`npx lerna run build --scope "@dendronhq/plugin-core"`);
-$(`npx yarn dendron dev sync_assets --fast`);
+ws("@dendronhq/common-all");
+ws("@dendronhq/unified");
+ws("@dendronhq/common-server");
+ws("@dendronhq/dendron-viz");
+ws("@dendronhq/engine-server");
+ws("@dendronhq/pods-core");
+ws("@dendronhq/common-test-utils");
+ws("@dendronhq/api-server");
+ws("@dendronhq/common-assets");
+ws("@dendronhq/common-frontend");
+ws("@dendronhq/dendron-cli");
+ws("@dendronhq/engine-test-utils");
+ws("@dendronhq/dendron-plugin-views");
+ws("@dendronhq/plugin-core");
+$(`yarn dendron dev sync_assets --fast`);
 console.log("done");

@@ -38,7 +38,7 @@ export class CopyNoteURLCmd {
       return;
     }
     const link = this.siteUtils?.getNoteUrl({
-      note: notes[0],
+      note: notes[0]!,
       vault,
     });
     if (link) {

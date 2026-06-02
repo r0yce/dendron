@@ -50,7 +50,9 @@ export class ExportPodV2Command extends BaseCommand<
     if (args?.podId) {
       return PodCommandFactory.createPodCommandForStoredConfig({
         configId: { podId: args.podId },
-        exportScope: args.exportScope,
+        ...(args.exportScope !== undefined
+          ? { exportScope: args.exportScope }
+          : {}),
       });
     }
 

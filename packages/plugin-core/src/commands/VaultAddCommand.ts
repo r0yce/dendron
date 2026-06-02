@@ -315,7 +315,7 @@ export class VaultAddCommand extends BasicCommand<CommandOpts, CommandOutput> {
           repoUrl: remoteUrl,
         });
         if (_.size(vaults) === 1 && name) {
-          vaults[0].name = name;
+          vaults[0]!.name = name;
         }
         // add all vaults
         const increment = 100 / (vaults.length + 1);

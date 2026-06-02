@@ -1,9 +1,0 @@
-import { DEngineClient, DVault } from "@dendronhq/common-all";
-import { FileType } from "./types";
-export declare const processDir: ({ rootPath, engine, vault, excludedPaths, excludedGlobs, }: {
-    rootPath: string;
-    vault: DVault;
-    engine: DEngineClient;
-    excludedPaths?: string[];
-    excludedGlobs?: string[];
-}) => Promise<FileType>;

@@ -52,7 +52,7 @@ async function startServerProcess(): Promise<{
   const maybePort =
     ExtensionProvider.getExtension()
       .getWorkspaceConfig()
-      .get<number | undefined>(CONFIG.SERVER_PORT.key) || engineServerPort;
+      .get<number | undefined>(CONFIG.SERVER_PORT!.key) || engineServerPort;
   const port = maybePort;
   if (port) {
     return { port };

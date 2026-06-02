@@ -111,7 +111,7 @@ export class SchemaLookupProvider implements ILookupProviderV3 {
         Logger.debug({ ctx, msg: "nextPicker:pre" });
         picker.state = DendronQuickPickState.PENDING_NEXT_PICK;
 
-        picker.vault = await picker.nextPicker({ note: selectedItems[0] });
+        picker.vault = await picker.nextPicker!({ note: selectedItems[0]! });
         // check if we exited from selecting a vault
         if (_.isUndefined(picker.vault)) {
           HistoryService.instance().add({

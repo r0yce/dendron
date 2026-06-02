@@ -35,7 +35,7 @@
     "build:types": "node --max-old-space-size=8192 ./scripts/build-types.js",
     "build:modern": "yarn build:js && yarn build:types",
     "compile:tsc": "tsc -p tsconfig.build.json",
-    "build:timed": "echo '=== PERF TIMING HARNESS (engine-test-utils Group A) | BM-2026-0531-First3 [ref:registry] ===' && time yarn build:modern 2>&1 | tee -a /tmp/dendron-build-modernization-next-batch.log"
+    "build:timed": "time yarn build:modern 2>&1 | tee -a /tmp/dendron-build-modernization-next-batch.log"
   },
   "devDependencies": {
     "@testing-library/react": "12.1.0",

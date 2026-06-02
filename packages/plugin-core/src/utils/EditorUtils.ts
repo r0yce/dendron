@@ -173,7 +173,10 @@ export class EditorUtils {
     doStartAnchor?: boolean | undefined;
     doEndAnchor?: boolean | undefined;
     engine: DEngineClient;
-  }): Promise<{ startAnchor?: string; endAnchor?: string }> {
+  }): Promise<{
+    startAnchor?: string | undefined;
+    endAnchor?: string | undefined;
+  }> {
     const { editor, selection, doStartAnchor, doEndAnchor, engine } =
       _.defaults(opts, { doStartAnchor: true, doEndAnchor: true });
     if (_.isUndefined(selection)) return {};

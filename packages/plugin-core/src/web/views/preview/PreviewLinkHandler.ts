@@ -201,8 +201,8 @@ export class PreviewLinkHandler implements IPreviewLinkHandler {
   }
 
   public extractNoteIdFromHref(data: {
-    id?: string;
-    href?: string;
+    id?: string | undefined;
+    href?: string | undefined;
   }): string | undefined {
     if (data.href === undefined) {
       throw ErrorFactory.createInvalidStateError({

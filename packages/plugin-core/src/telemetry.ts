@@ -7,8 +7,8 @@ export function setupSegmentClient({
   ws,
   cachePath,
 }: {
-  ws?: DWorkspaceV2;
-  cachePath?: string;
+  ws?: DWorkspaceV2 | undefined;
+  cachePath?: string | undefined;
 }) {
   try {
     const disabledByWorkspace = ws

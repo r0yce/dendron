@@ -158,7 +158,7 @@ export class GoogleDocsExportPodCommand extends BaseExportPodCommand<
       podType: PodV2Types.GoogleDocsExportV2,
       expirationTime,
       connectionId,
-      parentFolderId,
+      ...(parentFolderId !== undefined ? { parentFolderId } : {}),
     };
 
     // If this is not an already saved pod config, then prompt user whether they

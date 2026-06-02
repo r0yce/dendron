@@ -1,14 +1,22 @@
 // Launch configurations for developing the Dendron VS Code extension.
-// 
+//
 // IMPORTANT: These configs assume you have the `packages/plugin-core` folder
 // (or dendron-plugin.code-workspace) open as your VS Code workspace root.
 //
-// Recommended usage:
-//   1. File → Open Workspace from File... → dendron-plugin.code-workspace
-//   2. In the Debug view (Ctrl+Shift+D), select "Run Dendron Extension (Desktop)"
-//   3. Press F5 (or green play button)
+// === RECOMMENDED DEBUG WORKFLOW (Clean Host + normal dev) ===
+// The extension is primarily built with Webpack, not plain tsc.
 //
-// This will compile the extension and launch a new Extension Development Host window.
+// 1. Run the background task once:
+//    Terminal → Run Task → "watch-webpack"  (this runs `webpack:dev:watch`)
+//
+// 2. Use one of these launch configs (they have no preLaunchTask):
+//    - "Run Dendron Extension (Desktop, No Precompile)"
+//    - "Run Dendron Extension (Clean Host, No Precompile)"   ← best for Clean Host testing
+//
+// This gives you fast iteration with source maps and avoids the fragile plain `tsc` compile.
+//
+// The old "compile-plugin-core" task (plain tsc) is currently unreliable for debugging
+// due to strict mode settings and is not the production build path.
 {
   "version": "0.2.0",
   "configurations": [
@@ -32,7 +40,8 @@
       "presentation": {
         "group": "dendron",
         "order": 1
-      }
+      },
+      "detail": "Legacy - uses fragile tsc compile. Prefer 'Run Dendron Extension (Desktop, No Precompile)' + watch-webpack task."
     },
     {
       "name": "Run Dendron Extension (Desktop, No Precompile)",
@@ -52,7 +61,8 @@
       "presentation": {
         "group": "dendron",
         "order": 2
-      }
+      },
+      "detail": "RECOMMENDED for normal development. Start 'watch-webpack' task first."
     },
     {
       "name": "Run Dendron Extension (Clean Host - disable all other extensions)",
@@ -60,13 +70,12 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionDevelopmentPath=${workspaceFolder}/plugin-core",
         "--disable-extensions"
       ],
       "outFiles": [
         "${workspaceFolder}/out/**/*.js"
       ],
-      "preLaunchTask": "compile-plugin-core",
       "env": {
         "LOG_LEVEL": "debug",
         "DENDRON_DEV_MODE": "1",
@@ -75,7 +84,30 @@
       "presentation": {
         "group": "dendron",
         "order": 3
-      }
+      },
+      "detail": "DEPRECATED for daily use - depends on fragile tsc compile. Prefer the No Precompile version below + watch-webpack task."
+    },
+    {
+      "name": "Run Dendron Extension (Clean Host, No Precompile)",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/plugin-core",
+        "--disable-extensions"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ],
+      "env": {
+        "LOG_LEVEL": "debug",
+        "DENDRON_DEV_MODE": "1"
+      },
+      "presentation": {
+        "group": "dendron",
+        "order": 4
+      },
+      "detail": "RECOMMENDED for Clean Host. Start 'watch-webpack' task first, then use this launch config."
     },
     // {
     //   "name": "Run Web Extension in VS Code",
@@ -160,9 +192,7 @@
     {
       "name": "Attach to Running Extension Host",
       "type": "extensionHost",
-      "request": "attach",
-      "port": 9229,
-      "restart": true,
+      "request": "launch",
       "outFiles": [
         "${workspaceFolder}/out/**/*.js"
       ]

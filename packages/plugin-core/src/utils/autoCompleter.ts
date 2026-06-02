@@ -82,7 +82,7 @@ export class AutoCompleter {
         }
       }
 
-      return this.matchPrefixTillNextDot(fnames[topPickIdx], currentValue, 0);
+      return this.matchPrefixTillNextDot(fnames[topPickIdx]!, currentValue, 0);
     } else if (fnames[topPickIdx]!.includes(currentValue)) {
       // Add the beginning of the matching note to the auto complete, which should
       // allow the user to use matching into next hierarchy level.

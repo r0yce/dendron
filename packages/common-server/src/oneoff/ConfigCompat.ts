@@ -19,7 +19,7 @@ export type MigrationChangeSetStatus = {
     changeName: string;
     status: "ok" | "error";
     dendronConfig: DendronConfig;
-    wsConfig?: WorkspaceSettings;
+    wsConfig?: WorkspaceSettings | undefined;
   };
 };
 

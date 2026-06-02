@@ -233,40 +233,40 @@ type UserProfileProps = {
   /**
    * The number of notes in the workspace
    */
-  numNotes?: number;
+  numNotes?: number | undefined;
   /**
    * The current A/B test groups the user is participating in
    */
-  splitTests?: string[];
+  splitTests?: string[] | undefined;
   /**
    * The role of user. Retrieved from initial survey.
    */
-  role?: string;
+  role?: string | undefined;
   /**
    * The use case of Dendron for the user. Retrieved from initial survey.
    */
-  useCases?: string[];
+  useCases?: string[] | undefined;
   /**
    * The context Dendron is used for the user. Retrieved from initial survey.
    */
-  useContext?: string;
+  useContext?: string | undefined;
   /**
    * Whether the user has intent for publishing. If so, how. Retrieved from initial survey.
    */
-  publishingUseCase?: string;
+  publishingUseCase?: string | undefined;
   /**
    * Prior tools the user has used before Dendron. Retrieved from initial survey.
    */
-  priorTools?: string[];
+  priorTools?: string[] | undefined;
   /**
    * Email of user. Retrieved from initial survey.
    */
-  email?: string;
+  email?: string | undefined;
 
   /**
    * Did the user express interest in using Dendron for a team?
    */
-  teamIntent?: boolean;
+  teamIntent?: boolean | undefined;
 };
 
 // platform props

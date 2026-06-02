@@ -33,7 +33,7 @@ type CommandOpts = CommandInput & {
   /**
    * override prompts
    */
-  skipConfirmation?: boolean;
+  skipConfirmation?: boolean | undefined;
   /** Create self contained vaults, overriding the Dendron VSCode setting. */
   selfContained?: boolean;
   /**
@@ -43,12 +43,16 @@ type CommandOpts = CommandInput & {
   EXPERIMENTAL_openNativeWorkspaceNoReload?: boolean;
 };
 
-type CommandOutput = { wsVault?: DVault; additionalVaults?: DVault[] };
+type CommandOutput = {
+  wsVault?: DVault | undefined;
+  additionalVaults?: DVault[] | undefined;
+};
 
 export { CommandOpts as SetupWorkspaceOpts };
 
 const CODE_WS_LABEL = "Code Workspace";
-const CODE_WS_DETAIL = undefined;
+const CODE_WS_DETAIL =
+  "A dedicated IDE workspace for just your notes";
 
 enum EXISTING_ROOT_ACTIONS {
   CONTINUE = "Continue",
@@ -75,8 +79,7 @@ export class SetupWorkspaceCommand extends BasicCommand<
       })) === WorkspaceType.NONE
     ) {
       // If there's a non-Dendron workspace already open, offer to convert that to a Dendron workspace first
-      const initNative = await VSCodeUtils.showQuickPick(
-        [
+      const workspaceTypeItems: vscode.QuickPickItem[] = [
           {
             picked: true,
             label: CODE_WS_LABEL,
@@ -91,12 +94,11 @@ export class SetupWorkspaceCommand extends BasicCommand<
               detail: `Take notes in "${folderName}" alongside your existing project`,
             };
           }),
-        ],
-        {
-          ignoreFocusOut: true,
-          title: "Workspace type to initialize",
-        }
-      );
+      ];
+      const initNative = await vscode.window.showQuickPick(workspaceTypeItems, {
+        ignoreFocusOut: true,
+        title: "Workspace type to initialize",
+      });
       if (initNative === undefined) return;
       if (
         initNative.label !== CODE_WS_LABEL ||
@@ -143,7 +145,7 @@ export class SetupWorkspaceCommand extends BasicCommand<
     skipConfirmation,
   }: {
     rootDir: string;
-    skipConfirmation?: boolean;
+    skipConfirmation?: boolean | undefined;
   }): Promise<boolean> => {
     if (!this.isEmptyDirectory(rootDir) && !skipConfirmation) {
       const resp = await VSCodeUtils.showQuickPick(
@@ -197,9 +199,7 @@ export class SetupWorkspaceCommand extends BasicCommand<
     };
   }
 
-  async execute(
-    opts: CommandOpts
-  ): Promise<{ wsVault?: DVault; additionalVaults?: DVault[] }> {
+  async execute(opts: CommandOpts): Promise<CommandOutput> {
     const ctx = "SetupWorkspaceCommand";
     // This command can run before the extension is registered, especially during testing
     const defaultSelfContained =

@@ -7,7 +7,7 @@ import { ExportPodConfigurationV2 } from "./PodV2Types";
  * Complete Pod Config for Google Docs V2
  */
 export type GoogleDocsV2PodConfig = ExportPodConfigurationV2 & {
-  parentFolderId?: string;
+  parentFolderId?: string | undefined;
 };
 /**
  * This is the persisted version of the config that gets serialized into a YAML

@@ -5,25 +5,25 @@ import { ILookupProviderV3 } from "./LookupProviderV3Interface";
 import { DendronQuickPickerV2 } from "./types";
 
 export type CreateQuickPickOpts = {
-  title?: string;
+  title?: string | undefined;
   placeholder: string;
   /**
    * QuickPick.ignoreFocusOut prop
    */
-  ignoreFocusOut?: boolean;
+  ignoreFocusOut?: boolean | undefined;
   /**
    * Initial value for quickpick
    */
-  initialValue?: string;
-  nonInteractive?: boolean;
+  initialValue?: string | undefined;
+  nonInteractive?: boolean | undefined;
   /**
    * See {@link DendronQuickPickerV2["alwaysShow"]}
    */
-  alwaysShow?: boolean;
+  alwaysShow?: boolean | undefined;
   /**
    * if canSelectMany and items from selection, select all items at creation
    */
-  selectAll?: boolean;
+  selectAll?: boolean | undefined;
 };
 
 export type PrepareQuickPickOpts = CreateQuickPickOpts & {
@@ -34,8 +34,8 @@ export type PrepareQuickPickOpts = CreateQuickPickOpts & {
 export type ShowQuickPickOpts = {
   quickpick: DendronQuickPickerV2;
   provider: ILookupProviderV3;
-  nonInteractive?: boolean;
-  fuzzThreshold?: number;
+  nonInteractive?: boolean | undefined;
+  fuzzThreshold?: number | undefined;
 };
 
 export interface ILookupControllerV3 {
@@ -65,11 +65,11 @@ export interface ILookupControllerV3 {
       /**
        * Don't show quickpick
        */
-      nonInteractive?: boolean;
+      nonInteractive?: boolean | undefined;
       /**
        * Initial value for quickpick
        */
-      initialValue?: string;
+      initialValue?: string | undefined;
       provider: ILookupProviderV3;
     }
   ): Promise<DendronQuickPickerV2>;
@@ -97,34 +97,34 @@ export type LookupControllerV3CreateOpts = {
   /**
    * Replace default buttons
    */
-  buttons?: DendronBtn[];
+  buttons?: DendronBtn[] | undefined;
   /**
    * When true, don't enable vault selection
    */
-  disableVaultSelection?: boolean;
+  disableVaultSelection?: boolean | undefined;
   /**
    * if vault selection isn't disabled,
    * press button on init if true
    */
-  vaultButtonPressed?: boolean;
+  vaultButtonPressed?: boolean | undefined;
   /** If vault selection isn't disabled, allow choosing the mode of selection.
    *  Defaults to true. */
-  vaultSelectCanToggle?: boolean;
+  vaultSelectCanToggle?: boolean | undefined;
   /**
    * Additional buttons
    */
-  extraButtons?: DendronBtn[];
+  extraButtons?: DendronBtn[] | undefined;
   /**
    * 0.0 = exact match
    * 1.0 = match anything
    */
-  fuzzThreshold?: number;
+  fuzzThreshold?: number | undefined;
   /**
    * enable lookup view - false by default or if undefined
    */
-  enableLookupView?: boolean;
+  enableLookupView?: boolean | undefined;
   /**
    * optional custom title of quickpic
    */
-  title?: string;
+  title?: string | undefined;
 };

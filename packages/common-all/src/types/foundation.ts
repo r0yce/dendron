@@ -134,7 +134,7 @@ export type DNodeExplicitProps = {
   /**
    * Override of local dendron config
    */
-  config?: NoteLocalConfig;
+  config?: NoteLocalConfig | undefined;
 };
 
 /**
@@ -160,11 +160,11 @@ export type DNodeProps<T = any, TCustom = any> = DNodeExplicitProps & {
   /**
    * Determines whether this node is a {@link stub https://wiki.dendron.so/notes/c6fd6bc4-7f75-4cbb-8f34-f7b99bfe2d50.html#stubs}
    */
-  stub?: boolean;
+  stub?: boolean | undefined;
   /**
    @deprecated
    */
-  schemaStub?: boolean;
+  schemaStub?: boolean | undefined;
   /**
    * Immediate parent
    */
@@ -181,7 +181,7 @@ export type DNodeProps<T = any, TCustom = any> = DNodeExplicitProps & {
   /**
    * Custom frontmatter. Add additional fields here and they will show up in the note frontmatter
    */
-  custom?: TCustom;
+  custom?: TCustom | undefined;
   /**
    * Schemas that apply to the note
    */
@@ -206,7 +206,7 @@ export type DNodeProps<T = any, TCustom = any> = DNodeExplicitProps & {
   image?: DNodeImage | undefined;
 
   /** Any note traits that add special behavior to the note */
-  traits?: string[];
+  traits?: string[] | undefined;
 };
 
 export type DNodeCompositeKey = Pick<DNodeProps, "fname"> & {
@@ -261,10 +261,10 @@ export type SEOProps = {
 
 export type DNoteLoc = {
   fname: string;
-  alias?: string;
-  id?: string;
-  vaultName?: string;
-  anchorHeader?: string;
+  alias?: string | undefined;
+  id?: string | undefined;
+  vaultName?: string | undefined;
+  anchorHeader?: string | undefined;
 };
 
 export type DNoteAnchor =

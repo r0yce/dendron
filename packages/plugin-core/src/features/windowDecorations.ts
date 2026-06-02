@@ -414,7 +414,9 @@ export async function updateDecorations(editor: TextEditor): Promise<{
           diagnostic.message,
           diagnostic.severity
         );
-        diagnosticObject.code = diagnostic.code;
+        if (diagnostic.code !== undefined) {
+          diagnosticObject.code = diagnostic.code;
+        }
         return diagnosticObject;
       }) || [];
     delayedFrontmatterWarning(editor.document.uri, allWarnings);
@@ -506,7 +508,9 @@ function mapWikilink(
             margin: "auto 0.2rem",
             border: "1px solid",
             borderColor: HASHTAG_BORDER_COLOR,
-            backgroundColor: decoration.color,
+            ...(decoration.color !== undefined
+              ? { backgroundColor: decoration.color }
+              : {}),
           },
         },
       },
@@ -523,16 +527,24 @@ function mapTaskNote(
     decoration: {
       range: VSCodeUtils.toRangeObject(decoration.range),
       renderOptions: {
-        before: {
-          contentText: decoration.beforeText,
-          color: TASK_NOTE_DECORATION_COLOR,
-          fontWeight: "200",
-        },
-        after: {
-          contentText: decoration.afterText,
-          color: TASK_NOTE_DECORATION_COLOR,
-          fontWeight: "200",
-        },
+        ...(decoration.beforeText !== undefined
+          ? {
+              before: {
+                contentText: decoration.beforeText,
+                color: TASK_NOTE_DECORATION_COLOR,
+                fontWeight: "200",
+              },
+            }
+          : {}),
+        ...(decoration.afterText !== undefined
+          ? {
+              after: {
+                contentText: decoration.afterText,
+                color: TASK_NOTE_DECORATION_COLOR,
+                fontWeight: "200",
+              },
+            }
+          : {}),
       },
     },
   };

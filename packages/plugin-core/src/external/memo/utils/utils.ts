@@ -281,7 +281,7 @@ export const replaceRefs = ({
         // legacy vendored external/memo (regex replacer interop). Directive removed — no longer triggers under current strict config (justification preserved in Suppression Registry).
         const nextContent = content.replace(
           new RegExp(pattern, "gi"),
-          ($0, $1, offset) => {
+          (_match, _group, _offset) => {
             // const pos = document.positionAt(offset);
             // if (
             //   isInFencedCodeBlock(document, pos.line) ||
@@ -298,7 +298,7 @@ export const replaceRefs = ({
 
             replacedOnce = true;
 
-            return `[[${_.trim($1) || ""}${ref.new}]]`;
+            return `[[${_.trim(_group ?? "")}${ref.new}]]`;
           }
         );
 

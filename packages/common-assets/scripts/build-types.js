@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 /**
- * Hybrid types builder. BM-2026-0531-First3 [ref:registry] Wave 2 Group C (common-assets no-prod-src).
- * 1. Emit declarations with tsc (high mem)
- * 2. api-extractor rollup.
+ * Hybrid types builder (tsc + api-extractor).
  */
 
 const { execSync } = require('child_process');

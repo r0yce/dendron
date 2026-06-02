@@ -3,6 +3,7 @@ import {
   DNodeProps,
   DNodePropsQuickInputV2,
   DNodeUtils,
+  DVault,
   LabelUtils,
   NoteLookupUtils,
   NoteProps,
@@ -171,7 +172,7 @@ export class NotePickerUtils {
     });
 
     if (resp.length) {
-      const note = resp[0];
+      const note = resp[0]!;
       const isPerfectMatch = note.fname === picker.value;
       if (isPerfectMatch) {
         return [await this.enhanceNoteForQuickInput({ note, engine })];

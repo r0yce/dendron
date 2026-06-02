@@ -79,6 +79,7 @@ function updateKeybindings() {
 
     // sanity, if command depends on plugin being active, add same when clause to keybinding
     if (
+      "when" in keyEnt &&
       keyEnt.when === DendronContext.PLUGIN_ACTIVE &&
       !configProps?.when?.includes(DendronContext.PLUGIN_ACTIVE)
     ) {

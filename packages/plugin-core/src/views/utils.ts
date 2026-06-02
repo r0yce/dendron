@@ -136,7 +136,7 @@ export class WebViewUtils {
       // and hand it out to any other functions that need to use it.
       acquireVsCodeApi: `const vscode = acquireVsCodeApi(); window.vscode = vscode;`,
       themeMap: themeMap as WebViewThemeMap,
-      initialTheme,
+      ...(initialTheme !== undefined ? { initialTheme } : {}),
       name,
     });
     return out;

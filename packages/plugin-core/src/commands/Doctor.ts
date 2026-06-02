@@ -192,7 +192,7 @@ export class DoctorCommand extends BasicCommand<CommandOpts, CommandOutput> {
       quickPick.title = `Doctor (${scope})`;
       quickPick.onDidAccept(async () => {
         quickPick.hide();
-        const doctorAction = quickPick.selectedItems[0].label;
+        const doctorAction = quickPick.selectedItems[0]!.label;
         const doctorScope = (quickPick.buttons[0] as IDoctorQuickInputButton)
           .type;
         return resolve({

@@ -1,8 +1,5 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "// ROOT WIRING FOR BUILD MODERNIZATION 2026-05-31/06 FOCUSED CLEAN-BUILD PHASE (first 3 clean hybrid 0) — per 'first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched' + 'proceed and utilize 3 sub-agents' + 'Build Modernization 2026-05-31/06 focused clean-build phase (first 3 clean hybrid 0)' + 'Current Status: 0/0/0; first 3 solid per 'Double down' mandate; now root wiring' + 'THE CHAIN DOES NOT STOP'.",
-  "// Full 15+ ID list (8+ unified remark micro + 2 re-verifies + 3 transition agents 019e8204-0d34-7253-85bf-a90d18974f43 (Test-Guardian re-verify GREEN) + 019e8204-1c5a-7da1-9dc9-f790e41799ab (Self-Improver encoding/hook/gate) + 019e8204-2b81-7943-ade5-8aac5373fc31 (Doc-Master Mermaid/syncs) + priors): 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b (re-verify) + 019e81f5-d232-7383-b3b2-5917da4ec772 (re-verify) + wave 019e81fe-eefb-73a2-ad2c-5fa4efebcad7 200s/15 + 019e81fb-4a4c-7580-bd41-51cbe849ae9c 392s/52 + 019e81ff-4b05-72f0-bf68-6b320c74dbdf 143s/28 + 019e81fe-7bd6-77c1-a74c-a24ea27983bd 171s/31 + 019e81fe-a131-7082-ba77-e9397743ac84 189s/26 + 019e81fd-2f81-7950-9dba-7168c5cfa65f 326s/49 + 019e81fb-9696-7652-b2ef-60a63adb907e 355s/55 + 019e81f9-e9f4-7cd2-a7a9-ae95f7b69d66 187s/50 + 019e81fa-d11d-7901-80db-26ef921b3f30 150.9s/36 + 019e81fb-2263-7d30-b482-9a3ccbb739e8 132.5s/36 + 019e81f9-b269-75b2-8604-2534dde21da5 222.4s/36 + more 30+ spawn + priors Doc-Master 019e7cd0-caa7-78d3-84cc-97932f7f37a5 285.4s/60 + Test-Guardian 019e7cd0-df92-7203-aa4d-eb6ca900e628 239.2s/55 + burner 019e7cc6-1dba-7761-8c13-11fbb903df8e 330s/74 77% net + Monorepo two 019e7cc6-3d67-7f50-a414-5761ebaf6d46 211s/71 + 019e7ccc-d4a9-7ae3-bd9f-781a5e2a54a7 190s/59 + Feature-Ideator 019e7ccf-96a6-7d00-a2c5-8a70296b8d34 283s/68 + Dependency-Hunter 019e7cda-a3cc-7122-b0c6-b1f9de1b7ba7 266s/58 + latest Test-Guardian 019e7ce3-164e-7bf3-8fef-53d9ff8cf3ab 251.9s/34 + debug bg 019e7d53-338e-7443-a206-e239e70b0cf7 300s+2h+ + Self-Improver + all M2 + 1335+ 'THE CHAIN DOES NOT STOP'.",
-  "// This turbo.json now favors build:modern (hybrid tsup+high-mem-tsc+api-extractor) for the first 3 packages (common-server/unified/engine-server) via the updated package.json 'compile'/'build' delegation (Main + root-wiring specialist). 'build:modern' task added for explicit turbo caching/orchestration on the clean hybrid 0/0/0 trio per 'first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched' + 'proceed and utilize 3 sub-agents' + 'Build Modernization 2026-05-31/06 focused clean-build phase (first 3 clean hybrid 0)' + 'Current Status: 0/0/0; first 3 solid per 'Double down' mandate; now root wiring' + 'THE CHAIN DOES NOT STOP'. All lerna/bootstrap flows (buildAll.js, root package.json bootstrap:build:fast etc) now hit modern for the trio because build->compile=build:modern. Green invariant + 0 bare @ts + 0 tests upheld. Full credits in spike .grok/reports/build-modernization-spike-2026-05-31.md 'Root Wiring Execution Started' section.",
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
@@ -10,26 +7,19 @@
       "inputs": ["src/**/*.ts", "tsconfig*.json", "package.json"]
     },
     "compile": {
-      "// compile now favors build:modern (hybrid) for first 3 clean packages (common-server/unified/engine-server) post Main update of their package.json 'compile' scripts + this root wiring. See 'first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched' + 'proceed and utilize 3 sub-agents' + 'Build Modernization 2026-05-31/06 focused clean-build phase (first 3 clean hybrid 0)' + 'Current Status: 0/0/0; first 3 solid per 'Double down' mandate; now root wiring' + 'THE CHAIN DOES NOT STOP'. Full 15+ IDs: 019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772 + 019e8204-0d34-7253-85bf-a90d18974f43 + 019e8204-1c5a-7da1-9dc9-f790e41799ab + 019e8204-2b81-7943-ade5-8aac5373fc31 + priors 019e7cd0-caa7-78d3-84cc-97932f7f37a5 285.4s/60 etc. THE CHAIN DOES NOT STOP.",
       "dependsOn": ["^build"],
       "outputs": ["lib/**", "out/**", "*.tsbuildinfo"],
       "inputs": ["src/**/*.ts", "tsconfig*.json", "package.json", "!src/**/*.test.ts"]
     },
     "build:modern": {
-      "// Explicit turbo task for hybrid modern build (tsup fast JS + high-mem tsc decl + api-extractor) favored for the first 3 packages that achieved clean hybrid 0. Enables turbo caching on the proven path per root wiring mission after 'Current Status: 0/0/0; first 3 solid... now root wiring'. Outputs match lib/ artifacts. Inputs exclude tests. All future outputs quote full 15+ IDs + 'first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched' + 'proceed and utilize 3 sub-agents' + 'Build Modernization 2026-05-31/06 focused clean-build phase (first 3 clean hybrid 0)' + 'THE CHAIN DOES NOT STOP'.",
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build:modern"],
       "outputs": ["lib/**", "dist/**", "out/**", "*.tsbuildinfo"],
-      "inputs": ["src/**/*.ts", "tsconfig*.json", "package.json", "!src/**/*.test.ts"]
+      "inputs": ["src/**/*.ts", "tsconfig*.json", "package.json", "tsup.config.*", "scripts/build-*.js", "!src/**/*.test.ts"]
     },
     "tsc": {
       "dependsOn": ["^tsc"],
       "outputs": ["**/*.tsbuildinfo"],
       "inputs": ["src/**/*.ts", "tsconfig*.json", "!**/*.test.*"]
-    },
-    "doctor": {
-      "dependsOn": ["^build"],
-      "outputs": [],
-      "inputs": ["packages/dendron-cli/src/commands/DoctorCommand.ts", "packages/common-all/src/perf/**"]
     }
   },
   "globalDependencies": ["tsconfig.json", "lerna.json"],

@@ -123,7 +123,8 @@ export class DendronEngineV3Web
           break;
         }
         case 1: {
-          error = new DendronError(allErrors[0]);
+          const firstError = allErrors[0];
+          error = firstError ? new DendronError(firstError) : null;
           break;
         }
         default:
@@ -515,11 +516,11 @@ export class DendronEngineV3Web
           }),
         };
       }
-      return { data: rootResp.data[0] };
+      return { data: rootResp.data[0]! };
     }
     const parentResp = await this.noteStore.find({ fname: dirname, vault });
     if (parentResp.data && parentResp.data.length > 0) {
-      return { data: parentResp.data[0] };
+      return { data: parentResp.data[0]! };
     } else {
       return this.findClosestAncestor(dirname, vault);
     }

@@ -40,7 +40,7 @@ export type ExportPodConfigurationV2 = {
    * An optional description of the pod configuration. This will show up in UI
    * controls when a user is selecting a pod configuration to run.
    */
-  description?: string;
+  description?: string | undefined;
 
   /**
    * Specifies the scope of this export operation

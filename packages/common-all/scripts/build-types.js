@@ -58,12 +58,3 @@ fs.rmSync(tempDir, { recursive: true, force: true });
 
 console.log('Types build complete.');
 
-// === ROOT WIRING v1 + MEASUREMENT HARNESS (Group A: common-all) | BM-2026-0531-First3 [ref:registry] | Lean v2: larger batches, short refs, 0 bare @ts, green build:modern | "THE CHAIN DOES NOT STOP" ===
-const harnessStart = process.hrtime.bigint();
-console.log('HARNESS[ROOT-WIRING-NEXT-BATCH] START for common-all (Group A) ' + new Date().toISOString() + ' | BM-2026-0531-First3 [ref:registry] | Lean v2 | "THE CHAIN DOES NOT STOP"');
-// (real size/timing would populate on run; static for tools-only edit)
-const harnessDurationMs = 0; // placeholder; real via hrtime on full run
-console.log(`HARNESS[ROOT-WIRING-NEXT-BATCH] METRICS for common-all (Group A): durationMs=${harnessDurationMs} | mode=hybrid | BM-2026-0531-First3 [ref:registry] | "THE CHAIN DOES NOT STOP"`);
-
-// GREEN ENFORCEMENT + 0 bare/0 tests (Lean v2 Group A common-all) | BM-2026-0531-First3 [ref:registry] | "THE CHAIN DOES NOT STOP"and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (first 3 clean hybrid 0)" + "Current Status: 0/0/0; first 3 solid per 'Double down' mandate; now root wiring" + "THE CHAIN DOES NOT STOP" + "Non-stop monorepo complete." + "go. don't stop or pause. keep going until it is complete." HARNESS[ROOT-WIRING-NEXT-BATCH] GREEN + 0 bare enforced. SubA/SubB/SubC dispatched.
-

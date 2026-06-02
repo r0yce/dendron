@@ -222,18 +222,19 @@ export class UserQueries {
       return { stopReason: StopReason.NOTE_DID_NOT_HAVE_REQUIRED_DEPTH };
     }
 
-    if (await PluginSchemaUtils.doesSchemaExist(hierarchy.topId())) {
+    const topId = hierarchy.topId()!;
+    if (await PluginSchemaUtils.doesSchemaExist(topId)) {
       // To avoid unpredictable conflicts of schemas: for now we will not allow
       // creation schemas for hierarchies that already have existing top
       // level schema id. Instead we will pop up error message with navigation
       // action to the existing schema.
       const msgGoToSchema = "Go to schema";
       const action = await vscode.window.showErrorMessage(
-        `Schema with top level id: '${hierarchy.topId()}' already exists.`,
+        `Schema with top level id: '${topId}' already exists.`,
         msgGoToSchema
       );
       if (action === msgGoToSchema) {
-        const schema = await PluginSchemaUtils.getSchema(hierarchy.topId());
+        const schema = await PluginSchemaUtils.getSchema(topId);
         if (schema.data) {
           await VSCodeUtils.openFileInEditor(getUriFromSchema(schema.data));
         }
@@ -345,7 +346,8 @@ export class UserQueries {
     const justUnchecked = this.findUncheckedItem(prevSelected, currSelected);
 
     const withoutUncheckedChildren = currSelected.filter(
-      (item) => !isDescendentOf(item, justUnchecked)
+      (item) =>
+        justUnchecked === undefined || !isDescendentOf(item, justUnchecked)
     );
     return withoutUncheckedChildren;
   }

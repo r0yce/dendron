@@ -20,7 +20,8 @@
       },
       "presentation": {
         "group": "dendron-root"
-      }
+      },
+      "detail": "Legacy (uses fragile tsc). Prefer the No Precompile version + start 'watch-webpack' task in packages/plugin-core"
     },
     {
       "name": "Run Dendron Extension (Desktop, No Precompile) - [open monorepo root]",
@@ -40,7 +41,8 @@
       },
       "presentation": {
         "group": "dendron-root"
-      }
+      },
+      "detail": "RECOMMENDED when opening the full monorepo. Start watch-webpack in packages/plugin-core first."
     },
     {
       "name": "Debug Dendron Extension Tests (Integration)",
@@ -54,7 +56,8 @@
       "outFiles": [
         "${workspaceFolder}/packages/plugin-core/out/**/*.js"
       ],
-      "preLaunchTask": "compile:plugin-core"
+      "preLaunchTask": "compile:plugin-core",
+      "detail": "Note: Tests may require the tsc compile step. For extension runtime debugging, prefer webpack watch + No Precompile configs."
     },
     {
       "name": "Debug Current Test File (Jest, engine-test-utils)",

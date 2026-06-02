@@ -7,7 +7,7 @@ import { ExportPodConfigurationV2 } from "./PodV2Types";
  * Complete Pod Config for Notion V2
  */
 export type NotionV2PodConfig = ExportPodConfigurationV2 & {
-  parentPageId: string;
+  parentPageId?: string | undefined;
 };
 
 /**

@@ -34,7 +34,7 @@ export class SnapshotVaultCommand extends BaseCommand<
   async execute(_opts: CommandOpts) {
     const pod = new SnapshotExportPod();
     const { engine } = this._ext.getDWorkspace();
-    const vault = engine.vaults[0];
+    const vault = engine.vaults[0]!;
     const { wsRoot } = this._ext.getDWorkspace();
     const { data: snapshotDirPath } = await pod.execute({
       vaults: [vault],

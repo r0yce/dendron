@@ -486,7 +486,7 @@ export async function findNonNoteFile(opts: {
   fpath: string;
   wsRoot: string;
   vaults: DVault[];
-  currentVault?: DVault;
+  currentVault?: DVault | undefined;
 }): Promise<{ vault?: DVault; fullPath: string } | undefined> {
   let { fpath } = opts;
   if (path.isAbsolute(fpath)) {

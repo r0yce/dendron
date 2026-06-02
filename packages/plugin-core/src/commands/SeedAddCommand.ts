@@ -33,8 +33,10 @@ export class SeedAddCommand extends SeedCommandBase<
 
         return {
           label: key,
-          description: value?.description,
-          detail: value?.site?.url,
+          ...(value?.description !== undefined
+            ? { description: value.description }
+            : {}),
+          ...(value?.site?.url !== undefined ? { detail: value.site.url } : {}),
         };
       });
 

@@ -499,8 +499,8 @@ export class SurveyUtils {
       return;
     }
     AnalyticsUtils.track(SurveyEvents.InitialSurveyPrompted);
-    vscode.window
-      .showInformationMessage(
+    void Promise.resolve(
+      vscode.window.showInformationMessage(
         "Welcome to Dendron! 🌱",
         {
           modal: true,
@@ -510,7 +510,7 @@ export class SurveyUtils {
         { title: "Proceed" },
         { title: "Skip Survey" }
       )
-      .then(async (resp) => {
+    ).then(async (resp) => {
         if (resp?.title === "Proceed") {
           const contextSurvey = ContextSurvey.create();
           const backgroundSurvey = BackgroundSurvey.create();
@@ -568,13 +568,13 @@ export class SurveyUtils {
       return;
     }
     AnalyticsUtils.track(SurveyEvents.LapsedUserSurveyPrompted);
-    await vscode.window
-      .showInformationMessage(
+    void Promise.resolve(
+      vscode.window.showInformationMessage(
         "Could you share some feedback to help us improve?",
         { modal: true },
         { title: "Proceed" }
       )
-      .then(async (resp) => {
+    ).then(async (resp) => {
         if (resp?.title === "Proceed") {
           const reasonSurvey = LapsedUserReasonSurvey.create();
           const onboardingSurvey = LapsedUserOnboardingSurvey.create();
@@ -640,13 +640,13 @@ export class SurveyUtils {
       return;
     }
     AnalyticsUtils.track(SurveyEvents.InactiveUserSurveyPrompted);
-    await vscode.window
-      .showInformationMessage(
+    void Promise.resolve(
+      vscode.window.showInformationMessage(
         "Hey, we noticed you haven't used Dendron for a while. We would love to have you back! Could you give us some feedback on how we can do better?",
         { modal: true },
         { title: "Go to Survey" }
       )
-      .then(async (resp) => {
+    ).then(async (resp) => {
         if (resp?.title === "Go to Survey") {
           const AIRTABLE_URL =
             "https://airtable.com/shry4eLgvVE6WR0Or?prefill_SurveyName=InactiveFeedback";

@@ -58,12 +58,12 @@ import { BasicCommand } from "./base";
 
 type CommandInput =
   | {
-      nonInteractive?: boolean;
-      useSameVault?: boolean;
+      nonInteractive?: boolean | undefined;
+      useSameVault?: boolean | undefined;
     }
   | undefined;
 type CommandOpts = {
-  dest?: NoteProps;
+  dest?: NoteProps | undefined;
   origin: NoteProps;
   nodesToMove: Node[];
   engine: IEngineAPIService;
@@ -218,14 +218,14 @@ export class MoveHeaderCommand extends BasicCommand<
     if (_.isUndefined(selectedItems)) {
       dest = undefined;
     } else {
-      const selected = selectedItems[0];
+      const selected = selectedItems[0]!;
       const isCreateNew = PickerUtilsV2.isCreateNewNotePicked(selected);
       if (isCreateNew) {
         // check if we really want to create a new note.
         // if a user selects a vault in the picker that
         // already has the note, we should not create a new one.
         const fname = selected.fname;
-        const maybeNote = (await engine.findNotes({ fname, vault }))[0];
+        const maybeNote = (await engine.findNotes({ fname, vault }))[0]!;
         if (_.isUndefined(maybeNote)) {
           dest = NoteUtils.create({ fname, vault });
         } else {
@@ -320,7 +320,7 @@ export class MoveHeaderCommand extends BasicCommand<
   }): Promise<void> {
     const { engine, dest, origin, nodesToMove } = opts;
     // find where the extracted block starts and ends
-    const startOffset = nodesToMove[0].position?.start.offset;
+    const startOffset = nodesToMove[0]!.position?.start.offset;
     const endOffset = _.last(nodesToMove)!.position?.end.offset;
 
     const originBody = origin.body;
@@ -553,7 +553,7 @@ export class MoveHeaderCommand extends BasicCommand<
     engine: IEngineAPIService
   ) {
     // find where the extracted block starts and ends
-    const startOffset = nodesToMove[0].position?.start.offset;
+    const startOffset = nodesToMove[0]!.position?.start.offset;
     const endOffset = _.last(nodesToMove)!.position?.end.offset;
 
     // remove extracted blocks

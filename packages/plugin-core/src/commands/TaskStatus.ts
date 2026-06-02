@@ -104,9 +104,12 @@ export class TaskStatusCommand extends BasicCommand<
           }
           selectedNote = pickedNote;
         } else {
-          selectedNote = notes[0];
+          selectedNote = notes[0]!;
         }
       }
+    }
+    if (!selectedNote) {
+      return;
     }
 
     let setStatus = opts?.setStatus;

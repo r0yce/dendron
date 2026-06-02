@@ -57,7 +57,7 @@ export class ImportObsidianCommand extends ImportPodCommand {
       return;
     }
 
-    const src = uri[0].fsPath;
+    const src = uri[0]!.fsPath;
 
     const vault = PickerUtilsV2.getVaultForOpenEditor();
 

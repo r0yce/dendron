@@ -51,7 +51,7 @@ export class WebViewCommonUtils {
     browser: boolean;
     acquireVsCodeApi: string;
     themeMap: WebViewThemeMap;
-    initialTheme?: string;
+    initialTheme?: string | undefined;
   }) => {
     const builtinStyle = "dendron-editor-follow-style";
     const defaultStyle = "dendron-editor-default-style";

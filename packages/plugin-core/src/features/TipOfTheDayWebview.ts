@@ -23,7 +23,7 @@ export default class TipOfTheDayWebview implements vscode.WebviewViewProvider {
   private TIP_SHOWN_MSG = "loaded";
 
   private get _currentTip(): IFeatureShowcaseMessage {
-    return this._tips[this._curTipIndex];
+    return this._tips[this._curTipIndex]!;
   }
 
   /**
@@ -100,7 +100,7 @@ export default class TipOfTheDayWebview implements vscode.WebviewViewProvider {
 
     if (this._webview && this._webview.visible) {
       this._webview.webview.html = this.getContent(
-        this._tips[this._curTipIndex]
+        this._tips[this._curTipIndex]!
       );
 
       MetadataService.instance().TipOfDayIndex = this._curTipIndex;

@@ -92,7 +92,7 @@ export default class ReferenceHoverProvider implements vscode.HoverProvider {
   private handleNonDendronUri(refText: string): string | undefined {
     const [first, second] = refText.split("|");
     const maybeUri = second || first;
-    const maybe = containsNonDendronUri(maybeUri);
+    const maybe = containsNonDendronUri(maybeUri!);
     // Not a URI, or is dendron://, so it must be a note (or image) and the rest of the code can handle this.
     if (_.isUndefined(maybe) || !maybe) return undefined;
     // Otherwise, this is a URI like http://example.com or mailto:user@example.com
@@ -190,11 +190,11 @@ export default class ReferenceHoverProvider implements vscode.HoverProvider {
           note = sameVaultNote;
         } else {
           // Otherwise, just pick one, doesn't matter which.
-          note = maybeNotes[0];
+          note = maybeNotes[0]!;
         }
       } else {
         // Just 1 note, use that.
-        note = maybeNotes[0];
+        note = maybeNotes[0]!;
       }
 
       // For notes, let's use the noteRef functionality to render the referenced portion. ^tiagtt7sjzyw

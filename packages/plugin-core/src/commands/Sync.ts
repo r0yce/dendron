@@ -35,6 +35,9 @@ export async function detectOutOfDateSeeds({
   await Promise.all(
     seedVaults.map(async (seedVault) => {
       const id = seedVault.seed;
+      if (!id) {
+        return;
+      }
       const info = await seedSvc.info({ id });
       if (!info) {
         // Seed is missing from the config, or it's an unknown seed. We could

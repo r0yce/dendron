@@ -34,9 +34,8 @@
     "build:js": "tsup",
     "build:types": "node --max-old-space-size=8192 ./scripts/build-types.js",
     "watch": "tsup --watch",
-    "// Modern build pilot (tsup + api-extractor hybrid)": "",
     "build:modern": "yarn build:js && yarn build:types",
-    "build:timed": "echo '=== PERF TIMING HARNESS (common-all Group A) | BM-2026-0531-First3 [ref:registry] ===' && time yarn build:modern 2>&1 | tee -a /tmp/dendron-build-modernization-next-batch.log"
+    "build:timed": "time yarn build:modern 2>&1 | tee -a /tmp/dendron-build-modernization-next-batch.log"
   },
   "dependencies": {
     "@swc/helpers": "^0.3.2",

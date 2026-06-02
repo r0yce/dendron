@@ -196,7 +196,7 @@ export class WorkspaceService implements Disposable, IWorkspaceService {
   /**
    * @deprecated: not applicable for self cotnained vaults
    */
-  static getOrCreateConfig(wsRoot: string) {
+  static getOrCreateConfig(wsRoot: string): DendronConfig {
     return DConfig.getOrCreate(wsRoot);
   }
 
@@ -1575,7 +1575,7 @@ export class WorkspaceService implements Disposable, IWorkspaceService {
     currentVersion: string;
     previousVersion: string;
     dendronConfig: DendronConfig;
-    wsConfig?: WorkspaceSettings;
+    wsConfig?: WorkspaceSettings | undefined;
   }) {
     let changes: MigrationChangeSetStatus[] = [];
 

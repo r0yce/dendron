@@ -1,6 +1,7 @@
 import { DendronError } from "@dendronhq/common-all";
 import { DLogger } from "@dendronhq/common-server";
 import { HistoryService } from "@dendronhq/engine-server";
+import { Logger } from "../../logger";
 import { ILookupControllerV3 } from "./LookupControllerV3Interface";
 import { NoteLookupProviderChangeStateResp } from "./LookupProviderV3Interface";
 
@@ -14,7 +15,7 @@ export class NoteLookupProviderUtils {
   static subscribe(opts: {
     id: string;
     controller: ILookupControllerV3;
-    logger: DLogger;
+    logger: DLogger | typeof Logger;
     onDone?: Function;
     onError?: Function;
     onChangeState?: Function;
@@ -73,7 +74,6 @@ export class NoteLookupProviderUtils {
             logger.error({
               ctx: id,
               msg: `unexpected event: ${event.action}`,
-              event,
             });
             resolve(undefined);
           }

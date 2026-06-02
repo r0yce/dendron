@@ -202,17 +202,22 @@ export class MoveNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
     let items: NoteProps[];
     if (data.selectedItems.length === 1) {
       // single move. find note from resp
-      const { oldLoc } = data.onAcceptHookResp[0];
+      const hookResp = data.onAcceptHookResp[0];
+      if (!hookResp) {
+        items = [];
+      } else {
+      const { oldLoc } = hookResp;
       const { fname, vaultName: vname } = oldLoc;
       if (fname !== undefined && vname !== undefined) {
         const vault = VaultUtils.getVaultByName({
           vaults: engine.vaults,
           vname,
         });
-        const note = (await engine.findNotes({ fname, vault }))[0];
+        const note = (await engine.findNotes({ fname, vault }))[0]!;
         items = [note];
       } else {
         items = [];
+      }
       }
     } else {
       const notes = data.selectedItems.map(
@@ -262,7 +267,7 @@ export class MoveNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
       // in multi note move and therefore we will use selected items to get
       // all the files that the user has selected.
 
-      const newVaultName = data.onAcceptHookResp[0].newLoc.vaultName;
+      const newVaultName = data.onAcceptHookResp[0]!.newLoc.vaultName;
 
       return data.selectedItems.map((item) => {
         const renameOpt: RenameNoteOpts = {
@@ -325,7 +330,10 @@ export class MoveNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
       if (opts.closeAndOpenFile) {
         // During bulk move we will only open a single file that was moved to avoid
         // cluttering user tabs with all moved files.
-        await closeCurrentFileOpenMovedFile(engine, opts.moves[0], wsRoot);
+        const firstMove = opts.moves[0];
+        if (firstMove) {
+          await closeCurrentFileOpenMovedFile(engine, firstMove, wsRoot);
+        }
       }
       return { changed };
     } finally {
@@ -362,7 +370,7 @@ export class MoveNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
 
   private async showMultiMovePreview(moves: RenameNoteOpts[]) {
     // All the moves when doing bulk-move will have the same destination vault.
-    const destVault = moves[0].newLoc.vaultName;
+    const destVault = moves[0]!.newLoc.vaultName;
 
     const contentLines = [
       "# Move notes preview",

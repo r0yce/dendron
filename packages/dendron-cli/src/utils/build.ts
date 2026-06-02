@@ -165,7 +165,7 @@ export class BuildUtils {
     await $$(`yarn build:prod`, {
       cwd: this.getPluginRootPath(),
       env: skipSentry ? { SKIP_SENTRY: "true" } : {},
-      quiet,
+      ...(quiet !== undefined ? { quiet } : {}),
     });
   }
 
@@ -185,7 +185,7 @@ export class BuildUtils {
     const execOpts = {
       cwd: this.getPluginRootPath(),
       env: skipSentry ? { SKIP_SENTRY: "true" } : {},
-      quiet,
+      ...(quiet !== undefined ? { quiet } : {}),
     };
 
     if (extensionTarget) {
@@ -213,14 +213,14 @@ export class BuildUtils {
       pkgPath,
       name: target.toString(),
       displayName: target.toString(),
-      description,
+      ...(description !== undefined ? { description } : {}),
       main: "./dist/extension.js",
       repository: {
         url: "https://github.com/dendronhq/dendron.git",
         type: "git",
       },
-      version,
-      icon,
+      ...(version !== undefined ? { version } : {}),
+      ...(icon !== undefined ? { icon } : {}),
     });
     this.removeDevDepsFromPkgJson({
       pkgPath,

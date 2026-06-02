@@ -10,14 +10,12 @@ import {
   DEngineInitResp,
   DHookDict,
   DVault,
-  EngagementEvents,
   EngineDeleteOpts,
   EngineEventEmitter,
   EngineInfoResp,
   EngineSchemaWriteOpts,
   EngineWriteOptsV2,
   Event,
-  extractNoteChangeEntriesByType,
   FindNoteOpts,
   GetDecorationsOpts,
   GetDecorationsResp,
@@ -42,7 +40,6 @@ import {
 } from "@dendronhq/common-all";
 import { DendronEngineClient, HistoryService } from "@dendronhq/engine-server";
 import _ from "lodash";
-import { AnalyticsUtils } from "../utils/analytics";
 import { IEngineAPIService } from "./EngineAPIServiceInterface";
 
 export class EngineAPIService

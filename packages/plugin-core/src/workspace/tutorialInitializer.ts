@@ -201,9 +201,14 @@ export class TutorialInitializer
   }
 
   async onWorkspaceActivate(opts: {
-    skipOpts: Partial<{
-      skipTreeView: boolean;
-    }>;
+    skipOpts?:
+      | Partial<{
+          skipTreeView?: boolean | undefined;
+          skipLanguageFeatures?: boolean | undefined;
+          skipMigrations?: boolean | undefined;
+          skipInteractiveElements?: boolean | undefined;
+        }>
+      | undefined;
   }) {
     const skipOpts = opts.skipOpts;
     if (!skipOpts?.skipTreeView) {

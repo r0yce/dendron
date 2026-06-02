@@ -103,7 +103,7 @@ export class GotoCommand extends BasicCommand<CommandOpts, CommandOutput> {
     }
 
     // TODO: for now, get first note, in the future, show prompt
-    const note = notes[0];
+    const note = notes[0]!;
 
     // if note doesn't have url, run goto note command
     if (_.isUndefined(note.custom?.[GOTO_KEY])) {

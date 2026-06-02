@@ -82,21 +82,22 @@ export class LookupQuickpickFactory {
         onInitialPromptResponse.then(async (value) => {
           if (
             value?.items.length === 1 &&
-            value.items[0].label === CREATE_NEW_LABEL
+            value.items[0]!.label === CREATE_NEW_LABEL
           ) {
             // Show the vault picker control if necessary
             const vaultPicker = new VaultQuickPick(this._engine);
             const currentNote = await this.wsUtils.getActiveNote();
+            const defaultVault = this.vaults[0]!;
             const vault = await vaultPicker.getOrPromptVaultForNewNote({
-              fname: value.items[0].fname,
-              vault: currentNote?.vault ?? this.vaults[0],
+              fname: value.items[0]!.fname,
+              vault: currentNote?.vault ?? defaultVault,
               vaults: this.vaults,
             });
 
             if (!vault) {
               outerResolve(undefined);
             } else {
-              value.items[0].vault = vault;
+              value.items[0]!.vault = vault;
             }
           }
 
@@ -215,7 +216,7 @@ export class LookupQuickpickFactory {
       const entryCreateNew = this.createNewNoteQPItem({
         fname: queryOrig,
         detail: "Note does not exist. Create?",
-        vault: this.vaults[0], // Pass in a dummy value, this won't get used.
+        vault: this.vaults[0]!, // Pass in a dummy value, this won't get used.
       });
 
       if (
@@ -246,7 +247,7 @@ export class LookupQuickpickFactory {
       id: CREATE_NEW_LABEL,
       fname,
       type: "note",
-      vault: this.vaults[0], // Pass in a dummy value, this won't get used.
+      vault: this.vaults[0]!, // Pass in a dummy value, this won't get used.
     });
 
     return {

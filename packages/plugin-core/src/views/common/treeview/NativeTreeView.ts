@@ -128,8 +128,8 @@ export class NativeTreeView implements Disposable {
     const note = await this.wsUtils.getNoteFromDocument(doc);
 
     if (note && note.length > 0) {
-      await this._provider.prepNodeForReveal(note[0].id);
-      this.treeView.reveal(note[0].id, { focus: false, expand: 3 });
+      await this._provider.prepNodeForReveal(note[0]!.id);
+      this.treeView.reveal(note[0]!.id, { focus: false, expand: 3 });
     }
   }
 }

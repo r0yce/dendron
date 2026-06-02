@@ -1,9 +1,5 @@
-import {
-  ConfigUtils,
-  DendronError,
-  DLogger,
-  NoteProps,
-} from "@dendronhq/common-all";
+import { ConfigUtils, DendronError, NoteProps } from "@dendronhq/common-all";
+import { DLogger } from "@dendronhq/common-server";
 import { ExtensionProvider } from "../../ExtensionProvider";
 import { NoteLookupProviderUtils } from "./NoteLookupProviderUtils";
 import { HistoryEvent } from "@dendronhq/engine-server";

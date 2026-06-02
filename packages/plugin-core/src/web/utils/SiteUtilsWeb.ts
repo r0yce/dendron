@@ -17,8 +17,8 @@ export class SiteUtilsWeb {
   ) {}
 
   getSiteUrlRootForVault({ vault }: { vault: DVault }): {
-    url?: string;
-    index?: string;
+    url?: string | undefined;
+    index?: string | undefined;
   } {
     if (vault.siteUrl) {
       return { url: vault.siteUrl, index: vault.siteIndex };

@@ -119,7 +119,7 @@ export class StartupUtils {
       previousVersion: previousWorkspaceVersion,
       dendronConfig,
       workspaceInstallStatus,
-      wsConfig: maybeWsSettings,
+      ...(maybeWsSettings !== undefined ? { wsConfig: maybeWsSettings } : {}),
     });
     Logger.info({
       ctx: "runMigrationsIfNecessary",

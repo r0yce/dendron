@@ -162,7 +162,7 @@ export class ProviderAcceptHooks {
     const oldUri: Uri = editor.document.uri;
     const oldFname = DNodeUtils.fname(oldUri.fsPath);
 
-    const selectedItem = selectedItems[0];
+    const selectedItem = selectedItems[0]!;
     const fname = PickerUtilsV2.isCreateNewNotePickedForSingle(selectedItem)
       ? quickpick.value
       : selectedItem.fname;
@@ -250,7 +250,10 @@ export class PickerUtilsV2 {
           }
         }
       }
-      return window.showTextDocument(uri, { viewColumn });
+      return window.showTextDocument(
+        uri,
+        viewColumn !== undefined ? { viewColumn } : undefined
+      );
     };
     if (initialValue !== undefined) {
       quickPick.rawValue = initialValue;
@@ -359,7 +362,7 @@ export class PickerUtilsV2 {
       });
     } else {
       Logger.info({ ctx, msg: "no active doc" });
-      vault = vaults[0];
+      vault = vaults[0]!;
     }
     // TODO: remove
     Logger.info({ ctx, msg: "exit", vault });
@@ -395,7 +398,7 @@ export class PickerUtilsV2 {
   ): quickpick is Required<DendronQuickPickerV2> => {
     const { selectedItems, providerId } = opts;
     const nextPicker = quickpick.nextPicker;
-    const isNewPick = PickerUtilsV2.isCreateNewNotePicked(selectedItems[0]);
+    const isNewPick = PickerUtilsV2.isCreateNewNotePicked(selectedItems[0]!);
     const isNewPickAllowed = ["lookup", "dendron.moveHeader"];
     return (
       !_.isUndefined(nextPicker) &&
@@ -473,17 +476,18 @@ export class PickerUtilsV2 {
       vaultSuggestions?.length === 1 ||
       vaultSelectionMode === VaultSelectionMode.auto
     ) {
-      return vaultSuggestions[0].vault;
+      return vaultSuggestions[0]!.vault;
     }
 
     // Auto select for the user if either the hierarchy pattern matches in the
     // current vault context, or if there are no hierarchy matches
     if (vaultSelectionMode === VaultSelectionMode.smart) {
+      const topSuggestion = vaultSuggestions[0]!;
       if (
-        vaultSuggestions[0].detail === FULL_MATCH_DETAIL ||
-        vaultSuggestions[0].detail === CONTEXT_DETAIL
+        topSuggestion.detail === FULL_MATCH_DETAIL ||
+        topSuggestion.detail === CONTEXT_DETAIL
       ) {
-        return vaultSuggestions[0].vault;
+        return topSuggestion.vault;
       }
     }
 

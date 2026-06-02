@@ -92,7 +92,7 @@ export class NoteLookupUtils {
   }: {
     qsRaw: string;
     engine: DEngineClient;
-    showDirectChildrenOnly?: boolean;
+    showDirectChildrenOnly?: boolean | undefined;
   }): Promise<NoteProps[]> {
     const qsClean = this.slashToDot(qsRaw);
 

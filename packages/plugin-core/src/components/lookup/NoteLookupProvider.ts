@@ -108,10 +108,10 @@ export class NoteLookupProvider implements ILookupProviderV3 {
       if (
         quickpick.selectedItems.length === 1 &&
         [CREATE_NEW_LABEL, CREATE_NEW_WITH_TEMPLATE_LABEL].includes(
-          quickpick.selectedItems[0].label
+          quickpick.selectedItems[0]!.label
         )
       ) {
-        quickpick.selectedItems[0].fname = quickpick.value;
+        quickpick.selectedItems[0]!.fname = quickpick.value;
       }
       this.onDidAccept({ quickpick, cancellationToken: token })();
     });
@@ -197,7 +197,7 @@ export class NoteLookupProvider implements ILookupProviderV3 {
 
       // validates fname.
       if (selectedItems.length === 1) {
-        const item = selectedItems[0];
+        const item = selectedItems[0]!;
         const result = this.shouldRejectItem({ item });
         if (result.shouldReject) {
           window.showErrorMessage(result.reason);
@@ -215,7 +215,7 @@ export class NoteLookupProvider implements ILookupProviderV3 {
         Logger.debug({ ctx, msg: "nextPicker:pre" });
         picker.state = DendronQuickPickState.PENDING_NEXT_PICK;
 
-        picker.vault = await picker.nextPicker({ note: selectedItems[0] });
+        picker.vault = await picker.nextPicker!({ note: selectedItems[0]! });
         // check if we exited from selecting a vault
         if (_.isUndefined(picker.vault)) {
           HistoryService.instance().add({
@@ -379,6 +379,7 @@ export class NoteLookupProvider implements ILookupProviderV3 {
             .map((ent) => {
               const mschema = schemaModule.schemas[ent];
               if (
+                mschema &&
                 SchemaUtils.hasSimplePattern(mschema, {
                   isNotNamespace: true,
                 })

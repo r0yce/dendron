@@ -67,7 +67,7 @@ export class SchemaGraphViewFactory {
 
             const schemaPath = path.join(
               wsRoot,
-              vaults[0].fsPath,
+              vaults[0]!.fsPath,
               `root.schema.yml`
             );
             const uri = Uri.file(schemaPath);

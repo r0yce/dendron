@@ -73,7 +73,7 @@ export class RandomNoteCommand extends BasicCommand<
     }
 
     const index = Math.floor(Math.random() * noteCount);
-    const note = noteSet[index];
+    const note = noteSet[index]!;
 
     const npath = NoteUtils.getFullPath({
       note,

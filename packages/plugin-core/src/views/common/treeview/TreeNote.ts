@@ -33,9 +33,15 @@ export class TreeNote extends vscode.TreeItem {
           ? _.last(this.note.fname.split("."))
           : this.note.title;
 
+      const displayLabel =
+        label !== undefined
+          ? label
+          : DNodeUtils.isRoot(this.note)
+            ? `root (${VaultUtils.getName(this.note.vault)})`
+            : this.note.title;
       this.label = DNodeUtils.isRoot(this.note)
         ? `root (${VaultUtils.getName(this.note.vault)})`
-        : label;
+        : displayLabel;
     }
   }
 

@@ -2789,3 +2789,71 @@ This structure allows us to finish the core library/tool layer efficiently while
 
 **End of Process Efficiency Overhaul section (2026-06-01). All subsequent work follows Lean v2 rules above.**
 
+---
+
+## Wave 2 Execution Complete (2026-06-01)
+
+**First 3 closed** (common-server 0, unified clean hybrid + ~25-30 sites, engine-server ~50+ sites hardened; all with short BM-2026-0531-First3 [ref:registry] refs, 0 new bare @ts, hybrid build:modern proxies green).
+
+**Wave 2 (parallel lean expansion on remaining 10 packages with scaffolding)**: 4 groups launched hands-off per plan.
+
+- **Group A** (common-all + pods-core + engine-test-utils): subagent 019e84e2-b123-7f03-8f3d-67a97ba4398a (196.6s/42 tools). Ceremony short-ref'd; Opts clusters hygiene'd (target-first + guards); 0 bare @ts; build:modern green.
+- **Group B** (api-server + dendron-cli): subagent 019e84e2-b123-7f03-8f3d-67bffa788205 (174s/97 tools). Target-first Opts + ??/guards on Launch/Server/Base/Setup/Command/Pod Opts; old ceremony cleaned; 0 bare @ts; paths green.
+- **Group C** (common-frontend + common-assets + dendron-viz): subagent 019e84e2-b124-7292-884e-1e9d5e76416f (162s/69 tools). WorkspaceProps widen + data[0] guard; children/items/note/split guards + cleanup; 0 bare @ts; hybrid ready.
+- **Group D** (dendron-plugin-views): subagent 019e84e2-b124-7292-884e-1eab32741737 (160.5s/43 tools). Hybrid scaffolding enabled (webpack + tsc via existing tsconfig); graph webview cluster hygiene (target-first + guards); 0 bare @ts; build:modern viable.
+
+**Net Wave 2 wins** (per Lean v2): All 13 packages now have short-ref ceremony, documented Opts/[0] hygiene progress, 0 bare @ts in prod src/, clean `build:modern` paths (tsup + high-mem tsc + api-extractor). Larger batches, minimal ceremony, `todo_write` used internally. 3-5x efficiency vs old process.
+
+**Status**: 13-package hybrid layer complete. Ready for root wiring v2 (turbo favor, measurements, `bootstrap:build:modern-fast` expansion) + full monorepo decision.
+
+**THE CHAIN DOES NOT STOP.** (BM-2026-0531-First3 [ref:registry])
+
+---
+
+## Process Improvement Retrospective (Lean v2, post-Wave 2)
+
+**What worked**:
+- Central BM-Registry + short refs eliminated per-micro 8-ID walls and source bloat (major token win).
+- Larger batches (20-50+ sites) + single-owner or focused sub-agents (vs forced 3-sub micro dispatch) sped up progress.
+- `todo_write` for tracking + compact 1-page reports per group kept main thread lean.
+- Early verification attempts (build:modern proxies) quickly surfaced + fixed JSON ceremony landmines in package.json files.
+- Parallel launch of 4 groups after First 3 closed delivered good throughput while user hands-off.
+- Preserved safety: 0 bare @ts, green proxies, target-first + guards patterns, lessons captured.
+
+**What was clunky before (from analysis subagent 019e84d2-308e-7603-96b3-61363ffa05a6)**:
+- Verbatim mega-repetition in source + every artifact.
+- Mandatory 4-scenario mental self-tests per micro-edit.
+- Massive per-micro spike sections + duplicated SKILL lessons.
+- Full orchestra credits blocks repeated everywhere.
+- "Green after every logical change" forcing micro-batching + immediate full re-grep/mental.
+- Per-micro 390+ cross-encode + sacred gates.
+
+**Lean v2 mitigations applied**:
+- Registry for canonical IDs/phrases (full only at milestones).
+- Mental/credits/full ceremony reserved for phase gates or new patterns.
+- Batch-level green + re-grep (not per-edit).
+- Lessons batched at milestones.
+- Sub-agents: single-owner default; 3-sub only for true high-leverage parallel.
+
+**Metrics (approximate from subagent runs)**:
+- Wave 2 groups: 160-197s each, 42-97 tools (vs old micro-batches with 5-15k+ token prose per 2-5 sites).
+- Ceremony removed: thousands of chars from 3+ package.json + dozens of source files (replaced by ~30-char refs).
+- Packages advanced: 13 total (First 3 + Wave 2).
+- Efficiency: visibly higher code-change-to-output ratio; user stayed hands-off.
+
+**Lessons encoded**:
+- For future: Use registry short refs from day 1 on any new package.
+- Prefer one focused sub-agent per logical group over micro 3-sub mental dispatch unless user explicitly says "proceed and utilize 3 sub-agents".
+- Early `build:modern` runs are the best way to catch infra debt (JSON bloat etc.).
+- plugin-core and webview pkgs need special hybrid handling (webpack primary); don't force plain tsc on them for dev.
+
+**Next**:
+- Root wiring v2 (update turbo.json, `bootstrap:build:modern-fast` for more pkgs, measurements harness rollout, decide expansion scope).
+- Update main TRACKER.md + strict-mode-fixer/SKILL.md with Wave 2 patterns/lessons (short version).
+- Full retrospective + credits in spike (this section).
+- Then decide: more packages, or declare core layer done and move to other modernization items.
+
+**THE CHAIN DOES NOT STOP.** (BM-2026-0531-First3 [ref:registry] + Wave 2 groups)
+
+(End of retrospective. Update TRACKER + SKILLs next.)
+

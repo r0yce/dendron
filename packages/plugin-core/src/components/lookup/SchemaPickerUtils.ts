@@ -16,8 +16,9 @@ export class SchemaPickerUtils {
     const { engine, wsRoot, vaults } = ExtensionProvider.getDWorkspace();
     const resp = await engine.querySchema(picker.value);
     if (resp.data && resp.data.length > 0) {
-      const node = SchemaUtils.getModuleRoot(resp.data[0]);
-      if (node.fname === picker.value) {
+      const schemaRoot = resp.data[0]!;
+      const node = SchemaUtils.getModuleRoot(schemaRoot);
+      if (node && node.fname === picker.value) {
         return [
           DNodeUtils.enhancePropForQuickInputV3({
             wsRoot,

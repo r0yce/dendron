@@ -5,7 +5,6 @@ import {
   isVSCodeCommandUri,
   isWebUri,
   NotePropsMeta,
-  NoteViewMessage,
   TutorialEvents,
 } from "@dendronhq/common-all";
 import { FileExtensionUtils, findNonNoteFile } from "@dendronhq/common-server";
@@ -120,7 +119,9 @@ export class PreviewLinkHandler implements IPreviewLinkHandler {
         fpath: path.normalize(uri.fsPath),
         vaults,
         wsRoot,
-        currentVault: currentNote?.vault,
+        ...(currentNote?.vault !== undefined
+          ? { currentVault: currentNote.vault }
+          : {}),
       })) || {};
     if (fullPath) {
       // Found a matching non-note file.
@@ -162,7 +163,7 @@ export class PreviewLinkHandler implements IPreviewLinkHandler {
     data,
     engine,
   }: {
-    data: NoteViewMessage["data"];
+    data: { id?: string | undefined; href?: string | undefined };
     engine: DEngineClient;
   }): Promise<{
     note: NotePropsMeta | undefined;
@@ -228,8 +229,8 @@ export class PreviewLinkHandler implements IPreviewLinkHandler {
   }
 
   public extractNoteIdFromHref(data: {
-    id?: string;
-    href?: string;
+    id?: string | undefined;
+    href?: string | undefined;
   }): string | undefined {
     if (data.href === undefined) {
       throw ErrorFactory.createInvalidStateError({

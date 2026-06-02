@@ -262,7 +262,7 @@ export class VSCodeUtils {
   static async openFileInEditor(
     fileItemOrURI: FileItem | vscode.Uri,
     opts?: Partial<{
-      column: vscode.ViewColumn;
+      column: vscode.ViewColumn | undefined;
     }>
   ): Promise<vscode.TextEditor | undefined> {
     let textDocument;
@@ -337,13 +337,12 @@ export class VSCodeUtils {
    */
   static async gatherFolderPath(opts?: {
     default: string;
-    relativeTo?: string;
-    override?: Partial<vscode.InputBoxOptions>;
+    relativeTo?: string | undefined;
+    override?: Partial<vscode.InputBoxOptions> | undefined;
   }): Promise<string | undefined> {
-    let folderPath = await vscode.window.showInputBox({
+    const inputOpts: vscode.InputBoxOptions = {
       prompt: "Select path to folder",
       ignoreFocusOut: true,
-      value: opts?.default,
       validateInput: (input: string) => {
         if (opts?.relativeTo) input = path.join(opts.relativeTo, input);
         if (!path.isAbsolute(input)) {
@@ -353,8 +352,24 @@ export class VSCodeUtils {
         }
         return undefined;
       },
-      ...opts?.override,
-    });
+    };
+    if (opts?.default !== undefined) {
+      inputOpts.value = opts.default;
+    }
+    if (opts?.override) {
+      const o = opts.override;
+      if (o.title !== undefined) inputOpts.title = o.title;
+      if (o.prompt !== undefined) inputOpts.prompt = o.prompt;
+      if (o.placeHolder !== undefined) inputOpts.placeHolder = o.placeHolder;
+      if (o.value !== undefined) inputOpts.value = o.value;
+      if (o.valueSelection !== undefined) {
+        inputOpts.valueSelection = o.valueSelection;
+      }
+      if (o.ignoreFocusOut !== undefined) {
+        inputOpts.ignoreFocusOut = o.ignoreFocusOut;
+      }
+    }
+    let folderPath = await vscode.window.showInputBox(inputOpts);
     if (_.isUndefined(folderPath)) {
       return;
     }
@@ -477,7 +492,7 @@ export class VSCodeUtils {
       if (!earliest) break;
       while (ranges.length > 0) {
         // If the next range overlaps...
-        const next = ranges[ranges.length - 1]; // what pop would have returned
+        const next = ranges[ranges.length - 1]!; // what pop would have returned
         if (earliest.intersection(next) === undefined) break; // no overlap
         // Then extend this range
         earliest = earliest.union(next);

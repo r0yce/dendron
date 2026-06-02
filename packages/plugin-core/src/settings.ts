@@ -45,7 +45,7 @@ export class WorkspaceConfig extends EngineWorkspaceConfig {
     const src = ExtensionProvider.getWorkspaceConfig();
     const changes = await Settings.upgrade(src, _SETTINGS);
     const { wsRoot, vaults } = ExtensionProvider.getDWorkspace();
-    const vpath = pathForVaultRoot({ wsRoot, vault: vaults[0] });
+    const vpath = pathForVaultRoot({ wsRoot, vault: vaults[0]! });
     const vscodeDir = path.join(vpath, ".vscode");
     const snippetChanges = await Snippets.upgradeOrCreate(vscodeDir);
     Logger.info({ ctx, vscodeDir, snippetChanges });
@@ -76,8 +76,8 @@ export class Settings extends EngineSettings {
         _.omit(target, [
           "workbench.colorTheme",
           "[markdown]",
-          CONFIG.DEFAULT_JOURNAL_DATE_FORMAT.key,
-          CONFIG.DEFAULT_SCRATCH_DATE_FORMAT.key,
+          CONFIG.DEFAULT_JOURNAL_DATE_FORMAT!.key,
+          CONFIG.DEFAULT_SCRATCH_DATE_FORMAT!.key,
         ]),
         async (entry, key) => {
           const item = src.inspect(key);

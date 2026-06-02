@@ -27,7 +27,7 @@ export class PodCommandFactory {
     config,
   }: {
     configId?: Pick<ExportPodConfigurationV2, "podId">;
-    exportScope?: PodExportScope;
+    exportScope?: PodExportScope | undefined;
     config?: ExportPodConfigurationV2 & { destination?: string };
   }): CodeCommandInstance {
     // configId is a required param for all cases except when called from CopyAsCommand. It sends a predefined config

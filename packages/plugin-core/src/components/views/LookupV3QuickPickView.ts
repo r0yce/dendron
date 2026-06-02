@@ -24,12 +24,12 @@ export class LookupV3QuickPickView implements Disposable {
   private _quickPick: DendronQuickPickerV2;
   private _viewState: ILookupViewModel;
   private _disposables: Disposable[];
-  private _providerId?: string;
+  private _providerId?: string | undefined;
 
   constructor(
     quickPick: DendronQuickPickerV2,
     viewModel: ILookupViewModel,
-    providerId?: string // For telemetry purposes only
+    providerId?: string | undefined // For telemetry purposes only
   ) {
     this._quickPick = quickPick;
     this._viewState = viewModel;

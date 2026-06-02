@@ -2,7 +2,7 @@
 // @ts-ignore
 import matter from "gray-matter";
 import _ from "lodash";
-import minimatch from "minimatch";
+import { minimatch } from "minimatch";
 import path from "path";
 import title from "title";
 import { URI } from "vscode-uri";
@@ -141,7 +141,7 @@ export class DNodeUtils {
     wsRoot,
   }: {
     props: DNodeProps;
-    schema?: SchemaModuleProps;
+    schema?: SchemaModuleProps | undefined;
     vaults: DVault[];
     wsRoot: string;
   }): DNodePropsQuickInputV2 {
@@ -172,8 +172,8 @@ export class DNodeUtils {
     props: DNodeProps;
     vaults: DVault[];
     wsRoot: string;
-    schema?: SchemaModuleProps;
-    alwaysShow?: boolean;
+    schema?: SchemaModuleProps | undefined;
+    alwaysShow?: boolean | undefined;
   }): DNodePropsQuickInputV2 {
     const { alwaysShow } = _.defaults(opts, { alwaysShow: false });
     return { ...this.enhancePropForQuickInput(opts), alwaysShow };

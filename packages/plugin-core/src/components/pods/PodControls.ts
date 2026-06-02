@@ -49,10 +49,10 @@ export class PodUIControls {
       qp.onDidAccept(() => {
         if (qp.selectedItems === undefined || qp.selectedItems.length === 0) {
           resolve(undefined);
-        } else if (qp.selectedItems[0].label === "New Export") {
+        } else if (qp.selectedItems[0]!.label === "New Export") {
           resolve("New Export");
         } else {
-          resolve({ podId: qp.selectedItems[0].label });
+          resolve({ podId: qp.selectedItems[0]!.label });
         }
 
         qp.dispose();
@@ -87,7 +87,7 @@ export class PodUIControls {
       qp.onDidAccept(() => {
         resolve(
           PodExportScope[
-            qp.selectedItems[0].label as keyof typeof PodExportScope
+            qp.selectedItems[0]!.label as keyof typeof PodExportScope
           ]
         );
         qp.dispose();
@@ -448,7 +448,9 @@ export class PodUIControls {
 
       items.push({
         label: config.podId,
-        detail: config.description ?? undefined,
+        ...(config.description !== undefined
+          ? { detail: config.description }
+          : {}),
         description,
       });
     });
@@ -609,7 +611,9 @@ export class PodUIControls {
       }
       return {
         label: value,
-        description: keybinding,
+        ...(keybinding !== undefined && keybinding !== ""
+          ? { description: keybinding }
+          : {}),
         detail: `Format Dendron note to ${value} and copy it to the clipboard`,
       };
     });

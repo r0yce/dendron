@@ -37,8 +37,8 @@ export function normalizev2(
  */
 export function refLink2Stringv2(opts: {
   link: DNoteRefLink;
-  useVaultPrefix?: boolean;
-  rawAnchors?: boolean;
+  useVaultPrefix?: boolean | undefined;
+  rawAnchors?: boolean | undefined;
 }): string {
   const { link, useVaultPrefix, rawAnchors } = opts;
   const slugger = getSlugger();

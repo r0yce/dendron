@@ -1,8 +1,6 @@
 import { AllModifierType } from "../types/lookup";
 
-export const MODIFIER_DESCRIPTIONS: {
-  [key in Exclude<AllModifierType, "none"> as string]: string;
-} = {
+export const MODIFIER_DESCRIPTIONS = {
   selection2link:
     "Highlighted text will be turned into a wikilink to the newly created note",
   selectionExtract:
@@ -17,6 +15,8 @@ export const MODIFIER_DESCRIPTIONS: {
     "Limits lookup depth to one level and filters out stub notes",
   multiSelect: "Select multiple notes at once",
   copyNoteLink: "Add selected notes to the clipboard as wikilinks",
+} as const satisfies {
+  [key in Exclude<AllModifierType, "none"> as string]: string;
 };
 
 export enum InvalidFilenameReason {

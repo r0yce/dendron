@@ -35,17 +35,18 @@ export class VaultQuickPick {
       vaultSuggestions?.length === 1 ||
       vaultSelectionMode === VaultSelectionMode.auto
     ) {
-      return vaultSuggestions[0].vault;
+      return vaultSuggestions[0]!.vault;
     }
 
     // Auto select for the user if either the hierarchy pattern matches in the
     // current vault context, or if there are no hierarchy matches
     if (vaultSelectionMode === VaultSelectionMode.smart) {
+      const topSuggestion = vaultSuggestions[0]!;
       if (
-        vaultSuggestions[0].detail === this.FULL_MATCH_DETAIL ||
-        vaultSuggestions[0].detail === this.CONTEXT_DETAIL
+        topSuggestion.detail === this.FULL_MATCH_DETAIL ||
+        topSuggestion.detail === this.CONTEXT_DETAIL
       ) {
-        return vaultSuggestions[0].vault;
+        return topSuggestion.vault;
       }
     }
 
@@ -72,7 +73,10 @@ export class VaultQuickPick {
 
     // Only 1 vault, no other options to choose from:
     if (vaults.length <= 1) {
-      return Array.of({ vault: vaults[0], label: VaultUtils.getName(vault) });
+      return Array.of({
+        vault: vaults[0]!,
+        label: VaultUtils.getName(vault),
+      });
     }
 
     const domain = fname.split(".").slice(0, -1);

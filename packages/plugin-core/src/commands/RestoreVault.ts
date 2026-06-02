@@ -55,7 +55,7 @@ export class RestoreVaultCommand extends BaseCommand<
     try {
       const { src } = opts;
       const pod = new SnapshotImportPod();
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       if (ext.fileWatcher) {
         ext.fileWatcher.pause = true;
       }

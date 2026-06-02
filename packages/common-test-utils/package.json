@@ -33,7 +33,6 @@
     "compile:tsup": "tsup",
     "coverage": "echo 0 ",
     "watch": "tsup --watch",
-    "// Modern build (pilot - default is now tsup)": "",
     "build:modern": "tsup"
   },
   "devDependencies": {

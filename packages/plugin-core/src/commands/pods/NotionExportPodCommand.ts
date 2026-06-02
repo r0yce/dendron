@@ -112,14 +112,17 @@ export class NotionExportPodCommand extends BaseExportPodCommand<
       if (_.isUndefined(parentPage)) return;
       parentPageId = pagesMap[parentPage];
     }
+    if (parentPageId === undefined) {
+      return;
+    }
 
     const inputs = {
+      ...opts,
       exportScope,
       parentPageId,
-      ...opts,
       podType: PodV2Types.NotionExportV2,
       apiKey,
-      connectionId,
+      ...(connectionId !== undefined ? { connectionId } : {}),
     };
 
     if (!opts?.podId) {
@@ -132,7 +135,9 @@ export class NotionExportPodCommand extends BaseExportPodCommand<
           setProperties: _.merge(inputs, {
             podId: choice,
             podType: PodV2Types.NotionExportV2,
-            connectionId: inputs.connectionId,
+            ...(inputs.connectionId !== undefined
+              ? { connectionId: inputs.connectionId }
+              : {}),
           }),
         });
 

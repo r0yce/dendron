@@ -21,7 +21,7 @@ export type NoteIndexProps = {
   fname: string;
   vault: DVault;
   updated: number;
-  stub?: boolean;
+  stub?: boolean | undefined;
 };
 
 /** https://fusejs.io/examples.html#extended-search */

@@ -10,6 +10,7 @@ import { DENDRON_COMMANDS } from "../constants";
 import { ExtensionProvider } from "../ExtensionProvider";
 import { Logger } from "../logger";
 import { AnalyticsUtils } from "../utils/analytics";
+import { toCSNoteProps, toDEngineClient } from "../utils/typeBridge";
 import { VSCodeUtils } from "../vsCodeUtils";
 import { WSUtilsV2 } from "../WSUtilsV2";
 import { BasicCommand } from "./base";
@@ -76,14 +77,14 @@ export class ApplyTemplateCommand extends BasicCommand<
       return { updatedTargetNote: undefined };
     }
     const updatedTargetNote = TemplateUtils.applyTemplate({
-      templateNote,
-      engine,
-      targetNote,
+      templateNote: toCSNoteProps(templateNote),
+      engine: toDEngineClient(engine),
+      targetNote: toCSNoteProps(targetNote),
     });
     const resp = await engine.writeNote(updatedTargetNote);
     AnalyticsUtils.track(EngagementEvents.TemplateApplied, {
       source: this.key,
-      ...TemplateUtils.genTrackPayload(templateNote),
+      ...TemplateUtils.genTrackPayload(toCSNoteProps(templateNote)),
     });
     if (resp.error) {
       throw new DendronError({

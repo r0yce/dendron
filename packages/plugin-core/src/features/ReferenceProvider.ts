@@ -35,7 +35,7 @@ export default class ReferenceProvider implements vscode.ReferenceProvider {
             const match = REGEX.exec(matchText);
             return (
               match?.groups &&
-              match.groups["linkContent"].split("#")[1] ===
+              match.groups["linkContent"]!.split("#")[1] ===
                 getSlugger().slug(header)
             );
           })

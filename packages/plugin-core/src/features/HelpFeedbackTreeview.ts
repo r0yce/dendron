@@ -27,7 +27,9 @@ enum MenuItem {
 class HelpFeedbackTreeDataProvider implements TreeDataProvider<MenuItem> {
   ALL_ITEMS = Object.values(MenuItem) as MenuItem[];
 
-  onDidChangeTreeData?: Event<void | MenuItem | null | undefined> | undefined;
+  onDidChangeTreeData?: Event<
+    void | MenuItem | MenuItem[] | null | undefined
+  >;
 
   getTreeItem(element: MenuItem): TreeItem {
     let iconPath: vscode.ThemeIcon;

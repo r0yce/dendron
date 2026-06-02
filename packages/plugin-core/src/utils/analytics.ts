@@ -104,7 +104,7 @@ export class AnalyticsUtils {
   }: {
     event: string;
     props?: any;
-    timestamp?: Date;
+    timestamp?: Date | undefined;
   }) {
     const { ideVersion, ideFlavor } = AnalyticsUtils.getVSCodeIdentifyProps();
     const properties = { ...props, ...AnalyticsUtils.getCommonTrackProps() };
@@ -125,13 +125,15 @@ export class AnalyticsUtils {
   static track(
     event: string,
     customProps?: any,
-    segmentProps?: { timestamp?: Date }
+    segmentProps?: { timestamp?: Date | undefined }
   ) {
     return SegmentUtils.trackSync(
       this._trackCommon({
         event,
         props: customProps,
-        timestamp: segmentProps?.timestamp,
+        ...(segmentProps?.timestamp !== undefined
+          ? { timestamp: segmentProps.timestamp }
+          : {}),
       })
     );
   }
@@ -219,7 +221,9 @@ export class AnalyticsUtils {
     const defaultProps = AnalyticsUtils.getVSCodeIdentifyProps();
     // if partial props is passed, fill them with defaults before calling identify.
     const _props = props ? _.defaults(props, defaultProps) : defaultProps;
-    SegmentUtils.identify(_props);
+    SegmentUtils.identify(
+      _props as Parameters<typeof SegmentUtils.identify>[0]
+    );
   }
 
   /**
@@ -231,7 +235,7 @@ export class AnalyticsUtils {
     ws,
   }: {
     context: vscode.ExtensionContext;
-    ws?: DWorkspaceV2;
+    ws?: DWorkspaceV2 | undefined;
   }) {
     if (getStage() === "prod") {
       const segmentResidualCacheDir = context.globalStorageUri.fsPath;

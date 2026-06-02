@@ -71,13 +71,13 @@ enum UserTier {
 }
 
 export type SegmentClientOpts = {
-  key?: string;
-  forceNew?: boolean;
-  cachePath?: string;
+  key?: string | undefined;
+  forceNew?: boolean | undefined;
+  cachePath?: string | undefined;
   /**
    * Workspace configuration disable analytics
    */
-  disabledByWorkspace?: boolean;
+  disabledByWorkspace?: boolean | undefined;
 };
 
 export const SEGMENT_EVENTS = {

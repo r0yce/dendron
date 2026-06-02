@@ -13,10 +13,10 @@
         "isDefault": true
       },
       "presentation": {
-        "reveal": "silent",
+        "reveal": "always",
         "panel": "shared"
       },
-      "detail": "Compile the extension (tsc) - used by F5 launch configs"
+      "detail": "Plain tsc compile (currently fragile due to strict mode). Prefer 'watch-webpack' + No Precompile launch configs instead."
     },
     {
       "label": "watch-plugin-core",
@@ -49,6 +49,29 @@
       "group": "build",
       "isBackground": true,
       "problemMatcher": ["$ts-webpack-watch"]
+    },
+    {
+      "label": "watch-webpack",
+      "type": "npm",
+      "script": "webpack:dev:watch",
+      "isBackground": true,
+      "problemMatcher": [],
+      "group": "build",
+      "presentation": {
+        "reveal": "never",
+        "panel": "dedicated"
+      },
+      "detail": "RECOMMENDED: Webpack dev watch (produces the actual runnable extension code). Start this once, then use No Precompile launch configs."
+    },
+    {
+      "label": "build-webpack-dev (one-time)",
+      "type": "npm",
+      "script": "build:dev",
+      "group": "build",
+      "presentation": {
+        "reveal": "always"
+      },
+      "detail": "One-time webpack dev build (use if you don't want to leave watch running)"
     },
     {
       "label": "gen:config",

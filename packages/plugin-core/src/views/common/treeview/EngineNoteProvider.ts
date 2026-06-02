@@ -107,7 +107,7 @@ export class EngineNoteProvider
       // eslint-disable-next-line no-await-in-loop
       await this.addParentOfNoteToCache(curNode.note);
 
-      curNode = this._tree[curNode.note.parent];
+      curNode = this._tree[curNode.note.parent]!;
     }
   }
 
@@ -120,7 +120,7 @@ export class EngineNoteProvider
       }
 
       return new Promise((resolve) => {
-        this.addParentOfNoteToCache(this._tree[noteId].note).then(() => {
+        this.addParentOfNoteToCache(this._tree[noteId]!.note).then(() => {
           resolve(parentId);
         });
       });

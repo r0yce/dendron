@@ -104,7 +104,7 @@ export class RenameNoteV2aCommand extends BaseCommand<
     const editor = VSCodeUtils.getActiveTextEditor() as TextEditor;
     const oldUri: Uri = editor.document.uri;
     const vault = PickerUtilsV2.getOrPromptVaultForOpenEditor();
-    const move = inputs.move[0];
+    const move = inputs.move[0]!;
     const fname = move.newLoc.fname;
     const { wsRoot } = ExtensionProvider.getDWorkspace();
     const vpath = vault2Path({ vault, wsRoot });
@@ -137,7 +137,7 @@ export class RenameNoteV2aCommand extends BaseCommand<
     const ext = ExtensionProvider.getExtension();
     try {
       const { files } = opts;
-      const { newUri, oldUri } = files[0];
+      const { newUri, oldUri } = files[0]!;
       if (ext.fileWatcher && !opts.noModifyWatcher) {
         ext.fileWatcher.pause = true;
       }
@@ -168,7 +168,7 @@ export class RenameNoteV2aCommand extends BaseCommand<
           await VSCodeUtils.closeCurrentFileEditor();
         }
         if (opts.openNewFile) {
-          await VSCodeUtils.openFileInEditor(new FileItem(files[0].newUri));
+          await VSCodeUtils.openFileInEditor(new FileItem(files[0]!.newUri));
         }
       }
       return {

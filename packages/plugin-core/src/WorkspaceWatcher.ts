@@ -3,6 +3,7 @@ import {
   ContextualUIEvents,
   DNodeUtils,
   ErrorUtils,
+  NoteProps,
   NoteUtils,
   SchemaUtils,
   Time,
@@ -520,13 +521,13 @@ export class WorkspaceWatcher {
       if (ErrorUtils.isErrorResp(resp)) {
         throw resp.error;
       }
-      let newNote = resp.data;
+      let newNote: NoteProps = resp.data as NoteProps;
       const noteHydrated = await engine.getNote(newNote.id);
       if (noteHydrated.data) {
         newNote = NoteUtils.hydrate({
           noteRaw: newNote,
-          noteHydrated: noteHydrated.data,
-        });
+          noteHydrated: noteHydrated.data as NoteProps,
+        }) as NoteProps;
       }
       newNote.title = NoteUtils.genTitle(fname);
       await engine.writeNote(newNote);

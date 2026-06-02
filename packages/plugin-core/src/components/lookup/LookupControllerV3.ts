@@ -76,9 +76,9 @@ export class LookupControllerV3 implements ILookupControllerV3 {
   constructor(opts: {
     nodeType: DNodeType;
     buttons: DendronBtn[];
-    fuzzThreshold?: number;
-    enableLookupView?: boolean;
-    title?: string;
+    fuzzThreshold?: number | undefined;
+    enableLookupView?: boolean | undefined;
+    title?: string | undefined;
     viewModel: ILookupViewModel;
   }) {
     const ctx = "LookupControllerV3:new";
@@ -108,11 +108,11 @@ export class LookupControllerV3 implements ILookupControllerV3 {
       /**
        * Don't show quickpick
        */
-      nonInteractive?: boolean;
+      nonInteractive?: boolean | undefined;
       /**
        * Initial value for quickpick
        */
-      initialValue?: string;
+      initialValue?: string | undefined;
       provider: ILookupProviderV3;
     }
   ): Promise<DendronQuickPickerV2> {

@@ -23,14 +23,14 @@ export type RefactorCommandOpts = {
 type RefactorRule = {
   name: string;
   matcher: RegExp;
-  fmOnly?: boolean;
+  fmOnly?: boolean | undefined;
   replacer: (
     match: RegExpMatchArray | null,
     txt: string
-  ) => { txtClean: string; diff: any };
+  ) => { txtClean: string; diff: any } | null;
   opts?: {
     matchIfNull: boolean;
-  };
+  } | undefined;
 };
 
 export const RULES = {
@@ -162,6 +162,9 @@ export class RefactorCommand extends BasicCommand<RefactorCommandOpts> {
         replacer: (match: RegExpMatchArray | null, _txt: string) => {
           const fmOrig: string | undefined = (match?.groups ?? {}).fm;
           const body: string | undefined = (match?.groups ?? {}).body;
+          if (!fmOrig) {
+            return null;
+          }
           const fmClean = fmOrig.replace(/\[|/g, "").replace(/\]/g, ": ");
           const output = ["---", fmClean, "---", body];
           return {
@@ -179,6 +182,9 @@ export class RefactorCommand extends BasicCommand<RefactorCommandOpts> {
         replacer: (match: RegExpMatchArray | null, _txt: string) => {
           const fmOrig: string | undefined = (match?.groups ?? {}).fm;
           const body: string | undefined = (match?.groups ?? {}).body;
+          if (!fmOrig) {
+            return null;
+          }
           const fmClean = fmOrig.replace(/\[|/g, "").replace(/\]/g, ": ");
           const output = ["---", fmClean, "---", body];
           return {
@@ -191,7 +197,7 @@ export class RefactorCommand extends BasicCommand<RefactorCommandOpts> {
       },
     ];
     rules.forEach((r) => {
-      this.rules[r.name] = r;
+      this.rules[r.name] = r as RefactorRule;
     });
   }
 
@@ -235,6 +241,9 @@ export class RefactorCommand extends BasicCommand<RefactorCommandOpts> {
       L.debug({ ctx: "execute:process", fname });
       rules.forEach((_r) => {
         const r = this.rules[_r];
+        if (!r) {
+          return;
+        }
         if (r.fmOnly) {
           const startIndex = txt.indexOf("---") + 3;
           const endIndex = txt.indexOf("---", startIndex);
@@ -265,7 +274,7 @@ export class RefactorCommand extends BasicCommand<RefactorCommandOpts> {
 }
 
 export async function main() {
-  const root = process.argv[2];
+  const root = process.argv[2]!;
   await new RefactorCommand().execute({
     root,
     rules: [RULES.REMOVE_FM_BRACKETS],

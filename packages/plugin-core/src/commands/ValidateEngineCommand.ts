@@ -3,6 +3,7 @@ import { window } from "vscode";
 import { DENDRON_COMMANDS } from "../constants";
 import { ExtensionProvider } from "../ExtensionProvider";
 import { Logger } from "../logger";
+import { toDEngineClient } from "../utils/typeBridge";
 import { BasicCommand } from "./base";
 
 const L = Logger;
@@ -22,7 +23,9 @@ export class ValidateEngineCommand extends BasicCommand<
       throw Error("logPath not defined");
     }
     const engine = ExtensionProvider.getEngine();
-    const responses = await StateValidator.validateEngineState(engine);
+    const responses = await StateValidator.validateEngineState(
+      toDEngineClient(engine)
+    );
     responses.map((resp) => {
       if (resp.error) {
         window.showErrorMessage(resp.error.message);

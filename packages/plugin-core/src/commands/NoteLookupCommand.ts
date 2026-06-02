@@ -71,6 +71,7 @@ import { JournalNote } from "../traits/journal";
 import { AnalyticsUtils, getAnalyticsPayload } from "../utils/analytics";
 import { AutoCompleter } from "../utils/autoCompleter";
 import { AutoCompletableRegistrar } from "../utils/registers/AutoCompletableRegistrar";
+import { toCSNoteProps, toDEngineClient } from "../utils/typeBridge";
 import { VSCodeUtils } from "../vsCodeUtils";
 import { WSUtilsV2 } from "../WSUtilsV2";
 import { BaseCommand } from "./base";
@@ -98,8 +99,8 @@ type CommandGatherOutput = {
   quickpick: DendronQuickPickerV2;
   controller: ILookupControllerV3;
   provider: ILookupProviderV3;
-  noConfirm?: boolean;
-  fuzzThreshold?: number;
+  noConfirm?: boolean | undefined;
+  fuzzThreshold?: number | undefined;
 };
 
 /**
@@ -609,16 +610,20 @@ export class NoteLookupCommand extends BaseCommand<
     }
 
     const templateAppliedResp = await TemplateUtils.findAndApplyTemplate({
-      note: nodeNew,
-      engine,
-      pickNote: async (choices: NoteProps[]) => {
-        return WSUtilsV2.instance().promptForNoteAsync({
+      note: toCSNoteProps(nodeNew),
+      engine: toDEngineClient(engine),
+      pickNote: (async (choices: NoteProps[]) => {
+        const resp = await WSUtilsV2.instance().promptForNoteAsync({
           notes: choices,
           quickpickTitle:
             "Select which template to apply or press [ESC] to not apply a template",
           nonStubOnly: true,
         });
-      },
+        if (resp?.data) {
+          return { data: toCSNoteProps(resp.data) };
+        }
+        return resp;
+      }) as Parameters<typeof TemplateUtils.findAndApplyTemplate>[0]["pickNote"],
     });
 
     if (templateAppliedResp.error) {
@@ -628,7 +633,7 @@ export class NoteLookupCommand extends BaseCommand<
     } else if (templateAppliedResp.data) {
       AnalyticsUtils.track(EngagementEvents.TemplateApplied, {
         source: this.key,
-        ...TemplateUtils.genTrackPayload(nodeNew),
+        ...TemplateUtils.genTrackPayload(toCSNoteProps(nodeNew)),
       });
     }
 
@@ -670,9 +675,9 @@ export class NoteLookupCommand extends BaseCommand<
     const templateNote = await this.getTemplateForNewNote();
     if (templateNote) {
       TemplateUtils.applyTemplate({
-        templateNote,
-        targetNote: nodeNew,
-        engine,
+        templateNote: toCSNoteProps(templateNote),
+        targetNote: toCSNoteProps(nodeNew),
+        engine: toDEngineClient(engine),
       });
     } else {
       // template note is not selected. cancel note creation.

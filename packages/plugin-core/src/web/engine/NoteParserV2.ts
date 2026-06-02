@@ -50,7 +50,7 @@ function getFileMeta(fpaths: string[]): FileMetaDict {
     if (!_.has(metaDict, lvl)) {
       metaDict[lvl] = [];
     }
-    metaDict[lvl].push({ fpath });
+    metaDict[lvl]!.push({ fpath });
   });
   return metaDict;
 }
@@ -119,7 +119,7 @@ export class NoteParserV2 {
         ],
       };
     }
-    const rootNote = rootProps.data[0].note;
+    const rootNote = rootProps.data[0]!.note;
     NoteDictsUtils.add(rootNote, noteDicts);
 
     // Parse root hierarchies
@@ -138,12 +138,12 @@ export class NoteParserV2 {
             errors.push(resp.error);
           }
           if (resp.data && resp.data.length > 0) {
-            const parsedNote = resp.data[0].note;
+            const parsedNote = resp.data[0]!.note;
             DNodeUtils.addChild(rootNote, parsedNote);
 
             // Check for duplicate IDs when adding notes to the map
             if (notesById[parsedNote.id] !== undefined) {
-              const duplicate = notesById[parsedNote.id];
+              const duplicate = notesById[parsedNote.id]!;
               errors.push(
                 new DuplicateNoteError({
                   noteA: duplicate,
@@ -194,7 +194,7 @@ export class NoteParserV2 {
                   ent.status === "create" &&
                   notesById[note.id] !== undefined
                 ) {
-                  const duplicate = notesById[note.id];
+                  const duplicate = notesById[note.id]!;
                   errors.push(
                     new DuplicateNoteError({
                       noteA: duplicate,

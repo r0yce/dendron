@@ -288,7 +288,7 @@ export abstract class BaseExportPodCommand<
             // Received event from engine about successful save
             if (updateNoteEntries.length > 0) {
               this.dispose();
-              const savedNote = updateNoteEntries[0].note;
+              const savedNote = updateNoteEntries[0]!.note;
               // Remove notes that match saved note as they contain old content
               const filteredPayload = opts.payload.filter(
                 (note) => note.fname !== savedNote.fname
@@ -367,6 +367,7 @@ export abstract class BaseExportPodCommand<
 
     if (!maybeNote) {
       vscode.window.showErrorMessage("couldn't find the note somehow");
+      return;
     }
     return [maybeNote];
   }
@@ -411,7 +412,7 @@ export abstract class BaseExportPodCommand<
       );
       return;
     }
-    noteProps[0].body = selectedText;
+    noteProps[0]!.body = selectedText;
     return noteProps;
   }
 }

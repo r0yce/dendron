@@ -16,7 +16,7 @@ type ApplyMigrationRuleOpts = {
   currentVersion: string;
   previousVersion: string;
   dendronConfig: DendronConfig;
-  wsConfig?: WorkspaceSettings;
+  wsConfig?: WorkspaceSettings | undefined;
   wsService: WorkspaceService;
   migrations?: Migrations[];
   runAll?: boolean;

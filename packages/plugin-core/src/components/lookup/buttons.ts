@@ -32,7 +32,7 @@ export type ButtonCategory =
 export type ButtonHandleOpts = { quickPick: DendronQuickPickerV2 };
 
 export class Selection2LinkBtn extends DendronBtn {
-  static create(pressed?: boolean) {
+  static create(pressed?: boolean | undefined) {
     return new Selection2LinkBtn({
       title: "Selection to Link",
       description: MODIFIER_DESCRIPTIONS["selection2link"] || "",
@@ -45,7 +45,7 @@ export class Selection2LinkBtn extends DendronBtn {
 }
 
 export class SelectionExtractBtn extends DendronBtn {
-  static create(opts: { pressed?: boolean; canToggle?: boolean }) {
+  static create(opts: { pressed?: boolean | undefined; canToggle?: boolean | undefined }) {
     const { pressed, canToggle } = _.defaults(opts, {
       pressed: false,
       canToggle: true,
@@ -63,7 +63,7 @@ export class SelectionExtractBtn extends DendronBtn {
 }
 
 export class Selection2ItemsBtn extends DendronBtn {
-  static create(opts: { pressed?: boolean; canToggle?: boolean }) {
+  static create(opts: { pressed?: boolean | undefined; canToggle?: boolean | undefined }) {
     const { pressed, canToggle } = _.defaults(opts, {
       pressed: false,
       canToggle: true,
@@ -81,14 +81,14 @@ export class Selection2ItemsBtn extends DendronBtn {
 }
 
 export class JournalBtn extends DendronBtn {
-  static create(opts?: { pressed?: boolean; canToggle?: boolean }) {
+  static create(opts?: { pressed?: boolean | undefined; canToggle?: boolean | undefined }) {
     const { pressed, canToggle } = _.defaults(opts, {
       pressed: false,
       canToggle: true,
     });
     return new JournalBtn({
       title: "Create Journal Note",
-      description: MODIFIER_DESCRIPTIONS["journal"],
+      description: MODIFIER_DESCRIPTIONS["journal"] || "",
       iconOff: "calendar",
       iconOn: "menu-selection",
       type: LookupNoteTypeEnum.journal,
@@ -99,14 +99,14 @@ export class JournalBtn extends DendronBtn {
 }
 
 export class ScratchBtn extends DendronBtn {
-  static create(opts: { pressed?: boolean; canToggle?: boolean }) {
+  static create(opts: { pressed?: boolean | undefined; canToggle?: boolean | undefined }) {
     const { pressed, canToggle } = _.defaults(opts, {
       pressed: false,
       canToggle: true,
     });
     return new ScratchBtn({
       title: "Create Scratch Note",
-      description: MODIFIER_DESCRIPTIONS["scratch"],
+      description: MODIFIER_DESCRIPTIONS["scratch"] || "",
       iconOff: "new-file",
       iconOn: "menu-selection",
       type: LookupNoteTypeEnum.scratch,
@@ -117,10 +117,10 @@ export class ScratchBtn extends DendronBtn {
 }
 
 export class TaskBtn extends DendronBtn {
-  static create(pressed?: boolean) {
+  static create(pressed?: boolean | undefined) {
     return new TaskBtn({
       title: "Create Task Note",
-      description: MODIFIER_DESCRIPTIONS["task"],
+      description: MODIFIER_DESCRIPTIONS["task"] || "",
       iconOff: "diff-added",
       iconOn: "menu-selection",
       type: LookupNoteTypeEnum.task,
@@ -130,10 +130,10 @@ export class TaskBtn extends DendronBtn {
 }
 
 export class HorizontalSplitBtn extends DendronBtn {
-  static create(pressed?: boolean) {
+  static create(pressed?: boolean | undefined) {
     return new HorizontalSplitBtn({
       title: "Split Horizontal",
-      description: MODIFIER_DESCRIPTIONS["horizontal"],
+      description: MODIFIER_DESCRIPTIONS["horizontal"] || "",
       iconOff: "split-horizontal",
       iconOn: "menu-selection",
       type: "horizontal",
@@ -143,10 +143,10 @@ export class HorizontalSplitBtn extends DendronBtn {
 }
 
 export class DirectChildFilterBtn extends DendronBtn {
-  static create(pressed?: boolean) {
+  static create(pressed?: boolean | undefined) {
     return new DirectChildFilterBtn({
       title: "Direct Child Filter",
-      description: MODIFIER_DESCRIPTIONS["directChildOnly"],
+      description: MODIFIER_DESCRIPTIONS["directChildOnly"] || "",
       iconOff: "git-branch",
       iconOn: "menu-selection",
       type: "directChildOnly" as LookupFilterType,
@@ -156,14 +156,14 @@ export class DirectChildFilterBtn extends DendronBtn {
 }
 
 export class MultiSelectBtn extends DendronBtn {
-  static create(opts: { pressed?: boolean; canToggle?: boolean }) {
+  static create(opts: { pressed?: boolean | undefined; canToggle?: boolean | undefined }) {
     const { pressed, canToggle } = _.defaults(opts, {
       pressed: false,
       canToggle: true,
     });
     return new MultiSelectBtn({
       title: "Multi-Select",
-      description: MODIFIER_DESCRIPTIONS["multiSelect"],
+      description: MODIFIER_DESCRIPTIONS["multiSelect"] || "",
       iconOff: "chrome-maximize",
       iconOn: "menu-selection",
       type: "multiSelect" as LookupEffectType,
@@ -174,10 +174,10 @@ export class MultiSelectBtn extends DendronBtn {
 }
 
 export class CopyNoteLinkBtn extends DendronBtn {
-  static create(pressed?: boolean) {
+  static create(pressed?: boolean | undefined) {
     return new CopyNoteLinkBtn({
       title: "Copy Note Link",
-      description: MODIFIER_DESCRIPTIONS["copyNoteLink"],
+      description: MODIFIER_DESCRIPTIONS["copyNoteLink"] || "",
       iconOff: "clippy",
       iconOn: "menu-selection",
       type: "copyNoteLink" as LookupEffectType,
@@ -191,7 +191,7 @@ export class CopyNoteLinkBtn extends DendronBtn {
 }
 
 export class VaultSelectButton extends DendronBtn {
-  static create(opts: { pressed?: boolean; canToggle?: boolean }) {
+  static create(opts: { pressed?: boolean | undefined; canToggle?: boolean | undefined }) {
     return new VaultSelectButton({
       title: "Select Vault",
       description: "",

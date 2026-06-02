@@ -202,7 +202,7 @@ export class CopyNoteLinkCommand
             );
             // Received event from engine about successful save
             if (savedNote.length > 0) {
-              await this.executeCopyNoteLink(savedNote[0].note, editor);
+              await this.executeCopyNoteLink(savedNote[0]!.note, editor);
               this.dispose();
             }
           }

@@ -84,7 +84,8 @@ export class Logger {
     }
     fs.ensureFileSync(logPath);
     const conf = workspace.getConfiguration();
-    const logLevel = conf.get<string>(CONFIG.LOG_LEVEL.key) || "info";
+    const logLevel =
+      conf.get<string>(CONFIG.LOG_LEVEL!.key) || "info";
     setEnv("LOG_DST", logPath);
     setEnv("LOG_LEVEL", logLevel);
     Logger.logPath = logPath;
@@ -161,7 +162,7 @@ export class Logger {
     }
   }
 
-  static info(payload: any, show?: boolean): void {
+  static info(payload: any, show?: boolean | undefined): void {
     Logger.log(payload, "info", { show });
 
     Sentry.addBreadcrumb({
@@ -187,7 +188,7 @@ export class Logger {
   static log = (
     payload: LogPayload,
     lvl: TraceLevel,
-    _opts?: { show?: boolean }
+    _opts?: { show?: boolean | undefined }
   ) => {
     if (Logger.cmpLevel(lvl)) {
       let stringMsg: string;

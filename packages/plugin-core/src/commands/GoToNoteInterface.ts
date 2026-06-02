@@ -35,7 +35,12 @@ export enum GotoFileType {
 
 export type GoToNoteCommandOutput =
   // When opening a note
-  | { kind: TargetKind.NOTE; note: NoteProps; pos?: Position; source?: string }
+  | {
+      kind: TargetKind.NOTE;
+      note: NoteProps;
+      pos?: Position | undefined;
+      source?: string | undefined;
+    }
   // When opening a non-note file
   | { kind: TargetKind.NON_NOTE; fullPath: string; type: GotoFileType }
   // When opening a link to a non txt-file like resource (eg. pdf, website, etc)

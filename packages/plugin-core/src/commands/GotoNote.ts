@@ -27,6 +27,7 @@ import { getAnalyticsPayload } from "../utils/analytics";
 import { EditorUtils } from "../utils/EditorUtils";
 import { PluginFileUtils } from "../utils/files";
 import { maybeSendMeetingNoteTelemetry } from "../utils/MeetingTelemHelper";
+import { toCSNoteProps, toDEngineClient } from "../utils/typeBridge";
 import { VSCodeUtils } from "../vsCodeUtils";
 import { WSUtilsV2 } from "../WSUtilsV2";
 import { IWSUtilsV2 } from "../WSUtilsV2Interface";
@@ -122,7 +123,7 @@ export class GotoNoteCommand extends BasicCommand<
     );
     if (notes.length === 1) {
       // There's just one note, so that's the one we'll go with.
-      opts.vault = notes[0].vault;
+      opts.vault = notes[0]!.vault;
     } else if (notes.length > 1) {
       // It's ambiguous which note the user wants to go to, so we have to
       // guess or prompt.
@@ -305,16 +306,22 @@ export class GotoNoteCommand extends BasicCommand<
               engine: client,
             });
             await TemplateUtils.findAndApplyTemplate({
-              note: newNote,
-              engine: client,
-              pickNote: async (choices: NoteProps[]) => {
-                return WSUtilsV2.instance().promptForNoteAsync({
+              note: toCSNoteProps(newNote),
+              engine: toDEngineClient(client),
+              pickNote: (async (choices: NoteProps[]) => {
+                const resp = await WSUtilsV2.instance().promptForNoteAsync({
                   notes: choices,
                   quickpickTitle:
                     "Select which template to apply or press [ESC] to not apply a template",
                   nonStubOnly: true,
                 });
-              },
+                if (resp?.data) {
+                  return { data: toCSNoteProps(resp.data) };
+                }
+                return resp;
+              }) as Parameters<
+                typeof TemplateUtils.findAndApplyTemplate
+              >[0]["pickNote"],
             });
             note = _.merge(newNote, overrides || {});
             const { originNote } = opts;
@@ -336,7 +343,7 @@ export class GotoNoteCommand extends BasicCommand<
             return;
           }
         } else {
-          note = notes[0];
+          note = notes[0]!;
           // If note exists and its a stub note, delete stub and create new note
           if (note.stub) {
             delete note.stub;

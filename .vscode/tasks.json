@@ -29,9 +29,10 @@
       "problemMatcher": ["$tsc"],
       "group": "build",
       "presentation": {
-        "reveal": "silent",
+        "reveal": "always",
         "panel": "shared"
-      }
+      },
+      "detail": "Plain tsc (currently fragile due to strict mode). For development/debugging, prefer starting 'watch-webpack' inside packages/plugin-core instead."
     },
     {
       "label": "compile:watch:plugin-core",

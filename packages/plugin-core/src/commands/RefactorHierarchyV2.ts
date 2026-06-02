@@ -155,7 +155,7 @@ export class RefactorHierarchyCommandV2 extends BasicCommand<
       title: "Enter match text",
       prompt:
         "The matched portion of the file name will be the part that gets modified. The rest will remain unchanged. This supports full range of regular expression. Leave blank to capture entire file name",
-      value,
+      ...(value !== undefined ? { value } : {}),
     });
 
     if (match === undefined) {

@@ -56,7 +56,9 @@ export type SetNameModifierResp = {
 };
 
 export type onWillCreateProps = {
-  setNameModifier?(props: OnCreateContext): SetNameModifierResp;
+  setNameModifier?:
+    | ((props: OnCreateContext) => SetNameModifierResp)
+    | undefined;
 };
 
 export type onCreateProps = {
@@ -64,13 +66,13 @@ export type onCreateProps = {
    * Function whose return value will be used as the title of the note
    * @param props
    */
-  setTitle?(props: OnCreateContext): string;
+  setTitle?: ((props: OnCreateContext) => string) | undefined;
 
   /**
    * Set a note template to be applied. Return the fname of the desired template
    * note from this function
    */
-  setTemplate?(): string;
+  setTemplate?: (() => string) | undefined;
 
   //TODO: What are the arguments? Also - reconcile this functionality with
   //setTemplate, as both modify body contents.
