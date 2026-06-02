@@ -30,12 +30,12 @@ const runGetNoteBlocks = async ({
     note = (
       await engine.findNotes({
         fname: "test",
-        vault: vaults[0],
+        vault: vaults[0]!,
       })
     )[0];
   const out = await engine.getNoteBlocks({
     id: note!.id,
-    filterByAnchorType,
+    ...(filterByAnchorType !== undefined ? { filterByAnchorType } : {}),
   });
   return cb(out);
 };
@@ -45,7 +45,7 @@ const preSetupHook = async (
   { noteBody, fname }: { noteBody: string; fname?: string }
 ) => {
   await NoteTestUtilsV4.createNote({
-    vault: vaults[0],
+    vault: vaults[0]!,
     wsRoot,
     fname: fname || "test",
     body: noteBody,
@@ -190,13 +190,13 @@ const NOTES = {
               actual: data?.length,
               expected: 7,
             },
-            { actual: data![0].anchor?.value, expected: "et-et-quam-culpa" },
-            { actual: data![1].anchor?.value, expected: "paragraph" },
-            { actual: data![2].anchor?.value, expected: "item1" },
-            { actual: data![3].anchor?.value, expected: "item2" },
-            { actual: data![4].anchor?.value, expected: "item3" },
-            { actual: data![5].anchor?.value, expected: "list" },
-            { actual: data![6].anchor?.value, expected: "table" },
+            { actual: data![0]!.anchor?.value, expected: "et-et-quam-culpa" },
+            { actual: data![1]!.anchor?.value, expected: "paragraph" },
+            { actual: data![2]!.anchor?.value, expected: "item1" },
+            { actual: data![3]!.anchor?.value, expected: "item2" },
+            { actual: data![4]!.anchor?.value, expected: "item3" },
+            { actual: data![5]!.anchor?.value, expected: "list" },
+            { actual: data![6]!.anchor?.value, expected: "table" },
           ];
         },
       });
@@ -236,7 +236,7 @@ const NOTES = {
               actual: data?.length,
               expected: 1,
             },
-            { actual: data![0].anchor?.value, expected: "et-et-quam-culpa" },
+            { actual: data![0]!.anchor?.value, expected: "et-et-quam-culpa" },
           ];
         },
       });
@@ -276,12 +276,12 @@ const NOTES = {
               actual: data?.length,
               expected: 6,
             },
-            { actual: data![0].anchor?.value, expected: "paragraph" },
-            { actual: data![1].anchor?.value, expected: "item1" },
-            { actual: data![2].anchor?.value, expected: "item2" },
-            { actual: data![3].anchor?.value, expected: "item3" },
-            { actual: data![4].anchor?.value, expected: "list" },
-            { actual: data![5].anchor?.value, expected: "table" },
+            { actual: data![0]!.anchor?.value, expected: "paragraph" },
+            { actual: data![1]!.anchor?.value, expected: "item1" },
+            { actual: data![2]!.anchor?.value, expected: "item2" },
+            { actual: data![3]!.anchor?.value, expected: "item3" },
+            { actual: data![4]!.anchor?.value, expected: "list" },
+            { actual: data![5]!.anchor?.value, expected: "table" },
           ];
         },
       });
@@ -321,11 +321,11 @@ const NOTES = {
               expected: 4,
             },
             {
-              actual: data![0].anchor?.value,
+              actual: data![0]!.anchor?.value,
               expected: "et-et-quam-culpa",
             },
             {
-              actual: data![2].anchor?.value,
+              actual: data![2]!.anchor?.value,
               expected: "eius-odit-commodi-harum",
             },
           ];

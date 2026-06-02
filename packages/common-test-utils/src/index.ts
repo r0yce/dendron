@@ -156,7 +156,11 @@ export class EngineTestUtilsV4 {
     const { match, nomatch } = opts;
     const vpath = vault2Path(opts);
     const content = fs.readdirSync(vpath).join("\n");
-    return AssertUtils.assertInString({ body: content, match, nomatch });
+    return AssertUtils.assertInString({
+      body: content,
+      ...(match !== undefined ? { match } : {}),
+      ...(nomatch !== undefined ? { nomatch } : {}),
+    });
   }
 }
 
@@ -171,11 +175,12 @@ export class EngineTestUtilsV3 {
   }
 
   static async setupVaults(opts: SetupVaultsOptsV3) {
+    const defaultVaultPairs: [string, string][] = [
+      [tmpDir().name, "main"],
+      [tmpDir().name, "other"],
+    ];
     const { vaults } = _.defaults(opts, {
-      vaults: [
-        [tmpDir().name, "main"],
-        [tmpDir().name, "other"],
-      ].map(([vpath, vname]) => {
+      vaults: defaultVaultPairs.map(([vpath, vname]) => {
         return {
           fsPath: path.relative(opts.wsRoot, vpath),
           name: vname,
@@ -199,7 +204,7 @@ export class EngineTestUtilsV3 {
         return EngineTestUtilsV2.setupVault({
           ...opts,
           vaultDir: path.join(opts.wsRoot, fsPath),
-          initDirCb: cb[idx],
+          ...(cb[idx] !== undefined ? { initDirCb: cb[idx] } : {}),
         });
       })
     );
@@ -218,7 +223,7 @@ export class EngineTestUtilsV2 {
     await fs.ensureDir(vaultDir);
     await EngineTestUtilsV2.setupVault({
       vaultDir,
-      initDirCb,
+      ...(initDirCb !== undefined ? { initDirCb } : {}),
       withAssets,
       withGit,
     });
@@ -438,7 +443,8 @@ export class NodeTestUtilsV2 {
         return schemaModuleOpts2File(module, vaultDir, fname);
       })
     );
-    return schemaModuleProps[0][0];
+    const [firstModule] = schemaModuleProps[0]!;
+    return firstModule;
   };
 
   static normalizeNote({ note }: { note: NoteProps }): Partial<NoteProps> {

@@ -27,6 +27,7 @@ import _ from "lodash";
 import path from "path";
 import * as vscode from "vscode"; // NOTE: This version contains vscode.workspace.fs API references. Need to refactor that out somehow.
 import { URI, Utils } from "vscode-uri";
+import { decodeUtf8 } from "../../utils/browserTextDecoder";
 
 // NOTE: THIS FILE IS DUPLICATED IN ENGINE-SERVER. TODO: Refactor and
 // consolidate the two NoteParserV2 versions
@@ -302,9 +303,7 @@ export class NoteParserV2 {
   }): Promise<RespV2<NoteProps>> {
     const raw = await vscode.workspace.fs.readFile(uri);
 
-    // @ts-expect-error - browser interop: must use global DOM TextDecoder (provided by "DOM" + "DOM.Iterable" libs in tsconfig; VSCode web extension + webview contexts have no Node 'util'/'node:util' TextDecoder available in webpack browser bundle). Precise dated justification (final Post-M2 + Doctor Smoke Burn, 2026-06-01); never bare per ts-expect-error-burner SKILL. See VSCodeFileStore + getWorkspaceConfig siblings + web/ DI cluster. 0 bare rule upheld.
-
-    const content = textDecoder.decode(raw);
+    const content = decodeUtf8(raw);
     const name = path.parse(Utils.basename(uri)).name;
     const sig = genHash(content);
 

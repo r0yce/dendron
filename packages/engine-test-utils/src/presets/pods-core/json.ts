@@ -10,7 +10,7 @@ import {
 import { ImportPod, ImportPodConfig } from "@dendronhq/pods-core";
 import fs from "fs-extra";
 import path from "path";
-import { setupBasic } from "../engine-server/utils";
+import { setupBasic } from "..";
 
 type JSONEntry = {
   fname: string;
@@ -41,7 +41,11 @@ const assertInNote = ({
   const importedNote = fs.readFileSync(path.join(vpath, fname + ".md"), {
     encoding: "utf8",
   });
-  return AssertUtils.assertInString({ body: importedNote, match, nomatch });
+  return AssertUtils.assertInString({
+    body: importedNote,
+    ...(match !== undefined ? { match } : {}),
+    ...(nomatch !== undefined ? { nomatch } : {}),
+  });
 };
 
 const getImportPod = (extra: any) => {
@@ -51,7 +55,7 @@ const getImportPod = (extra: any) => {
 const IMPORT = {
   BASIC: new TestPresetEntryV4(async ({ wsRoot, engine, vaults, extra }) => {
     const { pod } = extra as { pod: DPod<any> };
-    const vault = vaults[0];
+    const vault = vaults[0]!;
 
     const importSrc = createJSONEntries([
       {
@@ -99,7 +103,7 @@ const IMPORT = {
   BASIC_W_STUBS: new TestPresetEntryV4(
     async ({ wsRoot, engine, vaults, extra }) => {
       const pod = getImportPod(extra);
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const importSrc = createJSONEntries([
         {
           fname: "baz.one",
@@ -144,7 +148,7 @@ const IMPORT = {
   BASIC_W_REL_PATH: new TestPresetEntryV4(
     async ({ wsRoot, engine, vaults, extra }) => {
       const pod = getImportPod(extra);
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const importSrc = createJSONEntries(
         [
           {
@@ -182,7 +186,7 @@ const IMPORT = {
   CONCATENATE: new TestPresetEntryV4(
     async ({ wsRoot, engine, vaults, extra }) => {
       const pod = getImportPod(extra);
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const importSrc = createJSONEntries([
         {
           fname: "foo",
@@ -241,7 +245,7 @@ const IMPORT = {
           body: "bar body",
         },
       ]);
-      const vault = vaults[0];
+      const vault = vaults[0]!;
 
       const config = {
         src: importSrc,

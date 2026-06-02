@@ -25,7 +25,7 @@ import { ENGINE_HOOKS, setupBasic } from "./utils";
 const SCHEMAS = {
   BASIC: new TestPresetEntryV4(
     async ({ wsRoot, vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const schemaId = SCHEMA_PRESETS_V4.SCHEMA_SIMPLE.fname;
       const beforeSchema = (await engine.getSchema(schemaId)).data!;
       await engine.deleteSchema(schemaId);
@@ -51,7 +51,7 @@ const SCHEMAS = {
 const NOTES = {
   GRANDCHILD_WITH_ALL_STUB_PARENTS: new TestPresetEntryV4(
     async ({ wsRoot, vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const logger = (engine as DendronEngineClient).logger;
       const cachePath = path.join(
         vault2Path({ wsRoot, vault }),
@@ -61,7 +61,7 @@ const NOTES = {
       const keySet = notesCache.getCacheEntryKeys();
       const fooChildNote = (
         await engine.findNotesMeta({ fname: "foo.ch1", vault })
-      )[0];
+      )[0]!;
       const resp = await engine.deleteNote(fooChildNote.id);
       const changed = resp.data;
       await engine.init();
@@ -112,7 +112,7 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createNote({
           fname: "foo.ch1",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
           body: "",
         });
@@ -121,7 +121,7 @@ const NOTES = {
   ),
   NOTE_NO_CHILDREN: new TestPresetEntryV4(
     async ({ wsRoot, vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const logger = (engine as DendronEngineClient).logger;
       const notesInVaultBefore = await engine.findNotesMeta({ vault });
       const cachePath = path.join(
@@ -132,17 +132,17 @@ const NOTES = {
       const keySet = notesCache.getCacheEntryKeys();
       const fooChildNote = (
         await engine.findNotesMeta({ fname: "foo.ch1", vault })
-      )[0];
+      )[0]!;
       const resp = await engine.deleteNote(fooChildNote.id);
 
       // Foo's child should be deleted, leaving behind foo and 3 root notes
       const notesInVaultAfter = await engine.findNotesMeta({ vault });
-      const fooNote = (await engine.findNotesMeta({ fname: "foo", vault }))[0];
+      const fooNote = (await engine.findNotesMeta({ fname: "foo", vault }))[0]!;
       const changed = resp.data;
       const vpath = vault2Path({ vault, wsRoot });
       await engine.init();
       return [
-        { actual: changed![0].note.id, expected: "foo" },
+        { actual: changed![0]!.note.id, expected: "foo" },
         { actual: _.size(notesInVaultBefore), expected: 3 },
         { actual: _.size(notesInVaultAfter), expected: 2 },
         { actual: fooNote.children, expected: [] },
@@ -167,12 +167,12 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createNote({
           fname: "foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
         await NoteTestUtilsV4.createNote({
           fname: "foo.ch1",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
           body: "",
         });
@@ -181,7 +181,7 @@ const NOTES = {
   ),
   NOTE_WITH_TARGET: new TestPresetEntryV4(
     async ({ vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const notesInVaultBefore = await engine.findNotesMeta({ vault });
       const betaNoteBefore = await engine.getNoteMeta("beta");
       const betaBackLinksBefore = betaNoteBefore.data!.links.filter(
@@ -208,22 +208,22 @@ const NOTES = {
       preSetupHook: async ({ wsRoot, vaults }) => {
         await NOTE_PRESETS_V4.NOTE_WITH_TARGET.create({
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
         });
         await NOTE_PRESETS_V4.NOTE_WITH_LINK.create({
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
         });
       },
     }
   ),
   DOMAIN_CHILDREN: new TestPresetEntryV4(
     async ({ wsRoot, vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const notesInVaultBefore = await engine.findNotesMeta({ vault });
       const noteToDelete = (
         await engine.findNotesMeta({ fname: "foo", vault })
-      )[0];
+      )[0]!;
       const resp = await engine.deleteNote(noteToDelete?.id as string);
 
       const createEntries = extractNoteChangeEntriesByType(
@@ -242,10 +242,10 @@ const NOTES = {
       );
 
       const notesInVaultAfter = await engine.findNotesMeta({ vault });
-      const fooNote = (await engine.findNotesMeta({ fname: "foo", vault }))[0];
+      const fooNote = (await engine.findNotesMeta({ fname: "foo", vault }))[0]!;
       const fooChild = (
         await engine.findNotesMeta({ fname: "foo.ch1", vault })
-      )[0];
+      )[0]!;
       const vpath = vault2Path({ vault, wsRoot });
 
       return [
@@ -295,12 +295,12 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createNote({
           fname: "foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
         await NoteTestUtilsV4.createNote({
           fname: "foo.ch1",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
           body: "",
         });
@@ -309,7 +309,7 @@ const NOTES = {
   ),
   DOMAIN_NO_CHILDREN: new TestPresetEntryV4(
     async ({ wsRoot, vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const notesInVaultBefore = await engine.findNotesMeta({ vault });
       const logger = (engine as DendronEngineClient).logger;
       const cachePath = path.join(
@@ -320,22 +320,22 @@ const NOTES = {
       const keySet = notesCache.getCacheEntryKeys();
       const noteToDelete = (
         await engine.findNotesMeta({ fname: "foo", vault })
-      )[0];
+      )[0]!;
       const resp = await engine.deleteNote(noteToDelete?.id as string);
 
       const changed = resp.data as NoteChangeEntry[];
       const notesInVaultAfter = await engine.findNotesMeta({ vault });
-      const fooNote = (await engine.findNotesMeta({ fname: "foo", vault }))[0];
+      const fooNote = (await engine.findNotesMeta({ fname: "foo", vault }))[0]!;
       const vpath = vault2Path({ vault, wsRoot });
       await engine.init();
       return [
         {
-          actual: changed[0].note.fname,
+          actual: changed[0]!.note.fname,
           expected: "root",
           msg: "root updated",
         },
         {
-          actual: changed[0].note.children,
+          actual: changed[0]!.note.children,
           expected: [],
           msg: "root does not have children",
         },
@@ -371,7 +371,7 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createNote({
           fname: "foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
       },
@@ -379,7 +379,7 @@ const NOTES = {
   ),
   STALE_CACHE_ENTRY: new TestPresetEntryV4(
     async ({ wsRoot, vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const logger = (engine as DendronEngineClient).logger;
       const cachePath = path.join(
         vault2Path({ wsRoot, vault }),
@@ -391,7 +391,7 @@ const NOTES = {
       const staleNote = await NoteTestUtilsV4.createNote({
         fname: "my-new-note",
         wsRoot,
-        vault: vaults[0],
+        vault: vaults[0]!,
         noWrite: true,
       });
       const cacheEntry = createCacheEntry({
@@ -436,7 +436,7 @@ const NOTES = {
   ),
   MULTIPLE_DELETES: new TestPresetEntryV4(
     async ({ wsRoot, vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const notesInVaultBefore = await engine.findNotesMeta({ vault });
       const logger = (engine as DendronEngineClient).logger;
       const cachePath = path.join(
@@ -447,11 +447,11 @@ const NOTES = {
       const keySet = notesCache.getCacheEntryKeys();
       const fooChildNote = (
         await engine.findNotesMeta({ fname: "foo.ch1", vault })
-      )[0];
+      )[0]!;
       const resp = await engine.deleteNote(fooChildNote.id);
       const changed = resp.data;
 
-      const fooNote = (await engine.findNotesMeta({ fname: "foo", vault }))[0];
+      const fooNote = (await engine.findNotesMeta({ fname: "foo", vault }))[0]!;
       const resp2 = await engine.deleteNote(fooNote.id);
       const changed2 = resp2.data;
       const notesInVaultAfter = await engine.findNotesMeta({ vault });
@@ -498,12 +498,12 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createNote({
           fname: "foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
         await NoteTestUtilsV4.createNote({
           fname: "foo.ch1",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
           body: "",
         });

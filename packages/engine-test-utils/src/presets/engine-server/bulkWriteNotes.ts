@@ -5,7 +5,7 @@ import _ from "lodash";
 const SCHEMAS = {};
 const NOTES = {
   BASIC: new TestPresetEntryV4(async ({ vaults, engine }) => {
-    const vault = vaults[0];
+    const vault = vaults[0]!;
     const orig = _.size(await engine.findNotesMeta({ vault }));
     const note1 = NoteUtils.create({
       id: "bar1",
@@ -21,7 +21,7 @@ const NOTES = {
       updated: 1,
       vault,
     });
-    const rootNote = (await engine.findNotes({ fname: "root", vault }))[0];
+    const rootNote = (await engine.findNotes({ fname: "root", vault }))[0]!;
     await engine.bulkWriteNotes({ notes: [note1, note2] });
     const barNote = (await engine.getNoteMeta("bar1")).data!;
     return [

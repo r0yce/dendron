@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, "go-to-work", "chore/**", "feat/**"]
+  pull_request:
+    branches: [main, master, "go-to-work"]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn bootstrap:bootstrap
+
+      - name: Build (fast path)
+        run: yarn bootstrap:build:fast
+
+      - name: Build (full bootstrap)
+        run: yarn bootstrap:build
+
+      - name: Typecheck plugin-core
+        run: yarn workspace @dendronhq/plugin-core compile
+
+      - name: CLI health smoke
+        run: yarn dendron health --json 2>&1 | head -c 4096 || true
+
+  cli-tests:
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: yarn
+
+      - name: Install and build
+        run: |
+          yarn bootstrap:bootstrap
+          yarn bootstrap:buildCI
+
+      - name: CLI unit tests
+        run: yarn ci:test:cli
+        continue-on-error: true

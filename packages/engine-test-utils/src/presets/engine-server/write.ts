@@ -27,7 +27,7 @@ const SCHEMAS = {
     async ({ vaults, engine }) => {
       const schemaModId = SCHEMA_PRESETS_V4.SCHEMA_SIMPLE.fname;
       const module = (await engine.getSchema(schemaModId)).data!;
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const schema = SchemaUtils.createFromSchemaRaw({ id: "ch2", vault });
       DNodeUtils.addChild(module.root, schema);
       module.schemas[schema.id] = schema;
@@ -52,7 +52,7 @@ const SCHEMAS = {
   ),
   ADD_NEW_MODULE_NO_CHILD: new TestPresetEntryV4(
     async ({ wsRoot, vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const schemaModNew =
         await SCHEMA_PRESETS_V4.SCHEMA_SIMPLE_OTHER_NO_CHILD.create({
           vault,
@@ -75,7 +75,7 @@ const SCHEMAS = {
   ),
   ADD_NEW_MODULE: new TestPresetEntryV4(
     async ({ wsRoot, vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const schemaModNew = await SCHEMA_PRESETS_V4.SCHEMA_SIMPLE_OTHER.create({
         vault,
         wsRoot,
@@ -105,7 +105,7 @@ const SCHEMAS = {
 const NOTES = {
   NOTE_NO_CHILDREN: new TestPresetEntryV4(
     async ({ vaults, wsRoot, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const logger = (engine as DendronEngineClient).logger;
       const cachePath = path.join(
         vault2Path({ wsRoot, vault }),
@@ -118,7 +118,7 @@ const NOTES = {
           fname: "foo",
           vault,
         })
-      )[0];
+      )[0]!;
       const cnote = _.clone(noteOld);
       cnote.body = "new body";
       await engine.writeNote(cnote);
@@ -127,7 +127,7 @@ const NOTES = {
           fname: "foo",
           vault,
         })
-      )[0];
+      )[0]!;
       await engine.init();
 
       return [
@@ -154,13 +154,13 @@ const NOTES = {
     },
     {
       preSetupHook: async ({ vaults, wsRoot }) => {
-        await NOTE_PRESETS_V4.NOTE_SIMPLE.create({ wsRoot, vault: vaults[0] });
+        await NOTE_PRESETS_V4.NOTE_SIMPLE.create({ wsRoot, vault: vaults[0]! });
       },
     }
   ),
   NOTE_UPDATE_CHILDREN: new TestPresetEntryV4(
     async ({ vaults, wsRoot, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const logger = (engine as DendronEngineClient).logger;
       const cachePath = path.join(
         vault2Path({ wsRoot, vault }),
@@ -173,7 +173,7 @@ const NOTES = {
           fname: "foo",
           vault,
         })
-      )[0];
+      )[0]!;
       const cnote = _.clone(noteOld);
       cnote.children = ["random note"];
       await engine.writeNote(cnote);
@@ -182,7 +182,7 @@ const NOTES = {
           fname: "foo",
           vault,
         })
-      )[0];
+      )[0]!;
 
       await engine.init();
 
@@ -214,7 +214,7 @@ const NOTES = {
   ),
   NOTE_WITH_TARGET: new TestPresetEntryV4(
     async ({ vaults, wsRoot, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const notesInVaultBefore = await engine.findNotesMeta({ vault });
       const betaNoteBefore = await engine.getNoteMeta("beta");
       const betaBackLinksBefore = betaNoteBefore.data!.links.filter(
@@ -222,7 +222,7 @@ const NOTES = {
       );
       const note = await NOTE_PRESETS_V4.NOTE_WITH_TARGET.create({
         wsRoot,
-        vault: vaults[0],
+        vault: vaults[0]!,
       });
       await engine.writeNote(note);
 
@@ -245,14 +245,14 @@ const NOTES = {
       preSetupHook: async ({ wsRoot, vaults }) => {
         await NOTE_PRESETS_V4.NOTE_WITH_LINK.create({
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
         });
       },
     }
   ),
   UPDATE_NOTE_ADD_BACKLINK: new TestPresetEntryV4(
     async ({ vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const notesInVaultBefore = await engine.findNotesMeta({ vault });
       const betaNoteBefore = await engine.getNoteMeta("beta");
       const betaBackLinksBefore = betaNoteBefore.data!.links.filter(
@@ -281,15 +281,15 @@ const NOTES = {
       preSetupHook: async ({ wsRoot, vaults }) => {
         await NOTE_PRESETS_V4.NOTE_WITH_LINK.create({
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
         });
         await NOTE_PRESETS_V4.NOTE_WITH_TARGET.create({
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
         });
         await NoteTestUtilsV4.createNote({
           fname: "foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
       },
@@ -297,7 +297,7 @@ const NOTES = {
   ),
   UPDATE_NOTE_REMOVE_BACKLINK: new TestPresetEntryV4(
     async ({ vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const notesInVaultBefore = await engine.findNotesMeta({ vault });
       const betaNoteBefore = await engine.getNoteMeta("beta");
       const betaBackLinksBefore = betaNoteBefore.data!.links.filter(
@@ -326,15 +326,15 @@ const NOTES = {
       preSetupHook: async ({ wsRoot, vaults }) => {
         await NOTE_PRESETS_V4.NOTE_WITH_LINK.create({
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
         });
         await NOTE_PRESETS_V4.NOTE_WITH_TARGET.create({
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
         });
         await NoteTestUtilsV4.createNote({
           fname: "foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
       },
@@ -342,7 +342,7 @@ const NOTES = {
   ),
   UPDATE_NOTE_UPDATE_BACKLINK: new TestPresetEntryV4(
     async ({ vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const notesInVaultBefore = await engine.findNotesMeta({ vault });
       const betaNoteBefore = await engine.getNoteMeta("beta");
       const betaBackLinksBefore = betaNoteBefore.data!.links.filter(
@@ -383,22 +383,22 @@ const NOTES = {
       preSetupHook: async ({ wsRoot, vaults }) => {
         await NOTE_PRESETS_V4.NOTE_WITH_LINK.create({
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
         });
         await NOTE_PRESETS_V4.NOTE_WITH_TARGET.create({
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
         });
         await NoteTestUtilsV4.createNote({
           fname: "foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
       },
     }
   ),
   CUSTOM_ATT: new TestPresetEntryV4(async ({ wsRoot, vaults, engine }) => {
-    const vault = vaults[0];
+    const vault = vaults[0]!;
     const logger = (engine as DendronEngineClient).logger;
     const cachePath = path.join(
       vault2Path({ wsRoot, vault }),
@@ -417,7 +417,7 @@ const NOTES = {
         fname: note.fname,
         vault,
       })
-    )[0];
+    )[0]!;
     await engine.init();
     return [
       {
@@ -446,17 +446,17 @@ const NOTES = {
       const note = (
         await engine.findNotes({
           fname: "foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
         })
-      )[0];
+      )[0]!;
       note.custom = { bond: 43 };
       await engine.writeNote(note);
       const newNote = (
         await engine.findNotes({
           fname: "foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
         })
-      )[0];
+      )[0]!;
       return [
         {
           actual: _.omit(newNote, "contentHash"),
@@ -468,20 +468,20 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createNote({
           fname: "foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
       },
     }
   ),
   NEW_DOMAIN: new TestPresetEntryV4(async ({ vaults, engine }) => {
-    const vault = vaults[0];
+    const vault = vaults[0]!;
     const noteNew = NoteUtils.create({
       id: "bar",
       fname: "bar",
       created: 1,
       updated: 1,
-      vault: vaults[0],
+      vault: vaults[0]!,
     });
     await engine.writeNote(noteNew);
 
@@ -490,7 +490,7 @@ const NOTES = {
       originalQS: "bar",
       vault,
     });
-    const note = resp[0];
+    const note = resp[0]!;
 
     return [
       {
@@ -508,7 +508,7 @@ const NOTES = {
   }),
   MATCH_SCHEMA: new TestPresetEntryV4(
     async ({ vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const noteNew = NoteUtils.create({
         fname: "foo.ch1",
         created: 1,
@@ -524,7 +524,7 @@ const NOTES = {
               fname: "foo.ch1",
               vault,
             })
-          )[0].schema,
+          )[0]!.schema,
           expected: {
             moduleId: "foo",
             schemaId: "ch1",
@@ -536,12 +536,12 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createSchema({
           fname: "foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
           modifier: (schema) => {
             schema.schemas["ch1"] = SchemaUtils.createFromSchemaRaw({
               id: "ch1",
-              vault: vaults[0],
+              vault: vaults[0]!,
             });
             DNodeUtils.addChild(schema.root, schema.schemas["ch1"]);
             return schema;
@@ -552,13 +552,13 @@ const NOTES = {
   ),
   MATCH_SCHEMA_UPDATE_NOTE: new TestPresetEntryV4(
     async ({ vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const updatedNote = (
         await engine.findNotes({
           fname: "foo.ch1",
           vault,
         })
-      )[0];
+      )[0]!;
       updatedNote.body = "new body";
       // Note already exists, make sure schema is the same
       await engine.writeNote(updatedNote);
@@ -570,7 +570,7 @@ const NOTES = {
               fname: "foo.ch1",
               vault,
             })
-          )[0].schema,
+          )[0]!.schema,
           expected: {
             moduleId: "foo",
             schemaId: "ch1",
@@ -582,7 +582,7 @@ const NOTES = {
               fname: "foo.ch1",
               vault,
             })
-          )[0].body,
+          )[0]!.body,
           expected: "new body",
         },
       ];
@@ -591,12 +591,12 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createSchema({
           fname: "foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
           modifier: (schema) => {
             schema.schemas["ch1"] = SchemaUtils.createFromSchemaRaw({
               id: "ch1",
-              vault: vaults[0],
+              vault: vaults[0]!,
             });
             DNodeUtils.addChild(schema.root, schema.schemas["ch1"]);
             return schema;
@@ -604,7 +604,7 @@ const NOTES = {
         });
         await NoteTestUtilsV4.createNote({
           fname: "foo.ch1",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
       },
@@ -613,30 +613,30 @@ const NOTES = {
   DOMAIN_STUB: new TestPresetEntryV4(async ({ engine, vaults, wsRoot }) => {
     const note = await NoteTestUtilsV4.createNote({
       fname: "bar.ch1",
-      vault: vaults[0],
+      vault: vaults[0]!,
       wsRoot,
       noWrite: true,
     });
     await engine.writeNote(note);
-    const vault = vaults[0];
+    const vault = vaults[0]!;
     const root = (
       await engine.findNotes({
         fname: "root",
         vault,
       })
-    )[0];
+    )[0]!;
     const bar = (
       await engine.findNotesMeta({
         fname: "bar",
         vault,
       })
-    )[0];
+    )[0]!;
     const child = (
       await engine.findNotes({
         fname: "bar.ch1",
         vault,
       })
-    )[0];
+    )[0]!;
     return [
       {
         actual: _.size(root.children),
@@ -661,12 +661,12 @@ const NOTES = {
         fname: "bond.ch1",
         created: 1,
         updated: 1,
-        vault: vaults[0],
+        vault: vaults[0]!,
       });
       await engine.writeNote(noteNew);
       const checkVault = await FileTestUtils.assertInVault({
         wsRoot,
-        vault: vaults[0],
+        vault: vaults[0]!,
         match: ["bond.ch1.md"],
         nomatch: ["bond.md"],
       });
@@ -682,12 +682,12 @@ const NOTES = {
     async ({ vaults, wsRoot, engine }) => {
       const noteNew = NoteUtils.create({
         fname: "foo.ch2",
-        vault: vaults[0],
+        vault: vaults[0]!,
       });
       await engine.writeNote(noteNew);
       const checkVault = await FileTestUtils.assertInVault({
         wsRoot,
-        vault: vaults[0],
+        vault: vaults[0]!,
         match: ["foo.md", "foo.ch2.md"],
       });
       return [
@@ -701,7 +701,7 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createNote({
           fname: "foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
       },
@@ -711,12 +711,12 @@ const NOTES = {
     async ({ vaults, wsRoot, engine }) => {
       const noteNew = NoteUtils.create({
         fname: "foo.ch2.gch1",
-        vault: vaults[0],
+        vault: vaults[0]!,
       });
       await engine.writeNote(noteNew);
       const checkVault = await FileTestUtils.assertInVault({
         wsRoot,
-        vault: vaults[0],
+        vault: vaults[0]!,
         match: ["foo.md", "foo.ch2.gch1.md"],
         nomatch: ["foo.ch2.md"],
       });
@@ -731,7 +731,7 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createNote({
           fname: "foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
       },
@@ -739,22 +739,22 @@ const NOTES = {
   ),
   TITLE_MATCHES_TITLE_CASE: new TestPresetEntryV4(
     async ({ vaults, wsRoot, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const noteA = await NoteTestUtilsV4.createNote({
         fname: "Upper Upper",
-        vault: vaults[0],
+        vault: vaults[0]!,
         wsRoot,
       });
       await engine.writeNote(noteA);
       const noteB = await NoteTestUtilsV4.createNote({
         fname: "lower lower",
-        vault: vaults[0],
+        vault: vaults[0]!,
         wsRoot,
       });
       await engine.writeNote(noteB);
       const noteC = await NoteTestUtilsV4.createNote({
         fname: "lower Upper",
-        vault: vaults[0],
+        vault: vaults[0]!,
         wsRoot,
       });
       await engine.writeNote(noteC);
@@ -765,7 +765,7 @@ const NOTES = {
               fname: "Upper Upper",
               vault,
             })
-          )[0].title,
+          )[0]!.title,
           expected: "Upper Upper",
         },
         {
@@ -774,7 +774,7 @@ const NOTES = {
               fname: "lower lower",
               vault,
             })
-          )[0].title,
+          )[0]!.title,
           expected: "Lower Lower",
         },
         {
@@ -783,23 +783,23 @@ const NOTES = {
               fname: "lower Upper",
               vault,
             })
-          )[0].title,
+          )[0]!.title,
           expected: "lower Upper",
         },
       ];
     }
   ),
   TITLE_WITH_DASH: new TestPresetEntryV4(async ({ vaults, wsRoot, engine }) => {
-    const vault = vaults[0];
+    const vault = vaults[0]!;
     const noteA = await NoteTestUtilsV4.createNote({
       fname: "foo-with-dash",
-      vault: vaults[0],
+      vault: vaults[0]!,
       wsRoot,
     });
     // this should still only get last component
     const noteB = await NoteTestUtilsV4.createNote({
       fname: "foo.foo-with-dash",
-      vault: vaults[0],
+      vault: vaults[0]!,
       wsRoot,
     });
     await engine.writeNote(noteA);
@@ -811,7 +811,7 @@ const NOTES = {
             fname: "foo-with-dash",
             vault,
           })
-        )[0].title,
+        )[0]!.title,
         expected: "Foo with Dash",
       },
       {
@@ -820,7 +820,7 @@ const NOTES = {
             fname: "foo.foo-with-dash",
             vault,
           })
-        )[0].title,
+        )[0]!.title,
         expected: "Foo with Dash",
       },
     ];
@@ -828,13 +828,13 @@ const NOTES = {
 };
 const NOTES_MULTI = {
   NEW_DOMAIN: new TestPresetEntryV4(async ({ vaults, engine }) => {
-    const vault = vaults[1];
+    const vault = vaults[1]!;
     const noteNew = NoteUtils.create({
       id: "bar",
       fname: "bar",
       created: 1,
       updated: 1,
-      vault: vaults[1],
+      vault: vaults[1]!,
     });
     await engine.writeNote(noteNew);
 
@@ -843,7 +843,7 @@ const NOTES_MULTI = {
       originalQS: "bar",
       vault,
     });
-    const note = resp[0];
+    const note = resp[0]!;
 
     return [
       {
@@ -861,14 +861,14 @@ const NOTES_MULTI = {
   }),
   NEW_DOMAIN_WITH_FULL_PATH_VAULT: new TestPresetEntryV4(
     async ({ wsRoot, vaults, engine }) => {
-      const vault = { ...vaults[1] };
+      const vault = { ...vaults[1]! };
       vault.fsPath = path.join(wsRoot, vault.fsPath);
       const noteNew = NoteUtils.create({
         id: "bar",
         fname: "bar",
         created: 1,
         updated: 1,
-        vault: vaults[1],
+        vault: vaults[1]!,
       });
       await engine.writeNote(noteNew);
 
@@ -877,7 +877,7 @@ const NOTES_MULTI = {
         originalQS: "bar",
         vault,
       });
-      const note = resp[0];
+      const note = resp[0]!;
 
       return [
         {
@@ -943,22 +943,22 @@ const NOTES_MULTI = {
           msg: "1 create should happen.",
         },
         {
-          actual: createEntries[0].note.fname,
+          actual: createEntries[0]!.note.fname,
           expected: "foo",
           msg: "new foo note is created.",
         },
         {
-          actual: createEntries[0].note.id,
+          actual: createEntries[0]!.note.id,
           expected: "updatedID",
           msg: "created foo note's id is updatedID",
         },
         {
-          actual: deleteEntries[0].note.fname,
+          actual: deleteEntries[0]!.note.fname,
           expected: "foo",
           msg: "old foo note is deleted.",
         },
         {
-          actual: deleteEntries[0].note.id,
+          actual: deleteEntries[0]!.note.id,
           expected: "foo",
           msg: "deleted old foo note's id is foo.",
         },
@@ -1026,12 +1026,12 @@ const NOTES_MULTI = {
           msg: "0 creates should happen.",
         },
         {
-          actual: updateEntries[0].note.fname,
+          actual: updateEntries[0]!.note.fname,
           expected: "foo",
           msg: "foo note is updated.",
         },
         {
-          actual: updateEntries[0].note.body,
+          actual: updateEntries[0]!.note.body,
           expected: "updatedBody",
           msg: "updated foo note's body is updatedBody",
         },

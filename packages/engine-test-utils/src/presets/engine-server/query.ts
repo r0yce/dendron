@@ -44,7 +44,7 @@ const SCHEMAS = {
 const NOTES = {
   EMPTY_QS: new TestPresetEntryV4(
     async ({ vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const data = await engine.queryNotes({
         qs: "",
         originalQS: "",
@@ -55,7 +55,7 @@ const NOTES = {
           fname: "root",
           vault,
         })
-      )[0];
+      )[0]!;
       const matchNote = _.find(data, { id: expectedNote?.id });
       return [
         {
@@ -74,7 +74,7 @@ const NOTES = {
       const data = await engine.queryNotes({
         qs: "bar",
         originalQS: "bar",
-        vault: vaults[0],
+        vault: vaults[0]!,
       });
 
       return [
@@ -90,7 +90,7 @@ const NOTES = {
   ),
   STAR_QUERY: new TestPresetEntryV4(
     async ({ vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const data = await engine.queryNotes({
         qs: "*",
         originalQS: "*",
@@ -109,7 +109,7 @@ const NOTES = {
   ),
   DOMAIN_QUERY_WITH_SCHEMA: new TestPresetEntryV4(
     async ({ vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const fname = NOTE_PRESETS_V4.NOTE_SIMPLE.fname;
       const data = await engine.queryNotes({
         qs: fname,
@@ -121,14 +121,14 @@ const NOTES = {
           fname,
           vault,
         })
-      )[0];
+      )[0]!;
       return [
         {
           actual: data ? data[0] : undefined,
           expected: expectedNote,
         },
         {
-          actual: data ? data[0].schema : undefined,
+          actual: data?.[0]?.schema,
           expected: {
             moduleId: SCHEMA_PRESETS_V4.SCHEMA_SIMPLE.fname,
             schemaId: SCHEMA_PRESETS_V4.SCHEMA_SIMPLE.fname,
@@ -142,7 +142,7 @@ const NOTES = {
   ),
   CHILD_QUERY_WITH_SCHEMA: new TestPresetEntryV4(
     async ({ vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const fname = NOTE_PRESETS_V4.NOTE_SIMPLE_CHILD.fname;
       const data = await engine.queryNotes({
         qs: fname,
@@ -154,7 +154,7 @@ const NOTES = {
           fname,
           vault,
         })
-      )[0];
+      )[0]!;
       const matchNote = _.find(data, { id: expectedNote?.id });
       return [
         {

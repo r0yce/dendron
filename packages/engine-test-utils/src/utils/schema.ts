@@ -57,7 +57,7 @@ export function makeSchemaTests({
       preSetupHook: async ({ wsRoot, vaults }) => {
         const schemaPath = path.join(
           wsRoot,
-          VaultUtils.getRelPath(vaults[0]),
+          VaultUtils.getRelPath(vaults[0]!),
           "root.schema.yml"
         );
         await fs.writeFile(schemaPath, schema);

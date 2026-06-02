@@ -31,33 +31,33 @@ export async function callSetupHook(
 ) {
   const { workspaceType, vaults, wsRoot, withVaultPrefix } = opts;
   const isMultiVault = workspaceType !== "single";
-  const cVaults = isMultiVault ? vaults : [vaults[0], vaults[0]];
+  const cVaults = isMultiVault ? vaults : [vaults[0]!, vaults[0]!];
 
   // WITH LINKS
   if (key === SETUP_HOOK_KEYS.WITH_LINKS) {
     const link1 = createLink("beta", {
-      vaultPrefix: withVaultPrefix ? cVaults[1] : undefined,
+      ...(withVaultPrefix ? { vaultPrefix: cVaults[1]! } : {}),
     });
     await NoteTestUtilsV4.createNote({
       fname: "alpha",
       wsRoot,
-      vault: cVaults[0],
+      vault: cVaults[0]!,
       body: link1,
     });
     const link2 = createLink("alpha", {
-      vaultPrefix: withVaultPrefix ? cVaults[0] : undefined,
+      ...(withVaultPrefix ? { vaultPrefix: cVaults[0]! } : {}),
     });
     await NoteTestUtilsV4.createNote({
       fname: "beta",
       wsRoot,
-      vault: cVaults[1],
+      vault: cVaults[1]!,
       body: link2,
     });
     if (isMultiVault) {
       await NoteTestUtilsV4.createNote({
         fname: "beta",
         wsRoot,
-        vault: cVaults[0],
+        vault: cVaults[0]!,
         body: link2,
         genRandomId: true,
       });

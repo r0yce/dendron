@@ -33,7 +33,7 @@ const IMPORT = {
         vaults,
         wsRoot,
       });
-      const vpath = vault2Path({ vault: vaults[0], wsRoot });
+      const vpath = vault2Path({ vault: vaults[0]!, wsRoot });
       let [actualFiles, expectedFiles] = FileTestUtils.cmpFiles(vpath, [
         "assets",
         "project.p1.md",
@@ -93,7 +93,7 @@ const IMPORT = {
         vaults,
         wsRoot,
       });
-      const vpath = vault2Path({ vault: vaults[0], wsRoot });
+      const vpath = vault2Path({ vault: vaults[0]!, wsRoot });
       let [actualFiles, expectedFiles] = FileTestUtils.cmpFiles(vpath, [
         "assets",
         "project.p1.md",
@@ -128,7 +128,7 @@ const IMPORT = {
         vaults,
         wsRoot,
       });
-      const vpath = vault2Path({ vault: vaults[0], wsRoot });
+      const vpath = vault2Path({ vault: vaults[0]!, wsRoot });
       const body = fs.readFileSync(path.join(vpath, "project.p2.n1.md"), {
         encoding: "utf8",
       });

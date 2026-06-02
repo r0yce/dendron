@@ -24,7 +24,7 @@ export const setupBasic: PreSetupHookFunction = async ({
   wsRoot,
   extra,
 }) => {
-  const vault = vaults[0];
+  const vault = vaults[0]!;
   // TODO: HACK
   let props;
   if (extra?.idv2) {
@@ -76,7 +76,7 @@ export const setupHierarchyForLookupTests: PreSetupHookFunction = async ({
   wsRoot,
 }) => {
   const opts = {
-    vault: vaults[0],
+    vault: vaults[0]!,
     wsRoot,
   };
   const fnames = [
@@ -102,7 +102,7 @@ export const setupJournals: PreSetupHookFunction = async ({
   vaults,
   wsRoot,
 }) => {
-  const vault = vaults[0];
+  const vault = vaults[0]!;
   const names = [
     "daily",
     "daily.journal",
@@ -187,7 +187,7 @@ export const setupNoteRefRecursive: PreSetupHookFunction = async ({
   wsRoot,
   extra,
 }) => {
-  const vault = vaults[0];
+  const vault = vaults[0]!;
   // TODO: HACK
   let props;
   if (extra?.idv2) {
@@ -231,7 +231,7 @@ export const setupSchemaWithDiamondGrandchildren: PreSetupHookFunction = async (
 ) => {
   await setupBasic(opts);
   const { wsRoot, vaults } = opts;
-  const vault = vaults[0];
+  const vault = vaults[0]!;
   NoteTestUtilsV4.createSchema({
     fname: "bar",
     wsRoot,
@@ -278,7 +278,7 @@ export const setupSchemaWithDiamondGrandchildren: PreSetupHookFunction = async (
 export const setupSchemaPreseet: PreSetupHookFunction = async (opts) => {
   await setupBasic(opts);
   const { wsRoot, vaults } = opts;
-  const vault = vaults[0];
+  const vault = vaults[0]!;
   NoteTestUtilsV4.createSchema({
     fname: "bar",
     wsRoot,
@@ -337,7 +337,7 @@ export const setupSchemaWithDiamondAndParentNamespace: PreSetupHookFunction =
   async (opts) => {
     await setupBasic(opts);
     const { wsRoot, vaults } = opts;
-    const vault1 = vaults[0];
+    const vault1 = vaults[0]!;
 
     const withDiamond = path.join(
       resolvePath(vault1.fsPath, wsRoot),
@@ -383,7 +383,7 @@ export const setupSchemaWithIncludeOfDiamond: PreSetupHookFunction = async (
 ) => {
   await setupBasic(opts);
   const { wsRoot, vaults } = opts;
-  const vault1 = vaults[0];
+  const vault1 = vaults[0]!;
 
   const withDiamond = path.join(
     resolvePath(vault1.fsPath, wsRoot),
@@ -452,7 +452,7 @@ schemas:
 export const setupSchemaWithExpansion: PreSetupHookFunction = async (opts) => {
   await setupBasic(opts);
   const { wsRoot, vaults } = opts;
-  const vault1 = vaults[0];
+  const vault1 = vaults[0]!;
 
   const withExpansion = path.join(
     resolvePath(vault1.fsPath, wsRoot),
@@ -510,7 +510,7 @@ schemas:
 export const setupInlineSchema: PreSetupHookFunction = async (opts) => {
   await setupBasic(opts);
   const { wsRoot, vaults } = opts;
-  const vault1 = vaults[0];
+  const vault1 = vaults[0]!;
 
   const inlineSchemaPath = path.join(
     resolvePath(vault1.fsPath, wsRoot),
@@ -582,8 +582,8 @@ export const setupSchemaPresetWithNamespaceTemplateBase: PreSetupHookFunction =
   async (opts) => {
     await setupBasic(opts);
     const { wsRoot, vaults } = opts;
-    const vault1 = vaults[0];
-    const vault2 = vaults[1];
+    const vault1 = vaults[0]!;
+    const vault2 = vaults[1]!;
     NoteTestUtilsV4.createSchema({
       fname: "journal",
       wsRoot,
@@ -652,7 +652,7 @@ export const setupSchemaPresetWithNamespaceTemplateMulti: PreSetupHookFunction =
 
 export const setupSchemaPresetWithNamespaceTemplate: PreSetupHookFunction =
   async (opts) => {
-    const vault = opts.vaults[0];
+    const vault = opts.vaults[0]!;
     return setupSchemaPresetWithNamespaceTemplateBase({
       ...opts,
       vaults: [vault, vault],
@@ -660,7 +660,7 @@ export const setupSchemaPresetWithNamespaceTemplate: PreSetupHookFunction =
   };
 
 export const setupEmpty: PreSetupHookFunction = async ({ vaults, wsRoot }) => {
-  const vault = vaults[0];
+  const vault = vaults[0]!;
   await NOTE_PRESETS_V4.NOTE_EMPTY.create({
     vault,
     wsRoot,
@@ -668,7 +668,7 @@ export const setupEmpty: PreSetupHookFunction = async ({ vaults, wsRoot }) => {
 };
 
 export const setupLinks: PreSetupHookFunction = async ({ vaults, wsRoot }) => {
-  return setupLinksBase({ wsRoot, vaults: [vaults[0], vaults[0]] });
+  return setupLinksBase({ wsRoot, vaults: [vaults[0]!, vaults[0]!] });
 };
 
 export const setupLinksMulti: PreSetupHookFunction = async ({
@@ -682,8 +682,8 @@ export const setupLinksBase: PreSetupHookFunction = async ({
   vaults,
   wsRoot,
 }) => {
-  const vault1 = vaults[0];
-  const vault2 = vaults[1];
+  const vault1 = vaults[0]!;
+  const vault2 = vaults[1]!;
   // create note with wikilink
   await NOTE_PRESETS_V4.NOTE_WITH_TARGET.create({
     vault: vault1,
@@ -718,21 +718,21 @@ export const setupMultiVaultSameFname: PreSetupHookFunction = async ({
 }): Promise<NoteProps> => {
   await NoteTestUtilsV4.createNote({
     fname: "eggs",
-    vault: vaults[0],
+    vault: vaults[0]!,
     body: "vault 0",
     wsRoot,
     props: { id: "eggs-vault-0" },
   });
   await NoteTestUtilsV4.createNote({
     fname: "eggs",
-    vault: vaults[1],
+    vault: vaults[1]!,
     body: "vault 1",
     wsRoot,
     props: { id: "eggs-vault-1" },
   });
   return NoteTestUtilsV4.createNote({
     fname: "test",
-    vault: vaults[1],
+    vault: vaults[1]!,
     body: [
       "[[eggs]]", // 7
       "[[dendron://vault1/eggs]]", // 8
@@ -754,7 +754,7 @@ export const setupLinksWithVaultBase: PreSetupHookFunction = async ({
 };
 
 export const setupRefs: PreSetupHookFunction = async ({ vaults, wsRoot }) => {
-  const vault = vaults[0];
+  const vault = vaults[0]!;
   // create note with note reference
   await NOTE_PRESETS_V4.NOTE_WITH_NOTE_REF_SIMPLE.create({
     vault,

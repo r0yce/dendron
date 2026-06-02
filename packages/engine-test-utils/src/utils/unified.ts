@@ -48,7 +48,7 @@ export class TestUnifiedUtils {
     expect(children.length).toBeGreaterThanOrEqual(index);
     return TestUnifiedUtils.getDescendantNode<Child>(
       expect,
-      children[index],
+      children[index]!,
       ...indices
     );
   }

@@ -49,7 +49,7 @@ const runRename = async ({
   }) => TestResult[];
   noNameChange?: boolean; // newLoc is oldLoc
 }) => {
-  const vault = vaults[0];
+  const vault = vaults[0]!;
   const vaultName = VaultUtils.getName(vault);
   const oldLoc = { fname: "foo", vaultName };
   const newLoc = noNameChange ? oldLoc : { fname: "baz", vaultName };
@@ -85,7 +85,7 @@ const preSetupHook = async (
   { vaults, wsRoot }: WorkspaceOpts,
   { fooBody, barBody }: { fooBody?: string; barBody: string }
 ) => {
-  const vault = vaults[0];
+  const vault = vaults[0]!;
   await NOTE_PRESETS_V4.NOTE_SIMPLE.create({
     vault,
     wsRoot,
@@ -122,12 +122,12 @@ const NOTES = {
         await NoteTestUtilsV4.createNote({
           fname: "foo",
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
         });
         await NoteTestUtilsV4.createNote({
           fname: "bar",
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
           body: "[[foo]]",
         });
       },
@@ -156,12 +156,12 @@ const NOTES = {
         await NoteTestUtilsV4.createNote({
           fname: "foo",
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
         });
         await NoteTestUtilsV4.createNote({
           fname: "bar",
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
           body: "[[foo]]",
           props: { title: "09" }, // testing for cases where frontmatter is read as number instead of string, which malforms the title
         });
@@ -191,12 +191,12 @@ const NOTES = {
         await NoteTestUtilsV4.createNote({
           fname: "foo",
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
         });
         await NoteTestUtilsV4.createNote({
           fname: "bar",
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
           body: "[[foo]]",
           props: { title: '"wow"' }, // testing for cases where double quotes are unnecessarily changed to single quotes
         });
@@ -490,7 +490,7 @@ const NOTES = {
   //   },
   //   {
   //     preSetupHook: async ({ vaults, wsRoot }) => {
-  //       const vault = vaults[0];
+  //       const vault = vaults[0]!;
   //       await NOTE_PRESETS_V4.NOTE_WITH_TARGET.create({
   //         vault,
   //         wsRoot,
@@ -504,7 +504,7 @@ const NOTES = {
   // ),
   RENAME_FOR_CACHE: new TestPresetEntryV4(
     async ({ wsRoot, vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const beta = NOTE_PRESETS_V4.NOTE_WITH_LINK.fname;
       const changed = await engine.renameNote({
         oldLoc: { fname: beta, vaultName: VaultUtils.getName(vault) },
@@ -533,7 +533,7 @@ const NOTES = {
           expected: 8,
         },
         {
-          actual: _.trim(changed.data![1].note.body),
+          actual: _.trim(changed.data![1]!.note.body),
           expected: "[[gamma]]",
         },
         {
@@ -556,7 +556,7 @@ const NOTES = {
     },
     {
       preSetupHook: async ({ vaults, wsRoot }) => {
-        const vault = vaults[0];
+        const vault = vaults[0]!;
         await NOTE_PRESETS_V4.NOTE_WITH_TARGET.create({
           vault,
           wsRoot,
@@ -570,7 +570,7 @@ const NOTES = {
   ),
   DOMAIN_NO_CHILDREN: new TestPresetEntryV4(
     async ({ wsRoot, vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const beta = NOTE_PRESETS_V4.NOTE_WITH_LINK.fname;
       const alphaBefore = await engine.getNoteMeta(
         NOTE_PRESETS_V4.NOTE_WITH_TARGET.fname
@@ -601,7 +601,7 @@ const NOTES = {
           expected: 8,
         },
         {
-          actual: _.trim(changed.data![1].note.body),
+          actual: _.trim(changed.data![1]!.note.body),
           expected: "[[gamma]]",
         },
         {
@@ -613,7 +613,7 @@ const NOTES = {
           expected: 1,
         },
         {
-          actual: alphaBackLinksBefore[0].from.fname,
+          actual: alphaBackLinksBefore[0]!.from.fname,
           expected: beta,
         },
         {
@@ -621,14 +621,14 @@ const NOTES = {
           expected: 1,
         },
         {
-          actual: alphaBackLinksAfter[0].from.fname,
+          actual: alphaBackLinksAfter[0]!.from.fname,
           expected: "gamma",
         },
       ];
     },
     {
       preSetupHook: async ({ vaults, wsRoot }) => {
-        const vault = vaults[0];
+        const vault = vaults[0]!;
         await NOTE_PRESETS_V4.NOTE_WITH_TARGET.create({
           vault,
           wsRoot,
@@ -642,7 +642,7 @@ const NOTES = {
   ),
   SINGLE_NOTE_DEEP_IN_DOMAIN: new TestPresetEntryV4(
     async ({ wsRoot, vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const origName = "baz.one.two";
       const newName = "baz.one.three";
       const changed = await engine.renameNote({
@@ -683,7 +683,7 @@ const NOTES = {
     },
     {
       preSetupHook: async ({ vaults, wsRoot }) => {
-        const vault = vaults[0];
+        const vault = vaults[0]!;
         await NoteTestUtilsV4.createNote({
           fname: "baz.one.two",
           vault,
@@ -696,7 +696,7 @@ const NOTES = {
   ),
   SCRATCH_NOTE: new TestPresetEntryV4(
     async ({ wsRoot, vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const alpha = "scratch.2020.02.03.0123";
       //const alpha = NOTE_PRESETS_V4.NOTE_WITH_LINK.fname;
       const notesInVaultBefore = await engine.findNotesMeta({ vault });
@@ -737,7 +737,7 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createNote({
           fname: "scratch.2020.02.03.0123",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
       },
@@ -745,7 +745,7 @@ const NOTES = {
   ),
   DOMAIN_DIFF_TITLE: new TestPresetEntryV4(
     async ({ wsRoot, vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const fnameOld = NOTE_PRESETS_V4.NOTE_WITH_TARGET.fname;
       const changed = await engine.renameNote({
         oldLoc: { fname: fnameOld, vaultName: VaultUtils.getName(vault) },
@@ -776,7 +776,7 @@ const NOTES = {
     },
     {
       preSetupHook: async ({ vaults, wsRoot }) => {
-        const vault = vaults[0];
+        const vault = vaults[0]!;
         await NOTE_PRESETS_V4.NOTE_WITH_TARGET.create({
           vault,
           wsRoot,
@@ -791,7 +791,7 @@ const NOTES = {
   ),
   LINK_AT_ROOT: new TestPresetEntryV4(
     async ({ wsRoot, vaults, engine }) => {
-      const vault = vaults[0];
+      const vault = vaults[0]!;
       const fnameOld = NOTE_PRESETS_V4.NOTE_WITH_TARGET.fname;
       const changed = await engine.renameNote({
         oldLoc: { fname: fnameOld, vaultName: VaultUtils.getName(vault) },
@@ -809,7 +809,7 @@ const NOTES = {
           fname: "root",
           vault,
         })
-      )[0];
+      )[0]!;
       return [
         {
           actual: changed.data?.length,
@@ -830,7 +830,7 @@ const NOTES = {
     },
     {
       preSetupHook: async ({ vaults, wsRoot }) => {
-        const vault = vaults[0];
+        const vault = vaults[0]!;
         await NOTE_PRESETS_V4.NOTE_WITH_TARGET.create({
           vault,
           wsRoot,
@@ -849,9 +849,9 @@ const NOTES = {
       const resp = await engine.renameNote({
         oldLoc: {
           fname: fnameTarget,
-          vaultName: VaultUtils.getName(vaults[0]),
+          vaultName: VaultUtils.getName(vaults[0]!),
         },
-        newLoc: { fname: fnameNew, vaultName: VaultUtils.getName(vaults[0]) },
+        newLoc: { fname: fnameNew, vaultName: VaultUtils.getName(vaults[0]!) },
       });
       const changed = resp.data;
       const updated = _.map(changed, (ent) => ({
@@ -859,13 +859,13 @@ const NOTES = {
         fname: ent.note.fname,
       })).sort();
       const checkVault1 = await FileTestUtils.assertInVault({
-        vault: vaults[0],
+        vault: vaults[0]!,
         wsRoot,
         match: [fnameNew],
         nomatch: [fnameTarget],
       });
       const checkVault2 = await FileTestUtils.assertInVault({
-        vault: vaults[1],
+        vault: vaults[1]!,
         wsRoot,
         match: [fnameLink],
         nomatch: [fnameTarget, fnameNew],
@@ -895,11 +895,11 @@ const NOTES = {
     {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NOTE_PRESETS_V4.NOTE_WITH_TARGET.create({
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
         await NOTE_PRESETS_V4.NOTE_WITH_LINK.create({
-          vault: vaults[1],
+          vault: vaults[1]!,
           wsRoot,
         });
       },
@@ -910,11 +910,11 @@ const NOTES = {
       const resp = await engine.renameNote({
         oldLoc: {
           fname: "foo",
-          vaultName: VaultUtils.getName(vaults[1]),
+          vaultName: VaultUtils.getName(vaults[1]!),
         },
         newLoc: {
           fname: "baz",
-          vaultName: VaultUtils.getName(vaults[1]),
+          vaultName: VaultUtils.getName(vaults[1]!),
         },
       });
       const changed = resp.data;
@@ -923,7 +923,7 @@ const NOTES = {
         fname: ent.note.fname,
       })).sort();
       const checkVault = await FileTestUtils.assertInVault({
-        vault: vaults[1],
+        vault: vaults[1]!,
         wsRoot,
         match: ["baz"],
         nomatch: ["foo"],
@@ -941,8 +941,8 @@ const NOTES = {
           ],
         },
         {
-          actual: _.trim(changed![1].note.body),
-          expected: `![[dendron://${VaultUtils.getName(vaults[1])}/baz]]`,
+          actual: _.trim(changed![1]!.note.body),
+          expected: `![[dendron://${VaultUtils.getName(vaults[1]!)}/baz]]`,
         },
         {
           actual: checkVault,
@@ -955,13 +955,13 @@ const NOTES = {
         await NoteTestUtilsV4.createNote({
           wsRoot,
           fname: "bar",
-          vault: vaults[0],
-          body: `![[dendron://${VaultUtils.getName(vaults[1])}/foo]]`,
+          vault: vaults[0]!,
+          body: `![[dendron://${VaultUtils.getName(vaults[1]!)}/foo]]`,
         });
         await NoteTestUtilsV4.createNote({
           wsRoot,
           fname: "foo",
-          vault: vaults[1],
+          vault: vaults[1]!,
           body: "Facilis repellat aliquam quas.",
         });
       },
@@ -972,11 +972,11 @@ const NOTES = {
       const resp = await engine.renameNote({
         oldLoc: {
           fname: "foo",
-          vaultName: VaultUtils.getName(vaults[1]),
+          vaultName: VaultUtils.getName(vaults[1]!),
         },
         newLoc: {
           fname: "baz",
-          vaultName: VaultUtils.getName(vaults[2]),
+          vaultName: VaultUtils.getName(vaults[2]!),
         },
       });
       const changed = resp.data;
@@ -985,7 +985,7 @@ const NOTES = {
         fname: ent.note.fname,
       })).sort();
       const checkVault = await FileTestUtils.assertInVault({
-        vault: vaults[2],
+        vault: vaults[2]!,
         wsRoot,
         match: ["baz"],
         nomatch: ["foo"],
@@ -1005,8 +1005,8 @@ const NOTES = {
           ],
         },
         {
-          actual: _.trim(changed![1].note.body),
-          expected: `![[dendron://${VaultUtils.getName(vaults[2])}/baz]]`,
+          actual: _.trim(changed![1]!.note.body),
+          expected: `![[dendron://${VaultUtils.getName(vaults[2]!)}/baz]]`,
         },
         {
           actual: checkVault,
@@ -1019,13 +1019,13 @@ const NOTES = {
         await NoteTestUtilsV4.createNote({
           wsRoot,
           fname: "bar",
-          vault: vaults[0],
-          body: `![[dendron://${VaultUtils.getName(vaults[1])}/foo]]`,
+          vault: vaults[0]!,
+          body: `![[dendron://${VaultUtils.getName(vaults[1]!)}/foo]]`,
         });
         await NoteTestUtilsV4.createNote({
           wsRoot,
           fname: "foo",
-          vault: vaults[1],
+          vault: vaults[1]!,
           body: "Facilis repellat aliquam quas.",
         });
       },
@@ -1039,9 +1039,9 @@ const NOTES = {
       const resp = await engine.renameNote({
         oldLoc: {
           fname: fnameTarget,
-          vaultName: VaultUtils.getName(vaults[1]),
+          vaultName: VaultUtils.getName(vaults[1]!),
         },
-        newLoc: { fname: fnameNew, vaultName: VaultUtils.getName(vaults[1]) },
+        newLoc: { fname: fnameNew, vaultName: VaultUtils.getName(vaults[1]!) },
       });
       const changed = resp.data;
       const updated = _.map(changed, (ent) => ({
@@ -1049,12 +1049,12 @@ const NOTES = {
         fname: ent.note.fname,
       })).sort();
       const checkVault1 = await FileTestUtils.assertInVault({
-        vault: vaults[0],
+        vault: vaults[0]!,
         wsRoot,
         nomatch: [fnameLink, fnameNew],
       });
       const checkVault2 = await FileTestUtils.assertInVault({
-        vault: vaults[1],
+        vault: vaults[1]!,
         wsRoot,
         match: [fnameLink, fnameNew],
         nomatch: [fnameTarget],
@@ -1086,11 +1086,11 @@ const NOTES = {
     {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NOTE_PRESETS_V4.NOTE_WITH_TARGET.create({
-          vault: vaults[1],
+          vault: vaults[1]!,
           wsRoot,
         });
         await NOTE_PRESETS_V4.NOTE_WITH_LINK.create({
-          vault: vaults[1],
+          vault: vaults[1]!,
           wsRoot,
         });
       },
@@ -1104,9 +1104,9 @@ const NOTES = {
       const resp = await engine.renameNote({
         oldLoc: {
           fname: fnameTarget,
-          vaultName: VaultUtils.getName(vaults[1]),
+          vaultName: VaultUtils.getName(vaults[1]!),
         },
-        newLoc: { fname: fnameNew, vaultName: VaultUtils.getName(vaults[1]) },
+        newLoc: { fname: fnameNew, vaultName: VaultUtils.getName(vaults[1]!) },
       });
       const changed = resp.data;
       const updated = _.map(changed, (ent) => ({
@@ -1114,12 +1114,12 @@ const NOTES = {
         fname: ent.note.fname,
       })).sort();
       const checkVault1 = await FileTestUtils.assertInVault({
-        vault: vaults[0],
+        vault: vaults[0]!,
         wsRoot,
         match: [fnameLink],
       });
       const checkVault2 = await FileTestUtils.assertInVault({
-        vault: vaults[1],
+        vault: vaults[1]!,
         wsRoot,
         match: [fnameNew],
         nomatch: [fnameTarget],
@@ -1150,11 +1150,11 @@ const NOTES = {
     {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NOTE_PRESETS_V4.NOTE_WITH_TARGET.create({
-          vault: vaults[1],
+          vault: vaults[1]!,
           wsRoot,
         });
         await NOTE_PRESETS_V4.NOTE_WITH_LINK.create({
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
       },
@@ -1168,11 +1168,11 @@ const NOTES = {
           oldLoc: {
             fname: "tag.foo",
             alias: "#foo",
-            vaultName: VaultUtils.getName(vaults[0]),
+            vaultName: VaultUtils.getName(vaults[0]!),
           },
           newLoc: {
             fname: "tags.foo",
-            vaultName: VaultUtils.getName(vaults[0]),
+            vaultName: VaultUtils.getName(vaults[0]!),
           },
         });
         error = out.error!;
@@ -1198,7 +1198,7 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         // Create an empty file without a frontmatter.
         await fs.writeFile(
-          path.join(wsRoot, vaults[0].fsPath, "tag.foo.md"),
+          path.join(wsRoot, vaults[0]!.fsPath, "tag.foo.md"),
           ""
         );
       },
@@ -1210,16 +1210,16 @@ const NOTES = {
         oldLoc: {
           fname: "tags.foo",
           alias: "#foo",
-          vaultName: VaultUtils.getName(vaults[0]),
+          vaultName: VaultUtils.getName(vaults[0]!),
         },
-        newLoc: { fname: "tags.bar", vaultName: VaultUtils.getName(vaults[0]) },
+        newLoc: { fname: "tags.bar", vaultName: VaultUtils.getName(vaults[0]!) },
       });
       const note = (
         await engine.findNotesMeta({
           fname: "primary",
-          vault: vaults[0],
+          vault: vaults[0]!,
         })
-      )[0];
+      )[0]!;
       const containsTag = checkFileNoExpect({
         fpath: NoteUtils.getFullPath({ note: note!, wsRoot }),
         match: ["#bar"],
@@ -1237,12 +1237,12 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createNote({
           fname: "tags.foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
         await NoteTestUtilsV4.createNote({
           fname: "primary",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
           body: "Lorem ipsum #foo dolor amet",
         });
@@ -1255,16 +1255,16 @@ const NOTES = {
         oldLoc: {
           fname: "user.foo",
           alias: "@foo",
-          vaultName: VaultUtils.getName(vaults[0]),
+          vaultName: VaultUtils.getName(vaults[0]!),
         },
-        newLoc: { fname: "user.bar", vaultName: VaultUtils.getName(vaults[0]) },
+        newLoc: { fname: "user.bar", vaultName: VaultUtils.getName(vaults[0]!) },
       });
       const note = (
         await engine.findNotesMeta({
           fname: "primary",
-          vault: vaults[0],
+          vault: vaults[0]!,
         })
-      )[0];
+      )[0]!;
       const containsTag = checkFileNoExpect({
         fpath: NoteUtils.getFullPath({ note: note!, wsRoot }),
         match: ["@bar"],
@@ -1282,12 +1282,12 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createNote({
           fname: "user.foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
         await NoteTestUtilsV4.createNote({
           fname: "primary",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
           body: "Lorem ipsum @foo dolor amet",
         });
@@ -1299,16 +1299,16 @@ const NOTES = {
       await engine.renameNote({
         oldLoc: {
           fname: "tags.foo",
-          vaultName: VaultUtils.getName(vaults[0]),
+          vaultName: VaultUtils.getName(vaults[0]!),
         },
-        newLoc: { fname: "tags.bar", vaultName: VaultUtils.getName(vaults[0]) },
+        newLoc: { fname: "tags.bar", vaultName: VaultUtils.getName(vaults[0]!) },
       });
       const note = (
         await engine.findNotesMeta({
           fname: "primary",
-          vault: vaults[0],
+          vault: vaults[0]!,
         })
-      )[0];
+      )[0]!;
       const containsTag = checkFileNoExpect({
         fpath: NoteUtils.getFullPath({ note: note!, wsRoot }),
         match: ["tags: bar"],
@@ -1330,12 +1330,12 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createNote({
           fname: "tags.foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
         await NoteTestUtilsV4.createNote({
           fname: "primary",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
           props: {
             tags: "foo",
@@ -1349,16 +1349,16 @@ const NOTES = {
       await engine.renameNote({
         oldLoc: {
           fname: "tags.foo",
-          vaultName: VaultUtils.getName(vaults[0]),
+          vaultName: VaultUtils.getName(vaults[0]!),
         },
-        newLoc: { fname: "tags.bar", vaultName: VaultUtils.getName(vaults[0]) },
+        newLoc: { fname: "tags.bar", vaultName: VaultUtils.getName(vaults[0]!) },
       });
       const note = (
         await engine.findNotesMeta({
           fname: "primary",
-          vault: vaults[0],
+          vault: vaults[0]!,
         })
-      )[0];
+      )[0]!;
       const containsTag = checkFileNoExpect({
         fpath: NoteUtils.getFullPath({ note: note!, wsRoot }),
         match: ["bar"],
@@ -1380,12 +1380,12 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createNote({
           fname: "tags.foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
         await NoteTestUtilsV4.createNote({
           fname: "primary",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
           props: {
             tags: ["head", "foo", "tail"],
@@ -1399,16 +1399,16 @@ const NOTES = {
       await engine.renameNote({
         oldLoc: {
           fname: "tags.foo",
-          vaultName: VaultUtils.getName(vaults[0]),
+          vaultName: VaultUtils.getName(vaults[0]!),
         },
-        newLoc: { fname: "bar", vaultName: VaultUtils.getName(vaults[0]) },
+        newLoc: { fname: "bar", vaultName: VaultUtils.getName(vaults[0]!) },
       });
       const note = (
         await engine.findNotesMeta({
           fname: "primary",
-          vault: vaults[0],
+          vault: vaults[0]!,
         })
-      )[0];
+      )[0]!;
       const containsTag = checkFileNoExpect({
         fpath: NoteUtils.getFullPath({ note: note!, wsRoot }),
         nomatch: [
@@ -1434,12 +1434,12 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createNote({
           fname: "tags.foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
         await NoteTestUtilsV4.createNote({
           fname: "primary",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
           props: {
             tags: "foo",
@@ -1453,16 +1453,16 @@ const NOTES = {
       await engine.renameNote({
         oldLoc: {
           fname: "tags.foo",
-          vaultName: VaultUtils.getName(vaults[0]),
+          vaultName: VaultUtils.getName(vaults[0]!),
         },
-        newLoc: { fname: "bar", vaultName: VaultUtils.getName(vaults[0]) },
+        newLoc: { fname: "bar", vaultName: VaultUtils.getName(vaults[0]!) },
       });
       const note = (
         await engine.findNotesMeta({
           fname: "primary",
-          vault: vaults[0],
+          vault: vaults[0]!,
         })
-      )[0];
+      )[0]!;
       const containsTag = checkFileNoExpect({
         fpath: NoteUtils.getFullPath({ note: note!, wsRoot }),
         nomatch: ["foo", "bar", "undefined"],
@@ -1483,12 +1483,12 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createNote({
           fname: "tags.foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
         await NoteTestUtilsV4.createNote({
           fname: "primary",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
           props: {
             tags: ["head", "foo", "tail"],
@@ -1510,14 +1510,14 @@ const NOTES = {
    */
   // DOMAIN_NO_CHILDREN_V3: new TestPresetEntryV4(
   //   async ({ vaults, engine }) => {
-  //     const vault = vaults[0];
+  //     const vault = vaults[0]!;
   //     const alphaFname = NOTE_PRESETS_V4.NOTE_WITH_TARGET.fname;
   //     const noteOrig = (
   //      await engine.findNotes({
   //        fname: "alphaFname",
   //        vault,
   //      })
-  //    )[0];
+  //    )[0]!;
   //   let alphaNoteNew = NoteUtils.create({
   //     fname: "alpha",
   //     id: "alpha",
@@ -1550,7 +1550,7 @@ const NOTES = {
   //   },
   //   {
   //     preSetupHook: async ({ vaults, wsRoot }) => {
-  //       const vault = vaults[0];
+  //       const vault = vaults[0]!;
   //       await NOTE_PRESETS_V4.NOTE_WITH_TARGET.create({
   //         vault,
   //         wsRoot,
@@ -1566,7 +1566,7 @@ const NOTES = {
   // TODO: currently , new nodes not picked up by refactor
   // DOMAIN_NO_CHILDREN_POST_INIT: new TestPresetEntryV4(
   //   async ({ wsRoot, vaults, engine }) => {
-  //     const vault = vaults[0];
+  //     const vault = vaults[0]!;
   //     const alphaNote = await NOTE_PRESETS_V4.NOTE_WITH_TARGET.create({
   //       vault,
   //       wsRoot,
@@ -1597,7 +1597,7 @@ const NOTES = {
   //         expected: 2,
   //       },
   //       {
-  //         actual: _.trim((changed.data as NoteChangeEntry[])[0].note.body),
+  //         actual: _.trim((changed.data as NoteChangeEntry[])[0]!.note.body),
   //         expected: "[[gamma]]",
   //       },
   //       {
@@ -1609,7 +1609,7 @@ const NOTES = {
   // ),
   NOTE_WITH_STUB_CHILD: new TestPresetEntryV4(
     async ({ vaults, engine }) => {
-      const vaultName = VaultUtils.getName(vaults[0]);
+      const vaultName = VaultUtils.getName(vaults[0]!);
       const out = await engine.renameNote({
         oldLoc: {
           fname: "foo",
@@ -1628,15 +1628,15 @@ const NOTES = {
       const root = (
         await engine.findNotesMeta({
           fname: "root",
-          vault: vaults[0],
+          vault: vaults[0]!,
         })
-      )[0];
+      )[0]!;
       const fooChild = (
         await engine.findNotesMeta({
           fname: "foo.bar",
-          vault: vaults[0],
+          vault: vaults[0]!,
         })
-      )[0];
+      )[0]!;
 
       return [
         {
@@ -1667,12 +1667,12 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NoteTestUtilsV4.createNote({
           fname: "foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
         await NoteTestUtilsV4.createNote({
           fname: "foo.bar.baz",
-          vault: vaults[0],
+          vault: vaults[0]!,
           wsRoot,
         });
       },

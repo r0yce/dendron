@@ -24,7 +24,7 @@ const CreateSchemaFactory = (opts: CreateSchemaFactoryOpts) => {
       ...opts,
       vault,
       wsRoot,
-      noWrite,
+      ...(noWrite !== undefined ? { noWrite } : {}),
     };
     return NoteTestUtilsV4.createSchema(_opts);
   };
@@ -59,7 +59,7 @@ export const SCHEMA_PRESETS_V4 = {
     fname: "pro",
     modifier: (schema) => {
       //const vault = schema.root.vault;
-      schema.schemas[schema.root.id].data.namespace = true;
+      schema.schemas[schema.root.id]!.data.namespace = true;
       return schema;
     },
   }),

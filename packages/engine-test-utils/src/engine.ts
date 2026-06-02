@@ -273,9 +273,9 @@ export async function runEngineTestV5(
     homeDirStub = TestEngineUtils.mockHomeDir();
     const { wsRoot, vaults } = await setupWS({
       vaults: vaultsInit,
-      workspaces,
-      wsRoot: opts.wsRoot,
-      modConfigCb: opts.modConfigCb,
+      ...(workspaces !== undefined ? { workspaces } : {}),
+      ...(opts.wsRoot !== undefined ? { wsRoot: opts.wsRoot } : {}),
+      ...(opts.modConfigCb !== undefined ? { modConfigCb: opts.modConfigCb } : {}),
     });
     if ((opts.initHooks, vaults)) {
       fs.ensureDirSync(path.join(wsRoot, CONSTANTS.DENDRON_HOOKS_BASE));
@@ -308,7 +308,7 @@ export async function runEngineTestV5(
       vaults,
       engine,
       initResp,
-      port: resp.port,
+      ...(resp.port !== undefined ? { port: resp.port } : {}),
       extra,
       config: engine,
       engineInitDuration,
@@ -319,7 +319,14 @@ export async function runEngineTestV5(
         vaults.map((vault) => {
           return GitTestUtils.createRepoWithReadme(
             vault2Path({ vault, wsRoot }),
-            { remote: git?.initVaultWithRemote, branchName: git?.branchName }
+            {
+              ...(git?.initVaultWithRemote !== undefined
+                ? { remote: git.initVaultWithRemote }
+                : {}),
+              ...(git?.branchName !== undefined
+                ? { branchName: git.branchName }
+                : {}),
+            }
           );
         })
       );
@@ -397,7 +404,7 @@ export class TestEngineUtils {
     body: string;
     custom?: any;
   } & WorkspaceOpts) {
-    const vault = vaults[0];
+    const vault = vaults[0]!;
     return NoteTestUtilsV4.createNote({ wsRoot, vault, fname, body, custom });
   }
 }

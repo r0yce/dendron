@@ -22,7 +22,7 @@ export class TestSeedUtils {
     const { registryFile } = await this.createSeedRegistry({
       engine,
       wsRoot,
-      modifySeed,
+      ...(modifySeed !== undefined ? { modifySeed } : {}),
     });
     const id = this.defaultSeedId();
     const seedService = new SeedService({ wsRoot, registryFile });

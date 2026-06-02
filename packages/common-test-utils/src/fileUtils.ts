@@ -78,7 +78,11 @@ export class FileTestUtils {
     fpath: string;
   }) => {
     const body = fs.readFileSync(fpath, { encoding: "utf8" });
-    return AssertUtils.assertInString({ body, match, nomatch });
+    return AssertUtils.assertInString({
+      body,
+      ...(match !== undefined ? { match } : {}),
+      ...(nomatch !== undefined ? { nomatch } : {}),
+    });
   };
 
   static assertTimesInFile = ({
@@ -95,9 +99,9 @@ export class FileTestUtils {
     const body = fs.readFileSync(fpath, { encoding: "utf8" });
     return AssertUtils.assertTimesInString({
       body,
-      match,
-      fewerThan,
-      moreThan,
+      ...(match !== undefined ? { match } : {}),
+      ...(fewerThan !== undefined ? { fewerThan } : {}),
+      ...(moreThan !== undefined ? { moreThan } : {}),
     });
   };
 
@@ -114,7 +118,11 @@ export class FileTestUtils {
   }) => {
     const vpath = vault2Path({ vault, wsRoot });
     const body = fs.readdirSync(vpath).join("\n");
-    return AssertUtils.assertInString({ body, match, nomatch });
+    return AssertUtils.assertInString({
+      body,
+      ...(match !== undefined ? { match } : {}),
+      ...(nomatch !== undefined ? { nomatch } : {}),
+    });
   };
 
   static async createFiles(root: string, files: FileItem[]) {

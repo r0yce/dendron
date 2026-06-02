@@ -28,7 +28,7 @@
     "prebuild": "yarn clean && yarn format && yarn lint && echo Using TypeScript && tsc --version",
     "build": "yarn compile",
     "buildCI": "yarn clean && yarn compile",
-    "compile": "yarn build:js && yarn build:types",
+    "compile": "tsc -p tsconfig.build.json",
     "coverage": "jest --coverage",
     "watch": "tsup --watch",
     "build:js": "tsup",

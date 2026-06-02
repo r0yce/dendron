@@ -12,13 +12,13 @@ import {
 } from "@dendronhq/common-all";
 import _ from "lodash";
 import * as vscode from "vscode";
+import { decodeUtf8 } from "../../../utils/browserTextDecoder";
 
 export class VSCodeFileStore implements IFileStore {
   async read(uri: URI): Promise<RespV3<string>> {
     try {
       const raw = await vscode.workspace.fs.readFile(uri);
-      // @ts-expect-error - browser interop: must use global DOM TextDecoder (provided by "DOM" + "DOM.Iterable" libs in tsconfig; VSCode web extension + webview contexts have no Node 'util'/'node:util' TextDecoder available in webpack browser bundle). Precise dated justification (final Post-M2 + Doctor Smoke Burn, 2026-06-01); never bare per ts-expect-error-burner SKILL. See NoteParserV2 + getWorkspaceConfig siblings + web/ DI cluster. 0 bare rule upheld.
-      const data = textDecoder.decode(raw);
+      const data = decodeUtf8(raw);
       return { data };
     } catch (err) {
       return {

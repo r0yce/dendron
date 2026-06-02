@@ -36,8 +36,8 @@ export const CreateNoteFactory = (opts: CreateNoteFactoryOpts) => {
       ...opts,
       vault,
       wsRoot,
-      genRandomId,
-      noWrite,
+      ...(genRandomId !== undefined ? { genRandomId } : {}),
+      ...(noWrite !== undefined ? { noWrite } : {}),
     };
     if (!_.isUndefined(body)) {
       _opts.body = body;
@@ -65,9 +65,9 @@ export const CreateNoteFactory = (opts: CreateNoteFactoryOpts) => {
       ...opts,
       vault,
       wsRoot,
-      genRandomId,
-      noWrite,
       engine,
+      ...(genRandomId !== undefined ? { genRandomId } : {}),
+      ...(noWrite !== undefined ? { noWrite } : {}),
     };
     if (!_.isUndefined(body)) {
       _opts.body = body;

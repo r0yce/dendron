@@ -90,10 +90,24 @@ export class TestNoteFactory {
     fname: string,
     props: Partial<NoteProps> & { engine: DEngineClient }
   ): Promise<NoteProps> {
+    const { engine, stub, body, custom, ...restProps } = props;
+    const defaults = this._defaults;
     return NoteTestUtilsV4.createNoteWithEngine({
       fname,
-      ...this._defaults,
-      ...props,
+      vault: defaults.vault,
+      wsRoot: defaults.wsRoot,
+      ...(defaults.genRandomId !== undefined
+        ? { genRandomId: defaults.genRandomId }
+        : {}),
+      ...(defaults.custom !== undefined ? { custom: defaults.custom } : {}),
+      ...(defaults.body !== undefined ? { body: defaults.body } : {}),
+      ...(defaults.stub !== undefined ? { stub: defaults.stub } : {}),
+      ...(defaults.props !== undefined ? { props: defaults.props } : {}),
+      ...(stub !== undefined ? { stub } : {}),
+      ...(body !== undefined ? { body } : {}),
+      ...(custom !== undefined ? { custom } : {}),
+      ...(Object.keys(restProps).length > 0 ? { props: restProps } : {}),
+      engine,
     });
   }
 
@@ -166,11 +180,11 @@ export class NoteTestUtilsV4 {
     const note = NoteUtils.create({
       ...defaultOpts,
       ...props,
-      custom,
       fname,
       vault,
-      body,
-      stub,
+      ...(custom !== undefined ? { custom } : {}),
+      ...(body !== undefined ? { body } : {}),
+      ...(stub !== undefined ? { stub } : {}),
     });
     if (!noWrite && !stub) {
       await note2File({ note, vault, wsRoot });

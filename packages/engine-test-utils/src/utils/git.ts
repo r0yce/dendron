@@ -120,9 +120,9 @@ export class GitTestUtils {
   ) {
     const git = new Git({
       localUrl: root,
-      remoteUrl: opts?.remote
-        ? "git@github.com:dendronhq/dendron-site.git"
-        : undefined,
+      ...(opts?.remote
+        ? { remoteUrl: "git@github.com:dendronhq/dendron-site.git" }
+        : {}),
     });
     await git.init();
     if (opts?.branchName) {
@@ -150,7 +150,7 @@ export class GitTestUtils {
     const remoteDir = tmpDir().name;
     await GitTestUtils.createRepoForRemoteWorkspace(wsRoot, remoteDir);
     const rootNote = (
-      await engine.findNotesMeta({ fname: "root", vault: vaults[0] })
+      await engine.findNotesMeta({ fname: "root", vault: vaults[0]! })
     )[0]!;
     // Add everything and push, so that there's no untracked changes
     const git = new Git({ localUrl: wsRoot, remoteUrl: remoteDir });

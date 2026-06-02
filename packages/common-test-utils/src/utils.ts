@@ -24,9 +24,13 @@ export class AssertUtils {
     await this.assertTimesInString({
       body,
       // match must appear more than 0 times (at least once) in the body
-      moreThan: match?.map((v) => [0, v]),
+      ...(match !== undefined
+        ? { moreThan: match.map((v) => [0, v] as [number, string | RegExp]) }
+        : {}),
       // nomatch must appear fewer than 1 times (never) in the body
-      fewerThan: nomatch?.map((v) => [1, v]),
+      ...(nomatch !== undefined
+        ? { fewerThan: nomatch.map((v) => [1, v] as [number, string | RegExp]) }
+        : {}),
     });
     return true;
   }

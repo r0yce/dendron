@@ -50,7 +50,7 @@ const NOTES = {
         return NoteTestUtilsV4.createNote({
           ...opts,
           fname: "empty",
-          vault: opts.vaults[0],
+          vault: opts.vaults[0]!,
         });
       },
     }
@@ -80,7 +80,7 @@ const NOTES = {
           custom: {
             foo: "egg",
           },
-          vault: opts.vaults[0],
+          vault: opts.vaults[0]!,
           body: "{{ fm.foo }}\n\ntitle: {{ fm.title }}",
         });
       },
@@ -109,14 +109,14 @@ const NOTES = {
         await NoteTestUtilsV4.createNote({
           fname: "alpha",
           body: "- [[task-note]]",
-          vault: opts.vaults[0],
+          vault: opts.vaults[0]!,
           wsRoot: opts.wsRoot,
           props: { id: "alpha-id" },
         });
         await NoteTestUtilsV4.createNote({
           fname: "beta",
           body: "![[alpha]]",
-          vault: opts.vaults[0],
+          vault: opts.vaults[0]!,
           wsRoot: opts.wsRoot,
         });
         await NoteTestUtilsV4.createNote({
@@ -125,7 +125,7 @@ const NOTES = {
           custom: {
             status: "done",
           },
-          vault: opts.vaults[0],
+          vault: opts.vaults[0]!,
           wsRoot: opts.wsRoot,
           props: { id: "task-note-id" },
         });
@@ -170,7 +170,7 @@ const NOTES = {
         await NoteTestUtilsV4.createNote({
           fname: "omega",
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
           body: "![[foo]] ",
         });
         return ENGINE_HOOKS.setupBasic(opts);

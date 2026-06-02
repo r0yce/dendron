@@ -21,31 +21,31 @@ const WILDCARD_LINK_V4 = new TestPresetEntryV4(
     },
     preSetupHook: async ({ wsRoot, vaults }) => {
       await NoteTestUtilsV4.createNote({
-        vault: vaults[0],
+        vault: vaults[0]!,
         wsRoot,
         body: "journal0",
         fname: "journal.2020.07.01",
       });
       await NoteTestUtilsV4.createNote({
-        vault: vaults[0],
+        vault: vaults[0]!,
         wsRoot,
         body: "journal1",
         fname: "journal.2020.08.01",
       });
       await NoteTestUtilsV4.createNote({
-        vault: vaults[0],
+        vault: vaults[0]!,
         wsRoot,
         body: "journal2",
         fname: "journal.2020.08.02",
       });
       await NoteTestUtilsV4.createNote({
-        vault: vaults[0],
+        vault: vaults[0]!,
         wsRoot,
         body: "journal3",
         fname: "journal.2020.08.03",
       });
       const note = await NoteTestUtilsV4.createNote({
-        vault: vaults[0],
+        vault: vaults[0]!,
         wsRoot,
         props: {
           id: "id.journal",

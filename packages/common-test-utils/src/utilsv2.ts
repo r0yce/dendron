@@ -78,7 +78,9 @@ export class TestPresetEntryV4 {
     this.postSetupHook = postSetupHook || (async () => {});
     this.testFunc = _.bind(func, this);
     this.extraOpts = extraOpts;
-    this.setupTest = setupTest;
+    if (setupTest !== undefined) {
+      this.setupTest = setupTest;
+    }
     this.genTestResults = _.bind(genTestResults || (async () => []), this);
     this.workspaces = opts?.workspaces || [];
     this.vaults = opts?.vaults || [

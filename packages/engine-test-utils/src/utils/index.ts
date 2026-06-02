@@ -87,7 +87,11 @@ export async function checkFileNoExpect({
   match?: string[];
 }) {
   const body = await fs.readFile(fpath, { encoding: "utf8" });
-  return AssertUtils.assertInString({ body, match, nomatch });
+  return AssertUtils.assertInString({
+    body,
+    ...(match !== undefined ? { match } : {}),
+    ...(nomatch !== undefined ? { nomatch } : {}),
+  });
 }
 
 const getWorkspaceFolders = (wsRoot: string) => {

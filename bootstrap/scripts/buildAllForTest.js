@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
 
 /**
- * Compiles all code for Dendron Plugin
+ * CI-oriented build: same dependency order as buildAll.js (yarn workspaces, no lerna).
+ * Skips dendron-plugin-views unless TEST_NEXT_TEMPLATE is set.
  */
 
 const execa = require("execa");
@@ -11,35 +12,32 @@ const $ = (cmd) => {
   return execa.commandSync(cmd, { stdout: process.stdout, buffer: false });
 };
 
+const ws = (pkg, script = "buildCI") => {
+  $(`yarn workspace ${pkg} run ${script}`);
+};
+
 const TEST_NEXT_TEMPLATE = process.env.TEST_NEXT_TEMPLATE;
 
-console.log("build all...");
-$(`npx lerna run buildCI --scope @dendronhq/common-all`);
-$(
-  `npx lerna run build --parallel --scope "@dendronhq/{unified,common-server}"`
-);
-$(`npx lerna run buildCI --scope @dendronhq/dendron-viz `);
-$(`npx lerna run buildCI --scope @dendronhq/engine-server `);
-$(`npx lerna run buildCI --scope @dendronhq/pods-core `);
+console.log("build all (CI)...");
+ws("@dendronhq/common-all");
+ws("@dendronhq/common-di");
+ws("@dendronhq/unified");
+ws("@dendronhq/common-server");
+ws("@dendronhq/dendron-viz");
+ws("@dendronhq/engine-server");
+ws("@dendronhq/pods-core");
+ws("@dendronhq/common-test-utils");
+ws("@dendronhq/api-server");
 if (TEST_NEXT_TEMPLATE) {
-  $(
-    `npx lerna run buildCI --parallel --scope "@dendronhq/{common-test-utils,api-server,common-assets}"`
-  );
-} else {
-  $(
-    `npx lerna run buildCI --parallel --scope "@dendronhq/{common-test-utils,api-server}"`
-  );
+  ws("@dendronhq/common-assets");
 }
-$(
-  `npx lerna run buildCI --parallel --scope "@dendronhq/{common-frontend,dendron-cli}"`
-);
-
-$(`npx lerna run buildCI --scope "@dendronhq/engine-test-utils"`);
-
-$(`npx lerna run buildCI --scope "@dendronhq/plugin-core"`);
+ws("@dendronhq/common-frontend");
+ws("@dendronhq/dendron-cli");
+ws("@dendronhq/engine-test-utils");
+ws("@dendronhq/plugin-core");
 
 if (TEST_NEXT_TEMPLATE) {
-  $(`npx lerna run build --scope "@dendronhq/dendron-plugin-views"`);
-  $(`npx yarn dendron dev sync_assets --fast`);
+  ws("@dendronhq/dendron-plugin-views", "build");
+  $(`yarn dendron dev sync_assets --fast`);
 }
 console.log("done");

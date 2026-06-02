@@ -44,7 +44,7 @@ const SCHEMAS = {
     },
     {
       preSetupHook: async ({ vaults, wsRoot }) => {
-        const vault = vaults[0];
+        const vault = vaults[0]!;
         await setupBasic({ vaults, wsRoot });
         await SCHEMA_PRESETS_V4.BAD_SCHEMA.create({ vault, wsRoot });
       },
@@ -72,8 +72,8 @@ const NOTES = {
     },
     {
       preSetupHook: async ({ wsRoot, vaults }) => {
-        const normalVault = vaults[0];
-        const wsVault = vaults[1];
+        const normalVault = vaults[0]!;
+        const wsVault = vaults[1]!;
         await NoteTestUtilsV4.createNote({
           fname: "regnote",
           vault: normalVault,
@@ -117,8 +117,8 @@ const NOTES = {
     },
     {
       preSetupHook: async ({ wsRoot, vaults }) => {
-        const normalVault = vaults[0];
-        const wsVault = vaults[1];
+        const normalVault = vaults[0]!;
+        const wsVault = vaults[1]!;
         await NoteTestUtilsV4.createNote({
           fname: "regnote",
           vault: normalVault,
@@ -200,8 +200,8 @@ const NOTES = {
     },
     {
       preSetupHook: async ({ wsRoot, vaults }) => {
-        const vault1 = vaults[0];
-        const vault3 = vaults[2];
+        const vault1 = vaults[0]!;
+        const vault3 = vaults[2]!;
         await NoteTestUtilsV4.createNote({
           fname: "one",
           vault: vault1,
@@ -221,14 +221,14 @@ const NOTES = {
         await engine.findNotes({
           fname: "foo",
         })
-      )[0];
+      )[0]!;
       const rootNotes = await engine.findNotesMeta({ fname: "root" });
       const rootNote = (
         await engine.findNotesMeta({
           fname: "root",
-          vault: vaults[0],
+          vault: vaults[0]!,
         })
-      )[0];
+      )[0]!;
       return [
         {
           actual: fooNote.fname,
@@ -248,7 +248,7 @@ const NOTES = {
         },
         {
           actual: rootNote.vault.fsPath,
-          expected: vaults[0].fsPath,
+          expected: vaults[0]!.fsPath,
         },
       ];
     },
@@ -263,7 +263,7 @@ const NOTES = {
       return [
         // Links in one didn't get parsed since it's too long, but two did
         { actual: one.links.length, expected: 1 },
-        { actual: one.links[0].type, expected: "backlink" },
+        { actual: one.links[0]!.type, expected: "backlink" },
         { actual: two.links.length, expected: 1 },
         // Anchors in one didn't get parsed since it's too long
         { actual: Object.entries(one.anchors).length, expected: 0 },
@@ -271,8 +271,8 @@ const NOTES = {
     },
     {
       preSetupHook: async ({ wsRoot, vaults }) => {
-        const vault1 = vaults[0];
-        const vault3 = vaults[2];
+        const vault1 = vaults[0]!;
+        const vault3 = vaults[2]!;
         // Create a really large note with outgoing links and anchors
         await NoteTestUtilsV4.createNote({
           fname: "one",
@@ -297,7 +297,7 @@ const NOTES = {
       return [
         // Links in one didn't get parsed since it's too long, but two did
         { actual: one.links.length, expected: 1 },
-        { actual: one.links[0].type, expected: "backlink" },
+        { actual: one.links[0]!.type, expected: "backlink" },
         { actual: two.links.length, expected: 1 },
         // Anchors in one didn't get parsed since it's too long
         { actual: Object.entries(one.anchors).length, expected: 0 },
@@ -312,8 +312,8 @@ const NOTES = {
           },
           { wsRoot }
         );
-        const vault1 = vaults[0];
-        const vault3 = vaults[2];
+        const vault1 = vaults[0]!;
+        const vault3 = vaults[2]!;
         // Not really a super long note, but we set the max in config to even shorter
         await NoteTestUtilsV4.createNote({
           fname: "one",
@@ -333,9 +333,9 @@ const NOTES = {
   ),
   MIXED_CASE_PARENT: new TestPresetEntryV4(
     async ({ engine, vaults }) => {
-      const notesV1 = await engine.findNotesMeta({ vault: vaults[0] });
-      const notesV2 = await engine.findNotesMeta({ vault: vaults[1] });
-      const notesV3 = await engine.findNotesMeta({ vault: vaults[2] });
+      const notesV1 = await engine.findNotesMeta({ vault: vaults[0]! });
+      const notesV2 = await engine.findNotesMeta({ vault: vaults[1]! });
+      const notesV3 = await engine.findNotesMeta({ vault: vaults[2]! });
 
       return [
         {
@@ -357,7 +357,7 @@ const NOTES = {
     },
     {
       preSetupHook: async ({ wsRoot, vaults }) => {
-        const vault = vaults[0];
+        const vault = vaults[0]!;
         await NoteTestUtilsV4.createNote({
           fname: "foo.one",
           vault,
@@ -376,9 +376,9 @@ const NOTES = {
       const noteAlpha = (
         await engine.findNotesMeta({
           fname: "alpha",
-          vault: vaults[0],
+          vault: vaults[0]!,
         })
-      )[0];
+      )[0]!;
       return [
         {
           actual: noteAlpha.links,
@@ -451,19 +451,19 @@ const NOTES = {
       const noteRoot = (
         await engine.findNotesMeta({
           fname: "root",
-          vault: vaults[0],
+          vault: vaults[0]!,
         })
-      )[0];
+      )[0]!;
 
       const noteChild = (
         await engine.findNotesMeta({
           fname: "foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
         })
-      )[0];
+      )[0]!;
       const checkVault = await FileTestUtils.assertInVault({
         wsRoot,
-        vault: vaults[0],
+        vault: vaults[0]!,
         match: ["foo.ch1.md"],
         nomatch: ["foo.md"],
       });
@@ -482,7 +482,7 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NOTE_PRESETS_V4.NOTE_SIMPLE_CHILD.create({
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
         });
       },
     }
@@ -492,9 +492,9 @@ const NOTES = {
       const noteRoot = (
         await engine.findNotesMeta({
           fname: "foo",
-          vault: vaults[0],
+          vault: vaults[0]!,
         })
-      )[0];
+      )[0]!;
 
       return [
         {
@@ -511,7 +511,7 @@ const NOTES = {
       preSetupHook: async ({ vaults, wsRoot }) => {
         await NOTE_PRESETS_V4.NOTE_WITH_CUSTOM_ATT.create({
           wsRoot,
-          vault: vaults[0],
+          vault: vaults[0]!,
         });
       },
     }
@@ -536,7 +536,7 @@ const NOTES = {
     },
     {
       preSetupHook: async ({ vaults, wsRoot }) => {
-        const vault = vaults[0];
+        const vault = vaults[0]!;
         const vpath = vault2Path({ vault, wsRoot });
         fs.writeFileSync(path.join(vpath, "foo.md"), "---\nbar:\n--\nfoo");
       },
