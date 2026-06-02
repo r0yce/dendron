@@ -2,6 +2,11 @@ const commonConfig = {
   clearMocks: true,
   moduleFileExtensions: ["ts", "tsx", "js", "json"],
   modulePathIgnorePatterns: ["lib", "build", "docs"],
+  moduleNameMapper: {
+    "^ora$": "<rootDir>/test/mocks/ora.cjs",
+    "^clipboardy$": "<rootDir>/test/mocks/clipboardy.cjs",
+    "^prompts$": "<rootDir>/test/mocks/prompts.cjs",
+  },
   notify: true,
   notifyMode: "always",
   snapshotSerializers: ["jest-serializer-path"],
@@ -9,7 +14,7 @@ const commonConfig = {
   testPathIgnorePatterns: ["utils.ts"],
   transformIgnorePatterns: [
     // These are ESM modules that need to be transpiled before Jest can run them
-    "/node_modules/(?!(d3.*|internmap|delaunator|robust-predicates)/)",
+    "/node_modules/(?!(d3.*|internmap|delaunator|robust-predicates|ora|clipboardy|prompts)/)",
   ],
 };
 

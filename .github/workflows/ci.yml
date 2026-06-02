@@ -35,8 +35,11 @@ jobs:
       - name: Typecheck plugin-core
         run: yarn workspace @dendronhq/plugin-core compile
 
-      - name: CLI health smoke
-        run: yarn dendron health --json 2>&1 | head -c 4096 || true
+      - name: Doctor smoke (8 contracts)
+        run: yarn test:doctor:smoke
+
+      - name: Modernization verify script
+        run: yarn verify:modernization
 
   cli-tests:
     runs-on: ubuntu-latest
@@ -55,6 +58,9 @@ jobs:
           yarn bootstrap:bootstrap
           yarn bootstrap:buildCI
 
-      - name: CLI unit tests
+      - name: CLI smoke tests
+        run: yarn ci:test:cli:smoke
+
+      - name: CLI full suite (informational)
         run: yarn ci:test:cli
         continue-on-error: true

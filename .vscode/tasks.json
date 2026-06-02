@@ -32,7 +32,15 @@
         "reveal": "always",
         "panel": "shared"
       },
-      "detail": "Plain tsc (currently fragile due to strict mode). For development/debugging, prefer starting 'watch-webpack' inside packages/plugin-core instead."
+      "detail": "Strict tsc compile (green under tsconfig.build.json). For day-to-day extension debugging, prefer watch-webpack in packages/plugin-core."
+    },
+    {
+      "label": "verify:modernization",
+      "type": "shell",
+      "command": "yarn verify:modernization",
+      "problemMatcher": [],
+      "group": "build",
+      "presentation": { "reveal": "always" }
     },
     {
       "label": "compile:watch:plugin-core",

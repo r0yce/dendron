@@ -101,7 +101,8 @@
     "bootstrap:build:pods-core": "yarn workspace @dendronhq/pods-core run build",
     "bootstrap:build:dendron-cli": "yarn workspace @dendronhq/dendron-cli run build",
     "bootstrap:init": "yarn bootstrap:bootstrap && yarn bootstrap:build",
-    "ci:init": "yarn bootstrap:bootstrap && yarn bootstrap:build",
+    "ci:init": "yarn bootstrap:bootstrap && yarn bootstrap:buildCI",
+    "verify:modernization": "yarn bootstrap:build:fast && yarn bootstrap:buildCI && yarn workspace @dendronhq/plugin-core compile && yarn dendron health --help",
     "ci:test:cli": "yarn test:cli",
     "ci:test:plugin": "npx lerna run test --scope @dendronhq/plugin-core --stream",
     "ci:test:plugin-web": "npx lerna run compile-web --scope @dendronhq/plugin-core && npx lerna run test-in-browser --scope @dendronhq/plugin-core",
@@ -121,7 +122,10 @@
     "stash:pop": "git stash && git stash pop stash@{1} && git read-tree stash && git stash drop",
     "test": "cross-env LOG_LEVEL=error yarn jest",
     "test:cli": "cross-env LOG_LEVEL=error npx jest --selectProjects non-plugin-tests --forceExit",
-    "test:cli:update-snapshots": "yarn test:cli -u"
+    "test:cli:smoke": "cross-env LOG_LEVEL=error npx jest --selectProjects non-plugin-tests --testPathPattern=launchEngineServer.spec --forceExit",
+    "test:doctor:smoke": "node -r ts-node/register/transpile-only packages/dendron-cli/src/commands/DoctorCommand.test.ts",
+    "test:cli:update-snapshots": "yarn test:cli -u",
+    "ci:test:cli:smoke": "yarn test:cli:smoke && yarn test:doctor:smoke"
   },
   "packages": [
     "packages/*",
