@@ -1,3 +1,4 @@
+# Personal fork CI: local extension viability only (no npm publish).
 name: CI
 
 on:
@@ -12,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  verify-local-extension:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -26,41 +27,15 @@ jobs:
       - name: Install dependencies
         run: yarn bootstrap:bootstrap
 
-      - name: Build (fast path)
-        run: yarn bootstrap:build:fast
+      - name: Local extension verify (fast bootstrap + plugin-core tsc)
+        run: yarn verify:local
 
-      - name: Build (full bootstrap)
+      - name: Full verify (CI bootstrap + doctor + CLI smoke)
+        run: yarn verify:full
+
+      - name: Full monorepo build (plugin-views + sync_assets)
         run: yarn bootstrap:build
 
-      - name: Typecheck plugin-core
-        run: yarn workspace @dendronhq/plugin-core compile
-
-      - name: Doctor smoke (8 contracts)
-        run: yarn test:doctor:smoke
-
-      - name: Modernization verify script
-        run: yarn verify:modernization
-
-  cli-tests:
-    runs-on: ubuntu-latest
-    needs: build
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: yarn
-
-      - name: Install and build
-        run: |
-          yarn bootstrap:bootstrap
-          yarn bootstrap:buildCI
-
-      - name: CLI smoke tests
-        run: yarn ci:test:cli:smoke
-
-      - name: CLI full suite (informational)
+      - name: CLI integration tests (informational)
         run: yarn ci:test:cli
         continue-on-error: true

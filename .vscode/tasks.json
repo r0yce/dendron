@@ -35,9 +35,17 @@
       "detail": "Strict tsc compile (green under tsconfig.build.json). For day-to-day extension debugging, prefer watch-webpack in packages/plugin-core."
     },
     {
-      "label": "verify:modernization",
+      "label": "verify:local (extension gate)",
       "type": "shell",
-      "command": "yarn verify:modernization",
+      "command": "yarn verify:local",
+      "problemMatcher": [],
+      "group": "build",
+      "presentation": { "reveal": "always" }
+    },
+    {
+      "label": "extension:package (local VSIX)",
+      "type": "shell",
+      "command": "yarn extension:package",
       "problemMatcher": [],
       "group": "build",
       "presentation": { "reveal": "always" }

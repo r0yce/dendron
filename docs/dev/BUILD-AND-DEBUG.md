@@ -1,10 +1,19 @@
-# Build and Debug (Dendron Fork)
+# Build and Debug (Personal Fork — Local Extension Only)
 
-This guide is the practical entry point for building the monorepo and running the VS Code extension locally.
+This fork is for **your own VS Code use**. Packages are **not published to npm**, and nothing is merged upstream to `@dendronhq/dendron`. The monorepo exists to **build and run the extension on your machine**.
+
+## What matters vs what you can ignore
+
+| Care about | Safe to ignore (unless you need it) |
+|------------|-------------------------------------|
+| `yarn bootstrap:build:fast` | `build:patch:remote`, verdaccio, npm publish |
+| Webpack watch + F5, or a local `.vsix` | Lerna version bumps, API Extractor for published typings |
+| `yarn workspace @dendronhq/plugin-core compile` | Full `ci:test:cli` snapshot matrix (optional) |
+| `yarn dendron health` on your vaults | Upstream release / PR stack workflows |
 
 ## Prerequisites
 
-- Node.js 18+ (22+ works; repo tested on modern Node)
+- Node.js 18+ (20+ recommended)
 - Yarn 1.x
 - VS Code or VS Code Insiders
 
@@ -12,91 +21,116 @@ This guide is the practical entry point for building the monorepo and running th
 
 ```bash
 yarn
-yarn bootstrap:init   # install + full build (slower)
+yarn bootstrap:init   # yarn install + full monorepo build (slower, once)
 ```
 
-For day-to-day work after dependencies are installed:
+## Day-to-day verify (local gate)
 
 ```bash
-yarn bootstrap:build:fast
+yarn verify:local
 ```
 
-Verification gate (extension TypeScript):
+This runs the **fast bootstrap** (libraries + CLI + plugin-core typecheck). Use this before F5 or packaging.
+
+When you change engine-server, unified, or CI-shaped builds:
 
 ```bash
-yarn workspace @dendronhq/plugin-core compile
+yarn verify:full
 ```
 
-## Modern hybrid builds (library packages)
+## Run the extension (recommended — no VSIX)
 
-Several packages use **tsup** for JavaScript and **tsc + api-extractor** (with temp-dts fallback) for types:
+The extension **runs from webpack output**, not from `tsc` alone.
 
-```bash
-yarn bootstrap:build:modern-fast
-```
-
-Per-package:
-
-```bash
-yarn workspace @dendronhq/common-all run build:modern
-```
-
-## Debug the VS Code extension (recommended)
-
-The extension is built with **Webpack**, not plain `tsc` output.
-
-### Option A — Open `packages/plugin-core` as workspace root
+### Option A — Open `packages/plugin-core`
 
 1. Open `packages/plugin-core` in VS Code.
-2. **Terminal → Run Task → `watch-webpack`** (runs `webpack:dev:watch`).
+2. **Terminal → Run Task → `watch-webpack`** (or `webpack:dev:watch`).
 3. **Run and Debug → `Run Dendron Extension (Desktop, No Precompile)`** (F5).
 
 ### Option B — Open monorepo root
 
 1. Open the repository root.
-2. Start `watch-webpack` from `packages/plugin-core` (same task name in that folder’s tasks).
-3. Use **Run Dendron Extension (Desktop, No Precompile) - [open monorepo root]**.
+2. Start `watch-webpack` in `packages/plugin-core`.
+3. Use **Run Dendron Extension (Desktop, No Precompile) - [open monorepo root]** from root `.vscode/launch.json`.
 
-### Clean Host testing
+### Clean Host (Insiders debugging)
 
-Use **Run Dendron Extension (Clean Host, No Precompile)** in `packages/plugin-core/.vscode/launch.json` to launch with `--disable-extensions`.
+**Run Dendron Extension (Clean Host, No Precompile)** in `packages/plugin-core/.vscode/launch.json` — launches with `--disable-extensions` so only Dendron is active. Use this when checking sqlite3, activation, or API issues on Insiders.
 
-## Debug CLI / doctor
+## Install a local `.vsix` (optional)
 
-After `yarn bootstrap:build:dendron-cli`:
+When you want an installed copy without F5 (same machine, no Marketplace):
+
+```bash
+yarn extension:package
+```
+
+This builds dependencies, production webpack + web bundle, then runs `vsce package` in `plugin-core`. Install the generated `.vsix`:
+
+- VS Code: **Extensions → … → Install from VSIX…**
+- Or: `code --install-extension packages/plugin-core/*.vsix`
+
+You do **not** need `vsce publish` or npm credentials.
+
+## Debug CLI / workspace health
+
+After bootstrap:
 
 ```bash
 yarn dendron health --verbose
 yarn dendron health --checks sqlite,git,yml --json
 ```
 
-Launch configs in root `.vscode/launch.json`:
+Note: workspace health is `dendron health` (not `dendron doctor` — that name is still the notes doctor).
 
-- **Debug Dendron-CLI (ts-node bin + doctor health)**
-- **Debug Doctor (health checks + perf)**
+Root `.vscode/launch.json` includes **Debug Doctor** and **Debug Dendron-CLI** configs.
 
-## Package build order (manual)
+Doctor smoke (8 contracts, no VS Code):
 
-If you need to build incrementally:
+```bash
+yarn test:doctor:smoke
+```
 
-1. `@dendronhq/common-all`
-2. `@dendronhq/common-server`, `@dendronhq/unified`
-3. `@dendronhq/engine-server`, `@dendronhq/pods-core`
-4. `@dendronhq/api-server`, `@dendronhq/dendron-cli`, `@dendronhq/engine-test-utils`
-5. `@dendronhq/plugin-core` (webpack for runtime; `compile` for typecheck)
+## Library builds (only when needed)
+
+Most packages compile with full `tsc` into `lib/` (gitignored; built locally).
+
+Fast path (normal):
+
+```bash
+yarn bootstrap:build:fast
+```
+
+Full monorepo (plugin-views, sync_assets, etc.):
+
+```bash
+yarn bootstrap:build
+```
+
+Hybrid tsup + api-extractor (optional experiments):
+
+```bash
+yarn bootstrap:build:modern-fast
+```
+
+Manual order if building piecemeal:
+
+1. `common-all` → `common-di` → `unified` → `common-server`
+2. `engine-server`, `pods-core`, `api-server`, `dendron-cli`
+3. `plugin-core` — **webpack for runtime**, `compile` for types
 
 ## Troubleshooting
 
 | Symptom | Fix |
 |--------|-----|
-| `lerna` / `minimatch` errors | Root bootstrap uses `yarn workspace` (not lerna). Run `yarn install` after lockfile changes. |
-| Missing `@dendronhq/engine-server` types | `yarn workspace @dendronhq/engine-server run build:modern` |
-| Extension F5 shows old code | Ensure `watch-webpack` is running; use No Precompile launch config |
-| OOM during `common-all` build | `tsup` uses `dts: false`; types come from `build:types` only |
+| `lerna` / `minimatch` errors | Bootstrap uses `yarn workspace`, not lerna. Run `yarn` after lockfile changes. |
+| Extension F5 shows old code | Ensure `watch-webpack` is running; use **No Precompile** launch config. |
+| `Cannot find module` from CLI | `yarn bootstrap:build:dendron-cli` |
+| sqlite3 / activation fails on Insiders | Clean Host launch; check Extension Host log; `yarn dendron health --checks sqlite` |
+| Missing types in IDE | `yarn workspace @dendronhq/<pkg> run build` for that package |
 
 ## Related docs
 
-- [00-GOALS-AND-ROADMAP.md](./00-GOALS-AND-ROADMAP.md)
-- [MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md](./MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md)
+- [00-GOALS-AND-ROADMAP.md](./00-GOALS-AND-ROADMAP.md) — vision (some publish/Lerna items are legacy upstream noise for this fork)
 - [packages/plugin-core.md](./packages/plugin-core.md)
-- [.grok/reports/build-modernization-spike-2026-05-31.md](../../.grok/reports/build-modernization-spike-2026-05-31.md)

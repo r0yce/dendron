@@ -16,6 +16,16 @@ This is a personal fork of Dendron, the best local-first, hierarchical, markdown
 
 This document + the rest of `docs/dev/` is the living bible for this fork.
 
+### Fork scope (local extension only)
+
+- **Not** publishing `@dendronhq/*` packages to npm.
+- **Not** merging changes upstream to dendronhq/dendron.
+- **Success criterion**: build on your machine → F5 or install a local `.vsix` → daily use on VS Code / Insiders.
+
+Practical entry point: [BUILD-AND-DEBUG.md](./BUILD-AND-DEBUG.md). Gates: `yarn verify:local` (daily), `yarn verify:full` (deeper), `yarn extension:package` (VSIX).
+
+Roadmap items about Lerna publish, verdaccio, npm release parity, and upstream PR stacks are **legacy upstream noise** unless you explicitly need them.
+
 ---
 
 ## Current State Assessment (as of go-to-work branch creation)
