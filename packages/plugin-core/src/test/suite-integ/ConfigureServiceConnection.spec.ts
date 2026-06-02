@@ -37,19 +37,19 @@ suite("ConfigureServiceConnection", function () {
               label: "Create New Service Connection",
             }) as Thenable<vscode.QuickPickItem>
           );
-          const serviceType = ExternalService.Airtable;
+          const serviceType = ExternalService.Notion;
           sinon
             .stub(PodUIControls, "promptForExternalServiceType")
             .returns(Promise.resolve(serviceType));
           sinon
             .stub(PodUIControls, "promptForGenericId")
-            .returns(Promise.resolve("airtable"));
+            .returns(Promise.resolve("notion"));
           await cmd.run();
           const activePath =
             VSCodeUtils.getActiveTextEditor()?.document.uri.fsPath;
           expect(
             activePath?.endsWith(
-              path.join("pods", "service-connections", "svcconfig.airtable.yml")
+              path.join("pods", "service-connections", "svcconfig.notion.yml")
             )
           ).toBeTruthy();
         });
@@ -69,19 +69,19 @@ suite("ConfigureServiceConnection", function () {
           );
           sinon.stub(vscode.window, "showQuickPick").returns(
             Promise.resolve({
-              label: "airtable-2",
+              label: "notion-2",
             }) as Thenable<vscode.QuickPickItem>
           );
           //setup
           const { wsRoot } = ExtensionProvider.getDWorkspace();
           const configPath = PodUtils.getServiceConfigPath({
             wsRoot,
-            connectionId: "airtable-2",
+            connectionId: "notion-2",
           });
           ensureDirSync(path.dirname(configPath));
           writeYAML(configPath, {
-            serviceType: ExternalService.Airtable,
-            podId: "airtable-2",
+            serviceType: ExternalService.Notion,
+            podId: "notion-2",
             connectionId: "test",
           });
           await cmd.run();
@@ -92,7 +92,7 @@ suite("ConfigureServiceConnection", function () {
               path.join(
                 "pods",
                 "service-connections",
-                "svcconfig.airtable-2.yml"
+                "svcconfig.notion-2.yml"
               )
             )
           ).toBeTruthy();

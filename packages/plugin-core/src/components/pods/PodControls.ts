@@ -257,13 +257,6 @@ export class PodUIControls {
 
   public static async createNewServiceConfig(connectionType: ExternalService) {
     switch (connectionType) {
-      case ExternalService.Airtable: {
-        await this.promptToCreateNewServiceConfig(ExternalService.Airtable);
-        vscode.window.showInformationMessage(
-          `First setup a new ${connectionType} connection and then re-run the pod command.`
-        );
-        break;
-      }
       case ExternalService.GoogleDocs: {
         const id = await this.promptToCreateNewServiceConfig(
           ExternalService.GoogleDocs
@@ -550,9 +543,6 @@ export class PodUIControls {
    */
   private static getDescriptionForPodType(type: PodV2Types): string {
     switch (type) {
-      case PodV2Types.AirtableExportV2:
-        return "Exports notes to rows in an Airtable";
-
       case PodV2Types.MarkdownExportV2:
         return "Formats Dendron markdown and exports it to the clipboard or local file system";
 

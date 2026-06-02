@@ -29,10 +29,6 @@ type CommandCLIOpts = {
    * so we don't want it to exit.
    */
   exit?: boolean | undefined;
-  /**
-   * pod Id used to export Note(s) to Airtable
-   */
-  podId?: string | undefined;
 } & SetupEngineCLIOpts;
 
 type CommandOpts = CommandCLIOpts & SetupEngineOpts & CommandCommonProps;
@@ -64,10 +60,6 @@ export class DoctorCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     args.option("dryRun", {
       describe: "dry run",
       type: "boolean",
-    });
-    args.option("podId", {
-      describe: "podId used to export note(s) to Airtable",
-      type: "string",
     });
   }
 

@@ -14,7 +14,6 @@ import {
 } from "@dendronhq/common-all";
 import {
   getParsingDependencyDicts,
-  MDUtilsV5,
   MDUtilsV5Web,
 } from "@dendronhq/unified";
 import { inject, injectable } from "../../di/inject";
@@ -82,7 +81,7 @@ export class PluginNoteRenderer implements INoteRenderer {
       })
     );
 
-    let proc: ReturnType<typeof MDUtilsV5["procRehypeFull"]>;
+    let proc: import("unified").Processor<any, any, any, any, any>;
     if (dest === DendronASTDest.HTML) {
       proc = MDUtilsV5Web.procRehypeWeb(
         {

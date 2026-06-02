@@ -15,7 +15,6 @@ import { DConfig, readMD } from "@dendronhq/common-server";
 import {
   DEPRECATED_PATHS,
   DoctorActionsEnum,
-  execa,
   InactvieUserMsgStatusEnum,
   MetadataService,
   MigrationChangeSetStatus,
@@ -545,7 +544,7 @@ export class StartupUtils {
   static async showWhitelistingLocalhostDocsIfNecessary() {
     const pingArgs =
       os.platform() === "win32" ? "ping -n 1 127.0.0.1" : "ping -c 1 127.0.0.1";
-    const { failed } = await execa.command(pingArgs);
+    const { failed } = await (await import("execa")).execaCommand(pingArgs);
     if (failed) {
       AnalyticsUtils.track(ExtensionEvents.LocalhostBlockedNotified);
       vscode.window

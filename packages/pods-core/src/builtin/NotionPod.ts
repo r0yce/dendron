@@ -5,10 +5,7 @@ import {
   NoteProps,
 } from "@dendronhq/common-all";
 import { markdownToBlocks } from "@instantish/martian";
-import type {
-  Page,
-  TitlePropertyValue,
-} from "@notionhq/client/build/src/api-types";
+import type { PageObjectResponse } from "@notionhq/client";
 import { Client } from "@notionhq/client";
 import _ from "lodash";
 import { ExportPod, ExportPodPlantOpts, ExportPodConfig } from "../basev3";
@@ -93,12 +90,14 @@ export class NotionExportPod extends ExportPod<NotionExportConfig> {
   /**
    * Method to get page name of a Notion Page
    */
-  getPageName = (page: Page) => {
-    const { title } =
+  getPageName = (page: PageObjectResponse) => {
+    const titleProp =
       page.parent.type !== "database_id"
-        ? (page.properties.title as TitlePropertyValue)
-        : (page.properties.Name as TitlePropertyValue);
-    return title[0] ? title[0].plain_text : "Untitled";
+        ? page.properties.title
+        : page.properties.Name;
+    const title = (titleProp as { title?: { plain_text: string }[] } | undefined)
+      ?.title;
+    return title?.[0]?.plain_text ?? "Untitled";
   };
 
   /**
@@ -115,8 +114,8 @@ export class NotionExportPod extends ExportPod<NotionExportConfig> {
       filter: { value: "page", property: "object" },
     });
     const pagesMap: any = {};
-    const pages = allDocs.results as Page[];
-    pages.forEach((page: Page) => {
+    const pages = allDocs.results as PageObjectResponse[];
+    pages.forEach((page: PageObjectResponse) => {
       const key = this.getPageName(page);
       const value = page.id;
       pagesMap[key] = value;

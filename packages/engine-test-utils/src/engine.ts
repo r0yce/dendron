@@ -97,13 +97,17 @@ export { DEngineClient, DVault, WorkspaceOpts };
  * @param opts
  * @returns
  */
-export async function createServer(opts: WorkspaceOpts & { port?: number }) {
-  return (
-    await new LaunchEngineServerCommand().enrichArgs({
-      wsRoot: opts.wsRoot,
-      port: opts.port,
-    })
-  ).data;
+export async function createServer(opts: WorkspaceOpts & { port?: number }): Promise<{
+  port: number;
+  server: Server;
+  engine: import("@dendronhq/engine-server").DendronEngineClient;
+  wsRoot: string;
+}> {
+  const cliOpts: { wsRoot: string; port?: number } = { wsRoot: opts.wsRoot };
+  if (opts.port !== undefined) {
+    cliOpts.port = opts.port;
+  }
+  return (await new LaunchEngineServerCommand().enrichArgs(cliOpts)).data;
 }
 
 /**

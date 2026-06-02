@@ -2,8 +2,8 @@ import { vault2Path } from "@dendronhq/common-all";
 import _ from "lodash";
 import { Image, Link, Text } from "mdast";
 import Unified, { Transformer } from "unified";
-import { Node } from "unist";
-import visit from "unist-util-visit";
+import type { Node, Parent } from "unist";
+import { visit } from "unist-util-visit";
 import { VFile } from "vfile";
 import { AnchorUtils, RemarkUtils } from ".";
 import { DendronASTTypes, HashTag, UserTag, WikiLinkNoteV4 } from "../types";
@@ -109,16 +109,16 @@ export function dendronHoverPreview(
         DendronASTTypes.USERTAG,
         DendronASTTypes.HASHTAG,
       ],
-      (node, index, parent) => {
+      (node: Node, index: number | undefined, parent: Parent | undefined) => {
         // Remove the frontmatter because it will break the output
         if (RemarkUtils.isFrontmatter(node) && parent) {
           // Remove this node
-          parent.children.splice(index, 1);
+          parent.children.splice(index!, 1);
           // Since this removes the frontmatter node, the next node to visit is at the same index.
           return index;
         }
         if (RemarkUtils.isImage(node) || RemarkUtils.isExtendedImage(node)) {
-          makeImageUrlFullPath({ proc, node });
+          makeImageUrlFullPath({ proc, node: node as Image });
         } else if (RemarkUtils.isWikiLink(node)) {
           modifyWikilinkValueToCommandUri({ proc, node });
         } else if (RemarkUtils.isUserTag(node) || RemarkUtils.isHashTag(node)) {

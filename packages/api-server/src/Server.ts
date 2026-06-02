@@ -12,7 +12,7 @@ import {
 } from "@dendronhq/common-server";
 import * as Sentry from "@sentry/node";
 import cors from "cors";
-import express, { NextFunction, Request, Response } from "express";
+import express, { type Express, NextFunction, Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 import fs from "fs-extra";
 import morgan from "morgan";
@@ -43,7 +43,7 @@ export function appModule({
   nextStaticRoot?: string | undefined;
   googleOauthClientId?: string | undefined;
   googleOauthClientSecret?: string | undefined;
-}) {
+}): Express {
   const ctx = "appModule:start";
   const logger = getLogger();
   const app = express();
@@ -77,8 +77,6 @@ export function appModule({
 
   // Re-use the id for error reporting too:
   Sentry.setUser({ id: SegmentClient.instance().anonymousId });
-
-  app.use(Sentry.Handlers.requestHandler() as express.RequestHandler);
 
   if (nextStaticRoot) {
     logger.info({ ctx, msg: "nextStaticRoot:add", nextStaticRoot });
@@ -124,17 +122,6 @@ export function appModule({
 
   app.use("/api", baseRouter);
 
-  // The error handler must be before any other error middleware and after all controllers
-  // app.use(Sentry.Handlers.errorHandler() as express.ErrorRequestHandler);
-  app.use(
-    Sentry.Handlers.errorHandler({
-      shouldHandleError() {
-        // Upload all exceptions
-        return true;
-      },
-    }) as express.ErrorRequestHandler
-  );
-
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     const flattenedError = error2PlainObject(err);
     logger.error({
@@ -144,6 +131,8 @@ export function appModule({
     });
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(flattenedError);
   });
+
+  Sentry.setupExpressErrorHandler(app);
 
   return app;
 }

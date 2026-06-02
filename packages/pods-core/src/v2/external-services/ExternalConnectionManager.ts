@@ -2,7 +2,6 @@ import { assertUnreachable } from "@dendronhq/common-all";
 import fs from "fs-extra";
 import path from "path";
 import {
-  AirtableConnection,
   ConfigFileUtils,
   GoogleDocsConnection,
   NotionConnection,
@@ -38,7 +37,6 @@ export function isExternalTarget(object: any): object is ExternalTarget {
  * Types of currently supported external services
  */
 export enum ExternalService {
-  Airtable = "Airtable",
   GoogleDocs = "GoogleDocs",
   Notion = "Notion",
 }
@@ -75,14 +73,6 @@ export class ExternalConnectionManager {
     }
 
     switch (serviceType) {
-      case ExternalService.Airtable: {
-        return ConfigFileUtils.genConfigFileV2<AirtableConnection>({
-          fPath: path.join(this.configRootPath, `svcconfig.${id}.yml`),
-          configSchema: AirtableConnection.getSchema(),
-          setProperties: { connectionId: id },
-        });
-      }
-
       case ExternalService.GoogleDocs: {
         const file = ConfigFileUtils.genConfigFileV2<GoogleDocsConnection>({
           fPath: path.join(this.configRootPath, `svcconfig.${id}.yml`),

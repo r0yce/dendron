@@ -90,10 +90,10 @@ export class RenameHeaderCommand extends BasicCommand<
           message: "You must first select the header you want to rename.",
         });
       const range = VSCodeUtils.position2VSCodeRange(
-        AnchorUtils.headerTextPosition(header),
+        AnchorUtils.headerTextPosition(header as any),
         { line: selection.start.line }
       );
-      const text = AnchorUtils.headerText(header);
+      const text = AnchorUtils.headerText(header as any);
       oldHeader = { text, range };
     }
     if (_.isUndefined(newHeader)) {
@@ -148,7 +148,7 @@ export class RenameHeaderCommand extends BasicCommand<
     );
     const parsed = proc.parse(`## ${newHeader}`);
     visit(parsed, [DendronASTTypes.HEADING], (node: Heading) => {
-      newAnchorHeader = AnchorUtils.headerText(node);
+      newAnchorHeader = AnchorUtils.headerText(node as any);
     });
 
     // Save the updated header, so that same file links update correctly with `renameNote` which reads the files.

@@ -213,11 +213,11 @@ export class LookupV3QuickPickView implements Disposable {
         return b.clone();
       }
     });
-    this._quickPick!.buttons = newButtons;
+    (this._quickPick as { buttons: DendronBtn[] }).buttons = newButtons;
   }
 
   private onTriggerButton = (btn: QuickInputButton) => {
-    const btnType = (btn as IDendronQuickInputButton).type;
+    const btnType = (btn as unknown as IDendronQuickInputButton).type;
 
     switch (btnType) {
       case LookupSelectionTypeEnum.selection2Items:
@@ -326,8 +326,8 @@ export class LookupV3QuickPickView implements Disposable {
 
     AnalyticsUtils.track(LookupEvents.LookupModifierToggledByUser, {
       command: this._providerId,
-      type: (btn as IDendronQuickInputButton).type,
-      pressed: (btn as IDendronQuickInputButton).pressed,
+      type: (btn as unknown as IDendronQuickInputButton).type,
+      pressed: (btn as unknown as IDendronQuickInputButton).pressed,
     });
   };
 }

@@ -18,7 +18,7 @@ import {
   SegmentClient,
 } from "@dendronhq/common-server";
 import { MetadataService, WorkspaceService } from "@dendronhq/engine-server";
-import { ExecaChildProcess } from "execa";
+import type { Subprocess } from "execa";
 import fs from "fs-extra";
 import _ from "lodash";
 import path from "path";
@@ -44,7 +44,7 @@ const DELAY_TO_SEND_SAVED_TELEMETRY = 15 * 1000;
 
 async function startServerProcess(): Promise<{
   port: number;
-  subprocess?: ExecaChildProcess;
+  subprocess?: Subprocess;
 }> {
   const { nextServerUrl, nextStaticRoot, engineServerPort } =
     ExtensionProvider.getDWorkspace().config.dev || {};
@@ -98,7 +98,7 @@ function handleServerProcess({
   context,
   onExit,
 }: {
-  subprocess: ExecaChildProcess;
+  subprocess: Subprocess;
   context: vscode.ExtensionContext;
   onExit: Parameters<typeof ServerUtils["onProcessExit"]>[0]["cb"];
 }) {
@@ -116,7 +116,7 @@ function handleServerProcess({
   );
   // if server process has issues, prompt user to restart
   ServerUtils.onProcessExit({
-    // 4-axis boundary cast (execa ExecaChildProcess interop vs @dendronhq/api-server ServerUtils.onProcessExit expected shape; cross-pkg typing + strict final wave). Burned @ts-ignore via explicit as any + dated TODO (ts-expect-error-burner final sweep 2026-06-01). See Suppression Registry in di/inject.ts. 0 bare.
+    // 4-axis boundary cast (execa Subprocess interop vs @dendronhq/api-server ServerUtils.onProcessExit expected shape; cross-pkg typing + strict final wave). Burned @ts-ignore via explicit as any + dated TODO (ts-expect-error-burner final sweep 2026-06-01). See Suppression Registry in di/inject.ts. 0 bare.
     subprocess: subprocess as any,
     cb: onExit,
   });

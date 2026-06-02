@@ -44,12 +44,8 @@ import {
 } from "@dendronhq/common-all";
 import _ from "lodash";
 import type {
-  Code,
   FootnoteDefinition,
-  FrontmatterContent,
   Heading,
-  HTML,
-  Image,
   InlineCode,
   Link,
   List,
@@ -65,8 +61,11 @@ import type {
 import * as mdastBuilder from "mdast-builder";
 import { Processor } from "unified";
 import { Node, Parent } from "unist";
+
+/** Dendron mdast nodes plus standard unist nodes used in visit/select */
+type ASTNode = Node | DendronASTNode;
 import { selectAll } from "unist-util-select";
-import visit from "unist-util-visit";
+import { visit } from "unist-util-visit";
 import { VFile } from "vfile";
 import { SiteUtils } from "../SiteUtils";
 import {
@@ -76,7 +75,6 @@ import {
   DendronASTNode,
   DendronASTRoot,
   DendronASTTypes,
-  ExtendedImage,
   HashTag,
   NoteRefNoteV4,
   UserTag,
@@ -192,13 +190,13 @@ const getLinks = ({
 }) => {
   const wikiLinks: WikiLinkNoteV4[] = [];
   const noteRefs: NoteRefNoteV4[] = [];
-  visit(ast, (node) => {
+  visit(ast as Node, (node) => {
     switch (node.type) {
       case DendronASTTypes.WIKI_LINK:
-        wikiLinks.push(node as WikiLinkNoteV4);
+        wikiLinks.push(node as unknown as WikiLinkNoteV4);
         break;
       case DendronASTTypes.REF_LINK_V2:
-        noteRefs.push(node as NoteRefNoteV4);
+        noteRefs.push(node as unknown as NoteRefNoteV4);
         break;
       case DendronASTTypes.HASHTAG: {
         wikiLinks.push(hashTag2WikiLinkNoteV4(node as HashTag));
@@ -311,7 +309,7 @@ const getLinkCandidates = async ({
 }) => {
   const textNodes: Text[] = [];
   visit(
-    ast,
+    ast as Node,
     [DendronASTTypes.TEXT],
     (node: Text, _index: number, parent: Parent | undefined) => {
       if (parent?.type === "paragraph" || parent?.type === "tableCell") {
@@ -391,7 +389,7 @@ const getLinkCandidatesSync = ({
 }) => {
   const textNodes: Text[] = [];
   visit(
-    ast,
+    ast as Node,
     [DendronASTTypes.TEXT],
     (node: Text, _index: number, parent: Parent | undefined) => {
       if (parent?.type === "paragraph" || parent?.type === "tableCell") {
@@ -1075,8 +1073,8 @@ export class AnchorUtils {
    */
   static headerText(header: Heading): string {
     const headerText: string[] = [];
-    visit(header, (node) => {
-      switch (node.type) {
+    visit(header as Node, (node: Node) => {
+      switch (node.type as string) {
         case DendronASTTypes.TEXT:
           headerText.push((node as Text).value);
           break;
@@ -1107,15 +1105,15 @@ export class AnchorUtils {
     let start: Point | undefined;
     let end: Point | undefined;
     visit(
-      header,
+      header as Node,
       [
         DendronASTTypes.TEXT,
         DendronASTTypes.WIKI_LINK,
         DendronASTTypes.HASHTAG,
         DendronASTTypes.BLOCK_ANCHOR,
       ],
-      (node) => {
-        if (node.type === DendronASTTypes.BLOCK_ANCHOR && end) {
+      (node: Node) => {
+        if ((node as { type?: string }).type === DendronASTTypes.BLOCK_ANCHOR && end) {
           // Preserve whitespace after the header, for example `# foo ^bar`, where
           // `^bar` must be separated with a space since it's not part of the header
           end.column -= 1;
@@ -1304,7 +1302,7 @@ export class RemarkUtils {
     ];
   }
 
-  static isHeading(node: Node, text: string, depth?: number): node is Heading {
+  static isHeading(node: ASTNode, text: string, depth?: number): node is Heading {
     if (node.type !== DendronASTTypes.HEADING) {
       return false;
     }
@@ -1325,87 +1323,87 @@ export class RemarkUtils {
     return true;
   }
 
-  static isRoot(node: Node): node is Parent {
+  static isRoot(node: ASTNode): node is Parent {
     return node.type === DendronASTTypes.ROOT;
   }
 
-  static isParent(node: Node): node is Parent {
+  static isParent(node: ASTNode): node is Parent {
     return _.isArray((node as Parent).children);
   }
 
-  static isParagraph(node: Node): node is Paragraph {
+  static isParagraph(node: ASTNode): node is Paragraph {
     return node.type === DendronASTTypes.PARAGRAPH;
   }
 
-  static isTable(node: Node): node is Table {
+  static isTable(node: ASTNode): node is Table {
     return node.type === DendronASTTypes.TABLE;
   }
 
-  static isTableRow(node: Node): node is TableRow {
+  static isTableRow(node: ASTNode): node is TableRow {
     return node.type === DendronASTTypes.TABLE_ROW;
   }
 
-  static isTableCell(node: Node): node is TableCell {
+  static isTableCell(node: ASTNode): node is TableCell {
     return node.type === DendronASTTypes.TABLE_CELL;
   }
 
-  static isList(node: Node): node is List {
+  static isList(node: ASTNode): node is List {
     return node.type === DendronASTTypes.LIST;
   }
 
-  static isNoteRefV2(node: Node): node is NoteRefNoteV4 {
+  static isNoteRefV2(node: ASTNode): node is ASTNode {
     return node.type === DendronASTTypes.REF_LINK_V2;
   }
 
-  static isImage(node: Node): node is Image {
+  static isImage(node: ASTNode): node is ASTNode {
     return node.type === DendronASTTypes.IMAGE;
   }
 
-  static isExtendedImage(node: Node): node is ExtendedImage {
+  static isExtendedImage(node: ASTNode): node is ASTNode {
     return node.type === DendronASTTypes.EXTENDED_IMAGE;
   }
 
-  static isText(node: Node): node is Text {
+  static isText(node: ASTNode): node is ASTNode {
     return node.type === DendronASTTypes.TEXT;
   }
 
-  static isLink(node: Node): node is Link {
+  static isLink(node: ASTNode): node is Link {
     return node.type === DendronASTTypes.LINK;
   }
 
-  static isWikiLink(node: Node): node is WikiLinkNoteV4 {
+  static isWikiLink(node: ASTNode): node is ASTNode {
     return node.type === DendronASTTypes.WIKI_LINK;
   }
 
-  static isFootnoteDefinition(node: Node): node is FootnoteDefinition {
+  static isFootnoteDefinition(node: ASTNode): node is ASTNode {
     return node.type === DendronASTTypes.FOOTNOTE_DEFINITION;
   }
 
-  static isFrontmatter(node: Node): node is FrontmatterContent {
+  static isFrontmatter(node: ASTNode): node is ASTNode {
     return node.type === DendronASTTypes.FRONTMATTER;
   }
 
-  static isHTML(node: Node): node is HTML {
+  static isHTML(node: ASTNode): node is ASTNode {
     return node.type === DendronASTTypes.HTML;
   }
 
-  static isCode(node: Node): node is Code {
+  static isCode(node: ASTNode): node is ASTNode {
     return node.type === DendronASTTypes.CODE;
   }
 
-  static isYAML(node: Node): node is YAML {
+  static isYAML(node: ASTNode): node is ASTNode {
     return node.type === DendronASTTypes.YAML;
   }
 
-  static isHashTag(node: Node): node is HashTag {
+  static isHashTag(node: ASTNode): node is ASTNode {
     return node.type === DendronASTTypes.HASHTAG;
   }
 
-  static isUserTag(node: Node): node is UserTag {
+  static isUserTag(node: ASTNode): node is ASTNode {
     return node.type === DendronASTTypes.USERTAG;
   }
 
-  static isNodeWithPosition<N extends Node>(
+  static isNodeWithPosition<N extends ASTNode>(
     node: N
   ): node is N & { position: Position } {
     return node.position !== undefined;
@@ -1423,7 +1421,7 @@ export class RemarkUtils {
         const root = tree as DendronASTRoot;
         const wikiLinks: WikiLinkNoteV4[] = selectAll(
           DendronASTTypes.WIKI_LINK,
-          root
+          root as Node
         ) as WikiLinkNoteV4[];
 
         let dirty = false;
@@ -1475,7 +1473,7 @@ export class RemarkUtils {
         const root = tree as DendronASTRoot;
         const wikiLinks: WikiLinkNoteV4[] = selectAll(
           DendronASTTypes.WIKI_LINK,
-          root
+          root as Node
         ) as WikiLinkNoteV4[];
         let dirty = false;
         await asyncLoop(wikiLinks, async (linkNode) => {
@@ -1628,7 +1626,8 @@ export class RemarkUtils {
     if (!RemarkUtils.isParent(tree)) {
       return [];
     }
-    visit(tree, (node, _index) => {
+    visit(tree as Node, (node, _index) => {
+      if (_index === undefined) return;
       // we are still before the start index
       if (_index <= startHeaderIndex && !stopAtFirstHeader) {
         return;
@@ -1679,10 +1678,8 @@ export class RemarkUtils {
 
     // Read and parse the note
     const noteText = NoteUtils.serialize(note);
-    const noteAST = proc.parse(noteText);
-    // @ts-expect-error - noteAST.children shape post-parse (mdast interop). BM-2026-0531-First3 [ref:registry] (local, not 4-axis boundary). No bare @ts. 0 tests invariant.
+    const noteAST = proc.parse(noteText) as Parent;
     if (_.isUndefined(noteAST.children)) return [];
-    // @ts-expect-error - noteAST.children shape post-parse (mdast interop). BM-2026-0531-First3 [ref:registry] (local, not 4-axis boundary). No bare @ts. 0 tests invariant.
     const nodesToSearch = _.filter(noteAST.children as Node[], (node) =>
       _.includes(NODE_TYPES_TO_EXTRACT, node.type)
     );
@@ -1718,13 +1715,13 @@ export class RemarkUtils {
       // Extract list items out of lists. We also extract them from nested lists,
       // because block anchors can't refer to nested lists, only items inside of them
       if (node.type === DendronASTTypes.LIST) {
-        visit(node, [DendronASTTypes.LIST_ITEM], (listItem: ListItem) => {
+        visit(node as Node, [DendronASTTypes.LIST_ITEM], (listItem: ListItem) => {
           // The list item might have a block anchor inside of it.
           let anchor: DNoteAnchorPositioned | undefined;
           visit(
-            listItem,
+            listItem as Node,
             [DendronASTTypes.BLOCK_ANCHOR, DendronASTTypes.LIST],
-            (inListItem) => {
+            (inListItem: Node) => {
               // Except if we hit a nested list, because then the block anchor refers to the item in the nested list
               if (inListItem.type === DendronASTTypes.LIST) return "skip";
               [, anchor] =
@@ -1740,7 +1737,7 @@ export class RemarkUtils {
           const listItemPos = listItem.position;
           if (listItemPos) {
             blocks.push({
-              text: proc.stringify(listItem),
+              text: proc.stringify(listItem as Node) as string,
               ...(anchor !== undefined ? { anchor } : {}),
               position: listItemPos,
               type: listItem.type,
@@ -1758,7 +1755,7 @@ export class RemarkUtils {
       } else if (node.type !== DendronASTTypes.LIST) {
         // Other nodes might have block anchors inside them
         // Except lists, because anchors inside lists only refer to specific list items
-        visit(node, [DendronASTTypes.BLOCK_ANCHOR], (child) => {
+        visit(node as Node, [DendronASTTypes.BLOCK_ANCHOR], (child) => {
           [, anchor] =
             AnchorUtils.anchorNode2anchor(child as BlockAnchor, slugger) || [];
         });
@@ -1769,7 +1766,7 @@ export class RemarkUtils {
       const nodePos = node.position;
       if (nodePos) {
         blocks.push({
-          text: proc.stringify(node),
+          text: proc.stringify(node) as string,
           ...(anchor !== undefined ? { anchor } : {}),
           position: nodePos,
           type: node.type,
@@ -1781,9 +1778,9 @@ export class RemarkUtils {
   }
 
   static extractFootnoteDefs(root: Node): FootnoteDefinition[] {
-    return selectAll(DendronASTTypes.FOOTNOTE_DEFINITION, root).filter(
-      RemarkUtils.isFootnoteDefinition
-    );
+    return (
+      selectAll(DendronASTTypes.FOOTNOTE_DEFINITION, root) as ASTNode[]
+    ).filter(RemarkUtils.isFootnoteDefinition) as FootnoteDefinition[];
   }
 
   /**
@@ -1797,12 +1794,12 @@ export class RemarkUtils {
       {},
       { dest: DendronASTDest.MD_DENDRON }
     ).parse(body);
-    visit(noteAST, [DendronASTTypes.FRONTMATTER], (frontmatter: YAML) => {
+    visit(noteAST as Node, [DendronASTTypes.FRONTMATTER], (frontmatter: YAML) => {
       parsed = parseFrontmatter(frontmatter);
       return false; // stop traversing, there is only one frontmatter
     });
     if (parsed) {
-      return getFrontmatterTags(parsed);
+      return getFrontmatterTags((parsed ?? []) as import("../yaml").MappingItem[]);
     } else {
       return [];
     }

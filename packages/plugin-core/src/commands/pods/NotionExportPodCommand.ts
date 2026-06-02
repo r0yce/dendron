@@ -17,7 +17,6 @@ import {
   PodUtils,
   PodV2Types,
   RunnableNotionV2PodConfig,
-  TitlePropertyValue,
 } from "@dendronhq/pods-core";
 import _ from "lodash";
 import * as vscode from "vscode";
@@ -218,11 +217,13 @@ export class NotionExportPodCommand extends BaseExportPodCommand<
    * Method to get page name of a Notion Page
    */
   getPageName = (page: Page) => {
-    const { title } =
+    const titleProp =
       page.parent.type !== "database_id"
-        ? (page.properties.title as TitlePropertyValue)
-        : (page.properties.Name as TitlePropertyValue);
-    return title[0] ? title[0].plain_text : "Untitled";
+        ? page.properties.title
+        : page.properties.Name;
+    const title = (titleProp as { title?: { plain_text: string }[] } | undefined)
+      ?.title;
+    return title?.[0]?.plain_text ?? "Untitled";
   };
 
   /**

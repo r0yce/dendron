@@ -4,7 +4,7 @@ import { Content, Root } from "mdast";
 import { list, listItem, paragraph } from "mdast-builder";
 import Unified, { Plugin } from "unified";
 import { Node } from "unist";
-import u from "unist-builder";
+import { u } from "unist-builder";
 import { SiteUtils } from "../SiteUtils";
 import { DendronASTDest, DendronASTTypes, WikiLinkNoteV4 } from "../types";
 import { MDUtilsV5 } from "../utilsv5";
@@ -95,7 +95,9 @@ const plugin: Plugin = function (this: Unified.Processor) {
       root.children.push({
         type: "thematicBreak",
       });
-      root.children.push(u("strong", [{ type: "text", value: "Backlinks" }]));
+      root.children.push(
+        u("strong", [{ type: "text" as const, value: "Backlinks" }]) as import("mdast").RootContent
+      );
       root.children.push(
         list(
           "unordered",

@@ -38,15 +38,15 @@
   "dependencies": {
     "@dendronhq/common-all": "^0.124.0",
     "@dendronhq/engine-server": "^0.124.0",
-    "d3": "^7.6.1",
-    "lodash": "^4.17.21",
-    "micromatch": "^4.0.4",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "yargs": "^17.4.1"
+    "d3": "7.9.0",
+    "lodash": "4.18.1",
+    "micromatch": "4.0.8",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "yargs": "18.0.0"
   },
   "devDependencies": {
-    "@types/micromatch": "^4.0.2"
+    "@types/micromatch": "4.0.10"
   },
   "engines": {
     "node": ">=18.0.0"

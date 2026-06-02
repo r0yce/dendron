@@ -1,4 +1,6 @@
 declare module "@mapbox/rehype-prism";
-declare module "@dendronhq/remark-mermaid";
 declare module "remark-variables";
 declare module "rehype-katex";
+declare module "remark-footnotes";
+declare module "hast-util-parse-selector";
+declare module "hast-util-select";

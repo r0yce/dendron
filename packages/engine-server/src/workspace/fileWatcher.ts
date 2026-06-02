@@ -12,21 +12,20 @@ export type FileWatcherAdapter = {
 };
 
 export class EngineFileWatcher implements FileWatcherAdapter {
-  private watcher: chokidar.FSWatcher;
+  private watcher: ReturnType<typeof chokidar.watch>;
   constructor(
     base: string,
     pattern: string,
-    chokidarOpts?: chokidar.WatchOptions,
+    chokidarOpts?: Parameters<typeof chokidar.watch>[1],
     onReady?: () => void
   ) {
     // Chokidar requires paths with globs to use POSIX `/` separators, even on Windows
     const patternWithBase = `${path.posix.normalize(base)}/${pattern}`;
     this.watcher = chokidar.watch(patternWithBase, {
-      disableGlobbing: false,
       ignoreInitial: true,
       ignored: COMMON_FOLDER_IGNORES,
       ...chokidarOpts,
-    });
+    } as Parameters<typeof chokidar.watch>[1]);
     if (onReady) this.watcher.on("ready", onReady);
   }
 

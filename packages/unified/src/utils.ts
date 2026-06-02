@@ -86,7 +86,7 @@ export class MdastUtils {
     let foundNode: Node | undefined;
 
     const foundIndex = MdastUtils.findIndex(
-      nodes,
+      nodes as Node[],
       (node: Node, idx: number) => {
         if (idx === 0 && match === "*") {
           return false;

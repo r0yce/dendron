@@ -87,10 +87,11 @@ function isSelectVaultButton(button: DendronBtn) {
   return _.includes(["selectVault"], button.type);
 }
 
-export type IDendronQuickInputButton = QuickInputButton & {
+export type IDendronQuickInputButton = Omit<QuickInputButton, "toggle"> & {
   type: ButtonType;
   description: string;
   pressed: boolean;
+  toggle(): void;
 };
 
 type DendronBtnCons = {
@@ -157,7 +158,7 @@ export class DendronBtn implements IDendronQuickInputButton {
       : `${this.title}, status: ${this.pressed ? "on" : "off"}`;
   }
 
-  toggle() {
+  toggle(): void {
     if (this.canToggle) {
       this.pressed = !this.pressed;
     }

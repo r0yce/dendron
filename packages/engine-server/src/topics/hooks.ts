@@ -11,7 +11,7 @@ import {
 } from "@dendronhq/common-all";
 import { createLogger } from "@dendronhq/common-server";
 import axios from "axios";
-import execa from "execa";
+import { execa } from "execa";
 import fs from "fs-extra";
 import _ from "lodash";
 import path from "path";

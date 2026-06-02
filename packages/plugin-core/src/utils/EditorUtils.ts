@@ -23,7 +23,7 @@ import {
   UserTag,
   WikiLinkNoteV4,
 } from "@dendronhq/unified";
-import visit from "unist-util-visit";
+import { visit } from "unist-util-visit";
 import _ from "lodash";
 import vscode, {
   Position,
@@ -85,7 +85,7 @@ export class EditorUtils {
       const parsed = proc.parse(headerLine);
       const header = select(DendronASTTypes.HEADING, parsed) as Heading | null;
       if (_.isNull(header)) return undefined;
-      const headerText = AnchorUtils.headerText(header);
+      const headerText = AnchorUtils.headerText(header as any);
       if (headerText.length === 0) return undefined;
       return headerText;
     } else {

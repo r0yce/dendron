@@ -363,7 +363,7 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
       );
       return {
         ...note,
-        body: parser.stringify(tree),
+        body: String(parser.stringify(tree)),
       };
     },
     keyFn: (note) => note.id,

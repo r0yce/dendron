@@ -97,7 +97,7 @@ export class HTMLPublishPod extends PublishPod<HTMLPublishPodConfig> {
       config: overrideConfig,
       wikiLinksOpts: { convertLinks },
     });
-    const { contents } = await proc.processSync(note.body);
-    return contents as string;
+    const result = await proc.process(note.body);
+    return String(result.value);
   }
 }

@@ -160,8 +160,8 @@ export class NoteLookupProvider implements ILookupProviderV3 {
       picker.buttons.forEach((button) => {
         AnalyticsUtils.track(LookupEvents.LookupModifiersSetOnAccept, {
           command: this.id,
-          type: (button as IDendronQuickInputButton).type,
-          pressed: (button as IDendronQuickInputButton).pressed,
+          type: (button as unknown as IDendronQuickInputButton).type,
+          pressed: (button as unknown as IDendronQuickInputButton).pressed,
         });
       });
 

@@ -20,8 +20,13 @@ import type { Image, Link, Root } from "mdast";
 import { paragraph, text } from "mdast-builder";
 import Unified, { Processor, Transformer } from "unified";
 import { Node, Parent } from "unist";
-import u from "unist-builder";
-import visitParents from "unist-util-visit-parents";
+import { u } from "unist-builder";
+import visitParentsImport from "unist-util-visit-parents";
+
+const visitParents = visitParentsImport as unknown as (
+  tree: Node,
+  visitor: (node: Node, ancestors: Node[]) => void
+) => void;
 import { VFile } from "vfile";
 import { SiteUtils } from "../SiteUtils";
 import {
@@ -229,11 +234,11 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
         root.children.splice(
           idx,
           0,
-          u(DendronASTTypes.HEADING, { depth: 1 }, [u("text", note.title)])
+          u(DendronASTTypes.HEADING, { depth: 1 }, [u("text", note.title)]) as any
         );
       }
     }
-    visitParents(tree, (node, ancestors) => {
+    visitParents(tree, (node: Node, ancestors: Node[]) => {
       const parent = _.last(ancestors);
       if (_.isUndefined(parent) || !RemarkUtils.isParent(parent)) return; // root node
       if (node.type === DendronASTTypes.HASHTAG) {
@@ -243,12 +248,12 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
         // For hashtags, convert them to regular links for rendering
         // but not if they are inside of a link, otherwise they break link rendering.
         if (!ancestors.some((node) => RemarkUtils.isLink(node))) {
-          node = hashTag2WikiLinkNoteV4(hashtag);
+          node = hashTag2WikiLinkNoteV4(hashtag) as Node;
         } else {
           // If they are inside a link, rendering them as wikilinks will break the link rendering. Convert them to regular text.
           node = text(hashtag.value);
         }
-        parent.children[parentIndex] = node;
+        parent.children[parentIndex] = node as Node;
       }
       if (node.type === DendronASTTypes.USERTAG) {
         const userTag = node as UserTag;
@@ -257,11 +262,11 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
         // Convert user tags to regular links for rendering
         // but not if they are inside of a link, otherwise they break link rendering.
         if (!ancestors.some((node) => RemarkUtils.isLink(node))) {
-          node = userTag2WikiLinkNoteV4(userTag);
+          node = userTag2WikiLinkNoteV4(userTag) as Node;
         } else {
           node = text(userTag.value);
         }
-        parent.children[parentIndex] = node;
+        parent.children[parentIndex] = node as Node;
       }
       if (node.type === DendronASTTypes.WIKI_LINK) {
         const shouldApplyPublishingRules =
@@ -523,7 +528,7 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
             // The table HTML generation drops anything not attached to a cell, so we put this in the first cell instead.
             // length/invariant guard + optional chain for noUnchecked (noteRef/data paths + SiteUtils synergy cluster of 3 sub-agents parallel dispatch for "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" while engine batch 3 runs). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). THE CHAIN DOES NOT STOP.
             target = (greatGrandParent.children.length > 0 && greatGrandParent.children[0] && greatGrandParent.children[0].children && greatGrandParent.children[0].children.length > 0)
-              ? greatGrandParent.children[0].children[0]
+              ? (greatGrandParent.children[0].children[0] as Node)
               : undefined;
           }
         } else {
@@ -534,24 +539,24 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
         if (target === undefined) return;
         if (RemarkUtils.isList(target)) {
           // Can't install as a child of the list, has to go into a list item
-          target = target.children.length > 0 ? target.children[0] : undefined;
+          target = target.children.length > 0 ? (target.children[0] as Node) : undefined;
         }
         if (target === undefined) return;
         if (RemarkUtils.isTable(target)) {
           // Can't install as a child of the table directly, has to go into a table cell
           // length/invariant guard (noteRef/data paths + SiteUtils synergy cluster ... "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" ... full 8 IDs as above). THE CHAIN DOES NOT STOP.
           target = (target.children.length > 0 && target.children[0] && target.children[0].children && target.children[0].children.length > 0)
-            ? target.children[0].children[0]
+            ? (target.children[0].children[0] as Node)
             : undefined;
         }
 
         if (target === undefined) return;
         if (RemarkUtils.isParent(target)) {
           // Install the block anchor at the target node
-          target.children.unshift(anchorHTML);
+          target.children.unshift(anchorHTML as Node);
         } else if (RemarkUtils.isRoot(target)) {
           // If the anchor is the first thing in the note, anchorHTML goes to the start of the document
-          target.children.unshift(anchorHTML);
+          target.children.unshift(anchorHTML as Node);
         } else if (
           isNotUndefined(grandParent) &&
           RemarkUtils.isParent(grandParent)
@@ -561,7 +566,7 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
           const targetIndex = _.indexOf(grandParent.children, target);
           const targetChild = grandParent.children[targetIndex];
           if (targetChild === undefined) return;
-          const targetWrapper = paragraph([anchorHTML, targetChild]);
+          const targetWrapper = paragraph([anchorHTML as any, targetChild]);
           grandParent.children.splice(targetIndex, 1, targetWrapper);
         }
         // Remove the block anchor itself since we install the anchor at the target
@@ -601,7 +606,7 @@ function plugin(this: Unified.Processor, opts?: PluginOpts): Transformer {
         parent.children.splice(
           index,
           1,
-          extendedImage2html(node as ExtendedImage)
+          extendedImage2html(node as ExtendedImage) as Node
         );
       }
       return; // continue traversal

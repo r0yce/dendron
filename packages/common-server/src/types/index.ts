@@ -1,9 +1,10 @@
 import { NoteProps } from "@dendronhq/common-all";
-import execa from "execa";
+import { execa } from "execa";
 import axios from "axios";
 import _ from "lodash";
 
-export { CommentJSONObject, CommentJSONValue } from "comment-json";
+export { CommentObject, CommentJSONValue } from "comment-json";
+export type CommentJSONObject = import("comment-json").CommentObject;
 
 export type DHookFunction = (opts: {
   note: NoteProps;

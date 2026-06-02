@@ -1,9 +1,15 @@
-import { HTML, Paragraph } from "mdast";
+import { Code, HTML, Paragraph, Text } from "mdast";
 import Unified, { Transformer } from "unified";
-import { Node, Position } from "unist";
-import visit from "unist-util-visit";
+import type { Node, Parent, Position } from "unist";
+import { visit } from "unist-util-visit";
 import { VFile } from "vfile";
-import { DendronASTTypes } from "../types";
+import {
+  DendronASTTypes,
+  HashTag,
+  NoteRefNoteV4,
+  UserTag,
+  WikiLinkNoteV4,
+} from "../types";
 import { RemarkUtils } from "./utils";
 
 /**
@@ -83,7 +89,7 @@ export function backlinksHover(
     // backlink to highlight it and to change its node type so that it appears
     // in its text form to the user (we don't want to convert a noteref backlink
     // into its reffed contents for example)
-    visit(tree, (node, index, parent) => {
+    visit(tree, (node: Node, index: number | undefined, parent: Parent | undefined) => {
       if (!node.position) {
         return;
       }
@@ -94,7 +100,7 @@ export function backlinksHover(
         node.position.start.line > upperLineLimit
       ) {
         if (parent) {
-          parent.children.splice(index, 1);
+          parent.children.splice(index!, 1);
           return index;
         }
       }
@@ -103,8 +109,9 @@ export function backlinksHover(
       // straddle the context boundaries
       if (node.position && node.position.start.line < lowerLineLimit) {
         if (RemarkUtils.isCode(node)) {
-          const lines = node.value.split("\n");
-          node.value = lines
+          const codeNode = node as Code;
+          const lines = codeNode.value.split("\n");
+          codeNode.value = lines
             .slice(
               Math.max(0, lowerLineLimit - node.position.start.line - 2), // Adjust an offset to account for the code block ``` lines
               lines.length - 1
@@ -113,8 +120,9 @@ export function backlinksHover(
         }
       } else if (node.position && node.position.end.line > upperLineLimit) {
         if (RemarkUtils.isCode(node)) {
-          const lines = node.value.split("\n");
-          node.value = lines
+          const codeNode = node as Code;
+          const lines = codeNode.value.split("\n");
+          codeNode.value = lines
             .slice(
               0,
               upperLineLimit - node.position.end.line + 1 // Adjust an offset of 1 to account for the code block ``` line
@@ -126,14 +134,15 @@ export function backlinksHover(
       // Do the node replacement for wikilinks, node refs, and text blocks when
       // it's a candidate link
       if (RemarkUtils.isWikiLink(node)) {
+        const wikiNode = node as WikiLinkNoteV4;
         if (
-          backlinkLineNumber === node.position?.start.line &&
-          node.position.start.column === _opts.location.start.column
+          backlinkLineNumber === wikiNode.position?.start.line &&
+          wikiNode.position.start.column === _opts.location.start.column
         ) {
-          let wiklinkText = `${node.value}`;
+          let wiklinkText = `${wikiNode.value}`;
 
-          if (node.data.anchorHeader) {
-            wiklinkText += `#${node.data.anchorHeader}`;
+          if (wikiNode.data?.anchorHeader) {
+            wiklinkText += `#${wikiNode.data.anchorHeader}`;
           }
 
           (node as Node).type = DendronASTTypes.HTML;
@@ -142,18 +151,19 @@ export function backlinksHover(
           );
         }
       } else if (RemarkUtils.isNoteRefV2(node)) {
+        const noteRefNode = node as NoteRefNoteV4;
         if (
-          backlinkLineNumber === node.position?.start.line &&
-          node.position.start.column === _opts.location.start.column
+          backlinkLineNumber === noteRefNode.position?.start.line &&
+          noteRefNode.position.start.column === _opts.location.start.column
         ) {
-          let noteRefText = `${node.value}`;
+          let noteRefText = `${noteRefNode.value}`;
 
-          if (node.data.link.data.anchorStart) {
-            noteRefText += `#${node.data.link.data.anchorStart}`;
+          if (noteRefNode.data.link.data.anchorStart) {
+            noteRefText += `#${noteRefNode.data.link.data.anchorStart}`;
           }
 
-          if (node.data.link.data.anchorEnd) {
-            noteRefText += `:#${node.data.link.data.anchorEnd}`;
+          if (noteRefNode.data.link.data.anchorEnd) {
+            noteRefText += `:#${noteRefNode.data.link.data.anchorEnd}`;
           }
 
           (node as Node).type = DendronASTTypes.HTML;
@@ -162,17 +172,18 @@ export function backlinksHover(
           );
         }
       } else if (RemarkUtils.isText(node)) {
+        const textNode = node as Text;
         // If the backlink location falls within the range of this text node,
         // then proceed with formatting. Note: a text node can span multiple
         // lines if it ends with a '\n'
         if (
-          backlinkLineNumber === node.position?.start.line &&
-          (node.position.end.column > _opts.location.start.column ||
-            node.position.end.line > _opts.location.start.line) &&
-          (node.position.start.column < _opts.location.end.column ||
-            node.position.start.line < _opts.location.end.line)
+          backlinkLineNumber === textNode.position?.start.line &&
+          (textNode.position.end.column > _opts.location.start.column ||
+            textNode.position.end.line > _opts.location.start.line) &&
+          (textNode.position.start.column < _opts.location.end.column ||
+            textNode.position.start.line < _opts.location.end.line)
         ) {
-          const contents = node.value;
+          const contents = textNode.value;
           const prefix = contents.substring(0, _opts.location.start.column - 1);
 
           const candidate = contents.substring(
@@ -192,12 +203,13 @@ export function backlinksHover(
           return index;
         }
       } else if (RemarkUtils.isHashTag(node) || RemarkUtils.isUserTag(node)) {
+        const tagNode = node as HashTag | UserTag;
         if (
-          backlinkLineNumber === node.position?.start.line &&
-          node.position.start.column === _opts.location.start.column
+          backlinkLineNumber === tagNode.position?.start.line &&
+          tagNode.position.start.column === _opts.location.start.column
         ) {
           (node as Node).type = DendronASTTypes.HTML;
-          (node as unknown as HTML).value = getHTMLToHighlightText(node.value);
+          (node as unknown as HTML).value = getHTMLToHighlightText(tagNode.value);
         }
       }
       return;
@@ -227,7 +239,7 @@ export function backlinksHover(
           ],
         };
 
-        node.children.unshift(lowerBoundParagraph);
+        node.children.unshift(lowerBoundParagraph as Node);
 
         const upperBoundText =
           upperLineLimit >= documentEndLine
@@ -244,7 +256,7 @@ export function backlinksHover(
           ],
         };
 
-        node.children.push(upperBoundParagraph);
+        node.children.push(upperBoundParagraph as Node);
       }
     );
   }

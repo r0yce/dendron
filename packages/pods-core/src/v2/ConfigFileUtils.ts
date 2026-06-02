@@ -4,7 +4,6 @@ import fs, { ensureDirSync, writeFileSync } from "fs-extra";
 import _ from "lodash";
 import path from "path";
 import {
-  AirtableExportPodV2,
   GoogleDocsExportPodV2,
   JSONExportPodV2,
   MarkdownExportPodV2,
@@ -114,8 +113,6 @@ export class ConfigFileUtils {
 
   static getConfigSchema(podType: PodV2Types): any {
     switch (podType) {
-      case PodV2Types.AirtableExportV2:
-        return AirtableExportPodV2.config();
       case PodV2Types.GoogleDocsExportV2:
         return GoogleDocsExportPodV2.config();
       case PodV2Types.MarkdownExportV2:

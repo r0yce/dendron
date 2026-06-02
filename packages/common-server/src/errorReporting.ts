@@ -75,8 +75,8 @@ export function initializeSentry({
     environment,
     release,
     attachStacktrace: true,
-    beforeSend: eventModifier,
-    initialScope,
+    beforeSend: eventModifier as any,
+    initialScope: initialScope as any,
     integrations: [
       new RewriteFrames({
         iteratee: (frame) => {
@@ -88,7 +88,7 @@ export function initializeSentry({
 
           return frame;
         },
-      }),
+      }) as any,
     ],
   });
   return;

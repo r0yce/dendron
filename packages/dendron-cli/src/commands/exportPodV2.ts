@@ -7,9 +7,6 @@ import {
   ResponseUtil,
 } from "@dendronhq/common-all";
 import {
-  AirtableExportPodV2,
-  AirtableExportReturnType,
-  AirtableUtils,
   GoogleDocsExportPodV2,
   GoogleDocsExportReturnType,
   GoogleDocsUtils,
@@ -28,7 +25,6 @@ import yargs from "yargs";
 import { CLICommand, CommandCommonProps } from "./base";
 import { enrichPodArgs, PodCLIOpts, setupPodArgs } from "./podsV2";
 import { setupEngineArgs, SetupEngineCLIOpts, SetupEngineResp } from "./utils";
-import Airtable from "@dendronhq/airtable";
 import _ from "lodash";
 import { EngineUtils, openPortFile } from "@dendronhq/engine-server";
 import clipboard from "clipboardy";
@@ -83,12 +79,6 @@ export class ExportPodV2CLICommand extends CLICommand<
       case PodV2Types.JSONExportV2:
         return new JSONExportPodV2({
           podConfig: config,
-        });
-      case PodV2Types.AirtableExportV2:
-        return new AirtableExportPodV2({
-          airtable: new Airtable({ apiKey: config.apiKey }),
-          config,
-          engine,
         });
       case PodV2Types.NotionExportV2:
         return new NotionExportPodV2({
@@ -157,12 +147,6 @@ export class ExportPodV2CLICommand extends CLICommand<
   }) {
     const { exportReturnValue, podType, engine, config } = opts;
     switch (podType) {
-      case PodV2Types.AirtableExportV2:
-        return this.onAirtableExportComplete({
-          exportReturnValue,
-          engine,
-          config,
-        });
       case PodV2Types.GoogleDocsExportV2:
         return this.onGoogleDocsExportComplete({
           exportReturnValue,
@@ -177,37 +161,6 @@ export class ExportPodV2CLICommand extends CLICommand<
         return this.onJSONExportComplete({ exportReturnValue, config });
       default:
         assertUnreachable(podType);
-    }
-  }
-
-  async onAirtableExportComplete(opts: {
-    exportReturnValue: AirtableExportReturnType;
-    engine: DEngineClient;
-    config: any;
-  }) {
-    const { exportReturnValue, engine, config } = opts;
-    const records = exportReturnValue.data;
-    if (records?.created) {
-      await AirtableUtils.updateAirtableIdForNewlySyncedNotes({
-        records: records.created,
-        engine,
-        logger: this.L,
-        podId: config.podId,
-      });
-    }
-    const createdCount = exportReturnValue.data?.created?.length ?? 0;
-    const updatedCount = exportReturnValue.data?.updated?.length ?? 0;
-
-    if (ResponseUtil.hasError(exportReturnValue)) {
-      const errorMsg = `Finished Airtable Export. ${createdCount} records created; ${updatedCount} records updated. Error encountered: ${ErrorFactory.safeStringify(
-        exportReturnValue.error
-      )}`;
-
-      this.L.error(errorMsg);
-    } else {
-      this.print(
-        `Finished Airtable Export. ${createdCount} records created; ${updatedCount} records updated.`
-      );
     }
   }
 

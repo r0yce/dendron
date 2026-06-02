@@ -4,7 +4,7 @@ import {
   WorkspaceSettings,
   WorkspaceType,
 } from "@dendronhq/common-all";
-import { execa, IWorkspaceService } from "@dendronhq/engine-server";
+import { IWorkspaceService } from "@dendronhq/engine-server";
 import vscode, { CommentController } from "vscode";
 import { ILookupControllerV3Factory } from "./components/lookup/LookupControllerV3Interface";
 import {
@@ -58,7 +58,7 @@ export interface IDendronExtension {
   /**
    * If set, the server sub process that spawned the engine
    */
-  serverProcess?: execa.ExecaChildProcess<string>;
+  serverProcess?: import("execa").Subprocess;
   context: vscode.ExtensionContext;
   serverWatcher?: vscode.FileSystemWatcher;
   fileWatcher?: FileWatcher;

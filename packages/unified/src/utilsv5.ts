@@ -13,8 +13,9 @@ import {
   ProcFlavor,
 } from "@dendronhq/common-all";
 import "./module-shims";
+import "./unified-data";
 import rehypePrism from "@mapbox/rehype-prism";
-import mermaid from "@dendronhq/remark-mermaid";
+import { remarkMermaid } from "./remark/remarkMermaid";
 import _ from "lodash";
 import link from "rehype-autolink-headings";
 import math from "remark-math";
@@ -23,15 +24,17 @@ import katex from "rehype-katex";
 import raw from "rehype-raw";
 import slug from "rehype-slug";
 import rehypeStringify from "rehype-stringify";
-import remark from "remark";
+import { unified } from "unified";
+import remarkParse from "remark-parse";
+import remarkStringify from "remark-stringify";
 import abbrPlugin from "remark-abbr";
 import footnotes from "remark-footnotes";
 import frontmatterPlugin from "remark-frontmatter";
-import remarkParse from "remark-parse";
+import remarkGfm from "remark-gfm";
 import remark2rehype from "remark-rehype";
 // import rehypeWrap from "rehype-wrap";
 import { wrap } from "./rehype/wrap";
-import { Processor } from "unified";
+import { Plugin, Processor } from "unified";
 import { hierarchies } from "./remark";
 import { backlinks } from "./remark/backlinks";
 import { BacklinkOpts, backlinksHover } from "./remark/backlinksHover";
@@ -225,9 +228,9 @@ export class MDUtilsV5 {
     return proc.data("dendronProcDatav5", { ..._data, ...opts });
   }
 
-  static setProcOpts(proc: Processor, opts: ProcOptsV5) {
+  static setProcOpts(proc: Processor, opts: ProcOptsV5): Processor {
     const _data = proc.data("dendronProcOptsv5") as ProcOptsV5;
-    return proc.data("dendronProcOptsv5", { ..._data, ...opts });
+    return proc.data("dendronProcOptsv5", { ..._data, ...opts }) as Processor;
   }
 
   static isV5Active(proc: Processor) {
@@ -263,27 +266,35 @@ export class MDUtilsV5 {
   ) {
     const errors: DendronError[] = [];
     opts = _.defaults(opts, { flavor: ProcFlavor.REGULAR });
-    let proc = remark()
-      .use(remarkParse, { gfm: true })
-      .use(frontmatterPlugin, ["yaml"])
-      .use(abbrPlugin)
-      .use({ settings: { listItemIndent: "1", fences: true, bullet: "-" } })
+    let proc = unified()
+      .use(remarkParse)
+      .use(remarkGfm)
+      .use(frontmatterPlugin as unknown as Plugin, ["yaml"] as any)
+      .use(abbrPlugin as unknown as Plugin)
+      .data("settings", {
+        listItemIndent: "one",
+        fences: true,
+        bullet: "-",
+      })
       .use(noteRefsV2)
       .use(blockAnchors)
       .use(hashtags)
       .use(userTags)
       .use(extendedImage)
-      .use(footnotes)
-      .use(variables)
+      .use(footnotes as Plugin)
+      .use(variables as Plugin)
       .use(backlinksHover, data.backlinkHoverOpts)
-      .data("errors", errors);
+      .data("errors", errors) as unknown as Processor;
 
     //do not convert wikilinks if convertLinks set to false. Used by gdoc export pod. It uses HTMLPublish pod to do the md-->html conversion
     if (
       _.isUndefined(data.wikiLinksOpts?.convertLinks) ||
       data.wikiLinksOpts?.convertLinks
     ) {
-      proc = proc.use(wikiLinks, data.wikiLinksOpts);
+      proc = proc.use(
+        wikiLinks,
+        data.wikiLinksOpts ?? {}
+      ) as unknown as Processor;
     }
 
     // set options and do validation
@@ -323,7 +334,7 @@ export class MDUtilsV5 {
               _.isUndefined(data.wikiLinksOpts?.convertLinks) ||
               data.wikiLinksOpts?.convertLinks
             ) {
-              proc = proc.use(hierarchies).use(backlinks);
+              proc = proc.use(hierarchies).use(backlinks) as unknown as Processor;
             }
           }
           // Add flavor specific plugins. These need to come before `dendronPub`
@@ -338,7 +349,7 @@ export class MDUtilsV5 {
             opts.flavor === ProcFlavor.HOVER_PREVIEW ||
             opts.flavor === ProcFlavor.BACKLINKS_PANEL_HOVER
           ) {
-            proc = proc.use(dendronHoverPreview);
+            proc = proc.use(dendronHoverPreview) as unknown as Processor;
           }
           // add additional plugins
           const isNoteRef = !_.isUndefined((data as ProcDataFullV5).noteRefLvl);
@@ -361,15 +372,15 @@ export class MDUtilsV5 {
             insertTitle,
             transformNoPublish: opts.flavor === ProcFlavor.PUBLISHING,
             ...data.publishOpts,
-          });
+          }) as unknown as Processor;
 
           const shouldApplyPublishRules =
             MDUtilsV5.shouldApplyPublishingRules(proc);
 
           if (ConfigUtils.getEnableKatex(config, shouldApplyPublishRules)) {
-            proc = proc.use(math);
+            proc = proc.use(math) as unknown as Processor;
           }
-          proc = proc.use(mermaid, { simple: true });
+          proc = proc.use(remarkMermaid, { simple: true }) as unknown as Processor;
           // Add remaining flavor specific plugins
           if (opts.flavor === ProcFlavor.PUBLISHING) {
             const prefix = assetsPrefix ? assetsPrefix + "/notes/" : "/notes/";
@@ -377,7 +388,7 @@ export class MDUtilsV5 {
               wikiLinkOpts: {
                 prefix,
               },
-            });
+            }) as unknown as Processor;
           }
         }
         break;
@@ -405,7 +416,7 @@ export class MDUtilsV5 {
           proc = proc.use(math);
         }
 
-        proc = proc.use(mermaid, { simple: true });
+        proc = proc.use(remarkMermaid, { simple: true }) as unknown as Processor;
 
         break;
       }
@@ -414,7 +425,7 @@ export class MDUtilsV5 {
       default:
         assertUnreachable(opts.mode);
     }
-    return proc;
+    return proc.use(remarkStringify) as unknown as Processor;
   }
 
   static _procRehype(opts: ProcOptsV5, data: Omit<ProcDataFullOptsV5, "dest">) {
@@ -425,15 +436,15 @@ export class MDUtilsV5 {
 
     // add additional plugin for publishing
     let pRehype = pRemarkParse
-      .use(remark2rehype, { allowDangerousHtml: true })
-      .use(rehypePrism, { ignoreMissing: true })
-      .use(wrap, { selector: "table", wrapper: "div.table-responsive" })
-      .use(raw)
-      .use(slug);
+      .use(remark2rehype as unknown as Plugin, [{ allowDangerousHtml: true }] as any)
+      .use(rehypePrism as any, { ignoreMissing: true })
+      .use(wrap as any, { selector: "table", wrapper: "div.table-responsive" })
+      .use(raw as any)
+      .use(slug as any);
 
     // apply plugins enabled by config
     const shouldApplyPublishRules =
-      MDUtilsV5.shouldApplyPublishingRules(pRehype);
+      MDUtilsV5.shouldApplyPublishingRules(pRehype as unknown as Processor);
 
     const { insideNoteRef } = data;
     if (ConfigUtils.getEnableKatex(data.config, shouldApplyPublishRules)) {
@@ -441,7 +452,7 @@ export class MDUtilsV5 {
     }
     // apply publishing specific things, don't use anchor headings in note refs
     if (shouldApplyPublishRules && !insideNoteRef) {
-      pRehype = pRehype.use(link, {
+      pRehype = pRehype.use(link as any, {
         behavior: "append",
         properties: {
           "aria-hidden": "true",
@@ -449,9 +460,8 @@ export class MDUtilsV5 {
         },
         content: {
           type: "text",
-          // @ts-expect-error - rehype link content shape for v5 publish pipeline (SiteUtils synergy cluster of unified remark micro); legacy AST interop (not strict 4-axis common-all boundary) per "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
           value: "",
-        },
+        } as any,
       });
     }
     return pRehype;

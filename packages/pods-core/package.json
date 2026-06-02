@@ -39,14 +39,14 @@
     "build:timed": "time yarn build:modern 2>&1 | tee -a /tmp/dendron-build-modernization-next-batch.log"
   },
   "devDependencies": {
-    "@types/async": "^3.2.15",
-    "@types/form-data": "^2.5.0",
-    "@types/fs-extra": "^11.0.0",
-    "@types/klaw": "^3.0.1",
-    "@types/lodash": "^4.14.161",
-    "@types/node": "^20.12.0",
-    "@types/through2": "^2.0.36",
-    "ts-node": "^10.9.2"
+    "@types/async": "3.2.25",
+    "@types/form-data": "2.5.2",
+    "@types/fs-extra": "11.0.4",
+    "@types/klaw": "3.0.7",
+    "@types/lodash": "4.17.24",
+    "@types/node": "25.9.1",
+    "@types/through2": "2.0.41",
+    "ts-node": "10.9.2"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -55,30 +55,29 @@
     "access": "public"
   },
   "dependencies": {
-    "@dendronhq/airtable": "^0.11.1",
+
     "@dendronhq/common-all": "^0.124.0",
     "@dendronhq/common-server": "^0.124.0",
     "@dendronhq/engine-server": "^0.124.0",
     "@dendronhq/unified": "^0.124.0",
-    "@instantish/martian": "1.0.3",
-    "@notionhq/client": "^0.1.9",
-    "@octokit/graphql": "^4.6.4",
-    "@types/airtable": "^0.10.1",
-    "airtable": "^0.11.1",
-    "ajv": "^8.6.0",
-    "ajv-formats": "^2.1.0",
-    "async": "^3.2.4",
-    "csv-writer": "^1.6.0",
-    "emailjs": "^3.4.0",
-    "form-data": "^4.0.0",
-    "fs-extra": "^9.0.1",
-    "googleapis": "^88.2.0",
-    "image-downloader": "^4.0.3",
-    "klaw": "^3.0.0",
-    "limiter": "^2.1.0",
-    "lodash": "^4.17.20",
-    "through2": "^4.0.2",
-    "vscode-uri": "^2.1.2"
+    "@instantish/martian": "1.1.1",
+    "@notionhq/client": "5.22.0",
+    "@octokit/graphql": "9.0.3",
+
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "async": "3.2.6",
+    "csv-writer": "1.6.0",
+    "emailjs": "5.0.1",
+    "form-data": "4.0.5",
+    "fs-extra": "11.3.5",
+    "googleapis": "173.0.0",
+    "image-downloader": "4.3.0",
+    "klaw": "4.1.0",
+    "limiter": "3.0.0",
+    "lodash": "4.18.1",
+    "through2": "5.0.1",
+    "vscode-uri": "3.1.0"
   },
   "gitHead": "b9b209acf808ad7a581bf98b1d0f90ef2bf4b833"
 }

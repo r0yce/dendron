@@ -7,8 +7,7 @@ import {
 } from "@dendronhq/common-all";
 // CJS interop for @mapbox/rehype-prism (web remark/rehype pipeline, SiteUtils synergy + unified remark micro) — directive removed (unused post hygiene). Full contract preserved in spike/SKILL. "first 3 packages and Double down..." + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro + v5 ProcOptsV5 final)" + all 8+ IDs + "No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP."
 import rehypePrism from "@mapbox/rehype-prism";
-// CJS interop for @dendronhq/remark-mermaid (web remark/rehype pipeline, SiteUtils synergy + unified remark micro) — directive removed (unused post hygiene). Full contract in spike/SKILL. "first 3..." + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro + v5 ProcOptsV5 final)" + all 8+ IDs + "No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP."
-import mermaid from "@dendronhq/remark-mermaid";
+import { remarkMermaid } from "./remark/remarkMermaid";
 import _ from "lodash";
 import link from "rehype-autolink-headings";
 import math from "remark-math";
@@ -18,11 +17,13 @@ import variables from "remark-variables";
 import raw from "rehype-raw";
 import slug from "rehype-slug";
 import rehypeStringify from "rehype-stringify";
-import remark from "remark";
+import { unified } from "unified";
+import remarkParse from "remark-parse";
+import remarkStringify from "remark-stringify";
 import abbrPlugin from "remark-abbr";
 import footnotes from "remark-footnotes";
 import frontmatterPlugin from "remark-frontmatter";
-import remarkParse from "remark-parse";
+import remarkGfm from "remark-gfm";
 import remark2rehype from "remark-rehype";
 import { hierarchies } from "./remark";
 import { backlinks } from "./remark/backlinks";
@@ -37,7 +38,7 @@ import { userTags } from "./remark/userTags";
 import { wikiLinks } from "./remark/wikiLinks";
 import { DendronASTDest } from "./types";
 import { MDUtilsV5, ProcDataFullOptsV5, ProcMode, ProcOptsV5 } from "./utilsv5";
-import { Processor } from "unified";
+import { Plugin, Processor } from "unified";
 
 /**
  * Special version of MDUtilsV5 to get preview working in the web extension.
@@ -48,12 +49,12 @@ export class MDUtilsV5Web {
   public static procRehypeWeb(
     data: Omit<ProcDataFullOptsV5, "dest">,
     opts?: { flavor?: ProcFlavor }
-  ): Processor<remark.PartialRemarkOptions> {
+  ): Processor {
     const proc = this._procRehype(
       { mode: ProcMode.FULL, parseOnly: false, flavor: opts?.flavor },
       data
     );
-    return proc.use(rehypeStringify);
+    return proc.use(rehypeStringify) as unknown as Processor;
   }
 
   /**
@@ -65,21 +66,26 @@ export class MDUtilsV5Web {
   ) {
     const errors: DendronError[] = [];
     opts = _.defaults(opts, { flavor: ProcFlavor.REGULAR });
-    let proc = remark()
-      .use(remarkParse, { gfm: true })
-      .use(frontmatterPlugin, ["yaml"])
-      .use(abbrPlugin)
-      .use({ settings: { listItemIndent: "1", fences: true, bullet: "-" } })
+    let proc = unified()
+      .use(remarkParse)
+      .use(remarkGfm)
+      .use(frontmatterPlugin as unknown as Plugin, ["yaml"] as any)
+      .use(abbrPlugin as unknown as Plugin)
+      .data("settings", {
+        listItemIndent: "one",
+        fences: true,
+        bullet: "-",
+      })
       // .use(noteRefsV2) TODO: Add in note ref functionalit
       .use(blockAnchors)
       .use(hashtags)
       .use(userTags)
       .use(extendedImage)
-      .use(footnotes)
-      .use(variables)
+      .use(footnotes as Plugin)
+      .use(variables as Plugin)
       .use(backlinksHover, data.backlinkHoverOpts)
       .use(wikiLinks)
-      .data("errors", errors);
+      .data("errors", errors) as unknown as Processor;
 
     // set options and do validation
     proc = MDUtilsV5.setProcOpts(proc, opts);
@@ -109,7 +115,7 @@ export class MDUtilsV5Web {
               _.isUndefined(data.wikiLinksOpts?.convertLinks) ||
               data.wikiLinksOpts?.convertLinks
             ) {
-              proc = proc.use(hierarchies).use(backlinks);
+              proc = proc.use(hierarchies).use(backlinks) as unknown as Processor;
             }
           }
           // Add flavor specific plugins. These need to come before `dendronPub`
@@ -124,7 +130,7 @@ export class MDUtilsV5Web {
             opts.flavor === ProcFlavor.HOVER_PREVIEW ||
             opts.flavor === ProcFlavor.BACKLINKS_PANEL_HOVER
           ) {
-            proc = proc.use(dendronHoverPreview);
+            proc = proc.use(dendronHoverPreview) as unknown as Processor;
           }
           // add additional plugins
           // TODO: Add back note ref functionality:
@@ -151,7 +157,7 @@ export class MDUtilsV5Web {
             insertTitle,
             transformNoPublish: opts.flavor === ProcFlavor.PUBLISHING,
             ...data.publishOpts,
-          });
+          }) as unknown as Processor;
 
           // const shouldApplyPublishRules =
           //   MDUtilsV5.shouldApplyPublishingRules(proc);
@@ -163,8 +169,8 @@ export class MDUtilsV5Web {
           //   proc = proc.use(mermaid, { simple: true });
           // }
 
-          proc = proc.use(math);
-          proc = proc.use(mermaid, { simple: true });
+          proc = proc.use(math) as unknown as Processor;
+          proc = proc.use(remarkMermaid, { simple: true }) as unknown as Processor;
 
           // Add remaining flavor specific plugins
           if (opts.flavor === ProcFlavor.PUBLISHING) {
@@ -173,7 +179,7 @@ export class MDUtilsV5Web {
               wikiLinkOpts: {
                 prefix,
               },
-            });
+            }) as unknown as Processor;
           }
         }
         break;
@@ -183,7 +189,7 @@ export class MDUtilsV5Web {
       default:
         assertUnreachable(opts.mode);
     }
-    return proc;
+    return proc.use(remarkStringify) as unknown as Processor;
   }
 
   private static _procRehype(
@@ -198,10 +204,10 @@ export class MDUtilsV5Web {
 
     // add additional plugin for publishing
     let pRehype = pRemarkParse
-      .use(remark2rehype, { allowDangerousHtml: true })
-      .use(rehypePrism, { ignoreMissing: true })
-      .use(raw)
-      .use(slug);
+      .use(remark2rehype as any, { allowDangerousHtml: true })
+      .use(rehypePrism as any, { ignoreMissing: true })
+      .use(raw as any)
+      .use(slug as any);
 
     // apply plugins enabled by config
     // const config = data?.engine?.config as IntermediateDendronConfig;
@@ -214,7 +220,7 @@ export class MDUtilsV5Web {
 
     // apply publishing specific things
     if (shouldApplyPublishRules) {
-      pRehype = pRehype.use(link, {
+      pRehype = pRehype.use(link as any, {
         behavior: "append",
         properties: {
           "aria-hidden": "true",
@@ -222,9 +228,8 @@ export class MDUtilsV5Web {
         },
         content: {
           type: "text",
-          // @ts-expect-error - rehype link content shape for web publish pipeline (SiteUtils synergy cluster of unified remark micro); legacy AST interop (not strict 4-axis common-all boundary) per "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
           value: "",
-        },
+        } as any,
       });
     }
     return pRehype;

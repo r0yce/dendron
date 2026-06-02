@@ -8,7 +8,7 @@ import {
   CommentJSONValue,
   readJSONWithCommentsSync,
 } from "@dendronhq/common-server";
-import { CommentJSONArray, parse } from "comment-json";
+import { CommentArray, parse } from "comment-json";
 import _md from "markdown-it";
 import fs from "fs-extra";
 import _ from "lodash";
@@ -41,7 +41,7 @@ export class KeybindingUtils {
       await VSCodeUtils.closeCurrentFileEditor();
     }
     const defaultKeybindingJSON = defaultKeybindingText
-      ? (parse(defaultKeybindingText) as CommentJSONArray<Keybindings>)
+      ? (parse(defaultKeybindingText) as CommentArray<Keybindings>)
       : undefined;
 
     return defaultKeybindingJSON;
@@ -57,7 +57,7 @@ export class KeybindingUtils {
       await VSCodeUtils.closeCurrentFileEditor();
     }
     const globalKeybindingJSON = globalKeybindingText
-      ? (parse(globalKeybindingText) as CommentJSONArray<Keybindings>)
+      ? (parse(globalKeybindingText) as CommentArray<Keybindings>)
       : undefined;
 
     return globalKeybindingJSON;
@@ -101,7 +101,7 @@ export class KeybindingUtils {
 
     const userKeybindingConfig = readJSONWithCommentsSync(
       keybindingConfigPath
-    ) as CommentJSONArray<Keybindings>;
+    ) as CommentArray<Keybindings>;
 
     const alreadyResolved: KeybindingConflict[] = [];
 
@@ -286,13 +286,8 @@ export class KeybindingUtils {
     }
   }
 
-  static checkKeybindingsExist(
-    val: CommentJSONValue
-  ): val is CommentJSONArray<Keybindings> {
-    if (_.isNull(val)) {
-      return false;
-    }
-    return true;
+  static checkKeybindingsExist(val: CommentJSONValue): boolean {
+    return Array.isArray(val);
   }
 
   /**
@@ -333,8 +328,8 @@ export class KeybindingUtils {
       return undefined;
     }
 
-    const result = keybindings.filter(
-      (item) =>
+    const result = (keybindings as Keybindings[]).filter(
+      (item: Keybindings) =>
         item.command &&
         item.command === DENDRON_COMMANDS.EXPORT_POD_V2.key &&
         item.args === podId
@@ -363,7 +358,7 @@ export class KeybindingUtils {
       return undefined;
     }
 
-    const result = keybindings.filter((item) => {
+    const result = (keybindings as Keybindings[]).filter((item: Keybindings) => {
       return (
         item.command &&
         item.command === DENDRON_COMMANDS.COPY_AS.key &&

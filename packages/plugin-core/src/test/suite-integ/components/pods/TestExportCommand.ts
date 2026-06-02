@@ -1,7 +1,5 @@
 import { DVault, NoteProps } from "@dendronhq/common-all";
 import {
-  AirtableConnection,
-  AirtableV2PodConfig,
   ExportPodV2,
   JSONSchemaType,
   PodExportScope,
@@ -65,9 +63,7 @@ export class TestExportPodCommand extends BaseExportPodCommand<
     } as JSONSchemaType<RunnablePodConfigV2>;
   }
 
-  async gatherInputs(
-    _opts?: Partial<AirtableV2PodConfig & AirtableConnection>
-  ): Promise<RunnablePodConfigV2 | undefined> {
+  async gatherInputs(): Promise<RunnablePodConfigV2 | undefined> {
     return {
       exportScope: PodExportScope.Note,
     };

@@ -1,7 +1,12 @@
 /* eslint-disable no-console */
 import { DendronError, error2PlainObject } from "@dendronhq/common-all";
 import { createLogger, findUpTo } from "@dendronhq/common-server";
-import execa from "execa";
+import {
+  execa,
+  execaCommand,
+  execaCommandSync,
+  type Options as ExecaOptions,
+} from "execa";
 import fs from "fs-extra";
 import _ from "lodash";
 import path from "path";
@@ -44,14 +49,14 @@ export enum ExtensionType {
 const LOCAL_NPM_ENDPOINT = "http://localhost:4873";
 const REMOTE_NPM_ENDPOINT = "https://registry.npmjs.org";
 
-const $ = (cmd: string, opts?: execa.CommonOptions<any>) => {
-  return execa.commandSync(cmd, { shell: true, ...opts });
+const $ = (cmd: string, opts?: ExecaOptions) => {
+  return execaCommandSync(cmd, { ...(opts as any) });
 };
 const $$ = (
   cmd: string,
-  opts?: execa.CommonOptions<any> & { quiet?: boolean }
+  opts?: ExecaOptions & { quiet?: boolean }
 ) => {
-  const out = execa.command(cmd, { shell: true, ...opts });
+  const out = execaCommand(cmd, { ...(opts as any) });
   if (!opts?.quiet) {
     out.stdout?.pipe(process.stdout);
   }
@@ -265,7 +270,7 @@ export class BuildUtils {
       const extMetadata = await $$(`npx vsce show dendron.nightly --json`, {
         cwd: this.getPluginRootPath(),
       });
-      const result = extMetadata.stdout;
+      const result = String(extMetadata.stdout ?? "");
       const formatted = result.replace("\t", "").replace("\n", "");
       const json = JSON.parse(formatted);
 
@@ -327,10 +332,10 @@ export class BuildUtils {
     subprocess.on("exit", () => {
       logger.error({ state: "exit" });
     });
-    subprocess.on("error", (err) => {
+    subprocess.on("error", (err: Error) => {
       logger.error({ state: "error", payload: err });
     });
-    subprocess.on("message", (message) => {
+    subprocess.on("message", (message: unknown) => {
       logger.info({ state: "message", message });
     });
     if (subprocess.stdout && subprocess.stderr) {
@@ -340,7 +345,7 @@ export class BuildUtils {
         // if (chunk.toString().match("http address")) {
         // }
       });
-      subprocess.stderr.on("data", (chunk) => {
+      subprocess.stderr.on("data", (chunk: Buffer) => {
         process.stdout.write(chunk);
       });
     }

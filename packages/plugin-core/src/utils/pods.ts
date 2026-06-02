@@ -9,7 +9,7 @@ import fs from "fs-extra";
 import _ from "lodash";
 import open from "open";
 import path from "path";
-import * as queryString from "query-string";
+import queryString from "query-string";
 import { ProgressLocation, QuickPickItem, Uri, window } from "vscode";
 import { gdocRequiredScopes, GLOBAL_STATE } from "../constants";
 import { ExtensionProvider } from "../ExtensionProvider";

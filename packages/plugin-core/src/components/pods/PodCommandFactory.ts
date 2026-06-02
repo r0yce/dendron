@@ -7,7 +7,6 @@ import {
 } from "@dendronhq/pods-core";
 import path from "path";
 import { CodeCommandInstance } from "../../commands/base";
-import { AirtableExportPodCommand } from "../../commands/pods/AirtableExportPodCommand";
 import { GoogleDocsExportPodCommand } from "../../commands/pods/GoogleDocsExportPodCommand";
 import { JSONExportPodCommand } from "../../commands/pods/JSONExportPodCommand";
 import { MarkdownExportPodCommand } from "../../commands/pods/MarkdownExportPodCommand";
@@ -67,16 +66,6 @@ export class PodCommandFactory {
     let cmdWithArgs: CodeCommandInstance;
     const extension = ExtensionProvider.getExtension();
     switch (podType) {
-      case PodV2Types.AirtableExportV2: {
-        const airtableCmd = new AirtableExportPodCommand(extension);
-        cmdWithArgs = {
-          key: airtableCmd.key,
-          run(): Promise<void> {
-            return airtableCmd.run(storedConfig);
-          },
-        };
-        break;
-      }
       case PodV2Types.MarkdownExportV2: {
         const cmd = new MarkdownExportPodCommand(extension);
         cmdWithArgs = {
@@ -138,17 +127,6 @@ export class PodCommandFactory {
   ): CodeCommandInstance {
     const extension = ExtensionProvider.getExtension();
     switch (podType) {
-      case PodV2Types.AirtableExportV2: {
-        const cmd = new AirtableExportPodCommand(extension);
-
-        return {
-          key: cmd.key,
-          run(): Promise<void> {
-            return cmd.run();
-          },
-        };
-      }
-
       case PodV2Types.MarkdownExportV2: {
         const cmd = new MarkdownExportPodCommand(extension);
 

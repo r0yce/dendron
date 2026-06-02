@@ -23,9 +23,11 @@ import {
 import _ from "lodash";
 import { Heading } from "mdast";
 import { html, paragraph, root } from "mdast-builder";
-import { Eat } from "remark-parse";
-import Unified, { Plugin, Processor } from "unified";
-import { Data, Node, Parent } from "unist";
+import type { Handle as ToMarkdownHandle } from "mdast-util-to-markdown";
+import { Plugin, Processor } from "unified";
+import { createInlineRegexExtension } from "../micromark/inlineRegex";
+import { registerSyntaxExtensions } from "../micromark/registerExtensions";
+import type { Node, Parent } from "unist";
 import { MdastUtils } from "..";
 import { RemarkUtils } from "../remark";
 import { SiteUtils } from "../SiteUtils";
@@ -33,7 +35,6 @@ import {
   DendronASTDest,
   DendronASTNode,
   DendronASTTypes,
-  NoteRefNoteRawV4,
   NoteRefNoteV4,
 } from "../types";
 import { ParentWithIndex } from "../utils";
@@ -53,7 +54,7 @@ type CompilerOpts = {
 
 type ConvertNoteRefOpts = {
   link: DNoteRefLink;
-  proc: Unified.Processor;
+  proc: Processor;
   compilerOpts: CompilerOpts;
 };
 
@@ -160,84 +161,61 @@ function shouldRenderPretty({ proc }: { proc: Processor }): boolean {
   return prettyRefs;
 }
 
-const plugin: Plugin = function (this: Unified.Processor, opts?: PluginOpts) {
-  const procOptsV5 = MDUtilsV5.getProcOpts(this);
+function refLinkToMarkdown(proc: Processor): ToMarkdownHandle {
+  return function refLinkHandler(node, _parent, _context): string {
+    const refNode = node as NoteRefNoteV4;
+    const { dest } = MDUtilsV5.getProcData(proc);
 
-  attachParser(this);
-  if (this.Compiler != null && !procOptsV5.parseOnly) {
-    attachCompiler(this, opts);
-  }
-};
+    // converting to itself (used for doctor commands. preserve existing format)
+    if (dest === DendronASTDest.MD_DENDRON) {
+      return NoteRefUtils.dnodeRefLink2String(refNode.data.link);
+    }
+    return "";
+  };
+}
 
-function attachParser(proc: Unified.Processor) {
-  function locator(value: string, fromIndex: number) {
-    return value.indexOf("![[", fromIndex);
-  }
-
-  function inlineTokenizerV5(eat: Eat, value: string) {
-    const procOpts = MDUtilsV5.getProcOpts(proc);
-    const match = LINK_REGEX.exec(value);
-    if (match) {
-      // Lean v2: ! after match guard for noUncheckedIndexedAccess (noteRef regex captures)
-      const linkMatch = match[1]!.trim();
+function noteRefSyntax(proc: Processor, _opts?: CompilerOpts) {
+  return createInlineRegexExtension<NoteRefNoteV4>({
+    charCode: "!".charCodeAt(0),
+    tokenType: "dendronRefLinkV2",
+    mdastType: DendronASTTypes.REF_LINK_V2,
+    match: LINK_REGEX,
+    toFields: (matched) => {
+      const procOpts = MDUtilsV5.getProcOpts(proc);
+      const linkMatch = matched[1]!.trim();
       if (procOpts?.mode === ProcMode.NO_DATA) {
         const link = LinkUtils.parseNoteRefRaw(linkMatch);
         const { value } = LinkUtils.parseLink(linkMatch);
-        const refNote: NoteRefNoteRawV4 = {
-          type: DendronASTTypes.REF_LINK_V2,
+        return {
           data: {
             link,
           },
           value,
-        };
-        return eat(match[0]!)(refNote);
-      } else {
-        const link = LinkUtils.parseNoteRef(linkMatch);
-        // If the link is same file [[#header]], it's implicitly to the same file it's located in
-        if (link.from?.fname === "") {
-          link.from.fname = MDUtilsV5.getProcData(proc).fname;
-        }
-        const { value } = LinkUtils.parseLink(linkMatch);
-        const refNote: NoteRefNoteV4 = {
-          type: DendronASTTypes.REF_LINK_V2,
-          data: {
-            link,
-          },
-          value,
-        };
-        return eat(match[0]!)(refNote);
+        } as Omit<NoteRefNoteV4, "type">;
       }
-    }
-    return;
-  }
-  inlineTokenizerV5.locator = locator;
-
-  const Parser = proc.Parser;
-  const inlineTokenizers = Parser.prototype.inlineTokenizers;
-  const inlineMethods = Parser.prototype.inlineMethods;
-
-  inlineTokenizers.refLinkV2 = inlineTokenizerV5;
-  inlineMethods.splice(inlineMethods.indexOf("link"), 0, "refLinkV2");
-  return Parser;
+      const link = LinkUtils.parseNoteRef(linkMatch);
+      // If the link is same file [[#header]], it's implicitly to the same file it's located in
+      if (link.from?.fname === "") {
+        link.from.fname = MDUtilsV5.getProcData(proc).fname;
+      }
+      const { value } = LinkUtils.parseLink(linkMatch);
+      return {
+        data: {
+          link,
+        },
+        value,
+      } as Omit<NoteRefNoteV4, "type">;
+    },
+    toMarkdown: refLinkToMarkdown(proc),
+  });
 }
 
-function attachCompiler(proc: Unified.Processor, _opts?: CompilerOpts) {
-  const Compiler = proc.Compiler;
-  const visitors = Compiler.prototype.visitors;
-  const { dest } = MDUtilsV5.getProcData(proc);
-
-  if (visitors) {
-    visitors.refLinkV2 = (node: NoteRefNoteV4) => {
-      const ndata = node.data;
-
-      // converting to itself (used for doctor commands. preserve existing format)
-      if (dest === DendronASTDest.MD_DENDRON) {
-        return NoteRefUtils.dnodeRefLink2String(ndata.link);
-      }
-      return;
-    };
-  }
-}
+const plugin: Plugin<[PluginOpts?]> = function (
+  this: Processor,
+  _opts?: PluginOpts
+) {
+  registerSyntaxExtensions(this, noteRefSyntax(this, _opts));
+};
 
 const MAX_REF_LVL = 3;
 
@@ -263,7 +241,7 @@ export function convertNoteRefToHAST(
     ref: DNoteLoc,
     note: NoteProps,
     fname: string
-  ): Parent<Node<any>, any> {
+  ): Parent {
     try {
       if (
         shouldApplyPublishRules &&
@@ -367,7 +345,7 @@ export function convertNoteRefToHAST(
 
         return prettyHAST;
       } else {
-        return paragraph(noteRefMDAST);
+        return paragraph(noteRefMDAST as any);
       }
     } catch (err) {
       const msg = `Error rendering note reference for ${note?.fname}`;
@@ -712,7 +690,7 @@ export function prepareNoteRefIndices<T>({
       start.type === "header" ? start.node.depth : 99;
     // anchor end is next header that is smaller or equal
     const nodes = RemarkUtils.extractHeaderBlock(
-      bodyAST,
+      bodyAST as Node,
       startHeaderDepth,
       start.index,
       // stop at first header
@@ -788,7 +766,7 @@ function convertNoteRefToMDAST(
     note.body
   ) as DendronASTNode;
   // Make sure to get all footnote definitions, including ones not within the range, in case they are used inside the range
-  const footnotes = RemarkUtils.extractFootnoteDefs(bodyAST);
+  const footnotes = RemarkUtils.extractFootnoteDefs(bodyAST as Node);
   const { anchorStart, anchorEnd, anchorStartOffset } = _.defaults(link.data ?? {}, {
     anchorStartOffset: 0,
   });
@@ -883,12 +861,12 @@ function findAnchor({
   if (isBlockAnchor(match)) {
     const anchorId = match.slice(1);
     if (isBeginBlockAnchorId(anchorId)) {
-      return findBeginBlockAnchor({ nodes });
+      return findBeginBlockAnchor({ nodes: nodes as Node[] });
     }
     if (isEndBlockAnchorId(anchorId)) {
-      return findEndBlockAnchor({ nodes });
+      return findEndBlockAnchor({ nodes: nodes as Node[] });
     }
-    return findBlockAnchor({ nodes, match: anchorId });
+    return findBlockAnchor({ nodes: nodes as Node[], match: anchorId });
   } else {
     return MdastUtils.findHeader({ nodes, match, slugger: getSlugger() });
   }
@@ -1024,7 +1002,7 @@ const genRefAsIFrame = ({
   content: Parent;
   title: string;
   config: DendronConfig;
-  prettyHAST: Parent<Node<Data>, Data>;
+  prettyHAST: Parent;
 }) => {
   const refId = getRefId({ id: noteId, link });
   // cache it for later generation?
@@ -1068,7 +1046,7 @@ function renderPrettyHAST(opts: {
   content: Parent;
   title: string;
   link?: string;
-}): Parent<Node<Data>, Data> {
+}): Parent {
   const { content, title } = opts;
   let { link } = opts;
   link = fixLinkIfRoot(link);
@@ -1086,7 +1064,7 @@ ${linkLine}
 <div class="portal-parent-fader-top"></div>
 <div class="portal-parent-fader-bottom"></div>`;
   const bottom = `\n</div></div>`;
-  return paragraph([html(top)].concat([content]).concat([html(bottom)]));
+  return paragraph([html(top), content as any, html(bottom)] as any);
 }
 
 export { plugin as noteRefsV2 };

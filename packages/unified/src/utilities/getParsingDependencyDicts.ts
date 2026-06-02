@@ -13,8 +13,8 @@ import {
   VaultUtils,
 } from "@dendronhq/common-all";
 import _ from "lodash";
-import { Data, Node } from "unist";
-import visit from "unist-util-visit";
+import type { Node } from "unist";
+import { visit } from "unist-util-visit";
 import {
   DendronASTTypes,
   HashTag,
@@ -107,7 +107,7 @@ async function getBacklinkDependencies(
  * @param ast the syntax tree to look for dependencies
  * @returns an array of fname-vault? combinations that this tree depends on.
  */
-function getNoteDependencies(ast: Node<Data>): DNodeCompositeKey[] {
+function getNoteDependencies(ast: Node): DNodeCompositeKey[] {
   const renderDependencies: DNodeCompositeKey[] = [];
 
   visit(
@@ -146,7 +146,7 @@ function getNoteDependencies(ast: Node<Data>): DNodeCompositeKey[] {
  * @returns an array of fname-vault? combinations that this tree depends on.
  */
 async function getRecursiveNoteDependencies(
-  ast: Node<Data>,
+  ast: Node,
   engine: ReducedDEngine
 ): Promise<DNodeCompositeKey[]> {
   const renderDependencies: DNodeCompositeKey[] = [];

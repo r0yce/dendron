@@ -8,8 +8,8 @@ import assert from "assert";
 import _ from "lodash";
 import { SetupHookFunction, TestResult } from "./types";
 
-export const toPlainObject = <R>(value: unknown): R =>
-  value !== undefined ? JSON.parse(JSON.stringify(value)) : value;
+export const toPlainObject = <R>(value: unknown): R | undefined =>
+  value !== undefined ? (JSON.parse(JSON.stringify(value)) as R) : undefined;
 
 export class AssertUtils {
   static async assertInString({

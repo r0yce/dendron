@@ -28,7 +28,8 @@ import {
   simpleGit,
   SimpleGitResetMode,
 } from "@dendronhq/common-server";
-import { execa, SiteUtils } from "@dendronhq/engine-server";
+import { SiteUtils } from "@dendronhq/engine-server";
+import { execaCommand } from "execa";
 import {
   getParsingDependencyDicts,
   getRefId,
@@ -49,7 +50,7 @@ const TEMPLATE_REMOTE = "origin";
 const TEMPLATE_REMOTE_URL = "https://github.com/dendronhq/nextjs-template.git";
 const TEMPLATE_BRANCH = "main";
 
-const $$ = execa.command;
+const $$ = execaCommand;
 
 type NextjsExportPodCustomOpts = {
   overrides?: Partial<DendronPublishingConfig>;
@@ -644,7 +645,7 @@ export class NextjsExportPod extends ExportPod<NextjsExportConfig> {
             { flavor: ProcFlavor.PUBLISHING }
           );
 
-          const out = proc.stringify(proc.runSync(prettyHAST));
+          const out = proc.stringify(proc.runSync(prettyHAST) as never);
           const refIdString = getRefId(refId);
           const dst = path.join(notesRefsDir, refIdString + ".html");
           this.L.debug({ ctx, dst, msg: "writeNote" });

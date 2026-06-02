@@ -8,9 +8,9 @@ import _ from "lodash";
 import { Content, FootnoteDefinition, FootnoteReference, Root } from "mdast";
 import { heading, html, list, listItem, paragraph, text } from "mdast-builder";
 import Unified, { Plugin } from "unified";
-import { Node } from "unist";
-import u from "unist-builder";
-import visit from "unist-util-visit";
+import { Node, Parent } from "unist";
+import { u } from "unist-builder";
+import { visit } from "unist-util-visit";
 import { HierarchyUtils } from "../HierarchyUtils";
 import { DendronASTDest, DendronASTTypes, WikiLinkNoteV4 } from "../types";
 import { MDUtilsV5 } from "../utilsv5";
@@ -45,8 +45,8 @@ function footnoteDef2html(definition: FootnoteDefinition) {
     `<a class="${FOOTNOTE_DEF_CLASS}" href="#${FOOTNOTE_REF_ID_PREFIX}${definition.identifier}">${FOOTNOTE_RETURN_SYMBOL}</a>`
   );
   const lastChild = _.last(definition.children);
-  if (lastChild && RemarkUtils.isParent(lastChild)) {
-    lastChild.children.push(backArrow as any);
+  if (lastChild && RemarkUtils.isParent(lastChild as import("unist").Node)) {
+    (lastChild as import("unist").Parent).children.push(backArrow as any);
   } else {
     // Fallback, not sure if this can actually happen because definition always seems to have a paragraph as a child
     definition.children.push(backArrow as any);
@@ -104,7 +104,7 @@ const plugin: Plugin = function (this: Unified.Processor, _opts?: PluginOpts) {
     function addFootnotes() {
       /** Maps footnote identifiers to their definitions. */
       const footnotes = new Map(
-        RemarkUtils.extractFootnoteDefs(root).map((definition) => [
+        RemarkUtils.extractFootnoteDefs(root as Node).map((definition) => [
           definition.identifier,
           definition,
         ])
@@ -112,12 +112,12 @@ const plugin: Plugin = function (this: Unified.Processor, _opts?: PluginOpts) {
       /** All footnote definitions that have been referenced in this document. */
       const usedFootnotes = new Set<FootnoteDefinition>();
       visit(
-        root,
+        root as Node,
         [DendronASTTypes.FOOTNOTE_REFERENCE],
         (reference: FootnoteReference, index, parent) => {
           const definition = footnotes.get(reference.identifier);
           if (definition && parent) {
-            parent.children[index] = footnote2html(reference);
+            (parent as Parent).children[index!] = footnote2html(reference) as any;
             usedFootnotes.add(definition);
           }
         }
@@ -129,7 +129,7 @@ const plugin: Plugin = function (this: Unified.Processor, _opts?: PluginOpts) {
         for (const definition of usedFootnotes) {
           footnoteItems.push(listItem(footnoteDef2html(definition)));
         }
-        root.children.push(list("ordered", footnoteItems) as Content);
+        root.children.push(list("ordered", footnoteItems as any) as Content);
       }
     }
 
@@ -212,7 +212,9 @@ const plugin: Plugin = function (this: Unified.Processor, _opts?: PluginOpts) {
       if (!_.isEmpty(children)) {
         addBreak();
         root.children.push(
-          u("strong", [{ type: "text", value: hierarchyDisplayTitle }])
+          u("strong", [
+            { type: "text" as const, value: hierarchyDisplayTitle },
+          ]) as import("mdast").RootContent
         );
         root.children.push(
           list(

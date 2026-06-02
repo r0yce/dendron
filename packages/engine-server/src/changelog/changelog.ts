@@ -1,7 +1,7 @@
 import { asyncLoopOneAtATime, DEngineClient } from "@dendronhq/common-all";
 import { DConfig } from "@dendronhq/common-server";
 import * as Diff2Html from "diff2html";
-import execa from "execa";
+import { execa } from "execa";
 import fs from "fs-extra";
 import _ from "lodash";
 import path from "path";
@@ -120,7 +120,7 @@ async function getChanges(opts: { commitHash: string; engine: DEngineClient }) {
     shell: true,
   });
   const status = stdout.split("\n");
-  await asyncLoopOneAtATime(status, async (result) => {
+  await asyncLoopOneAtATime(status, async (result: string) => {
     if (result.startsWith("M")) {
       const parts = result.split(" ");
       const filePath = (parts[0] ?? "").substring(2);

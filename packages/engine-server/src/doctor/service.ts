@@ -1,5 +1,4 @@
 import {
-  assertInvalidState,
   asyncLoopOneAtATime,
   ConfigUtils,
   DendronError,
@@ -48,7 +47,6 @@ export enum DoctorActionsEnum {
   REGENERATE_NOTE_ID = "regenerateNoteId",
   FIND_BROKEN_LINKS = "findBrokenLinks",
   FIX_REMOTE_VAULTS = "fixRemoteVaults",
-  FIX_AIRTABLE_METADATA = "fixAirtableMetadata",
   ADD_MISSING_DEFAULT_CONFIGS = "addMissingDefaultConfigs",
   REMOVE_DEPRECATED_CONFIGS = "removeDeprecatedConfigs",
   FIX_SELF_CONTAINED_VAULT_CONFIG = "fixSelfContainedVaultsInConfig",
@@ -64,9 +62,6 @@ export type DoctorServiceOpts = {
   exit?: boolean | undefined;
   quiet?: boolean | undefined;
   engine: DEngineClient;
-  podId?: string | undefined;
-  hierarchy?: string | undefined;
-  vault?: DVault | string | undefined;
 };
 
 /** DoctorService is a disposable, you **must** dispose instances you create
@@ -193,9 +188,6 @@ export class DoctorService implements Disposable {
       limit,
       dryRun,
       exit,
-      podId,
-      hierarchy,
-      vault,
     } = _.defaults(opts, {
       limit: 99999,
       exit: true,
@@ -541,54 +533,6 @@ export class DoctorService implements Disposable {
         }
         workspaceService.dispose();
         return { exit: true };
-      }
-      case DoctorActionsEnum.FIX_AIRTABLE_METADATA: {
-        // Converts the airtable id in note frontmatter from a single scalar value to a hashmap
-        if (!podId) {
-          assertInvalidState(
-            "Please provide the pod Id that was used to export the note(s)."
-          );
-        }
-        // we get vault name(string) as parameter from cli and vault(DVault) from plugin
-        const selectedVault = _.isString(vault)
-          ? VaultUtils.getVaultByName({ vaults: engine.vaults, vname: vault })
-          : vault;
-        const selectedHierarchy = _.isUndefined(query) ? hierarchy : query;
-        // Plugin already checks for selected hierarchy. This check is useful when fixAirtableMetadata action is ran from cli
-        if (!selectedHierarchy || !selectedVault) {
-          assertInvalidState(
-            "Please provide the hierarchy(with --query arg) and vault(--vault) of notes you would like to update with new Airtable Metadata"
-          );
-        }
-        //finding candidate notes
-        notes = notes.filter(
-          (value) =>
-            value.fname.startsWith(selectedHierarchy) &&
-            value.stub !== true &&
-            VaultUtils.isEqualV2(value.vault, selectedVault) &&
-            value.custom.airtableId
-        );
-        this.L.info({
-          msg: `${DoctorActionsEnum.FIX_FRONTMATTER} ${notes.length} Notes will be Affected`,
-        });
-
-        doctorAction = async (note: NoteProps) => {
-          //get airtable id from note
-          const airtableId = _.get(note.custom, "airtableId") as string;
-          const pods = {
-            airtable: {
-              [podId]: airtableId,
-            },
-          };
-          delete note.custom["airtableId"];
-          const updatedNote = {
-            ...note,
-            custom: { ...note.custom, pods },
-          };
-          // update note
-          await engine.writeNote(updatedNote);
-        };
-        break;
       }
       case DoctorActionsEnum.FIX_INVALID_FILENAMES: {
         const { canRename, cantRename, stats } = this.findInvalidFileNames({

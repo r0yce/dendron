@@ -1,5 +1,6 @@
 import _ from "lodash";
 import ogs from "open-graph-scraper";
+// types: open-graph-scraper.d.ts
 import { Selection, window } from "vscode";
 import { DENDRON_COMMANDS } from "../constants";
 import { clipboard, getOpenGraphMetadata } from "../utils";

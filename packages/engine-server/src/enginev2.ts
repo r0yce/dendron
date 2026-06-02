@@ -669,7 +669,14 @@ export class DendronEngineV2 implements DEngine {
     flavor: ProcFlavor;
     dest: DendronASTDest;
   }): Promise<string> {
-    let proc: ReturnType<typeof MDUtilsV5["procRehypeFull"]>;
+    let proc: import("unified").Processor<
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      any,
+      any,
+      any,
+      any,
+      any
+    >;
     const config = DConfig.readConfigSync(this.wsRoot);
 
     const noteCacheForRenderDict = await getParsingDependencyDicts(

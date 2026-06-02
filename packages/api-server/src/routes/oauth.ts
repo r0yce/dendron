@@ -8,7 +8,7 @@ export enum OauthService {
   GOOGLE = "google",
 }
 
-const router = Router();
+const router: import("express").Router = Router();
 const oauthHandlers: { [key: string]: TokenMethods } = {};
 
 const L = getLogger();

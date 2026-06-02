@@ -1,7 +1,7 @@
 import { DNoteLoc } from "@dendronhq/common-all";
 import Unified, { Transformer } from "unified";
 import { Node } from "unist";
-import visit from "unist-util-visit";
+import { visit } from "unist-util-visit";
 import { VFile } from "vfile";
 import { DendronASTTypes, NoteRefNoteV4, WikiLinkNoteV4 } from "../types";
 

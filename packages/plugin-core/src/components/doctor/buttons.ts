@@ -13,9 +13,10 @@ export type ButtonType = DoctorScopeType;
 
 export type ButtonHandleOpts = { quickPick: DoctorQuickPicker };
 
-export type IDoctorQuickInputButton = QuickInputButton & {
+export type IDoctorQuickInputButton = Omit<QuickInputButton, "toggle"> & {
   type: ButtonType;
   pressed: boolean;
+  toggle(): void;
 };
 
 type DoctorBtnConstructorOpts = {
@@ -76,7 +77,7 @@ export class DoctorBtn implements IDoctorQuickInputButton {
     return `${this.title}, status: ${this.pressed ? "on" : "off"}`;
   }
 
-  toggle() {
+  toggle(): void {
     this.pressed = !this.pressed;
   }
 }

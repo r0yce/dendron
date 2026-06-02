@@ -15,7 +15,7 @@ import {
 import { MDUtilsV5 } from "@dendronhq/unified";
 import _ from "lodash";
 import { inject, injectable, TOKENS } from "../../di/inject";
-import visit from "unist-util-visit";
+import { visit } from "unist-util-visit";
 import * as vscode from "vscode";
 import {
   Disposable,

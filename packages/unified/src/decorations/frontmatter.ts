@@ -66,14 +66,16 @@ export const decorateFrontmatter: Decorator<
     .filter(isNotUndefined);
 
   // Decorate the frontmatter tags
-  const tags = getFrontmatterTags(parseFrontmatter(contents));
+  const tags = getFrontmatterTags(
+    (parseFrontmatter(contents) ?? []) as import("../yaml").MappingItem[]
+  );
   const tagDecorations: DecorationHashTag[] = [];
   const errors: IDendronError[] = [];
   await Promise.all(
     tags.map(async (tag) => {
       const { errors, decorations } = await decorateTag({
         fname: `${TAGS_HIERARCHY}${tag.value}`,
-        position: tag.position,
+        position: (tag as { position?: import("unist").Position }).position!,
         lineOffset,
         config,
         engine,

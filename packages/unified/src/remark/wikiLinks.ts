@@ -9,12 +9,13 @@ import {
   VaultUtils,
 } from "@dendronhq/common-all";
 import _ from "lodash";
-import { Eat } from "remark-parse";
-import Unified, { Plugin } from "unified";
+import type { Handle as ToMarkdownHandle } from "mdast-util-to-markdown";
+import { Plugin, Processor } from "unified";
+import { createInlineRegexExtension } from "../micromark/inlineRegex";
+import { registerSyntaxExtensions } from "../micromark/registerExtensions";
 import {
   DendronASTDest,
   DendronASTTypes,
-  WikiLinkDataV4,
   WikiLinkNoteV4,
 } from "../types";
 import { MDUtilsV5, ProcMode } from "../utilsv5";
@@ -57,201 +58,195 @@ function normalizeSpaces(link: string) {
   return link.replace(/ /g, "%20");
 }
 
-const plugin: Plugin<[CompilerOpts?]> = function (
-  this: Unified.Processor,
-  opts?: PluginOpts
-) {
-  attachParser(this);
-  if (this.Compiler != null) {
-    attachCompiler(this, opts);
+function parseLink(proc: Processor, linkMatch: string) {
+  const pOpts = MDUtilsV5.getProcOpts(proc);
+  linkMatch = NoteUtils.normalizeFname(linkMatch);
+  const out = LinkUtils.parseLinkV2({
+    linkString: linkMatch,
+    explicitAlias: true,
+  });
+  if (_.isNull(out)) {
+    throw new DendronError({ message: `link is null: ${linkMatch}` });
   }
-};
+  if (pOpts.mode === ProcMode.NO_DATA) {
+    return out;
+  }
 
-function attachCompiler(proc: Unified.Processor, opts?: CompilerOpts) {
+  const procData = MDUtilsV5.getProcData(proc);
+  const { fname } = procData;
+
+  if (!out.value) {
+    // same file block reference, value is implicitly current file
+    out.value = _.trim(NoteUtils.normalizeFname(fname)); // recreate what value would have been parsed
+  }
+
+  return out;
+}
+
+function wikiLinkToMarkdown(
+  proc: Processor,
+  opts?: CompilerOpts
+): ToMarkdownHandle {
   const copts = _.defaults(opts || {}, {
     convertObsidianLinks: false,
     useId: false,
   });
-  const Compiler = proc.Compiler;
-  const visitors = Compiler.prototype.visitors;
-  if (visitors) {
-    visitors.wikiLink = function (node: WikiLinkNoteV4) {
-      const pOpts = MDUtilsV5.getProcOpts(proc);
-      const data = node.data;
-      let value = node.value;
-      const { anchorHeader } = data;
 
-      if (pOpts.mode === ProcMode.NO_DATA) {
-        const link = value;
-        const calias = data.alias !== value ? `${data.alias}|` : "";
-        const anchor = anchorHeader ? `#${anchorHeader}` : "";
-        const vaultPrefix = data.vaultName
-          ? `${CONSTANTS.DENDRON_DELIMETER}${data.vaultName}/`
-          : "";
-        return `[[${calias}${vaultPrefix}${link}${anchor}]]`;
-      }
+  return function wikiLinkHandler(node, _parent, _context) {
+    const wikiNode = node as WikiLinkNoteV4;
+    const pOpts = MDUtilsV5.getProcOpts(proc);
+    const data = wikiNode.data;
+    let value = wikiNode.value;
+    const { anchorHeader } = data;
 
-      const { dest, noteCacheForRenderDict, vaults, config } =
-        MDUtilsV5.getProcData(proc);
+    if (pOpts.mode === ProcMode.NO_DATA) {
+      const link = value;
+      const calias = data.alias !== value ? `${data.alias}|` : "";
+      const anchor = anchorHeader ? `#${anchorHeader}` : "";
+      const vaultPrefix = data.vaultName
+        ? `${CONSTANTS.DENDRON_DELIMETER}${data.vaultName}/`
+        : "";
+      return `[[${calias}${vaultPrefix}${link}${anchor}]]`;
+    }
 
-      let alias = data.alias;
+    const { dest, noteCacheForRenderDict, vaults, config } =
+      MDUtilsV5.getProcData(proc);
 
-      const shouldApplyPublishingRules =
-        MDUtilsV5.shouldApplyPublishingRules(proc);
-      const enableNoteTitleForLink = ConfigUtils.getEnableNoteTitleForLink(
-        config,
-        shouldApplyPublishingRules
-      );
+    let alias = data.alias;
 
-      if (
-        dest !== DendronASTDest.MD_DENDRON &&
-        enableNoteTitleForLink &&
-        !data.alias
-      ) {
-        if (noteCacheForRenderDict) {
-          const targetVault = data.vaultName
-            ? VaultUtils.getVaultByName({ vname: data.vaultName, vaults })
-            : undefined;
+    const shouldApplyPublishingRules =
+      MDUtilsV5.shouldApplyPublishingRules(proc);
+    const enableNoteTitleForLink = ConfigUtils.getEnableNoteTitleForLink(
+      config,
+      shouldApplyPublishingRules
+    );
 
-          const candidates = NoteDictsUtils.findByFname({
-            fname: value,
-            noteDicts: noteCacheForRenderDict,
-            ...(targetVault !== undefined ? { vault: targetVault } : {}),
-          });
-          const target = candidates.length > 0 ? candidates[0]! : undefined;  // length/invariant guard + ! only after check (wikiLinks noteCache findByFname[0] position cluster part of 3 position! + noteRef/data/SiteUtils synergy for unified remark micro); "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). THE CHAIN DOES NOT STOP.
+    if (
+      dest !== DendronASTDest.MD_DENDRON &&
+      enableNoteTitleForLink &&
+      !data.alias
+    ) {
+      if (noteCacheForRenderDict) {
+        const targetVault = data.vaultName
+          ? VaultUtils.getVaultByName({ vname: data.vaultName, vaults })
+          : undefined;
 
-          if (target) {
-            alias = target.title;
-          }
-        }
-      }
-
-      // if converting back to dendron md, no further processing
-      if (dest === DendronASTDest.MD_DENDRON) {
-        return LinkUtils.renderNoteLink({
-          link: {
-            from: {
-              fname: value,
-              alias,
-              anchorHeader: data.anchorHeader,
-              vaultName: data.vaultName,
-            },
-            data: {
-              xvault: !_.isUndefined(data.vaultName),
-            },
-            type: LinkUtils.astType2DLinkType(DendronASTTypes.WIKI_LINK),
-            position: (node.position ?? undefined) as Position /* TODO: Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). WikiLinks local position cast (?? hygiene + 4-axis boundary per precedent; part of documented 3 position! + noteRef/data paths + SiteUtils synergy clusters for unified remark micro in parallel with engine batch 3). Target-first/?? at call site + full verbatim mandates. No bare @ts. 0 tests. */ ,
-          },
-          dest,
+        const candidates = NoteDictsUtils.findByFname({
+          fname: value,
+          noteDicts: noteCacheForRenderDict,
+          ...(targetVault !== undefined ? { vault: targetVault } : {}),
         });
-      }
+        const target = candidates.length > 0 ? candidates[0]! : undefined;  // length/invariant guard + ! only after check (wikiLinks noteCache findByFname[0] position cluster part of 3 position! + noteRef/data/SiteUtils synergy for unified remark micro); "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). THE CHAIN DOES NOT STOP.
 
-      if (copts.useId && dest === DendronASTDest.HTML) {
-        let notes;
-        const { noteCacheForRenderDict } = MDUtilsV5.getProcData(proc);
-        // TODO: Consolidate logic.
-        if (noteCacheForRenderDict) {
-          // TODO: Add vault filter
-          notes = NoteDictsUtils.findByFname({
-            fname: alias,
-            noteDicts: noteCacheForRenderDict,
-          });
-        } else {
-          return "error - no note cache provided";
-        }
-
-        const { error, note } = getNoteOrError(notes, value);
-        if (error) {
-          addError(proc, error);
-          return "error with link";
-        } else {
-          value = note!.id;
+        if (target) {
+          alias = target.title;
         }
       }
+    }
 
-      const aliasToUse = alias ?? value;
-      switch (dest) {
-        case DendronASTDest.MD_REGULAR: {
-          return `[${aliasToUse}](${copts.prefix || ""}${normalizeSpaces(
-            value
-          )})`;
-        }
-        case DendronASTDest.HTML: {
-          return `[${aliasToUse}](${copts.prefix || ""}${value}.html${
-            data.anchorHeader ? "#" + data.anchorHeader : ""
-          })`;
-        }
-        default:
-          return `unhandled case: ${dest}`;
+    // if converting back to dendron md, no further processing
+    if (dest === DendronASTDest.MD_DENDRON) {
+      return LinkUtils.renderNoteLink({
+        link: {
+          from: {
+            fname: value,
+            alias,
+            anchorHeader: data.anchorHeader,
+            vaultName: data.vaultName,
+          },
+          data: {
+            xvault: !_.isUndefined(data.vaultName),
+          },
+          type: LinkUtils.astType2DLinkType(DendronASTTypes.WIKI_LINK),
+          position: (wikiNode.position ?? undefined) as Position /* TODO: Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). WikiLinks local position cast (?? hygiene + 4-axis boundary per precedent; part of documented 3 position! + noteRef/data paths + SiteUtils synergy clusters for unified remark micro in parallel with engine batch 3). Target-first/?? at call site + full verbatim mandates. No bare @ts. 0 tests. */,
+        },
+        dest,
+      });
+    }
+
+    if (copts.useId && dest === DendronASTDest.HTML) {
+      let notes;
+      const { noteCacheForRenderDict } = MDUtilsV5.getProcData(proc);
+      // TODO: Consolidate logic.
+      if (noteCacheForRenderDict) {
+        // TODO: Add vault filter
+        notes = NoteDictsUtils.findByFname({
+          fname: alias,
+          noteDicts: noteCacheForRenderDict,
+        });
+      } else {
+        return "error - no note cache provided";
       }
-    };
-  }
+
+      const { error, note } = getNoteOrError(notes, value);
+      if (error) {
+        addError(proc, error);
+        return "error with link";
+      } else {
+        value = note!.id;
+      }
+    }
+
+    const aliasToUse = alias ?? value;
+    switch (dest) {
+      case DendronASTDest.MD_REGULAR: {
+        return `[${aliasToUse}](${copts.prefix || ""}${normalizeSpaces(
+          value
+        )})`;
+      }
+      case DendronASTDest.HTML: {
+        return `[${aliasToUse}](${copts.prefix || ""}${value}.html${
+          data.anchorHeader ? "#" + data.anchorHeader : ""
+        })`;
+      }
+      default:
+        return `unhandled case: ${dest}`;
+    }
+  };
 }
 
-function attachParser(proc: Unified.Processor) {
-  function locator(value: string, fromIndex: number) {
-    return value.indexOf("[", fromIndex);
-  }
-
-  function parseLink(linkMatch: string) {
-    const pOpts = MDUtilsV5.getProcOpts(proc);
-    linkMatch = NoteUtils.normalizeFname(linkMatch);
-    const out = LinkUtils.parseLinkV2({
-      linkString: linkMatch,
-      explicitAlias: true,
-    });
-    if (_.isNull(out)) {
-      throw new DendronError({ message: `link is null: ${linkMatch}` });
-    }
-    if (pOpts.mode === ProcMode.NO_DATA) {
-      return out;
-    }
-
-    const procData = MDUtilsV5.getProcData(proc);
-    const { fname } = procData;
-
-    if (!out.value) {
-      // same file block reference, value is implicitly current file
-      out.value = _.trim(NoteUtils.normalizeFname(fname)); // recreate what value would have been parsed
-    }
-
-    return out;
-  }
-
-  function inlineTokenizer(eat: Eat, value: string) {
-    const match = LINK_REGEX.exec(value);
-    if (match) {
-      // Lean v2: ! guards after match for noUncheckedIndexedAccess (regex [0]/[1])
-      const linkMatch = match[1]!.trim();
+function wikiLinkSyntax(proc: Processor, opts?: CompilerOpts) {
+  return createInlineRegexExtension<WikiLinkNoteV4>({
+    charCode: "[".charCodeAt(0),
+    tokenType: "dendronWikiLink",
+    mdastType: DendronASTTypes.WIKI_LINK,
+    match: LINK_REGEX,
+    toFields: (matched) => {
+      const linkMatch = matched[1]!.trim();
       try {
-        const { value, alias, anchorHeader, vaultName, sameFile } =
-          parseLink(linkMatch);
-        return eat(match[0]!)({
-          type: DendronASTTypes.WIKI_LINK,
-          // @ts-expect-error - mdast extension shape for WIKI_LINK (value/data for eat); legacy remark plugin interop (not strict 4-axis common-all boundary). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
-          value,
-          data: {
-            alias,
-            anchorHeader,
-            vaultName,
-            sameFile,
-          } as WikiLinkDataV4,
-        });
+        const parsed = parseLink(proc, linkMatch);
+        const value = parsed.value;
+        if (!value) {
+          return undefined;
+        }
+        const data: WikiLinkNoteV4["data"] = {
+          alias: parsed.alias ?? value,
+        };
+        if (parsed.anchorHeader !== undefined) {
+          data.anchorHeader = parsed.anchorHeader;
+        }
+        if (parsed.vaultName !== undefined) {
+          data.vaultName = parsed.vaultName;
+        }
+        if (parsed.sameFile) {
+          data.sameFile = parsed.sameFile;
+        }
+        return { value, data };
       } catch {
         // Broken link, just refuse to parse it
-        return;
+        return undefined;
       }
-    }
-    return;
-  }
-  inlineTokenizer.locator = locator;
-
-  const Parser = proc.Parser;
-  const inlineTokenizers = Parser.prototype.inlineTokenizers;
-  const inlineMethods = Parser.prototype.inlineMethods;
-  inlineTokenizers.wikiLink = inlineTokenizer;
-  inlineMethods.splice(inlineMethods.indexOf("link"), 0, "wikiLink");
+    },
+    toMarkdown: wikiLinkToMarkdown(proc, opts),
+  });
 }
+
+const plugin: Plugin<[CompilerOpts?]> = function (
+  this: Processor,
+  opts?: PluginOpts
+) {
+  registerSyntaxExtensions(this, wikiLinkSyntax(this, opts));
+};
 
 export { plugin as wikiLinks };
 export { PluginOpts as WikiLinksOpts };

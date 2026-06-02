@@ -34,7 +34,7 @@ import {
 } from "@dendronhq/unified";
 import _ from "lodash";
 import path from "path";
-import visit from "unist-util-visit";
+import { visit } from "unist-util-visit";
 import { Disposable, Location } from "vscode";
 import {
   ILookupControllerV3,
@@ -159,7 +159,7 @@ export class MoveHeaderCommand extends BasicCommand<
 
     const resp = MdastUtils.findHeader({
       nodes: bodyAST.children,
-      match: targetHeader,
+      match: targetHeader as Parameters<typeof MdastUtils.findHeader>[0]["match"],
     });
     if (!resp) {
       throw Error("did not find header");

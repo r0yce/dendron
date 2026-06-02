@@ -6,7 +6,7 @@ import {
   stringifyError,
 } from "@dendronhq/common-all";
 import { createLogger } from "@dendronhq/common-server";
-import execa, { ExecaChildProcess } from "execa";
+import { execaNode, type Subprocess } from "execa";
 import _ from "lodash";
 import path from "path";
 import { launchv2 } from ".";
@@ -52,7 +52,7 @@ export class ServerUtils {
     subprocess,
     cb,
   }: {
-    subprocess: ExecaChildProcess;
+    subprocess: Subprocess;
     cb: (exitType: SubProcessExitType, args?: any) => any;
   }) {
     subprocess.on("exit", () => cb(SubProcessExitType.EXIT));
@@ -71,7 +71,7 @@ export class ServerUtils {
    * Attach to a server process to kill it when the current process exits
    * @param subprocess
    */
-  static cleanServerProcess(subprocess: ExecaChildProcess) {
+  static cleanServerProcess(subprocess: Subprocess) {
     const handleExit = () => {
       console.log("handle exit");
       try {
@@ -165,14 +165,14 @@ export class ServerUtils {
     port,
     googleOauthClientId,
     googleOauthClientSecret,
-  }: ServerArgs): Promise<{ port: number; subprocess: ExecaChildProcess }> {
+  }: ServerArgs): Promise<{ port: number; subprocess: Subprocess }> {
     const logger = createLogger(
       "execServer",
       path.join(logPath, "dendron.log")
     );
     return new Promise((resolve, reject) => {
       logger.info({ state: "enter" });
-      const subprocess = execa.node(scriptPath, {
+      const subprocess = execaNode(scriptPath, {
         env: {
           LOG_PATH: logPath,
           ENGINE_SERVER_PORT: String(port ?? 0),
@@ -184,7 +184,7 @@ export class ServerUtils {
         },
       });
       logger.info({ state: "post:exec.node" });
-      subprocess.on("close", (code) => {
+      subprocess.on("close", (code: number | null) => {
         logger.error({ state: "close" });
         reject(new DendronError({ message: "close", payload: { code } }));
       });
@@ -192,17 +192,17 @@ export class ServerUtils {
         logger.error({ state: "disconnect" });
         reject(new DendronError({ message: "disconnect" }));
       });
-      subprocess.on("exit", (code) => {
+      subprocess.on("exit", (code: number | null) => {
         logger.error({ state: "exit" });
         reject(new DendronError({ message: "exit", payload: { code } }));
       });
-      subprocess.on("error", (err) => {
+      subprocess.on("error", (err: Error) => {
         logger.error({ state: "error", payload: err });
         reject(
           new DendronError({ message: "error", payload: stringifyError(err) })
         );
       });
-      subprocess.on("message", (message) => {
+      subprocess.on("message", (message: unknown) => {
         logger.info({ state: "message", message });
         const port = parseInt(message as string, 10);
         if (port <= 0) {

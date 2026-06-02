@@ -6,7 +6,7 @@ import { schemaRouter } from "./schema";
 import { workspaceRouter } from "./workspace";
 
 // Init router and path
-const router = Router();
+const router: import("express").Router = Router();
 
 // Add sub-routes
 router.use("/workspace", workspaceRouter);

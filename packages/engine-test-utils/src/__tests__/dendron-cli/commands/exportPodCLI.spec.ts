@@ -13,7 +13,7 @@ describe("GIVEN export one", () => {
             const cmd = new PublishPodCLICommand();
             const resp = await cmd.enrichArgs({
               wsRoot,
-              podId: "dendron.airtable",
+              podId: "dendron.markdown",
               podSource: PodSource.BUILTIN,
             });
             expect(resp.error?.severity).toEqual(ERROR_SEVERITY.FATAL);
@@ -35,7 +35,7 @@ describe("GIVEN export one", () => {
             const cmd = new PublishPodCLICommand();
             const resp = await cmd.enrichArgs({
               wsRoot,
-              podId: "dendron.airtable",
+              podId: "dendron.markdown",
               podSource: PodSource.BUILTIN,
               configPath,
             });
@@ -59,7 +59,7 @@ describe("GIVEN export one", () => {
             const cmd = new PublishPodCLICommand();
             const resp = await cmd.enrichArgs({
               wsRoot,
-              podId: "dendron.airtable",
+              podId: "dendron.markdown",
               podSource: PodSource.BUILTIN,
               configPath,
               query: "foo",

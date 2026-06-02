@@ -1,4 +1,4 @@
-import execa from "execa";
+import { execa, execaCommand } from "execa";
 import fs from "fs-extra";
 import _ from "lodash";
 import path from "path";
@@ -51,7 +51,7 @@ export class Git {
     if (destOverride) {
       cmdParts.push(destOverride);
     }
-    await execa.command(cmdParts.join(" "), {
+    await execaCommand(cmdParts.join(" "), {
       shell: true,
       cwd: localUrl,
     });
@@ -113,7 +113,7 @@ export class Git {
 
   async pull() {
     const { localUrl: cwd } = this.opts;
-    await execa.command([`git pull --rebase`].join(" "), {
+    await execaCommand([`git pull --rebase`].join(" "), {
       shell: true,
       cwd,
     });
@@ -132,7 +132,7 @@ export class Git {
     let setUpstremArg = "";
     if (setUpstream)
       setUpstremArg = ` --set-upstream ${setUpstream.remote} ${setUpstream.branch}`;
-    await execa.command([`git push${setUpstremArg}`].join(" "), {
+    await execaCommand([`git push${setUpstremArg}`].join(" "), {
       shell: true,
       cwd,
     });
@@ -148,7 +148,7 @@ export class Git {
   async isValidStashCommit(commit: string): Promise<boolean> {
     try {
       const { localUrl: cwd } = this.opts;
-      const { exitCode } = await execa.command(`git stash show ${commit}`, {
+      const { exitCode } = await execaCommand(`git stash show ${commit}`, {
         cwd,
       });
       return exitCode === 0;
@@ -184,7 +184,7 @@ export class Git {
   // === extra commands
 
   async addAll() {
-    await execa.command(["git add ."].join(" "), {
+    await execaCommand(["git add ."].join(" "), {
       shell: true,
       cwd: this.opts.localUrl,
     });
@@ -201,8 +201,8 @@ export class Git {
     );
     return stdout
       .split("\n")
-      .filter((ent) => !_.isEmpty(ent))
-      .map((ent) => _.trim(ent));
+      .filter((ent: string) => !_.isEmpty(ent))
+      .map((ent: string) => _.trim(ent));
   }
 
   async getCurrentBranch() {

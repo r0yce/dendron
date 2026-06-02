@@ -4,7 +4,6 @@ import {
   JSONImportPod,
   JSONPublishPod,
 } from "./builtin";
-import { AirtableExportPod, AirtablePublishPod } from "./builtin/AirtablePod";
 import { GDocImportPod } from "./builtin/GDocPod";
 import {
   GithubIssueImportPod,
@@ -22,10 +21,7 @@ import { PodClassEntryV4 } from "./types";
 import { NotionExportPod } from "./builtin/NotionPod";
 import { JSONSchemaType } from "ajv";
 import { OrbitImportPod } from "./builtin/OrbitPod";
-import type {
-  Page,
-  TitlePropertyValue,
-} from "@notionhq/client/build/src/api-types";
+
 import { Client } from "@notionhq/client";
 
 export * from "./basev3";
@@ -35,7 +31,6 @@ export * from "./utils";
 
 // TODO: export via own module
 export * from "./v2/external-services/ExternalConnectionManager";
-export * from "./v2/external-services/AirtableConnection";
 export * from "./v2/external-services/GoogleDocsConnection";
 export * from "./v2/external-services/NotionConnection";
 export * from "./v2/PodConfigManager";
@@ -49,7 +44,6 @@ export function getAllExportPods(): PodClassEntryV4[] {
     GitPunchCardExportPod,
     MarkdownExportPod,
     GraphvizExportPod,
-    AirtableExportPod,
     NextjsExportPod,
     NotionExportPod,
   ];
@@ -60,7 +54,6 @@ export function getAllPublishPods(): PodClassEntryV4[] {
     MarkdownPublishPod,
     HTMLPublishPod,
     GithubIssuePublishPod,
-    AirtablePublishPod,
   ];
 }
 export function getAllImportPods(): PodClassEntryV4[] {
@@ -82,4 +75,10 @@ export function getAllCopyAsFormat(): CopyAsFormat[] {
   return Object.values(CopyAsFormat);
 }
 
-export { JSONSchemaType, Client, Page, TitlePropertyValue };
+export { JSONSchemaType, Client };
+export type {
+  PageObjectResponse,
+  PageObjectResponse as Page,
+  TitlePropertyItemObjectResponse,
+  TitlePropertyItemObjectResponse as TitlePropertyValue,
+} from "@notionhq/client";

@@ -176,7 +176,7 @@ export class LookupControllerV3 implements ILookupControllerV3 {
     const quickpick = PickerUtilsV2.createDendronQuickPick(opts);
     this._quickPick = quickpick;
     // invoke button behaviors
-    this._quickPick.buttons = this._initButtons;
+    (this._quickPick as { buttons: DendronBtn[] }).buttons = this._initButtons;
     this.setupViewModelCallbacks();
 
     // Now Create the Views:

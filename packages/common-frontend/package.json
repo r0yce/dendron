@@ -37,21 +37,21 @@
     "compile:tsc": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@aws-amplify/core": "^4.0.2",
+    "@aws-amplify/core": "6.16.3",
     "@dendronhq/common-all": "^0.124.0",
-    "@reduxjs/toolkit": "^1.5.1",
-    "lodash": "^4.17.20",
-    "querystring": "^0.2.1",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-redux": "^7.2.3",
-    "redux-logger": "^3.0.6"
+    "@reduxjs/toolkit": "2.12.0",
+    "lodash": "4.18.1",
+    "querystring": "0.2.1",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "react-redux": "9.3.0",
+    "redux-logger": "3.0.6"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.161",
-    "@types/node": "^20.12.0",
-    "@types/react": "^17.0.5",
-    "@types/redux-logger": "^3.0.9"
+    "@types/lodash": "4.17.24",
+    "@types/node": "25.9.1",
+    "@types/react": "19.2.16",
+    "@types/redux-logger": "3.0.13"
   },
   "nohoist": [
     "**/common-all",

@@ -24,7 +24,14 @@ import {
 import _ from "lodash";
 import _md from "markdown-it";
 import fs from "fs-extra";
-import { QuickPick, QuickPickItem, Uri, ViewColumn, window } from "vscode";
+import {
+  QuickInputButton,
+  QuickPick,
+  QuickPickItem,
+  Uri,
+  ViewColumn,
+  window,
+} from "vscode";
 import {
   ChangeScopeBtn,
   DoctorBtn,
@@ -44,7 +51,6 @@ import { AnalyticsUtils } from "../utils/analytics";
 import { IDendronExtension } from "../dendronExtensionInterface";
 import { KeybindingUtils } from "../KeybindingUtils";
 import { QuickPickHierarchySelector } from "../components/lookup/HierarchySelector";
-import { PodUIControls } from "../components/pods/PodControls";
 import { RemarkUtils } from "@dendronhq/unified";
 import { DConfig } from "@dendronhq/common-server";
 
@@ -147,7 +153,7 @@ export class DoctorCommand extends BasicCommand<CommandOpts, CommandOutput> {
     quickPick.placeholder = placeholder;
     quickPick.ignoreFocusOut = ignoreFocusOut;
     quickPick.items = items;
-    quickPick.buttons = opts.buttons!;
+    quickPick.buttons = opts.buttons! as unknown as QuickInputButton[];
 
     return quickPick;
   }
@@ -156,10 +162,10 @@ export class DoctorCommand extends BasicCommand<CommandOpts, CommandOutput> {
     if (!quickpick) {
       return;
     }
-    const button = quickpick.buttons[0] as IDoctorQuickInputButton;
+    const button = quickpick.buttons[0] as unknown as IDoctorQuickInputButton;
     button.pressed = !button.pressed;
     button.type = button.type === "workspace" ? "file" : "workspace";
-    quickpick.buttons = [button];
+    quickpick.buttons = [button as unknown as QuickInputButton];
     quickpick.title = `Doctor (${button.type})`;
   };
 
@@ -188,12 +194,12 @@ export class DoctorCommand extends BasicCommand<CommandOpts, CommandOutput> {
         items: allDoctorActionQuickPickItems,
         buttons: [changeScopeButton],
       });
-      const scope = (quickPick.buttons[0] as IDoctorQuickInputButton).type;
+      const scope = (quickPick.buttons[0] as unknown as IDoctorQuickInputButton).type;
       quickPick.title = `Doctor (${scope})`;
       quickPick.onDidAccept(async () => {
         quickPick.hide();
         const doctorAction = quickPick.selectedItems[0]!.label;
-        const doctorScope = (quickPick.buttons[0] as IDoctorQuickInputButton)
+        const doctorScope = (quickPick.buttons[0] as unknown as IDoctorQuickInputButton)
           .type;
         return resolve({
           action: doctorAction as DoctorActionsEnum | PluginDoctorActionsEnum,
@@ -577,25 +583,6 @@ export class DoctorCommand extends BasicCommand<CommandOpts, CommandOutput> {
           break;
         }
         await this.showBrokenLinkPreview(out.resp, engine);
-        break;
-      }
-      case DoctorActionsEnum.FIX_AIRTABLE_METADATA: {
-        const selection = await this.getHierarchy();
-        // break if no hierarchy is selected.
-        if (!selection) break;
-        // get hierarchy of notes to be updated
-        const { hierarchy, vault } = selection;
-        // get podId used to export the notes
-        const podId = await PodUIControls.promptToSelectCustomPodId();
-        if (!podId) break;
-        const ds = new DoctorService();
-        await ds.executeDoctorActions({
-          action: opts.action,
-          engine,
-          podId,
-          hierarchy,
-          vault,
-        });
         break;
       }
       case DoctorActionsEnum.REMOVE_DEPRECATED_CONFIGS:

@@ -3,7 +3,6 @@ import { tmpDir } from "@dendronhq/common-server";
 import { NOTE_PRESETS_V4 } from "@dendronhq/common-test-utils";
 import { EngineUtils, openPortFile } from "@dendronhq/engine-server";
 import {
-  AirtableExportPodV2,
   ConfigFileUtils,
   ExportPodConfigurationV2,
   ExternalConnectionManager,
@@ -118,7 +117,7 @@ describe("GIVEN a PodV2ConfigManager class", () => {
 
   const podConfig1: ExportPodConfigurationV2 = {
     podId: "foo",
-    podType: PodV2Types.AirtableExportV2,
+    podType: PodV2Types.MarkdownExportV2,
     exportScope: PodExportScope.Note,
   };
 
@@ -142,7 +141,7 @@ describe("GIVEN a PodV2ConfigManager class", () => {
 
   ConfigFileUtils.genConfigFileV2({
     fPath: path.join(podsDir, "foo.yml"),
-    configSchema: AirtableExportPodV2.config(),
+    configSchema: MarkdownExportPodV2.config(),
     setProperties: podConfig1,
   });
 
@@ -185,7 +184,7 @@ describe("GIVEN a PodV2ConfigManager class", () => {
       });
       expect(podConfig).toBeDefined();
       expect(podConfig?.podId).toEqual("foo");
-      expect(podConfig?.podType).toEqual(PodV2Types.AirtableExportV2);
+      expect(podConfig?.podType).toEqual(PodV2Types.MarkdownExportV2);
     });
   });
 
@@ -230,12 +229,12 @@ describe("GIVEN an ExternalConnectionManager class", () => {
     test("THEN expect an error to be thrown", async () => {
       const fn = async () => {
         await connectionManager.createNewConfig({
-          serviceType: ExternalService.Airtable,
+          serviceType: ExternalService.Notion,
           id: "foo",
         });
 
         await connectionManager.createNewConfig({
-          serviceType: ExternalService.Airtable,
+          serviceType: ExternalService.Notion,
           id: "foo",
         });
       };
@@ -244,16 +243,16 @@ describe("GIVEN an ExternalConnectionManager class", () => {
     });
   });
 
-  describe("WHEN creating an AirtableConnection config with a unique ID", () => {
+  describe("WHEN creating a NotionConnection config with a unique ID", () => {
     test("THEN expect the config to be created", async () => {
       await connectionManager.createNewConfig({
-        serviceType: ExternalService.Airtable,
+        serviceType: ExternalService.Notion,
         id: "foo",
       });
 
       const config = connectionManager.getConfigById({ id: "foo" });
       expect(config?.connectionId).toEqual("foo");
-      expect(config?.serviceType).toEqual(ExternalService.Airtable);
+      expect(config?.serviceType).toEqual(ExternalService.Notion);
     });
   });
 
@@ -273,25 +272,25 @@ describe("GIVEN an ExternalConnectionManager class", () => {
   describe("WHEN multiple configs of different types exist", () => {
     test("THEN expect type-matching configs to be returned", async () => {
       await connectionManager.createNewConfig({
-        serviceType: ExternalService.Airtable,
-        id: "airtable-one",
+        serviceType: ExternalService.Notion,
+        id: "notion-one",
       });
 
       await connectionManager.createNewConfig({
-        serviceType: ExternalService.Airtable,
-        id: "airtable-two",
+        serviceType: ExternalService.Notion,
+        id: "notion-two",
       });
 
       const configs = await connectionManager.getAllConfigsByType(
-        ExternalService.Airtable
+        ExternalService.Notion
       );
       expect(configs.length).toEqual(2);
     });
 
     test("AND non type-matching configs to NOT be returned", async () => {
       await connectionManager.createNewConfig({
-        serviceType: ExternalService.Airtable,
-        id: "airtable",
+        serviceType: ExternalService.Notion,
+        id: "notion",
       });
 
       await connectionManager.createNewConfig({
@@ -300,7 +299,7 @@ describe("GIVEN an ExternalConnectionManager class", () => {
       });
 
       const configs = await connectionManager.getAllConfigsByType(
-        ExternalService.Airtable
+        ExternalService.Notion
       );
       expect(configs.length).toEqual(1);
     });

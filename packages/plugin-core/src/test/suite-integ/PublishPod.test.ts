@@ -6,7 +6,6 @@ import {
 } from "@dendronhq/common-test-utils";
 import { ENGINE_HOOKS } from "@dendronhq/engine-test-utils";
 import {
-  AirtablePublishPod,
   MarkdownPublishPod,
   podClassEntryToPodItemV4,
 } from "@dendronhq/pods-core";
@@ -68,7 +67,7 @@ suite("PublishV2", function () {
       test("THEN show error when required arg not present", (done) => {
         // You can access the workspace inside the test like this:
         const cmd = new PublishPodCommand(ExtensionProvider.getExtension());
-        const podChoice = podClassEntryToPodItemV4(AirtablePublishPod);
+        const podChoice = podClassEntryToPodItemV4(MarkdownPublishPod);
         cmd.gatherInputs = async () => {
           return { podChoice };
         };

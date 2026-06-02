@@ -8,7 +8,7 @@ import { Request, Response, Router } from "express";
 import asyncHandler from "express-async-handler";
 import { SchemaController } from "../modules/schemas";
 
-const router = Router();
+const router: import("express").Router = Router();
 
 router.get(
   "/get",

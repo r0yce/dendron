@@ -1,7 +1,7 @@
 import {
   Literal,
   Mapping,
-  MappingItem,
+  MappingItem as YamlMappingItem,
   Node as YamlUnistNode,
   Parent as YamlUnistParent,
   parse as yamlparse,
@@ -42,10 +42,13 @@ export function isYamlString(node: any): node is Literal {
  * technically Unist compatible, the types don't match so we can't use the unist
  * function.
  */
+export type MappingItem = YamlMappingItem;
+
 export function visitYamlUnist(
-  node: YamlUnistNode | YamlUnistNode[],
+  node: YamlUnistNode | YamlUnistNode[] | undefined,
   visitor: (node: YamlUnistNode) => boolean | undefined | void | null
 ) {
+  if (!node) return;
   const toVisit: YamlUnistNode[] = _.isArray(node) ? [...node] : [node];
   while (toVisit.length > 0) {
     const item = toVisit.pop();
@@ -63,8 +66,9 @@ export function parseFrontmatter(frontmatter: YAML | string) {
   const parsed = yamlparse(
     _.isString(frontmatter) ? frontmatter : frontmatter.value
   );
-  const mapping = (parsed.children[0]?.children[1]?.children[0] as Mapping)
-    ?.children;
+  const mapping = (
+    parsed.children[0]?.children?.[1]?.children?.[0] as Mapping | undefined
+  )?.children;
   return mapping;
 }
 
@@ -73,6 +77,7 @@ export function getFrontmatterTags(frontmatter: MappingItem[]) {
   visitYamlUnist(frontmatter, (node) => {
     if (!isMappingItem(node)) return;
     const [key, value] = node.children;
+    if (!key || !value) return;
     let isTags = false;
     visitYamlUnist(key, (keyPlain) => {
       if (!isYamlString(keyPlain)) return;

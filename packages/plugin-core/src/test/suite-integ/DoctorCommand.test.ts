@@ -697,60 +697,6 @@ suite("FIND_INCOMPATIBLE_EXTENSIONS", function () {
   );
 });
 
-suite("FIX_AIRTABLE_METADATA", function () {
-  describeMultiWS(
-    "GIVEN fixAirtableMetadata selected",
-    {
-      preSetupHook: async ({ vaults, wsRoot }) => {
-        await NoteTestUtilsV4.createNote({
-          wsRoot,
-          fname: "foo.bar",
-          vault: vaults[0],
-          custom: {
-            airtableId: "airtableId-one",
-          },
-        });
-      },
-    },
-    () => {
-      test("THEN remove airtableId from note FM and update it with pods namespace", async () => {
-        const ext = ExtensionProvider.getExtension();
-        const engine = ext.getEngine();
-        const cmd = new DoctorCommand(ext);
-        const gatherInputsStub = sinon.stub(cmd, "gatherInputs").returns(
-          Promise.resolve({
-            action: DoctorActionsEnum.FIX_AIRTABLE_METADATA,
-            scope: "workspace",
-          })
-        );
-        const hierarchyQuickPickStub = sinon.stub(cmd, "getHierarchy");
-        const podIdQuickPickStub = sinon.stub(
-          PodUIControls,
-          "promptToSelectCustomPodId"
-        );
-        try {
-          hierarchyQuickPickStub
-            .onFirstCall()
-            .returns(
-              Promise.resolve({ hierarchy: "foo.bar", vault: engine.vaults[0] })
-            );
-          podIdQuickPickStub.onCall(0).returns(Promise.resolve("dendron.task"));
-          await cmd.run();
-          const note = (await engine.getNoteMeta("foo.bar")).data!;
-          expect(note?.custom.airtableId).toBeFalsy();
-          expect(note?.custom.pods.airtable["dendron.task"]).toEqual(
-            "airtableId-one"
-          );
-        } finally {
-          gatherInputsStub.restore();
-          hierarchyQuickPickStub.restore();
-          podIdQuickPickStub.restore();
-        }
-      });
-    }
-  );
-});
-
 suite("FIX_INVALID_FILENAMES", function () {
   describeMultiWS(
     "GIVEN workspace with with invalid file",

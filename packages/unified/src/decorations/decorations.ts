@@ -10,6 +10,7 @@ import {
   NoteProps,
   offsetRange,
 } from "@dendronhq/common-all";
+import type { Node } from "unist";
 import { decorateUserTag } from "./userTags";
 import {
   DendronASTDest,
@@ -34,7 +35,7 @@ import {
   warnMissingFrontmatter,
 } from "./diagnostics";
 import _ from "lodash";
-import visit from "unist-util-visit";
+import { visit } from "unist-util-visit";
 import { MdastUtils } from "..";
 
 /** Dispatches the correct decorator based on the type of AST node. */
@@ -134,8 +135,9 @@ export async function runAllDecorators(
   // Check for frontmatter diagnostics. Diagnostics always run on the whole note because they need to be active even when they are not visible.
   let frontmatter: FrontmatterContent | undefined;
   const fullTree = proc.parse(opts.text);
-  visit(fullTree, ["yaml"], (node: FrontmatterContent) => {
-    frontmatter = node;
+  visit(fullTree as Node, "yaml", (node) => {
+    const fm = node as FrontmatterContent;
+    frontmatter = fm;
     return false; // stop iterating
   });
   if (_.isUndefined(frontmatter)) {

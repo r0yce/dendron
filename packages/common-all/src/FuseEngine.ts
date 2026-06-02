@@ -1,4 +1,8 @@
-import Fuse from "fuse.js";
+import Fuse, {
+  type FuseIndex,
+  type FuseResult,
+  type IFuseOptions,
+} from "fuse.js";
 import _, { ListIterator, NotVoid } from "lodash";
 import {
   ConfigUtils,
@@ -31,12 +35,12 @@ export const FuseExtendedSearchConstants = {
 
 function createFuse<T>(
   initList: T[],
-  opts: Fuse.IFuseOptions<T> & {
+  opts: IFuseOptions<T> & {
     preset: "schema" | "note";
   },
-  index?: Fuse.FuseIndex<T>
+  index?: FuseIndex<T>
 ) {
-  const baseOptions: Fuse.IFuseOptions<T> = {
+  const baseOptions: IFuseOptions<T> = {
     shouldSort: true,
     threshold: opts.threshold ?? 0.6,
     distance: 15,
@@ -58,9 +62,9 @@ function createFuse<T>(
 
 export function createFuseNote(
   publishedNotes: NotePropsByIdDict | NoteProps[],
-  overrideOpts?: Partial<Fuse.IFuseOptions<NoteProps>>,
-  index?: Fuse.FuseIndex<NoteProps>
-) {
+  overrideOpts?: Partial<IFuseOptions<NoteProps>>,
+  index?: FuseIndex<NoteProps>
+): Fuse<NoteProps> {
   let notes: NoteProps[];
   if (_.isArray(publishedNotes)) notes = publishedNotes;
   else notes = Object.values(publishedNotes);
@@ -79,18 +83,17 @@ export function createFuseNote(
   );
 }
 
+export type SerializedFuseIndex = ReturnType<FuseIndex<NoteProps>["toJSON"]>;
+
 export function createSerializedFuseNoteIndex(
   publishedNotes: NotePropsByIdDict | NoteProps[],
-  overrideOpts?: Partial<Parameters<typeof createFuse>[1]>
-) {
+  overrideOpts?: Partial<IFuseOptions<NoteProps>>
+): SerializedFuseIndex {
   return createFuseNote(publishedNotes, overrideOpts).getIndex().toJSON();
 }
 
 export type FuseNote = Fuse<NoteProps>;
-export type FuseNoteIndex = Fuse.FuseIndex<NoteProps>;
-export type SerializedFuseIndex = ReturnType<
-  typeof createSerializedFuseNoteIndex
->;
+export type FuseNoteIndex = FuseIndex<NoteProps>;
 
 type FuseEngineOpts = {
   mode?: DEngineMode;
@@ -100,7 +103,7 @@ type FuseEngineOpts = {
 
 type SortOrderObj = {
   orderBy: ListIterator<
-    Fuse.FuseResult<NoteIndexProps> & { levenshteinDist: number },
+    FuseResult<NoteIndexProps> & { levenshteinDist: number },
     NotVoid
   >;
   order: "asc" | "desc";
@@ -144,7 +147,7 @@ export class FuseEngine {
     this.threshold =
       opts.mode === "exact" ? 0.0 : getCleanThresholdValue(opts.fuzzThreshold);
 
-    this.notesIndex = createFuse<NoteProps>([], {
+    this.notesIndex = createFuse<NoteIndexProps>([], {
       preset: "note",
       threshold: this.threshold,
     });
@@ -224,7 +227,7 @@ export class FuseEngine {
     return items;
   }
 
-  private filterByThreshold<T>(results: Fuse.FuseResult<T>[]) {
+  private filterByThreshold<T>(results: FuseResult<T>[]) {
     // TODO: Try to isolate and submit a bug to FuseJS.
     //
     // There appears to be a bug in FuseJS that sometimes it gives results with much higher
@@ -350,9 +353,9 @@ export class FuseEngine {
     results,
     originalQS,
   }: {
-    results: Fuse.FuseResult<NoteIndexProps>[];
+    results: FuseResult<NoteIndexProps>[];
     originalQS: string;
-  }): Fuse.FuseResult<NoteIndexProps>[] {
+  }): FuseResult<NoteIndexProps>[] {
     if (results.length === 0) return [];
 
     const sortOrder: SortOrderObj[] = [
@@ -407,7 +410,7 @@ export class FuseEngine {
     queryString,
     onlyDirectChildren,
   }: {
-    results: Fuse.FuseResult<NoteIndexProps>[];
+    results: FuseResult<NoteIndexProps>[];
     queryString: string;
     onlyDirectChildren?: boolean;
   }) {

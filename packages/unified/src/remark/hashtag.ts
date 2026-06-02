@@ -3,9 +3,10 @@ import {
   DendronError,
   TAGS_HIERARCHY,
 } from "@dendronhq/common-all";
-import { Element } from "hast";
-import { Eat } from "remark-parse";
-import Unified, { Plugin } from "unified";
+import type { Handle as ToMarkdownHandle } from "mdast-util-to-markdown";
+import { Plugin, Processor } from "unified";
+import { createInlineRegexExtension, previousTagTrigger } from "../micromark/inlineRegex";
+import { registerSyntaxExtensions } from "../micromark/registerExtensions";
 import { SiteUtils } from "../SiteUtils";
 import { DendronASTDest, DendronASTTypes, HashTag } from "../types";
 import { MDUtilsV5 } from "../utilsv5";
@@ -89,80 +90,55 @@ export class HashTagUtils {
 
 type PluginOpts = {};
 
-const plugin: Plugin<[PluginOpts?]> = function plugin(
-  this: Unified.Processor,
-  opts?: PluginOpts
+function hashtagToMarkdown(proc: Processor): ToMarkdownHandle {
+  return function hashtagHandler(node, _parent, _context) {
+    const tagNode = node as HashTag;
+    const { dest, config } = MDUtilsV5.getProcData(proc);
+    const prefix = SiteUtils.getSitePrefixForNote(config);
+    switch (dest) {
+      case DendronASTDest.MD_DENDRON:
+        return tagNode.value;
+      case DendronASTDest.MD_REGULAR:
+      case DendronASTDest.MD_ENHANCED_PREVIEW:
+        return `[${tagNode.value}](${prefix}${tagNode.fname})`;
+      default:
+        throw new DendronError({ message: "Unable to render hashtag" });
+    }
+  };
+}
+
+function hashtagSyntax(proc: Processor) {
+  return createInlineRegexExtension<HashTag>({
+    charCode: "#".charCodeAt(0),
+    tokenType: "dendronHashtag",
+    mdastType: DendronASTTypes.HASHTAG,
+    match: HASHTAG_REGEX,
+    previous: previousTagTrigger,
+    toFields: (matched) => {
+      const { enableHashTags } = ConfigUtils.getWorkspace(
+        MDUtilsV5.getProcData(proc).config
+      );
+      if (enableHashTags === false) {
+        return undefined;
+      }
+      if (!matched.groups?.tagContents) {
+        return undefined;
+      }
+      return {
+        value: matched[0]!,
+        fname: `${TAGS_HIERARCHY}${matched.groups.tagContents}`,
+      } as Omit<HashTag, "type">;
+    },
+    toMarkdown: hashtagToMarkdown(proc),
+  });
+}
+
+const plugin: Plugin<[PluginOpts?]> = function (
+  this: Processor,
+  _opts?: PluginOpts
 ) {
-  attachParser(this);
-  if (this.Compiler != null) {
-    attachCompiler(this, opts);
-  }
+  registerSyntaxExtensions(this, hashtagSyntax(this));
 };
-
-function attachParser(proc: Unified.Processor) {
-  function locator(value: string, fromIndex: number) {
-    // Do not locate a symbol if the previous character is non-whitespace.
-    // Unified cals tokenizer starting at the index we return here,
-    // so tokenizer won't be able to reject it for not starting with a non-space character.
-    const atSymbol = value.indexOf("#", fromIndex);
-    if (atSymbol === 0) {
-      return atSymbol;
-    } else if (atSymbol > 0) {
-      // Lean v2: charAt for safe string index (noUncheckedIndexedAccess)
-      const previousSymbol = value.charAt(atSymbol - 1);
-      if (!previousSymbol || /\s/.exec(previousSymbol)) {
-        return atSymbol;
-      }
-    }
-    return -1;
-  }
-
-  function inlineTokenizer(eat: Eat, value: string) {
-    const { enableHashTags } = ConfigUtils.getWorkspace(
-      MDUtilsV5.getProcData(proc).config
-    );
-    if (enableHashTags === false) return;
-    const match = HASHTAG_REGEX.exec(value);
-    if (match && match.groups?.tagContents) {
-      // Lean v2: ! after match guard for noUncheckedIndexedAccess on regex captures
-      return eat(match[0]!)({
-        type: DendronASTTypes.HASHTAG,
-        // @ts-expect-error - mdast extension shape for HASHTAG (value prop for eat); legacy remark plugin interop (not strict 4-axis common-all boundary). "first 3 packages and Double down on making the pattern actually deliver clean builds on the packages we've already touched" + "proceed and utilize 3 sub-agents" + "Build Modernization 2026-05-31/06 focused clean-build phase (second of 3: unified remark micro)" + 4-axis + ADR 0001 + "see common-server 0 + unified 57 precedent + engine batches" (019e81de-265e-7df2-b217-fce5263e2b57 + 019e81de-3e86-7800-945d-9071b98647a3 + 019e81de-5d28-7ee0-af52-971127ac8062 + 019e81e4-9aba-7032-a55a-f167e368d802 + 019e81f0-20aa-72e1-afc0-4f4e66a67abf + 019e81f5-8c3d-72e1-afc0-4f4e66a67abf + 019e81f4-a0be-7390-a541-1a65d712199b + 019e81f5-d232-7383-b3b2-5917da4ec772). No bare @ts. 0 tests invariant. THE CHAIN DOES NOT STOP.
-        value: match[0]!,
-        fname: `${TAGS_HIERARCHY}${match.groups.tagContents}`,
-      });
-    }
-    return;
-  }
-  inlineTokenizer.locator = locator;
-
-  const Parser = proc.Parser;
-  const inlineTokenizers = Parser.prototype.inlineTokenizers;
-  const inlineMethods = Parser.prototype.inlineMethods;
-  inlineTokenizers.hashtag = inlineTokenizer;
-  inlineMethods.splice(inlineMethods.indexOf("link"), 0, "hashtag");
-}
-
-function attachCompiler(proc: Unified.Processor, _opts?: PluginOpts) {
-  const Compiler = proc.Compiler;
-  const visitors = Compiler.prototype.visitors;
-
-  if (visitors) {
-    visitors.hashtag = (node: HashTag): string | Element => {
-      const { dest, config } = MDUtilsV5.getProcData(proc);
-      const prefix = SiteUtils.getSitePrefixForNote(config);
-      switch (dest) {
-        case DendronASTDest.MD_DENDRON:
-          return node.value;
-        case DendronASTDest.MD_REGULAR:
-        case DendronASTDest.MD_ENHANCED_PREVIEW:
-          return `[${node.value}](${prefix}${node.fname})`;
-        default:
-          throw new DendronError({ message: "Unable to render hashtag" });
-      }
-    };
-  }
-}
 
 export { plugin as hashtags };
 export { PluginOpts as HashTagOpts };

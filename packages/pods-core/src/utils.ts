@@ -22,7 +22,7 @@ export * from "./builtin";
 export * from "./types";
 
 const ajv = new Ajv();
-addFormats(ajv);
+addFormats(ajv as any);
 
 export const podClassEntryToPodItemV4 = (p: PodClassEntryV4): PodItemV4 => {
   return {
