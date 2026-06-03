@@ -1,5 +1,4 @@
-const execa = require('execa');
-const exec = execa.commandSync;
+const { execaCommandSync } = require("execa");
 
-exports.exec = exec;
+exports.exec = execaCommandSync;
 

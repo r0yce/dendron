@@ -7,6 +7,16 @@ Format: newest entries first. Each entry = scope + what + why + verification.
 
 ---
 
+## 2026-06 — `bootstrap:init` green + dependency backlog (BL-001)
+
+- **What**: `yarn bootstrap:init` passes (install + full `buildAll.js` graph). Documented temporary pins/downgrades and deferred "true latest" work.
+- **Why**: Latest-deps bumps surfaced API breaks (execa 9, webpack 5, dotenv-expand, antd 6, etc.). Some fixes were migrations; others were short-term pins.
+- **Docs**: [docs/dev/BACKLOG.md](../../docs/dev/BACKLOG.md) (**BL-001**), [ai/references/backlog.md](./backlog.md), codetour `.tours/advanced/02-dependencies-latest-backlog.tour`.
+- **Policy**: Prefer code/config migration over downgrades; resolutions only for CVEs or BL-linked exceptions.
+- **Verify**: `yarn bootstrap:init` exit 0.
+
+---
+
 ## Phase 5 (in progress) — Test compat for Node 22+
 
 ### CVE root-resolutions sweep round 3 (high-severity)

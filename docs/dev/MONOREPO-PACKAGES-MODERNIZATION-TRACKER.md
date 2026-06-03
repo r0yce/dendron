@@ -1,5 +1,7 @@
 # Monorepo Packages Modernization Tracker
 
+**Backlog (deferred work):** [BACKLOG.md](./BACKLOG.md) — especially **BL-001** (true-latest dependencies while keeping `yarn bootstrap:init` green without long-lived pins).
+
 **Goal**: Modernize every package in the Dendron monorepo to latest standards (TypeScript, configuration, dependencies where practical) while creating **extremely detailed documentation** for each package.
 
 **Process per package**:

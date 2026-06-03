@@ -22,7 +22,7 @@ This document + the rest of `docs/dev/` is the living bible for this fork.
 - **Not** merging changes upstream to dendronhq/dendron.
 - **Success criterion**: build on your machine → F5 or install a local `.vsix` → daily use on VS Code / Insiders.
 
-Practical entry point: [BUILD-AND-DEBUG.md](./BUILD-AND-DEBUG.md). Gates: `yarn verify:local` (daily), `yarn verify:full` (deeper), `yarn extension:package` (VSIX).
+Practical entry point: [BUILD-AND-DEBUG.md](./BUILD-AND-DEBUG.md). Gates: `yarn verify:local` (daily), `yarn verify:full` (deeper), `yarn extension:package` (VSIX). Deferred work: [BACKLOG.md](./BACKLOG.md) (includes **BL-001**: true-latest deps without bootstrap pins).
 
 Roadmap items about Lerna publish, verdaccio, npm release parity, and upstream PR stacks are **legacy upstream noise** unless you explicitly need them.
 

@@ -42,11 +42,14 @@ Root-level commands:
 |-------------------------------|-----------------------------------------------------|-------------|
 | `yarn bootstrap:build:fast`   | Common packages + engine + plugin-core (subset)    | Daily driver after clean checkout |
 | `yarn bootstrap:build`        | Almost everything (via bootstrap/scripts/buildAll.js) | When you change shared packages heavily |
+| `yarn bootstrap:init`         | `bootstrap:bootstrap` + `bootstrap:build`          | Clean clone / after lockfile or webview/CLI graph changes |
 | `yarn bootstrap:bootstrap`    | `yarn install` + `gen:meta`                        | After changing package.json / resolutions |
 
-These scripts use `lerna run build --scope ...` under the hood.
+`buildAll.js` uses **yarn workspaces** (`yarn workspace @dendronhq/<pkg> run build`) and **execa 9** (`execaCommandSync` with `stdio: "inherit"`), not lerna. The final step runs `yarn dendron dev sync_assets --fast` (CLI must load `@dendronhq/unified` and friends from built `lib/`).
 
-Each package's `build` script is usually just `tsc -p tsconfig.build.json`.
+Each package's `build` script is usually `tsc -p tsconfig.build.json`; `dendron-plugin-views` adds a webpack production/dev bundle.
+
+**Dependency policy:** temporary pins/downgrades that keep `bootstrap:init` green are listed in [BACKLOG.md](./BACKLOG.md#bl-001--true-latest-dependencies-without-bootstrap-pins-p1) (BL-001). Prefer fixing call sites over new resolutions.
 
 ---
 

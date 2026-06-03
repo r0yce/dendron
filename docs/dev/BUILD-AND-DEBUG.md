@@ -24,6 +24,12 @@ yarn
 yarn bootstrap:init   # yarn install + full monorepo build (slower, once)
 ```
 
+`bootstrap:init` runs `bootstrap:bootstrap` (`yarn install --frozen-lockfile` + `gen:meta`) then `bootstrap:build` (full graph via `bootstrap/scripts/buildAll.js`: libraries, `dendron-plugin-views` webpack, `plugin-core` compile, `dendron dev sync_assets --fast`).
+
+Use this after a clean clone or when shared packages / webview assets / CLI wiring changed. For daily work, `yarn verify:local` (`bootstrap:build:fast`) is enough.
+
+**Temporary dependency compromises** (pins/downgrades) exist so init passes; the goal is to remove them and stay on latest — tracked as [BL-001 in BACKLOG.md](./BACKLOG.md#bl-001--true-latest-dependencies-without-bootstrap-pins-p1).
+
 ## Day-to-day verify (local gate)
 
 ```bash
@@ -105,7 +111,8 @@ yarn bootstrap:build:fast
 Full monorepo (plugin-views, sync_assets, etc.):
 
 ```bash
-yarn bootstrap:build
+yarn bootstrap:build    # same as bootstrap:init minus install
+yarn bootstrap:init     # install + bootstrap:build
 ```
 
 Hybrid tsup + api-extractor (optional experiments):
@@ -132,5 +139,8 @@ Manual order if building piecemeal:
 
 ## Related docs
 
+- [BACKLOG.md](./BACKLOG.md) — deferred work (latest-deps policy: BL-001)
 - [00-GOALS-AND-ROADMAP.md](./00-GOALS-AND-ROADMAP.md) — vision (some publish/Lerna items are legacy upstream noise for this fork)
+- [04-BUILD-AND-DEBUG-WORKFLOW.md](./04-BUILD-AND-DEBUG-WORKFLOW.md) — build paths and bootstrap scripts
 - [packages/plugin-core.md](./packages/plugin-core.md)
+- [packages/dendron-plugin-views.md](./packages/dendron-plugin-views.md)

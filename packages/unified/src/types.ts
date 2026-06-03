@@ -82,7 +82,7 @@ export type DendronASTData = {
 
 // --- NODES
 
-export type WikiLinkNoteV4 = Omit<DendronASTNode, "children"> & {
+export type WikiLinkNoteV4 = Omit<DendronASTNode, "children" | "data"> & {
   type: DendronASTTypes.WIKI_LINK;
   value: string;
   data: WikiLinkDataV4;
@@ -101,13 +101,13 @@ export type RehypeLinkData = WikiLinkDataV4 & {
   hName: string;
 };
 
-export type NoteRefNoteV4 = Omit<DendronASTNode, "children"> & {
+export type NoteRefNoteV4 = Omit<DendronASTNode, "children" | "data"> & {
   type: DendronASTTypes.REF_LINK_V2;
   value: string;
   data: NoteRefDataV4;
 };
 
-export type NoteRefNoteRawV4 = Omit<DendronASTNode, "children"> & {
+export type NoteRefNoteRawV4 = Omit<DendronASTNode, "children" | "data"> & {
   type: DendronASTTypes.REF_LINK_V2;
   value: string;
   data: NoteRefDataRawV4;

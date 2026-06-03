@@ -1,6 +1,8 @@
 # Dendron — SME Context
 
 > Single source of truth for AI agents working in this repository. Keep this document current as the architecture evolves.
+>
+> **Backlog:** [backlog.md](./backlog.md) · [docs/dev/BACKLOG.md](../../docs/dev/BACKLOG.md)
 
 ---
 
@@ -34,7 +36,7 @@ Design principles: **Developer-centric**, **Gradual structure**, **Flexible and 
 | **Note Reference** | `![[foo.bar]]` — transcludes another note (or block) inline. |
 | **Wiki Link** | `[[foo.bar]]` — link to another note by hierarchical id. |
 | **Backlink** | Reverse index of incoming wiki links / refs. |
-| **Pod** | Import/export adapter for an external system (Markdown, Notion, Airtable, GitHub, Google Docs, Graphviz, Next.js). Lives in `pods-core`. |
+| **Pod** | Import/export adapter for an external system (Markdown, Notion, GitHub, Google Docs, Graphviz, Next.js, etc.). Lives in `pods-core`. (Airtable pod removed in this fork.) |
 | **Seed** | A redistributable vault you can pull into a workspace. |
 | **Engine** | The in-process service that owns parse/index/query/write of notes and schemas. |
 | **dendron.yml** | Per-workspace config: vaults, publishing, lookups, dev flags. |
@@ -107,7 +109,7 @@ Top-level layout (see [package.json](package.json) workspaces and [lerna.json](l
 | [engine-server](packages/engine-server) | **Core engine.** `DendronEngineV3.ts` is the current engine; `engineClient.ts` is the client wrapper; stores, drivers, migrations, doctor, backfill, seed. | Node lib |
 | [engine-test-utils](packages/engine-test-utils) | Mock engines, integration fixtures (private). | Test lib |
 | [unified](packages/unified) | Markdown pipeline: `remark` + `rehype` + Mermaid + KaTeX + wiki links + note refs + decorations. | Node lib |
-| [pods-core](packages/pods-core) | Pluggable import/export: Markdown, JSON, Notion, Airtable, Google Docs, GitHub Issues, Graphviz, Next.js. | Node lib |
+| [pods-core](packages/pods-core) | Pluggable import/export: Markdown, JSON, Notion, Google Docs, GitHub Issues, Graphviz, Next.js, etc. | Node lib |
 | [api-server](packages/api-server) | Express HTTP server wrapping the engine; OAuth, CORS, `launchv2()` entry. | HTTP server |
 | [dendron-cli](packages/dendron-cli) | `yargs`-based CLI. Bins: `dendron-cli`, `dendron`. Used by `yarn dendron …` and CI. | CLI |
 | [plugin-core](packages/plugin-core) | **VS Code extension** (`displayName: dendron`, publisher `dendron`, activates on `*`). Main: `out/src/extension.js`, web build: `dist/web/extension.js`. | VS Code ext |
@@ -156,9 +158,11 @@ yarn setup
 
 # Pieces of setup
 yarn bootstrap:bootstrap   # yarn install + gen:meta
-yarn bootstrap:build       # build all packages
+yarn bootstrap:build       # full graph (buildAll.js + plugin-views + sync_assets)
+yarn bootstrap:init        # bootstrap:bootstrap + bootstrap:build (clean clone gate)
 yarn bootstrap:build:fast  # build minimum graph to run CLI/plugin
-yarn bootstrap:build:plugin-core   # single package (uses lerna --scope)
+yarn verify:local          # fast bootstrap + plugin-core typecheck (daily gate)
+yarn bootstrap:build:plugin-core   # single package (workspace scope)
 
 # Watch a single package (must export $pkg first, e.g. export pkg=@dendronhq/engine-server)
 yarn watch
@@ -198,6 +202,8 @@ VS Code tasks (from this workspace):
 - `shell: test:watch` → `yarn test ${relativeFile} --watch --bail -u` with `LOG_LEVEL=info`, `LOG_DST=${workspaceFolder}/engine-test-utils.log`
 
 Code-workspaces for focused dev: [dendron-cli.code-workspace](dendron-cli.code-workspace), [dendron-main.code-workspace](dendron-main.code-workspace), [dendron-plugin.code-workspace](dendron-plugin.code-workspace), [dendron-lsp.code-workspace](dendron-lsp.code-workspace).
+
+**Backlog / dependency policy:** [docs/dev/BACKLOG.md](../../docs/dev/BACKLOG.md) (agent mirror: [backlog.md](./backlog.md)). Before adding a root `resolutions` pin, check **BL-001** — prefer code migrations over downgrades.
 
 ## 8. Configuration Reference
 

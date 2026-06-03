@@ -4,6 +4,8 @@
 > Baseline: monorepo v0.124.0, lerna 3, yarn 1, TS 4.6, upstream is **maintenance-only**.
 > Author note: the user requested "upgrade everything." This document captures the realistic scope, ordered into phases that can each ship as a green branch.
 
+**Active deferred work (latest-deps policy):** [docs/dev/BACKLOG.md](../../docs/dev/BACKLOG.md) — **BL-001** tracks removing temporary pins/downgrades while keeping `yarn bootstrap:init` green. Prefer adapting code to latest over cementing resolutions.
+
 ## Why this isn't a one-shot
 
 A blind `yarn upgrade --latest` will brick the repo. The hard blockers:

@@ -1,0 +1,61 @@
+{
+  "title": "Backlog: True-Latest Dependencies (BL-001)",
+  "description": "Short tour for the deferred policy work: stay on latest npm versions, migrate code instead of downgrading, and keep yarn bootstrap:init green. Links the canonical backlog doc, root resolutions, and the packages most affected.",
+  "ref": "codetour",
+  "steps": [
+    {
+      "title": "Why this backlog exists",
+      "description": "## BL-001 — True-latest dependencies\n\nDuring `bootstrap:init` fixes we sometimes **pinned** or **downgraded** packages so the monorepo builds. That was expedient, not the long-term policy.\n\n**Target policy**\n\n1. Bump to latest; fix source, webpack, or scripts.\n2. Use root `resolutions` only for CVEs or documented exceptions (link to a `BL-*` id).\n3. Downgrade only if npm publish is broken or a platform migration is explicitly deferred (e.g. CJS → ESM for CLI).\n\n[Read the full backlog item][#2]",
+      "file": "docs/dev/BACKLOG.md",
+      "line": 1
+    },
+    {
+      "title": "Canonical backlog doc",
+      "description": "Human-maintained backlog lives here. Agents mirror it in `ai/references/backlog.md`.\n\nOther items on the same file:\n\n- **BL-002** — ESLint 10 flat config for pre-commit\n- **BL-003** — plugin-views bundler strategy (webpack vs Vite)\n\nWhen you close a compromise from the BL-001 table, check the acceptance criteria and update this doc.\n\n[Open BACKLOG.md](./docs/dev/BACKLOG.md)",
+      "file": "docs/dev/BACKLOG.md",
+      "line": 18,
+      "selection": {
+        "start": { "line": 18, "character": 1 },
+        "end": { "line": 55, "character": 1 }
+      }
+    },
+    {
+      "title": "Gate command: bootstrap:init",
+      "description": "BL-001 is done when this passes on a clean clone (after `yarn`):\n\n```bash\nyarn bootstrap:init\n```\n\nEquivalent to:\n\n- `yarn bootstrap:bootstrap` — install + `gen:meta`\n- `yarn bootstrap:build` — `bootstrap/scripts/buildAll.js` (workspaces + plugin-views webpack + `sync_assets`)\n\nDaily work usually uses `yarn verify:local` (`bootstrap:build:fast`) instead.\n\n[Run bootstrap:init](>> yarn bootstrap:init)",
+      "file": "package.json",
+      "line": 103,
+      "pattern": "bootstrap:init"
+    },
+    {
+      "title": "Where compromises live: resolutions",
+      "description": "Before adding a new pin, search this block for **duplicate keys** (they silently override each other) and check whether BL-001 already covers the package.\n\nExamples tied to BL-001:\n\n- `ansi-regex@5.0.1` — `strip-ansi` + `react-dev-utils` (CRA post-build)\n- `loader-utils@2.0.4` — legacy loader API (prefer webpack 5 asset modules in plugin-views)\n- `@babel/helper-compilation-targets@7.22.15` — babel-preset-react-app / opera_mobile targets\n\n[Open package.json resolutions](./package.json)",
+      "file": "package.json",
+      "line": 158,
+      "pattern": "resolutions"
+    },
+    {
+      "title": "CLI: yargs 17 vs 18 (ESM)",
+      "description": "`dendron-cli` stays on **yargs 17** until the CLI entry moves off pure CommonJS `require('yargs')`. yargs 18 is ESM-only.\n\n**Latest path:** ESM bin or dynamic import, then bump yargs.\n\n[Open dendron-cli package.json](./packages/dendron-cli/package.json)",
+      "file": "packages/dendron-cli/package.json",
+      "pattern": "yargs"
+    },
+    {
+      "title": "Webviews: plugin-views webpack",
+      "description": "Most BL-001 webpack/babel work landed in `config/webpack.config.js`, `config/env.js`, and `src/` (e.g. antd 6 `PageHeader` removal).\n\nBundled long-term choice: **BL-003** (stay on evolved CRA webpack vs Vite/rspack).\n\n[Open package doc](./docs/dev/packages/dendron-plugin-views.md) · [Build tour][3: Build System, Tasks & Bootstrap]",
+      "file": "packages/dendron-plugin-views/config/webpack.config.js",
+      "line": 1
+    },
+    {
+      "title": "Assets: common-assets antd Less",
+      "description": "Theme CSS still imports antd 4 Less paths (`default.less` / `dark.less`). antd 6 removed those files.\n\n**Latest path:** antd 6-compatible theme build (no antd 4 devDependency).\n\n[Open dark-theme.less](./packages/common-assets/assets/themes/dark-theme.less)",
+      "file": "packages/common-assets/assets/themes/dark-theme.less",
+      "line": 1
+    },
+    {
+      "title": "Unified: remark-footnotes and runtime shims",
+      "description": "`remark-footnotes@5.0.0` on npm has **no entry file** — stay on 4.0.1 or replace the plugin.\n\n`unified-data.ts` must emit to `lib/` (module augmentation used at runtime by CLI/engine).\n\n[Open unified package.json](./packages/unified/package.json)",
+      "file": "packages/unified/src/unified-data.ts",
+      "line": 1
+    }
+  ]
+}

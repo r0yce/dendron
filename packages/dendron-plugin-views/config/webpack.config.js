@@ -15,7 +15,6 @@ const safePostCssParser = require("postcss-safe-parser");
 const ManifestPlugin = require("webpack-manifest-plugin");
 const InterpolateHtmlPlugin = require("react-dev-utils/InterpolateHtmlPlugin");
 const WorkboxWebpackPlugin = require("workbox-webpack-plugin");
-const WatchMissingNodeModulesPlugin = require("react-dev-utils/WatchMissingNodeModulesPlugin");
 const ModuleScopePlugin = require("react-dev-utils/ModuleScopePlugin");
 const getCSSModuleLocalIdent = require("react-dev-utils/getCSSModuleLocalIdent");
 const ESLintPlugin = require("eslint-webpack-plugin");
@@ -24,7 +23,6 @@ const modules = require("./modules");
 const getClientEnvironment = require("./env");
 const ModuleNotFoundPlugin = require("react-dev-utils/ModuleNotFoundPlugin");
 const ForkTsCheckerWebpackPlugin = require("react-dev-utils/ForkTsCheckerWebpackPlugin");
-const typescriptFormatter = require("react-dev-utils/typescriptFormatter");
 const ReactRefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin");
 
 const postcssNormalize = require("postcss-normalize");
@@ -122,22 +120,21 @@ module.exports = function (webpackEnv) {
         // package.json
         loader: require.resolve("postcss-loader"),
         options: {
-          // Necessary for external CSS imports to work
-          // https://github.com/facebook/create-react-app/issues/2677
-          ident: "postcss",
-          plugins: () => [
-            require("postcss-flexbugs-fixes"),
-            require("postcss-preset-env")({
-              autoprefixer: {
-                flexbox: "no-2009",
-              },
-              stage: 3,
-            }),
-            // Adds PostCSS Normalize as the reset css with default options,
-            // so that it honors browserslist config in package.json
-            // which in turn let's users customize the target behavior as per their needs.
-            postcssNormalize(),
-          ],
+          postcssOptions: {
+            plugins: () => [
+              require("postcss-flexbugs-fixes"),
+              require("postcss-preset-env")({
+                autoprefixer: {
+                  flexbox: "no-2009",
+                },
+                stage: 3,
+              }),
+              // Adds PostCSS Normalize as the reset css with default options,
+              // so that it honors browserslist config in package.json
+              // which in turn let's users customize the target behavior as per their needs.
+              postcssNormalize(),
+            ],
+          },
           sourceMap: isEnvProduction ? shouldUseSourceMap : isEnvDevelopment,
         },
       },
@@ -210,8 +207,6 @@ module.exports = function (webpackEnv) {
       filename: isEnvProduction
         ? "static/js/[name].bundle.js"
         : isEnvDevelopment && "static/js/bundle.js",
-      // TODO: remove this when upgrading to webpack 5
-      futureEmitAssets: true,
       // webpack uses `publicPath` to determine where the app is being served from.
       // It requires a trailing slash, or the file assets will get an incorrect path.
       // We inferred the "public path" (such as / or /my-project) from homepage.
@@ -227,7 +222,7 @@ module.exports = function (webpackEnv) {
             path.resolve(info.absoluteResourcePath).replace(/\\/g, "/")),
       // Prevents conflicts when multiple webpack runtimes (from different apps)
       // are used on the same page.
-      jsonpFunction: `webpackJsonp${appPackageJson.name}`,
+      chunkLoadingGlobal: `webpackJsonp${appPackageJson.name}`,
       // this defaults to 'window', but by setting it to 'this' then
       // module chunks which are built will work in web workers as well.
       globalObject: "this",
@@ -274,7 +269,6 @@ module.exports = function (webpackEnv) {
               ascii_only: true,
             },
           },
-          sourceMap: shouldUseSourceMap,
         }),
         // This is only used in production mode
         new OptimizeCSSAssetsPlugin({
@@ -325,6 +319,17 @@ module.exports = function (webpackEnv) {
         }),
         ...(modules.webpackAliases || {}),
       },
+      fallback: {
+        path: require.resolve("path-browserify"),
+        module: false,
+        dgram: false,
+        dns: false,
+        fs: false,
+        http2: false,
+        net: false,
+        tls: false,
+        child_process: false,
+      },
       plugins: [
         // Adds support for installing with Plug'n'Play, leading to faster installs and adding
         // guards against forgotten dependencies and such.
@@ -334,10 +339,11 @@ module.exports = function (webpackEnv) {
         // To fix this, we prevent you from importing files out of src/ -- if you'd like to,
         // please link the files into your node_modules/ and let module-resolution kick in.
         // Make sure your source files are compiled, as they will not be processed in any way.
-        new ModuleScopePlugin(paths.appSrc, [
-          paths.appPackageJson,
-          reactRefreshOverlayEntry,
-        ]),
+        isEnvDevelopment &&
+          new ModuleScopePlugin(paths.appSrc, [
+            paths.appPackageJson,
+            reactRefreshOverlayEntry,
+          ]),
       ],
     },
     resolveLoader: {
@@ -391,10 +397,29 @@ module.exports = function (webpackEnv) {
                 ),
                 presets: [
                   [
-                    require.resolve("babel-preset-react-app"),
+                    require.resolve("@babel/preset-env"),
+                    {
+                      loose: true,
+                      modules: false,
+                      exclude: ["transform-typeof-symbol"],
+                      targets: {
+                        browsers: [
+                          ">0.2%",
+                          "not dead",
+                          "not op_mini all",
+                        ],
+                      },
+                    },
+                  ],
+                  [
+                    require.resolve("@babel/preset-react"),
                     {
                       runtime: hasJsxRuntime ? "automatic" : "classic",
                     },
+                  ],
+                  [
+                    require.resolve("@babel/preset-typescript"),
+                    { allowNamespaces: true },
                   ],
                 ],
 
@@ -421,13 +446,27 @@ module.exports = function (webpackEnv) {
                 // See #6846 for context on why cacheCompression is disabled
                 cacheCompression: false,
                 compact: isEnvProduction,
+                // Avoid legacy core-js-compat targets (e.g. opera_mobile) dropped by
+                // newer @babel/helper-compilation-targets.
+                targets: {
+                  browsers: [
+                    ">0.2%",
+                    "not dead",
+                    "not op_mini all",
+                  ],
+                },
               },
             },
             // Process any JS outside of the app with Babel.
             // Unlike the application JS, we only compile the standard ES features.
             {
               test: /\.(js|mjs)$/,
-              exclude: /@babel(?:\/|\\{1,2})runtime/,
+              exclude: [
+                /@babel(?:\/|\\{1,2})runtime/,
+                /node_modules[\\/]css-loader/,
+                /node_modules[\\/]style-loader/,
+                /node_modules[\\/]mini-css-extract-plugin/,
+              ],
               loader: require.resolve("babel-loader"),
               options: {
                 babelrc: false,
@@ -483,6 +522,7 @@ module.exports = function (webpackEnv) {
                   : isEnvDevelopment,
                 modules: {
                   getLocalIdent: getCSSModuleLocalIdent,
+                  namedExport: false,
                 },
               }),
             },
@@ -519,25 +559,18 @@ module.exports = function (webpackEnv) {
                     : isEnvDevelopment,
                   modules: {
                     getLocalIdent: getCSSModuleLocalIdent,
+                    namedExport: false,
                   },
                 },
                 "sass-loader"
               ),
             },
-            // "file" loader makes sure those assets get served by WebpackDevServer.
-            // When you `import` an asset, you get its (virtual) filename.
-            // In production, they would get copied to the `build` folder.
-            // This loader doesn't use a "test" so it will catch all modules
-            // that fall through the other loaders.
+            // Emit remaining assets (webpack 5 asset modules; replaces file-loader).
             {
-              loader: require.resolve("file-loader"),
-              // Exclude `js` files to keep "css" loader working as it injects
-              // its runtime that would otherwise be processed through "file" loader.
-              // Also exclude `html` and `json` extensions so they get processed
-              // by webpacks internal loaders.
               exclude: [/\.(js|mjs|jsx|ts|tsx)$/, /\.html$/, /\.json$/],
-              options: {
-                name: "static/media/[name].[hash:8].[ext]",
+              type: "asset/resource",
+              generator: {
+                filename: "static/media/[name].[hash:8][ext]",
               },
             },
             // ** STOP ** Are you adding a new loader?
@@ -615,12 +648,6 @@ module.exports = function (webpackEnv) {
       // a plugin that prints an error when you attempt to do this.
       // See https://github.com/facebook/create-react-app/issues/240
       isEnvDevelopment && new CaseSensitivePathsPlugin(),
-      // If you require a missing module and then `npm install` it, you still have
-      // to restart the development server for webpack to discover it. This plugin
-      // makes the discovery automatic so you don't have to restart.
-      // See https://github.com/facebook/create-react-app/issues/186
-      isEnvDevelopment &&
-        new WatchMissingNodeModulesPlugin(paths.appNodeModules),
       isEnvProduction &&
         new MiniCssExtractPlugin({
           // Options similar to the same options in webpackOptions.output
@@ -656,7 +683,10 @@ module.exports = function (webpackEnv) {
       // solution that requires the user to opt into importing specific locales.
       // https://github.com/jmblog/how-to-optimize-momentjs-with-webpack
       // You can remove this if you don't use Moment.js:
-      new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^\.\/locale$/,
+        contextRegExp: /moment$/,
+      }),
       // Generate a service worker script that will precache, and keep up to date,
       // the HTML & assets that are part of the webpack build.
       isEnvProduction &&
@@ -670,36 +700,36 @@ module.exports = function (webpackEnv) {
           // See https://github.com/cra-template/pwa/issues/13#issuecomment-722667270
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         }),
-      // TypeScript type checking
+      // TypeScript type checking (skipped when DISABLE_ESLINT_PLUGIN — bootstrap/CI builds)
       useTypeScript &&
+        !disableESLintPlugin &&
         new ForkTsCheckerWebpackPlugin({
-          typescript: resolve.sync("typescript", {
-            basedir: paths.appNodeModules,
-          }),
           async: isEnvDevelopment,
-          checkSyntacticErrors: true,
-          resolveModuleNameModule: process.versions.pnp
-            ? `${__dirname}/pnpTs.js`
-            : undefined,
-          resolveTypeReferenceDirectiveModule: process.versions.pnp
-            ? `${__dirname}/pnpTs.js`
-            : undefined,
-          tsconfig: paths.appTsConfig,
-          reportFiles: [
-            // This one is specifically to match during CI tests,
-            // as micromatch doesn't match
-            // '../cra-template-typescript/template/src/App.tsx'
-            // otherwise.
-            "../**/src/**/*.{ts,tsx}",
-            "**/src/**/*.{ts,tsx}",
-            "!**/src/**/__tests__/**",
-            "!**/src/**/?(*.)(spec|test).*",
-            "!**/src/setupProxy.*",
-            "!**/src/setupTests.*",
-          ],
-          silent: true,
-          // The formatter is invoked directly in WebpackDevServerUtils during development
-          formatter: isEnvProduction ? typescriptFormatter : undefined,
+          typescript: {
+            configFile: paths.appTsConfig,
+            typescriptPath: resolve.sync("typescript", {
+              basedir: paths.appNodeModules,
+            }),
+            diagnosticOptions: {
+              semantic: true,
+              syntactic: true,
+            },
+          },
+          issue: {
+            include: [
+              { file: "../**/src/**/*.{ts,tsx}" },
+              { file: "**/src/**/*.{ts,tsx}" },
+            ],
+            exclude: [
+              { file: "**/src/**/__tests__/**" },
+              { file: "**/src/**/?(*.)(spec|test).*" },
+              { file: "**/src/setupProxy.*" },
+              { file: "**/src/setupTests.*" },
+            ],
+          },
+          logger: {
+            infrastructure: "silent",
+          },
         }),
       !disableESLintPlugin &&
         new ESLintPlugin({
@@ -727,18 +757,6 @@ module.exports = function (webpackEnv) {
           },
         }),
     ].filter(Boolean),
-    // Some libraries import Node modules but don't use them in the browser.
-    // Tell webpack to provide empty mocks for them so importing them works.
-    node: {
-      module: "empty",
-      dgram: "empty",
-      dns: "mock",
-      fs: "empty",
-      http2: "empty",
-      net: "empty",
-      tls: "empty",
-      child_process: "empty",
-    },
     // Turn off performance processing because we utilize
     // our own hints via the FileSizeReporter
     performance: false,

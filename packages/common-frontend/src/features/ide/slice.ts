@@ -6,9 +6,7 @@ import {
   TreeMenu,
   GraphThemeEnum,
 } from "@dendronhq/common-all";
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-// @ts-ignore
-import internal from "@reduxjs/toolkit/node_modules/immer/dist/internal";
+import { createSlice, PayloadAction, Slice } from "@reduxjs/toolkit";
 
 type Theme = "light" | "dark" | "unknown";
 
@@ -55,7 +53,7 @@ const INITIAL_STATE: InitialState = {
 
 export { InitialState as IDEState };
 
-export const ideSlice = createSlice({
+export const ideSlice: Slice<InitialState> = createSlice({
   name: "ide",
   initialState: INITIAL_STATE,
   reducers: {
@@ -111,5 +109,4 @@ export const ideSlice = createSlice({
     },
   },
 });
-export const actions = ideSlice.actions;
 export const reducer = ideSlice.reducer;

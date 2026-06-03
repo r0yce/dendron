@@ -92,6 +92,8 @@ Complex webpack configuration with:
 
 ## Modernization Roadmap
 
+Tracked in [BACKLOG.md](../BACKLOG.md): **BL-001** (latest deps / remove `ansi-regex` + `loader-utils` resolutions), **BL-003** (bundler strategy).
+
 - [ ] Major webpack / build system refresh (consider Vite or modern CRA equivalent)
 - [ ] React 18 upgrade (coordinated with common-frontend)
 - [ ] Better tree-shaking and bundle size optimization

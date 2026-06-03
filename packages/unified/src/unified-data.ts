@@ -13,5 +13,9 @@ declare module "unified" {
 declare module "unist" {
   interface Data {
     hProperties?: Record<string, unknown>;
+    // Allow Dendron AST and mdast node payloads (TS 6+ strict Data overlap checks).
+    [key: string]: unknown;
   }
 }
+
+export {};

@@ -1,4 +1,5 @@
 import "./module-shims";
+import "./unified-data";
 import {
   assertUnreachable,
   DendronError,

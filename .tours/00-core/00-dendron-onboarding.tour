@@ -23,7 +23,7 @@
     },
     {
       "title": "The Sacred Documentation: docs/dev/",
-      "description": "The `docs/dev/` folder is the **canonical deep technical documentation** for this fork. It was written with the explicit goal of allowing a single motivated person to maintain Dendron indefinitely.\n\n**Must-read order (these tours mirror it):**\n1. `00-GOALS-AND-ROADMAP.md`\n2. `01-ARCHITECTURE-OVERVIEW.md` ← next tour covers this in depth\n3. `02-MONOREPO-PACKAGES.md`\n4. `03-EXTENSION-ACTIVATION-LIFECYCLE.md`\n5. `04-BUILD-AND-DEBUG-WORKFLOW.md` ← debugging tour goes here\n\n[Open docs/dev/ folder in Explorer](#directory:docs/dev/)\n\nThis directory also contains per-package deep dives under `docs/dev/packages/`.\n\nWe will create a directory step next so the explorer focuses exactly here.",
+      "description": "The `docs/dev/` folder is the **canonical deep technical documentation** for this fork. It was written with the explicit goal of allowing a single motivated person to maintain Dendron indefinitely.\n\n**Must-read order (these tours mirror it):**\n1. `00-GOALS-AND-ROADMAP.md`\n2. `BUILD-AND-DEBUG.md` — daily commands + `bootstrap:init`\n3. `01-ARCHITECTURE-OVERVIEW.md` ← next tour covers this in depth\n4. `02-MONOREPO-PACKAGES.md`\n5. `03-EXTENSION-ACTIVATION-LIFECYCLE.md`\n6. `04-BUILD-AND-DEBUG-WORKFLOW.md` ← build tour goes deeper\n7. `BACKLOG.md` — deferred work (**BL-001**: true-latest deps)\n\n[Open docs/dev/ folder in Explorer](#directory:docs/dev/)\n\nPer-package deep dives: `docs/dev/packages/`. Agents also use `ai/references/` (see `context.md`, `backlog.md`).\n\nWe will create a directory step next so the explorer focuses exactly here.",
       "directory": "docs/dev"
     },
     {

@@ -1,5 +1,5 @@
 import { SeedConfig, SEED_REGISTRY } from "@dendronhq/common-all";
-import { Avatar, Card, Layout, List, PageHeader } from "antd";
+import { Avatar, Card, Layout, List, Typography } from "antd";
 import _ from "lodash";
 import seedStyles from "../styles/scss/seeds.module.scss";
 import { DendronComponent } from "../types";
@@ -33,11 +33,14 @@ const SeedBrowser: DendronComponent = (props) => {
       <Layout className={seedStyles.layout}>
         <Content style={{ padding: "0 50px" }}>
           <div className={seedStyles.contentDiv}>
-            <PageHeader
-              className={seedStyles.siteHeader}
-              title="Dendron Seed Registry"
-              subTitle="Add Knowledge Bases to your Workspace"
-            />
+            <div className={seedStyles.siteHeader}>
+              <Typography.Title level={2} style={{ marginBottom: 0 }}>
+                Dendron Seed Registry
+              </Typography.Title>
+              <Typography.Text type="secondary">
+                Add Knowledge Bases to your Workspace
+              </Typography.Text>
+            </div>
             <div className={seedStyles.listDiv}>
               <List
                 grid={{

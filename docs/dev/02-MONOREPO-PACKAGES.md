@@ -4,6 +4,8 @@ This is the definitive map of every package in the Dendron monorepo, why it exis
 
 Use this as your table of contents when exploring the codebase.
 
+**Backlog:** [BACKLOG.md](./BACKLOG.md) (dependency/latest policy: **BL-001**).
+
 ---
 
 ## Workspace Packages (Defined in Root package.json)

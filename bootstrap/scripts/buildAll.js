@@ -4,11 +4,11 @@
  * Compiles all packages for local development (yarn workspaces; no lerna).
  */
 
-const execa = require("execa");
+const { execaCommandSync } = require("execa");
 
 const $ = (cmd) => {
   console.log(`$ ${cmd}`);
-  return execa.commandSync(cmd, { stdout: process.stdout, buffer: false });
+  return execaCommandSync(cmd, { stdio: "inherit" });
 };
 
 const ws = (pkg, script = "build") => {

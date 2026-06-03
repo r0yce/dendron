@@ -39,11 +39,12 @@ Each step:
   - `02-extension-activation.tour`
 - **01-debug/** — Everything about debugging, breakpoints, performance, doctor, attachment
   - `00-debugging-and-breakpoints.tour`
-- **02-build/** — Build system, tasks, bootstrap scripts, watch modes, native modules
+- **02-build/** — Build system, tasks, bootstrap scripts (`bootstrap:init`), watch modes, native modules
 - **packages/** — Focused tours for each major package in `packages/`
   - One `.tour` file per package (or group for smaller ones)
   - Each highlights entry points, key classes, package.json scripts, README, and links to `docs/dev/packages/<pkg>.md`
-- **advanced/** — Deep specialized tours (perf, testing, DI/tsyringe, TypeScript modernization, publishing pipeline, etc.)
+- **advanced/** — Deep specialized tours (perf, testing, DI/tsyringe, TypeScript modernization, publishing pipeline, dependency backlog, etc.)
+  - `02-dependencies-latest-backlog.tour` — **BL-001** policy and where temporary pins live
 
 ## CodeTour Features Utilized Across These Tours
 
@@ -98,6 +99,8 @@ Consider adding the [CodeTour Watch](https://github.com/marketplace/actions/code
 ## Related Resources in This Repo
 
 - `docs/dev/` — The canonical deep technical documentation (read in parallel with tours)
+- `docs/dev/BACKLOG.md` — Deferred work (start with **BL-001** for true-latest dependencies)
+- `ai/references/backlog.md` — Same backlog, agent-oriented
 - `.vscode/launch.json` + `tasks.json` — The debugging heart
 - `dendron-main.code-workspace` — Recommended multi-root workspace for development
 - `FORK-README.md` + root `README.md`

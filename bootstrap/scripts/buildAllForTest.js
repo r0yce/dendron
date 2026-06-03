@@ -5,11 +5,11 @@
  * Skips dendron-plugin-views unless TEST_NEXT_TEMPLATE is set.
  */
 
-const execa = require("execa");
+const { execaCommandSync } = require("execa");
 
 const $ = (cmd) => {
   console.log(`$ ${cmd}`);
-  return execa.commandSync(cmd, { stdout: process.stdout, buffer: false });
+  return execaCommandSync(cmd, { stdio: "inherit" });
 };
 
 const ws = (pkg, script = "buildCI") => {

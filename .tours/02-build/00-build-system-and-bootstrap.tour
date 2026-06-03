@@ -45,6 +45,20 @@
         "start": { "line": 159, "character": 1 },
         "end": { "line": 185, "character": 1 }
       }
+    },
+    {
+      "title": "Full init gate: bootstrap:init",
+      "description": "## When you need the full graph\n\n```bash\nyarn bootstrap:init\n```\n\nRuns install + **entire** `buildAll.js` pipeline (including `dendron-plugin-views` webpack and `yarn dendron dev sync_assets --fast`).\n\nUse after lockfile/resolution changes, webview build changes, or unified/CLI runtime fixes.\n\n**Note:** Some dependency pins exist only to keep this green. Removing them without migrations is tracked as **BL-001** in the backlog.\n\n[Open BUILD-AND-DEBUG.md](./docs/dev/BUILD-AND-DEBUG.md) · [BL-001 backlog tour][Backlog: True-Latest Dependencies (BL-001)]",
+      "file": "package.json",
+      "line": 103,
+      "pattern": "bootstrap:init"
+    },
+    {
+      "title": "buildAll.js uses execa 9",
+      "description": "Bootstrap scripts call shell commands via `execaCommandSync` (execa v9 API), not the old `execa.commandSync`.\n\nIf you add steps to `buildAll.js`, follow the same pattern.\n\n[Open buildAll.js](./bootstrap/scripts/buildAll.js)",
+      "file": "bootstrap/scripts/buildAll.js",
+      "line": 1,
+      "pattern": "execaCommandSync"
     }
   ]
 }
