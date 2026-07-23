@@ -87,6 +87,11 @@ import _ from "lodash";
 import { GotoNoteCommand } from "./commands/GotoNote";
 import { ActivationTimer } from "@dendronhq/common-all";
 import { getDevOutputChannel, setLastActivationReport } from "./utils/dev";
+import { isQuietMode } from "./utils/quietMode";
+import {
+  ensurePerfStatusBar,
+  updatePerfStatusBar,
+} from "./utils/perfStatusBar";
 
 const MARKDOWN_WORD_PATTERN = new RegExp("([\\w\\.]+)");
 // === Main
@@ -333,6 +338,7 @@ export async function _activate(
     // we're not in a Dendron workspace.
     context.subscriptions.push(setupHelpFeedbackTreeView());
     context.subscriptions.push(setupRecentWorkspacesTreeView());
+    ensurePerfStatusBar(context);
 
     if (await DendronExtension.isDendronWorkspace()) {
       const activator = new WorkspaceActivator();
@@ -362,8 +368,8 @@ export async function _activate(
       // initialize Segment client
       AnalyticsUtils.setupSegmentWithCacheFlush({ context, ws: wsImpl });
 
-      // show interactive elements when **extension starts**
-      if (!opts?.skipInteractiveElements) {
+      // show interactive elements when **extension starts** (skipped in quiet mode)
+      if (!opts?.skipInteractiveElements && !isQuietMode()) {
         // check if localhost is blocked
         StartupUtils.showWhitelistingLocalhostDocsIfNecessary();
         // check for missing default config keys and prompt for a backfill.
@@ -415,7 +421,7 @@ export async function _activate(
       if (respActivate.error) {
         return false;
       }
-      if (!opts?.skipInteractiveElements) {
+      if (!opts?.skipInteractiveElements && !isQuietMode()) {
         // on first install, warn if extensions are incompatible ^dlx35gstwsun
         if (extensionInstallStatus === InstallStatus.INITIAL_INSTALL) {
           StartupUtils.warnIncompatibleExtensions({ ext: ws });
@@ -423,6 +429,9 @@ export async function _activate(
         // Show the feature showcase toast one minute after initialization.
         const ONE_MINUTE_IN_MS = 60_000;
         setTimeout(() => {
+          if (isQuietMode()) {
+            return;
+          }
           const showcase = new FeatureShowcaseToaster();
           // Temporarily show the new toast instead of the rest.
           // for subsequent sessions this will not be shown as it already has been shown.
@@ -451,7 +460,10 @@ export async function _activate(
       Sentry.setUser({ id: SegmentClient.instance().anonymousId });
     }
 
-    if (extensionInstallStatus === InstallStatus.INITIAL_INSTALL) {
+    if (
+      extensionInstallStatus === InstallStatus.INITIAL_INSTALL &&
+      !isQuietMode()
+    ) {
       // if keybinding conflict is detected, let the users know and guide them how to resolve  ^rikhd9cc0rwb
       await KeybindingUtils.maybePromptKeybindingConflict();
       // if user hasn't opted out of telemetry, notify them about it ^njhii5plxmxr
@@ -460,7 +472,13 @@ export async function _activate(
       }
     }
 
-    if (!opts?.skipInteractiveElements) {
+    // Welcome / what's-new: keep for true first install even in quiet mode
+    // (useful once); suppress secondary nags when quiet.
+    if (
+      !opts?.skipInteractiveElements &&
+      (!isQuietMode() ||
+        extensionInstallStatus === InstallStatus.INITIAL_INSTALL)
+    ) {
       await showWelcomeOrWhatsNew({
         extensionInstallStatus,
         isSecondaryInstall,
@@ -507,7 +525,31 @@ function logActivationReport(timer: ActivationTimer) {
     process.env.DENDRON_PERF === "1" ||
     process.env.LOG_LEVEL === "debug";
 
-  timer.finish(); // always call finish
+  const finishResult = timer.finish(); // always call finish → feeds PerfRingBuffer
+  const totalMs = finishResult?.totalMs;
+
+  // Status bar pulse (user-facing, not only dev)
+  try {
+    let noteCount: number | undefined;
+    try {
+      // EngineAPIService may not expose `.notes` on the typed surface; use store if present.
+      const engine = getExtension().getEngine() as {
+        notes?: Record<string, unknown>;
+        noteStore?: { size?: number };
+      };
+      if (engine?.notes) {
+        noteCount = Object.keys(engine.notes).length;
+      }
+    } catch {
+      // engine may not be ready on partial activate
+    }
+    updatePerfStatusBar({
+      ...(totalMs !== undefined ? { activationMs: totalMs } : {}),
+      ...(noteCount !== undefined ? { noteCount } : {}),
+    });
+  } catch {
+    // status bar is best-effort
+  }
 
   if (!isDev) {
     return;

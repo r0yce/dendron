@@ -2,19 +2,24 @@
 
 One of the explicit goals of this fork is to make Dendron *feel* fast and to be able to prove it with data.
 
-This document defines how we will approach performance.
+**Product sequencing:** see **[PRODUCT-ROADMAP.md](./PRODUCT-ROADMAP.md)** Lane P + Sprint 1.
 
-## Current Situation (May 2026)
+## Current Situation (2026-07)
 
-Dendron was already quite fast for its era, but:
+| Layer | Status |
+|-------|--------|
+| ActivationTimer + PerfRingBuffer | **Landed** |
+| `dendron dev dump_perf` / Dev Show Perf Reports | **Landed** |
+| Status bar perf pulse | **Sprint 1 (in progress)** |
+| Lazy activation | Sprint 1 next |
+| Lookup virtualization / warm | Sprint 1 next |
+| CI perf baselines | Later |
 
-- No systematic timing instrumentation in the critical paths.
-- Startup (especially first-time or after large changes) can feel slow on big vaults.
-- The graph view, backlinks panel, and lookup can have noticeable lag on very large note counts (10k+).
-- Native module (sqlite + Prisma) initialization cost is opaque.
-- There are almost certainly low-hanging fruit in hot loops (note traversal, link resolution, markdown transforms).
+Still true:
 
-We currently have almost zero visibility into where time is actually spent.
+- Startup can feel slow on big vaults.
+- Graph, backlinks, preview lag on dense vaults.
+- Webview bundles are large.
 
 ## Philosophy
 

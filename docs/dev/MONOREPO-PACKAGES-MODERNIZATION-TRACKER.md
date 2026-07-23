@@ -1,3 +1,5 @@
+> **ARCHIVE for product sequencing:** use [PRODUCT-ROADMAP.md](./PRODUCT-ROADMAP.md). This tracker is package modernization history.
+
 # Monorepo Packages Modernization Tracker
 
 **Backlog (deferred work):** [BACKLOG.md](./BACKLOG.md) — especially **BL-001** (true-latest dependencies while keeping `yarn bootstrap:init` green without long-lived pins).

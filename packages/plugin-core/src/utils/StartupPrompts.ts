@@ -10,11 +10,15 @@ import { StateService } from "../services/stateService";
 import { SurveyUtils } from "../survey";
 import { showWelcome } from "../WelcomeUtils";
 import { AnalyticsUtils } from "./analytics";
+import { isQuietMode } from "./quietMode";
 
 export class StartupPrompts {
   static async showLapsedUserMessageIfNecessary(opts: {
     assetUri: vscode.Uri;
   }) {
+    if (isQuietMode()) {
+      return;
+    }
     if (StartupPrompts.shouldDisplayLapsedUserMsg()) {
       await StartupPrompts.showLapsedUserMessage(opts.assetUri);
     }
@@ -32,15 +36,15 @@ export class StartupPrompts {
     const lapsedUserMsgSendTime = metaData.lapsedUserMsgSendTime;
     if (lapsedUserMsgSendTime !== undefined) {
       MetadataService.instance().setLapsedUserSurveyStatus(
-        LapsedUserSurveyStatusEnum.cancelled
+        LapsedUserSurveyStatusEnum.cancelled,
       );
     }
 
     const timeFromFirstInstall = CUR_TIME.minus(
-      Duration.fromObject({ seconds: metaData.firstInstall })
+      Duration.fromObject({ seconds: metaData.firstInstall }),
     );
     const timeFromLastLapsedUserMsg = CUR_TIME.minus(
-      Duration.fromObject({ seconds: metaData.lapsedUserMsgSendTime })
+      Duration.fromObject({ seconds: metaData.lapsedUserMsgSendTime }),
     );
 
     const refreshMsg =
@@ -67,7 +71,7 @@ export class StartupPrompts {
       .showInformationMessage(
         "Hey, we noticed you haven't started using Dendron yet. Would you like to get started?",
         { modal: true },
-        { title: START_TITLE }
+        { title: START_TITLE },
       )
       .then(async (resp) => {
         if (resp?.title === START_TITLE) {
@@ -77,12 +81,12 @@ export class StartupPrompts {
           AnalyticsUtils.track(VSCodeEvents.LapsedUserMessageRejected);
           const lapsedSurveySubmittedState =
             await StateService.instance().getGlobalState(
-              GLOBAL_STATE.LAPSED_USER_SURVEY_SUBMITTED
+              GLOBAL_STATE.LAPSED_USER_SURVEY_SUBMITTED,
             );
 
           if (lapsedSurveySubmittedState) {
             MetadataService.instance().setLapsedUserSurveyStatus(
-              LapsedUserSurveyStatusEnum.submitted
+              LapsedUserSurveyStatusEnum.submitted,
             );
           }
 

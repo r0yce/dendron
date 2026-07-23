@@ -1,18 +1,20 @@
 # Development Backlog
 
-Living list of **deferred** work for the personal fork. Items here are intentional — not forgotten bugs.
+Living list of **deferred engineering** work for the personal fork. Items here are intentional — not forgotten bugs.
+
+> **Product sprints & lanes** live in **[PRODUCT-ROADMAP.md](./PRODUCT-ROADMAP.md)** (source of truth).  
+> This file is for **tooling / deps / deferred tech** — not competing product roadmaps.
 
 **How to use**
 
 - Pick an item when you have capacity; link PRs/commits to the `BL-*` id.
 - When an item ships, move a one-line summary to the changelog section at the bottom and mark the item **Done**.
-- Agents: see also [ai/references/backlog.md](../../ai/references/backlog.md) for the same list in SME form.
 
 **Related docs**
 
+- [PRODUCT-ROADMAP.md](./PRODUCT-ROADMAP.md) — product lanes & sprints
 - [BUILD-AND-DEBUG.md](./BUILD-AND-DEBUG.md) — daily commands and verify gates
 - [04-BUILD-AND-DEBUG-WORKFLOW.md](./04-BUILD-AND-DEBUG-WORKFLOW.md) — build paths in depth
-- [ai/references/upgrade-plan.md](../../ai/references/upgrade-plan.md) — phased modernization history
 
 ---
 

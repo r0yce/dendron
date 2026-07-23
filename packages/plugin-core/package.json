@@ -1339,6 +1339,16 @@
           "type": "boolean",
           "default": true,
           "description": "When enabled, newly created workspaces will be created as self contained vaults."
+        },
+        "dendron.quietMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Personal fork default: suppress surveys, lapsed-user modals, feature showcase toasts, and other non-essential prompts. Turn off only if you want the classic onboarding/nags."
+        },
+        "dendron.showPerfStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a status bar item with last activation time and light perf summary (click for full report)."
         }
       }
     },

@@ -28,6 +28,7 @@ import { FeatureShowcaseToaster } from "../showcase/FeatureShowcaseToaster";
 import { ObsidianImportTip } from "../showcase/ObsidianImportTip";
 import { SurveyUtils } from "../survey";
 import { AnalyticsUtils } from "../utils/analytics";
+import { isQuietMode } from "../utils/quietMode";
 import { VSCodeUtils } from "../vsCodeUtils";
 import { DendronExtension } from "../workspace";
 import { BlankInitializer } from "./blankInitializer";
@@ -51,7 +52,7 @@ export class TutorialInitializer
       // return QuickstartTutorialTestGroups.
 
       return CURRENT_TUTORIAL_TEST.getUserGroup(
-        SegmentClient.instance().anonymousId
+        SegmentClient.instance().anonymousId,
       );
     } else {
       return MAIN_TUTORIAL_TYPE_NAME;
@@ -62,7 +63,7 @@ export class TutorialInitializer
     super.onWorkspaceCreation(opts);
 
     MetadataService.instance().setActivationContext(
-      WorkspaceActivationContext.tutorial
+      WorkspaceActivationContext.tutorial,
     );
 
     const assetUri = VSCodeUtils.getAssetUri(DendronExtension.context());
@@ -77,15 +78,18 @@ export class TutorialInitializer
         dendronWSTemplate.fsPath,
         "tutorial",
         "treatments",
-        tutorialDir
+        tutorialDir,
       ),
-      vpath
+      vpath,
     );
 
     // 3 minutes after setup, try to show this toast if we haven't already tried
-    setTimeout(() => {
-      this.tryShowImportNotesFeatureToaster();
-    }, 1000 * 60 * 3);
+    setTimeout(
+      () => {
+        this.tryShowImportNotesFeatureToaster();
+      },
+      1000 * 60 * 3,
+    );
   }
 
   private getAnalyticsPayloadFromDocument(opts: {
@@ -147,7 +151,7 @@ export class TutorialInitializer
     const { wsRoot, vaults } = opts.ws;
     const vaultRelPath = VaultUtils.getRelPath(vaults[0]!); // safe: tutorial initializer assumes non-empty vaults (Batch 5+ noUnchecked guard; invariant from ws init)
     const rootUri = vscode.Uri.file(
-      path.join(wsRoot, vaultRelPath, "tutorial.md")
+      path.join(wsRoot, vaultRelPath, "tutorial.md"),
     );
     if (fs.pathExistsSync(rootUri.fsPath)) {
       // Set the view to have the tutorial page showing with the preview opened to the side.
@@ -155,14 +159,14 @@ export class TutorialInitializer
 
       if (getStage() !== "test") {
         const preview = PreviewPanelFactory.create(
-          ExtensionProvider.getExtension()
+          ExtensionProvider.getExtension(),
         );
         // TODO: HACK to wait for existing preview to be ready
         setTimeout(async () => {
           await new TogglePreviewCommand(preview).execute();
           if (
             CURRENT_TUTORIAL_TEST?.getUserGroup(
-              SegmentClient.instance().anonymousId
+              SegmentClient.instance().anonymousId,
             ) === QuickstartTutorialTestGroups["quickstart-with-lock"]
           ) {
             await new TogglePreviewLockCommand(preview).execute();
@@ -177,13 +181,14 @@ export class TutorialInitializer
     }
 
     MetadataService.instance().setActivationContext(
-      WorkspaceActivationContext.normal
+      WorkspaceActivationContext.normal,
     );
 
     const metaData = MetadataService.instance().getMeta();
     const initialSurveySubmitted =
       metaData.initialSurveyStatus === InitialSurveyStatusEnum.submitted;
-    if (!initialSurveySubmitted) {
+    // Personal fork: quiet mode skips growth surveys
+    if (!initialSurveySubmitted && !isQuietMode()) {
       await SurveyUtils.showInitialSurvey();
     }
   }
