@@ -17,7 +17,7 @@ import {
 } from "@dendronhq/pods-core";
 import _ from "lodash";
 import path from "path";
-import yargs from "yargs";
+import type { Argv } from "yargs";
 import { CLIUtils, SpinnerUtils } from "../utils/cli";
 import { CLICommand } from "./base";
 import { ExportPodCLICommand } from "./exportPod";
@@ -119,7 +119,7 @@ export class PublishCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     });
   }
 
-  buildArgs(args: yargs.Argv) {
+  buildArgs(args: Argv) {
     super.buildArgs(args);
     args.positional("cmd", {
       describe: "a command to run",

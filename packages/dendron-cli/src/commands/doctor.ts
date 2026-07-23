@@ -2,7 +2,7 @@ import { NoteProps } from "@dendronhq/common-all";
 import { DoctorService, DoctorActionsEnum } from "@dendronhq/engine-server";
 // @ts-ignore
 import _ from "lodash";
-import yargs from "yargs";
+import type { Argv } from "yargs";
 import { CLICommand, CommandCommonProps } from "./base";
 import {
   setupEngine,
@@ -40,7 +40,7 @@ export class DoctorCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     super({ name: "doctor", desc: "doctor helps you fix your notes" });
   }
 
-  buildArgs(args: yargs.Argv) {
+  buildArgs(args: Argv) {
     super.buildArgs(args);
     setupEngineArgs(args);
     args.option("action", {

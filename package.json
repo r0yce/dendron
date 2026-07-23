@@ -2,7 +2,7 @@
   "name": "root",
   "private": true,
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.19.0"
   },
   "workspaces": {
     "packages": [
@@ -58,7 +58,7 @@
     "typedoc-plugin-markdown": "4.11.0",
     "verdaccio": "6.7.2",
     "verdaccio-auth-memory": "13.0.2",
-    "vsce": "2.15.0"
+    "@vscode/vsce": "3.9.1"
   },
   "scripts": {
     "setup": "yarn && yarn bootstrap:bootstrap && yarn bootstrap:build && yarn setup:cli",
@@ -168,12 +168,7 @@
     "@types/node": "25.9.1",
     "@babel/core": "7.29.7",
     "@babel/traverse": "7.29.7",
-    "@babel/helper-compilation-targets": "7.22.15",
-    "babel-preset-react-app/@babel/helper-compilation-targets": "7.22.15",
     "babel-preset-react-app/@babel/core": "7.29.7",
-    "loader-utils": "2.0.4",
-    "ansi-regex": "5.0.1",
-    "strip-ansi/ansi-regex": "5.0.1",
     "form-data": "4.0.5",
     "handlebars": "4.7.9",
     "shell-quote": "1.8.4",

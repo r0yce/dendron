@@ -1,7 +1,7 @@
 import { DendronError } from "@dendronhq/common-all";
 import { WorkspaceService } from "@dendronhq/engine-server";
 import _ from "lodash";
-import yargs from "yargs";
+import type { Argv } from "yargs";
 import { CLICommand, CommandCommonProps } from "./base";
 import { setupEngine } from "./utils";
 
@@ -24,7 +24,7 @@ export class WorkspaceCLICommand extends CLICommand<CommandOpts> {
     super({ name: "workspace", desc: "workspace related methods" });
   }
 
-  buildArgs(args: yargs.Argv) {
+  buildArgs(args: Argv) {
     super.buildArgs(args);
     args.option("action", {
       describe: "what action to execute",

@@ -13,7 +13,7 @@ This fork is for **your own VS Code use**. Packages are **not published to npm**
 
 ## Prerequisites
 
-- Node.js 18+ (20+ recommended)
+- **Node.js ≥ 20.19** (required; `.nvmrc` pins 20; yargs 18 / modern monorepo tooling)
 - Yarn 1.x
 - VS Code or VS Code Insiders
 

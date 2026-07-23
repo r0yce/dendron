@@ -8,7 +8,7 @@ import {
 import { SeedInitMode, SeedService, SeedUtils } from "@dendronhq/engine-server";
 import _ from "lodash";
 import path from "path";
-import yargs from "yargs";
+import type { Argv } from "yargs";
 import { CLICommand, CommandCommonProps } from "./base";
 import {
   setupEngine,
@@ -40,7 +40,7 @@ export class SeedCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     this.wsRootOptional = true;
   }
 
-  buildArgs(args: yargs.Argv) {
+  buildArgs(args: Argv) {
     super.buildArgs(args);
     setupEngineArgs(args);
     args.positional("cmd", {

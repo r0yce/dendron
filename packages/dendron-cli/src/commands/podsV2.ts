@@ -13,7 +13,7 @@ import {
   PodUtils,
 } from "@dendronhq/pods-core";
 import _ from "lodash";
-import yargs from "yargs";
+import type { Argv } from "yargs";
 import { setupEngine, SetupEngineCLIOpts, SetupEngineResp } from "./utils";
 
 export type PodCLIOpts = {
@@ -34,7 +34,7 @@ export type PodCommandOpts<T = any> = PodCLIOpts & {
 } & SetupEngineResp &
   SetupEngineCLIOpts;
 
-export function setupPodArgs(args: yargs.Argv) {
+export function setupPodArgs(args: Argv) {
   args.option("inlineConfig", {
     describe:
       "pass in config instead of reading from file. format is Key={key},Value={value}. If provided, this will override the value saved in the config file",

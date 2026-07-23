@@ -37,7 +37,6 @@
   },
   "dependencies": {
     "@dendronhq/common-all": "^0.124.0",
-
     "hast-util-parse-selector": "4.0.0",
     "hast-util-select": "6.0.4",
     "mdast": "3.0.0",
@@ -52,7 +51,6 @@
     "remark": "15.0.1",
     "remark-abbr": "1.4.2",
     "remark-containers": "1.2.0",
-    "remark-footnotes": "4.0.1",
     "remark-gfm": "4.0.1",
     "remark-frontmatter": "5.0.0",
     "remark-math": "6.0.0",

@@ -1,8 +1,12 @@
 #!/usr/bin/env node
-
+/**
+ * Dendron CLI entry (yargs 18+ ESM).
+ *
+ * yargs@18 is pure ESM; we load it via dynamic import so the rest of the
+ * package can stay CJS-compiled while still using the latest yargs.
+ */
 import { env } from "@dendronhq/common-all";
 import _ from "lodash";
-import yargs from "yargs";
 import { CLIUtils } from "../src/utils/cli";
 import { PublishCLICommand } from "../src/commands";
 import { DevCLICommand } from "../src/commands/devCLICommand";
@@ -18,36 +22,47 @@ import { VaultCLICommand } from "../src/commands/vaultCLICommand";
 import { WorkspaceCLICommand } from "../src/commands/workspaceCLICommand";
 import { VisualizeCLICommand } from "../src/commands/visualizeCLICommand";
 import { DoctorCommand } from "../src/commands/DoctorCommand";
-// import { WorkspaceCLICommand } from "../src/commands/workspace";
 
-if (_.isUndefined(env("LOG_LEVEL", { shouldThrow: false }))) {
-  process.env.LOG_LEVEL = "error";
+async function main() {
+  if (_.isUndefined(env("LOG_LEVEL", { shouldThrow: false }))) {
+    process.env.LOG_LEVEL = "error";
+  }
+
+  // yargs 18 is ESM-only — dynamic import works from CJS or ESM entry
+  const yargsModule = await import("yargs");
+  const yargsFactory = yargsModule.default;
+  const helpers = await import("yargs/helpers");
+  const hideBin = helpers.hideBin;
+
+  const buildYargs = yargsFactory(hideBin(process.argv));
+
+  new ExportPodCLICommand().buildCmd(buildYargs);
+  new LaunchEngineServerCommand().buildCmd(buildYargs);
+  new ImportPodCLICommand().buildCmd(buildYargs);
+  new PublishPodCLICommand().buildCmd(buildYargs);
+  new DoctorCLICommand().buildCmd(buildYargs);
+  new DoctorCommand().buildCmd(buildYargs);
+  new NoteCLICommand().buildCmd(buildYargs);
+  new VaultCLICommand().buildCmd(buildYargs);
+  new WorkspaceCLICommand().buildCmd(buildYargs);
+  new SeedCLICommand().buildCmd(buildYargs);
+  new DevCLICommand().buildCmd(buildYargs);
+  new PublishCLICommand().buildCmd(buildYargs);
+  new ExportPodV2CLICommand().buildCmd(buildYargs);
+  new VisualizeCLICommand().buildCmd(buildYargs);
+
+  await buildYargs
+    .scriptName("dendron")
+    .strictCommands()
+    .demandCommand(1)
+    .version(CLIUtils.getClientVersion())
+    .alias("v", "version")
+    .help()
+    .completion("completion", "Generate shell completion script")
+    .parseAsync();
 }
 
-const buildYargs = yargs;
-
-new ExportPodCLICommand().buildCmd(buildYargs);
-new LaunchEngineServerCommand().buildCmd(buildYargs);
-new ImportPodCLICommand().buildCmd(buildYargs);
-new PublishPodCLICommand().buildCmd(buildYargs);
-new DoctorCLICommand().buildCmd(buildYargs);
-new DoctorCommand().buildCmd(buildYargs);  // UNCOMMENTED + gaps filled ( --checks wired, 3 real --fix via DConfig/GitUtils/ConfigUtils + backups, units added, --json timingMs, table polish). Registration LIVE post-smoke (019e7ccf + 06/07 polish). "health" (safe w/ notes "doctor"). MVP launch ready.
-new NoteCLICommand().buildCmd(buildYargs);
-new VaultCLICommand().buildCmd(buildYargs);
-new WorkspaceCLICommand().buildCmd(buildYargs);
-new SeedCLICommand().buildCmd(buildYargs);
-new DevCLICommand().buildCmd(buildYargs);
-new PublishCLICommand().buildCmd(buildYargs);
-new ExportPodV2CLICommand().buildCmd(buildYargs);
-new VisualizeCLICommand().buildCmd(buildYargs);
-
-// eslint-disable-next-line no-unused-expressions
-buildYargs
-  .scriptName("dendron")
-  .strictCommands()
-  .demandCommand(1)
-  .version(CLIUtils.getClientVersion())
-  .alias("v", "version")
-  .help()
-  .completion("completion", "Generate shell completion script")
-  .argv;
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

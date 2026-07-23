@@ -27,7 +27,7 @@ import {
 import fs from "fs-extra";
 import _ from "lodash";
 import path from "path";
-import yargs from "yargs";
+import type { Argv } from "yargs";
 import { CLIAnalyticsUtils, setupEngine } from "..";
 import {
   BuildUtils,
@@ -135,7 +135,7 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     }
   }
 
-  buildArgs(args: yargs.Argv) {
+  buildArgs(args: Argv) {
     super.buildArgs(args);
     args.positional("cmd", {
       describe: "a command to run",

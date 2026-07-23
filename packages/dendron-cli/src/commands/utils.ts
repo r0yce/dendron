@@ -9,7 +9,7 @@ import {
 } from "@dendronhq/engine-server";
 import _ from "lodash";
 import { Socket } from "net";
-import yargs from "yargs";
+import type { Argv } from "yargs";
 import {
   LaunchEngineServerCLIOpts,
   LaunchEngineServerCommand,
@@ -162,7 +162,7 @@ export async function setupEngine(
 /**
  * Add yargs based options to setup engine
  */
-export function setupEngineArgs(args: yargs.Argv) {
+export function setupEngineArgs(args: Argv) {
   args.option("enginePort", {
     describe:
       "If set, connect to to running engine. If not set, create new instance of Dendron Engine",

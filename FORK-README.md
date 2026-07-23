@@ -18,12 +18,18 @@ This fork exists because Dendron was (and still is) one of the best local-first 
 4. Modernize the development experience (debugging, builds, testing).
 5. Add personal "epic" features over time.
 
+## Runtime requirements
+
+- **Node.js ≥ 20.19** (see `.nvmrc`; required for yargs 18 + modern tooling)
+- Yarn 1.x
+
 ## Privacy (fork default)
 
 **Telemetry is OFF by default** in this fork (upstream Dendron defaulted to on). No Segment/Sentry traffic until you explicitly enable it. See [docs/dev/TELEMETRY.md](./docs/dev/TELEMETRY.md).
 
 ```bash
 yarn dendron health --checks telemetry   # should report off by default
+yarn dendron dev enable_telemetry --local  # optional local NDJSON only
 ```
 
 ## Quick Start for Development (Once Fully Bootstrapped)

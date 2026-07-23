@@ -12,11 +12,10 @@ import {
   DConfig,
   getDurationMilliseconds,
   SegmentClient,
-  TelemetryStatus,
 } from "@dendronhq/common-server";
 import { MIGRATION_ENTRIES, WorkspaceUtils } from "@dendronhq/engine-server";
 import _ from "lodash";
-import yargs from "yargs";
+import type { Argv } from "yargs";
 import { CLIAnalyticsUtils } from "../utils/analytics";
 import { CLIUtils } from "../utils/cli";
 
@@ -64,7 +63,7 @@ export abstract class CLICommand<
     this.desc = opts.desc;
   }
 
-  buildArgs(args: yargs.Argv) {
+  buildArgs(args: Argv) {
     args.option("wsRoot", {
       describe: "location of workspace",
     });
@@ -88,7 +87,7 @@ export abstract class CLICommand<
     });
   }
 
-  buildCmd(yargsInstance: yargs.Argv): yargs.Argv {
+  buildCmd(yargsInstance: Argv): Argv {
     // yargs 17+ has stricter builder typing; we wrap to keep our existing pattern
     return yargsInstance.command(
       this.name,
@@ -102,13 +101,13 @@ export abstract class CLICommand<
     if (RuntimeUtils.isRunningInTestOrCI()) {
       return;
     }
-    // if running CLI without ever having used dendron plugin,
-    // show a notice about telemety and instructions on how to disable.
+    // Personal fork: do NOT auto-enable telemetry on first CLI use.
+    // Missing config stays DISABLED_BY_FORK_DEFAULT (see SegmentClient.getStatus).
+    // Opt in: `dendron dev enable_telemetry --local` (or network enable).
     if (_.isUndefined(SegmentClient.readConfig())) {
-      CLIAnalyticsUtils.showTelemetryMessage();
-      const reason = TelemetryStatus.ENABLED_BY_CLI_DEFAULT;
-      SegmentClient.enable(reason);
-      CLIAnalyticsUtils.track(CLIEvents.CLITelemetryEnabled, { reason });
+      this.L.info({
+        msg: "telemetry off by fork default (no config file); use enable_telemetry --local to opt in",
+      });
     }
     const stage = this.opts.dev ? config.dev : config.prod;
     const segment = SegmentClient.instance({

@@ -1,53 +1,60 @@
 // dark-theme.less
-
-@import '~antd/lib/style/color/colorPalette.less';
-@import '~antd/dist/antd.less';
-@import '~antd/lib/style/themes/dark.less';
+// antd 5+/6 dropped Less theming. See light-theme.less header comment.
 
 @primary-color: #00adb5;
 @border-radius-base: 4px;
-
 @component-background: #303030;
 @body-background: #303030;
 @popover-background: #303030;
 @border-color-base: #6f6c6c;
 @border-color-split: #424242;
-@table-header-sort-active-bg: #424242;
-@card-skeleton-bg: #424242;
-@skeleton-color: #424242;
-@table-header-sort-active-bg: #424242;
+@text-color: rgba(255, 255, 255, 0.85);
+
+:root {
+  --dendron-primary: @primary-color;
+  --dendron-body-bg: @body-background;
+  --dendron-component-bg: @component-background;
+  --dendron-popover-bg: @popover-background;
+  --dendron-border: @border-color-base;
+  --dendron-border-split: @border-color-split;
+  --dendron-text: @text-color;
+  --dendron-radius: @border-radius-base;
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: @body-background;
+  color: @text-color;
+}
 
 /* width */
 ::-webkit-scrollbar {
-    width: 10px;
+  width: 10px;
 }
 
 /* Track */
 ::-webkit-scrollbar-track {
-    background: @body-background;
+  background: @body-background;
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-    background: #888; 
+  background: #666;
+  border-radius: @border-radius-base;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-    background: #555; 
+  background: #888;
 }
 
-/* Tints the background of the selected item in the navigation sidebar with the primary color. */
-.ant-menu-item-selected,
-.dendron-ant-menu-submenu-selected > .ant-menu-submenu-title {
-    background-color: fade(@primary-color, 5%);
+.dendron-panel {
+  background: @component-background;
+  border: 1px solid @border-color-split;
+  border-radius: @border-radius-base;
 }
 
-/* Makes the header slightly lighter than the site background. */
-.ant-layout-header {
-  background-color: #3b3b3b;
-}
-
-a.private {
-    color: sandybrown;
+a {
+  color: @primary-color;
 }

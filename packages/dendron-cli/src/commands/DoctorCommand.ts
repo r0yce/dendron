@@ -25,7 +25,7 @@ import _ from "lodash";
 import path from "path";
 import { exec } from "child_process";
 import { promisify } from "util";
-import yargs from "yargs";
+import type { Argv } from "yargs";
 import { CLICommand, CommandCommonProps } from "./base";
 import { CLIUtils } from "../utils/cli";
 // NOTE: In real impl import { setupEngine, SetupEngineCLIOpts } from "./utils"; for full engine health check (heavy; doctor uses light module probe + timers)
@@ -100,7 +100,7 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
     });
   }
 
-  buildArgs(yargs: yargs.Argv): yargs.Argv {
+  buildArgs(yargs: Argv): Argv {
     // call super so global flags (json, wsRoot, quiet, etc) are registered for "health" (was missing; caused partial wiring)
     super.buildArgs(yargs);
     return yargs

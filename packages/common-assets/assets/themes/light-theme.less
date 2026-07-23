@@ -1,43 +1,61 @@
 // light-theme.less
+// antd 5+/6 dropped Less theming (default.less / dist/antd.less).
+// Theme is Dendron CSS variables + chrome; Ant Design runtime styles come from CSS-in-JS in React.
+// Gulp still compiles this Less → public/light-theme.css for extension webviews.
 
-@import '~antd/lib/style/color/colorPalette.less';
-@import '~antd/dist/antd.less';
-@import '~antd/lib/style/themes/default.less';
-
-// These are shared variables that can be extracted to their own file
-@primary-color: #43B02A;
+@primary-color: #43b02a;
 @body-background: #ffffff;
 @component-background: #ffffff;
 @layout-body-background: #ffffff;
 @border-radius-base: 4px;
-@layout-header-background: #F5F7F9;
+@layout-header-background: #f5f7f9;
+@border-color-base: #d9d9d9;
+@text-color: rgba(0, 0, 0, 0.85);
+
+:root {
+  --dendron-primary: @primary-color;
+  --dendron-body-bg: @body-background;
+  --dendron-component-bg: @component-background;
+  --dendron-layout-bg: @layout-body-background;
+  --dendron-header-bg: @layout-header-background;
+  --dendron-border: @border-color-base;
+  --dendron-text: @text-color;
+  --dendron-radius: @border-radius-base;
+}
+
+html,
+body {
+  background: @body-background;
+  color: @text-color;
+}
 
 /* width */
 ::-webkit-scrollbar {
-    width: 10px;
+  width: 10px;
 }
 
 /* Track */
 ::-webkit-scrollbar-track {
-    background: @body-background;
+  background: @body-background;
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-    background: #888; 
+  background: #888;
+  border-radius: @border-radius-base;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-    background: #555; 
+  background: #555;
 }
 
-/* Tints the background of the selected item in the navigation sidebar with the primary color. */
-.ant-menu-item-selected,
-.dendron-ant-menu-submenu-selected > .ant-menu-submenu-title {
-    background-color: fade(@primary-color, 5%);
+// Dendron chrome helpers (webview panels)
+.dendron-panel {
+  background: @component-background;
+  border-radius: @border-radius-base;
 }
 
-a.private {
-    color: brown;
+a {
+  color: @primary-color;
 }

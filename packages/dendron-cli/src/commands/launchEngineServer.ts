@@ -8,7 +8,7 @@ import {
 } from "@dendronhq/engine-server";
 import _ from "lodash";
 import { Socket } from "net";
-import yargs from "yargs";
+import type { Argv } from "yargs";
 import { CLIUtils } from "../utils/cli";
 import { CLICommand, CommandCommonProps } from "./base";
 
@@ -47,7 +47,7 @@ export class LaunchEngineServerCommand extends CLICommand<
     });
   }
 
-  buildArgs(args: yargs.Argv<CommandCLIOpts>) {
+  buildArgs(args: Argv<CommandCLIOpts>) {
     super.buildArgs(args);
     args.option("port", {
       describe: "port to launch server",

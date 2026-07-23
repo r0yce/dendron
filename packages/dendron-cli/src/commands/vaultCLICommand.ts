@@ -5,7 +5,7 @@ import {
   SelfContainedVault,
   VaultRemoteSource,
 } from "@dendronhq/common-all";
-import yargs from "yargs";
+import type { Argv } from "yargs";
 import { CLICommand, CommandCommonProps } from "./base";
 import { setupEngine, setupEngineArgs, SetupEngineResp } from "./utils";
 import { DConfig } from "@dendronhq/common-server";
@@ -35,7 +35,7 @@ export class VaultCLICommand extends CLICommand<CommandOpts> {
     super({ name: "vault <cmd>", desc: "vault related commands" });
   }
 
-  buildArgs(args: yargs.Argv) {
+  buildArgs(args: Argv) {
     super.buildArgs(args);
     setupEngineArgs(args);
     args.positional("cmd", {

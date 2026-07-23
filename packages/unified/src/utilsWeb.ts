@@ -22,7 +22,6 @@ import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
 import abbrPlugin from "remark-abbr";
-import footnotes from "remark-footnotes";
 import frontmatterPlugin from "remark-frontmatter";
 import remarkGfm from "remark-gfm";
 import remark2rehype from "remark-rehype";
@@ -82,7 +81,7 @@ export class MDUtilsV5Web {
       .use(hashtags)
       .use(userTags)
       .use(extendedImage)
-      .use(footnotes as Plugin)
+      // Footnotes: remark-gfm (already applied) replaces deprecated remark-footnotes
       .use(variables as Plugin)
       .use(backlinksHover, data.backlinkHoverOpts)
       .use(wikiLinks)

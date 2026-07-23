@@ -13,7 +13,7 @@ import {
 import { TemplateUtils } from "@dendronhq/common-server";
 import { MarkdownPublishPod } from "@dendronhq/pods-core";
 import _ from "lodash";
-import yargs from "yargs";
+import type { Argv } from "yargs";
 import { CLICommand, CommandCommonProps } from "./base";
 import { setupEngine, setupEngineArgs, SetupEngineResp } from "./utils";
 
@@ -180,7 +180,7 @@ export class NoteCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     super({ name: "note <cmd>", desc: "note related commands" });
   }
 
-  buildArgs(args: yargs.Argv) {
+  buildArgs(args: Argv) {
     super.buildArgs(args);
     setupEngineArgs(args);
     args.positional("cmd", {

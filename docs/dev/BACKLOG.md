@@ -20,50 +20,44 @@ Living list of **deferred** work for the personal fork. Items here are intention
 
 ### BL-001 — True-latest dependencies without bootstrap pins (P1)
 
-**Status:** Backlog (partial — hygiene wave 2026-07)  
-**Goal:** Prefer **latest published versions** + **code/config migrations** over version downgrades or broad `resolutions` pins, while keeping `yarn bootstrap:init` green.
+**Status:** **Mostly done** (wave 3 2026-07) — remaining: TypeScript 7, CRA/plugin-views bundler modernization  
+**Goal:** Prefer **latest published versions** + **code/config migrations** over version downgrades or broad `resolutions` pins, while keeping `yarn bootstrap:init` / `yarn verify:local` green.
 
-**Wave 2 progress (2026-07)**
+**Wave 3 progress (2026-07)**
 
-- Removed ~800 co-located `src/**/*.js` / `.js.map` / sibling `.d.ts` build artifacts that lied about removed Airtable types and poisoned TS resolution.
-- Root `.gitignore` now blocks re-committing co-located emit under `packages/*/src` (with intentional exceptions for fixtures/shims/prisma).
-- Pin removals **not** done this wave: yargs 18 ESM, antd 6, CRA `ansi-regex`/`loader-utils`, babel helper — still require dedicated migrations (see table).
+| Area | Result |
+|------|--------|
+| `dendron-cli` yargs **18.0.0** | **Done** — dynamic `import()` + `hideBin`/`parseAsync` in `bin/dendron-cli.ts`; type-only `Argv` elsewhere |
+| CLI engines | **Node `>=20.19.0`** (yargs 18 requirement); root + `.nvmrc` → 20 |
+| Force-old resolutions | **Removed** `@babel/helper-compilation-targets@7.22.15`, `loader-utils@2`, `ansi-regex@5` (+ strip-ansi pin) |
+| `common-assets` antd Less | **Done** — themes are pure Dendron CSS variables (no antd Less); **antd removed** as dep |
+| `remark-footnotes` | **Removed** — footnotes via existing `remark-gfm` |
+| Legacy `vsce` package | **Removed** root + plugin-core; use `@vscode/vsce` only |
+| CLI privacy | First CLI run no longer auto-`enable`s Segment (`ENABLED_BY_CLI_DEFAULT` removed) |
 
-**Why this exists**
+**Still open**
 
-`yarn bootstrap:init` (`yarn bootstrap:bootstrap && yarn bootstrap:build`) was fixed with a mix of upgrades and **temporary compromises**. We should revisit each compromise and replace it with a proper migration so `pinTrueLatest` / latest bumps do not require re-learning the same failures.
+| Area | Current | Latest path |
+|------|---------|-------------|
+| TypeScript | 6.0.3 monorepo | **7.x** (major; separate compile-fix wave) |
+| `dendron-plugin-views` | CRA + `react-dev-utils` | Vite/rspack or webpack-5-native (BL-003) |
+| Root `resolutions` | ~41 CVE/compat pins | Audit each; drop when transitive trees allow |
+| `pinTrueLatest.js` | Can re-introduce fights | Run after TS 7 + views bundler |
 
 **Policy (target state)**
 
 1. Bump direct deps to latest; fix breakages in source, webpack, or scripts.
-2. Use root `resolutions` only for **CVE overrides** or **documented exceptions** (comment + `BL-*` link). No duplicate keys (e.g. two `ansi-regex` entries).
-3. Do **not** downgrade unless: (a) the npm publish is broken, or (b) a **platform** migration is explicitly deferred (e.g. CJS → ESM).
-
-**Known temporary compromises (replace, don’t cement)**
-
-| Area | Current workaround | Latest path |
-|------|-------------------|-------------|
-| `dendron-cli` | `yargs@17.7.2` (CJS) | Migrate CLI entry to **ESM** (or dynamic `import()`), then `yargs@18+` |
-| `common-assets` | `antd@4` devDep for Less `default.less` / `dark.less` | antd 6 theme build without legacy Less entry files |
-| `unified` | `remark-footnotes@4.0.1` | **Do not** use `5.0.0` until npm ships a real entry file; or replace plugin |
-| `dendron-plugin-views` | Root `resolutions`: `ansi-regex@5`, `loader-utils@2` | Drop CRA `react-dev-utils` post-build path or replace with webpack-5-native reporting |
-| `dendron-plugin-views` | Custom `@babel/preset-*` instead of `babel-preset-react-app` | Finish babel 7.29 alignment or move bundler (Vite/rspack) |
-| `package.json` `resolutions` | `@babel/helper-compilation-targets@7.22.15` | Remove after babel-preset / bundler migration |
-| `bootstrap/scripts` | `execaCommandSync` + `stdio: inherit` | Already on execa 9 — keep pattern for other scripts |
+2. Use root `resolutions` only for **CVE overrides** or **documented exceptions**.
+3. Do **not** downgrade unless: (a) the npm publish is broken, or (b) a **platform** migration is explicitly deferred.
 
 **Acceptance criteria**
 
-- [ ] `yarn bootstrap:init` exits 0 on a clean clone after `yarn` (no manual steps).
-- [ ] `bootstrap/scripts/pinTrueLatest.js` (or successor) does not fight documented resolutions.
-- [ ] Table above: each row either **Done** or still listed with a one-line reason.
-- [ ] [ai/references/context.md](../../ai/references/context.md) and build codetour updated when pins are removed.
-
-**Suggested work order**
-
-1. `yargs` 18 + ESM CLI (unblocks other CLI deps).
-2. Remove `ansi-regex` / `loader-utils` resolutions (plugin-views CRA cleanup).
-3. `common-assets` antd 6 theme pipeline.
-4. Audit `resolutions` block; delete stale CVE duplicates and conflicting pins.
+- [x] `yarn verify:local` green after wave 3 bumps
+- [x] yargs / footnotes / antd Less / force-old babel+loader+ansi pins addressed
+- [ ] `yarn bootstrap:init` on clean clone (smoke when convenient)
+- [ ] TypeScript 7
+- [ ] plugin-views bundler (BL-003)
+- [ ] `pinTrueLatest` does not fight remaining resolutions
 
 **Codetour:** [.tours/advanced/02-dependencies-latest-backlog.tour](../../.tours/advanced/02-dependencies-latest-backlog.tour)
 
@@ -100,3 +94,4 @@ _Move completed items here with date and PR/commit._
 | BL-013 | 2026-07 | Co-located src emit cleanup (~800 js/map/d.ts) + gitignore; Airtable stub purge |
 | BL-014 | 2026-07 | Local-only telemetry sink (`enable_telemetry --local` → NDJSON); health understands local |
 | BL-015 | 2026-07 | `dendron dev dump_perf` + DevShowAllPerfReports includes PerfRingBuffer |
+| BL-001a | 2026-07 | yargs 18 (ESM dynamic import), drop force-old resolutions, antd-less themes, remark-gfm footnotes, @vscode/vsce only, Node ≥20.19 |

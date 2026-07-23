@@ -1,6 +1,6 @@
 import { DendronError } from "@dendronhq/common-all";
 import { getAllExportPods } from "@dendronhq/pods-core";
-import yargs from "yargs";
+import type { Argv } from "yargs";
 import { CLICommand, CommandCommonProps } from "./base";
 import { enrichPodArgs, PodCLIOpts, setupPodArgs } from "./pod";
 import { setupEngineArgs, SetupEngineCLIOpts, SetupEngineResp } from "./utils";
@@ -28,7 +28,7 @@ export class ExportPodCLICommand extends CLICommand<
     });
   }
 
-  buildArgs(args: yargs.Argv<CommandCLIOpts>) {
+  buildArgs(args: Argv<CommandCLIOpts>) {
     super.buildArgs(args);
     setupEngineArgs(args);
     setupPodArgs(args);

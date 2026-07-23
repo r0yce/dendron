@@ -1,4 +1,3 @@
-/* eslint-disable import/no-dynamic-require */
 import {
   Conflict,
   DendronError,
@@ -17,7 +16,7 @@ import {
 import _ from "lodash";
 import path from "path";
 import prompts from "prompts";
-import yargs from "yargs";
+import type { Argv } from "yargs";
 import { setupEngine, SetupEngineCLIOpts, SetupEngineResp } from "./utils";
 
 export type PodCLIOpts = {
@@ -48,7 +47,7 @@ export function fetchPodClassV4(
     podPkg?: string;
     wsRoot?: string;
     podType: PodKind;
-  }
+  },
 ): PodClassEntryV4 {
   const { podSource, pods } = opts;
   if (podSource === PodSource.BUILTIN) {
@@ -67,11 +66,9 @@ export function fetchPodClassV4(
       throw Error("podPkg not defined");
     }
     // eslint-disable-next-line global-require
-    const podEntries = require(`${path.join(
-      opts.wsRoot,
-      "node_modules",
-      opts.podPkg
-    )}`).pods as PodClassEntryV4[];
+    const podEntries = require(
+      `${path.join(opts.wsRoot, "node_modules", opts.podPkg)}`,
+    ).pods as PodClassEntryV4[];
     const podClass = _.find(podEntries, (entry) => {
       return entry.id === podId && entry.kind === opts.podType;
     });
@@ -82,7 +79,7 @@ export function fetchPodClassV4(
   }
 }
 
-export function setupPodArgs(args: yargs.Argv) {
+export function setupPodArgs(args: Argv) {
   args.option("podId", {
     describe: "id of pod to use",
     requiresArg: true,
@@ -114,7 +111,7 @@ export function enrichPodArgs(opts: {
   const { pods, podType } = opts;
 
   const enrichFunc = async (
-    args: PodCommandCLIOpts
+    args: PodCommandCLIOpts,
   ): Promise<RespV3<PodCommandOpts>> => {
     const { podId, showConfig, podSource, podPkg, genConfig, config } = args;
 
@@ -201,7 +198,7 @@ export function enrichPodArgs(opts: {
     } else if (podId !== NextjsExportPod.id) {
       // eslint-disable-next-line no-console
       console.log(
-        `WARN: --query and --vault parameter not implemented for podType ${podType}`
+        `WARN: --query and --vault parameter not implemented for podType ${podType}`,
       );
     }
 
@@ -243,7 +240,7 @@ export enum PodSource {
 
 export const handleConflict = async (
   conflict: Conflict,
-  conflictResolveOpts: PodConflictResolveOpts
+  conflictResolveOpts: PodConflictResolveOpts,
 ) => {
   const options = conflictResolveOpts.options();
   let optionsMessage = "What would you like to do? Choose 0/1..";
