@@ -10,8 +10,7 @@ const CaseSensitivePathsPlugin = require("case-sensitive-paths-webpack-plugin");
 const InlineChunkHtmlPlugin = require("react-dev-utils/InlineChunkHtmlPlugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
-const safePostCssParser = require("postcss-safe-parser");
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const ManifestPlugin = require("webpack-manifest-plugin");
 const InterpolateHtmlPlugin = require("react-dev-utils/InterpolateHtmlPlugin");
 const WorkboxWebpackPlugin = require("workbox-webpack-plugin");
@@ -270,23 +269,13 @@ module.exports = function (webpackEnv) {
             },
           },
         }),
-        // This is only used in production mode
-        new OptimizeCSSAssetsPlugin({
-          cssProcessorOptions: {
-            parser: safePostCssParser,
-            map: shouldUseSourceMap
-              ? {
-                  // `inline: false` forces the sourcemap to be output into a
-                  // separate file
-                  inline: false,
-                  // `annotation: true` appends the sourceMappingURL to the end of
-                  // the css file, helping the browser find the sourcemap
-                  annotation: true,
-                }
-              : false,
-          },
-          cssProcessorPluginOptions: {
-            preset: ["default", { minifyFontValues: { removeQuotes: false } }],
+        // webpack 5 native CSS minimizer (replaces optimize-css-assets-webpack-plugin)
+        new CssMinimizerPlugin({
+          minimizerOptions: {
+            preset: [
+              "default",
+              { minifyFontValues: { removeQuotes: false } },
+            ],
           },
         }),
       ],
@@ -356,8 +345,7 @@ module.exports = function (webpackEnv) {
     module: {
       strictExportPresence: true,
       rules: [
-        // Disable require.ensure as it's not a standard language feature.
-        { parser: { requireEnsure: false } },
+        // requireEnsure parser option removed (invalid under webpack 5.109+)
         {
           // "oneOf" will traverse all following loaders until one will
           // match the requirements. When no loader matches it will fall
@@ -392,14 +380,12 @@ module.exports = function (webpackEnv) {
               include: paths.appSrc,
               loader: require.resolve("babel-loader"),
               options: {
-                customize: require.resolve(
-                  "babel-preset-react-app/webpack-overrides"
-                ),
+                // Explicit Babel 8 presets (no babel-preset-react-app / CRA)
                 presets: [
                   [
                     require.resolve("@babel/preset-env"),
                     {
-                      loose: true,
+                      // Babel 8: no loose/spec — use assumptions if needed
                       modules: false,
                       exclude: ["transform-typeof-symbol"],
                       targets: {
@@ -474,8 +460,12 @@ module.exports = function (webpackEnv) {
                 compact: false,
                 presets: [
                   [
-                    require.resolve("babel-preset-react-app/dependencies"),
-                    { helpers: true },
+                    require.resolve("@babel/preset-env"),
+                    {
+                      modules: false,
+                      // Babel 8: bugfixes always on; only standard ES for node_modules
+                      exclude: ["transform-typeof-symbol"],
+                    },
                   ],
                 ],
                 cacheDirectory: true,

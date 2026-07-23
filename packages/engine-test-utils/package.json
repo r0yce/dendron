@@ -42,7 +42,7 @@
     "@testing-library/react-hooks": "8.0.1",
     "@types/fs-extra": "11.0.4",
     "@types/lodash": "4.17.24",
-    "@types/node": "25.9.1"
+    "@types/node": "26.1.1"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -68,7 +68,7 @@
     "jest-mock-extended": "4.0.1",
     "lodash": "4.18.1",
     "prompts": "2.4.2",
-    "react": "19.2.7",
+    "react": "19.2.8",
     "react-redux": "9.3.0",
     "react-test-renderer": "19.2.7",
     "sinon": "22.0.0"

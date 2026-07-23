@@ -4,7 +4,6 @@
     "outDir": "lib",
     "rootDir": "src",
     "skipLibCheck": true,
-    "baseUrl": ".",
     "paths": {
       "yaml-unist-parser": ["./src/yaml-unist-parser.d.ts"]
     }

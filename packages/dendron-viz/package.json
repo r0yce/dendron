@@ -41,8 +41,8 @@
     "d3": "7.9.0",
     "lodash": "4.18.1",
     "micromatch": "4.0.8",
-    "react": "19.2.7",
-    "react-dom": "19.2.7",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "yargs": "18.0.0"
   },
   "devDependencies": {

@@ -52,7 +52,7 @@
     "@dendronhq/engine-server": "^0.124.0",
     "@dendronhq/pods-core": "^0.124.0",
     "@jcoreio/async-throttle": "1.7.0",
-    "clipboardy": "5.3.1",
+    "clipboardy": "5.3.2",
     "fs-extra": "11.3.5",
     "gray-matter": "4.0.3",
     "lodash": "4.18.1",
@@ -63,7 +63,7 @@
     "yargs": "18.0.0"
   },
   "devDependencies": {
-    "@types/node": "25.9.1",
+    "@types/node": "26.1.1",
     "@types/prompts": "2.4.9",
     "@types/semver": "7.7.1",
     "ts-node": "10.9.2"

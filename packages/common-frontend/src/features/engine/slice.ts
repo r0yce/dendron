@@ -168,7 +168,9 @@ const initialState: InitialState = {
 };
 
 export type EngineState = InitializedState;
-export const engineSlice = createSlice({
+// TS 7 TS2883: createSlice return type pulls non-portable vscode-uri names into .d.ts.
+// Cast keeps runtime identical while emitting a portable declaration surface.
+const _engineSlice = createSlice({
   name: "engine",
   initialState,
   reducers: {
@@ -259,6 +261,8 @@ export const engineSlice = createSlice({
   },
 });
 
+// Portable surface for TS 7 declaration emit (avoids non-portable vscode-uri names)
+export const engineSlice: any = _engineSlice;
 export const {
   setNotes,
   setError,
@@ -267,5 +271,5 @@ export const {
   setRenderNote,
   updateNote,
   tearDown,
-} = engineSlice.actions;
-export const reducer = engineSlice.reducer;
+} = _engineSlice.actions;
+export const reducer = _engineSlice.reducer;

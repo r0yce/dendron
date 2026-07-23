@@ -16,7 +16,7 @@
   },
   "gitHead": "4ba39ff9fcec3bd1f0ba4fbd663cb3b49449609b",
   "devDependencies": {
-    "autoprefixer": "10.5.0",
+    "autoprefixer": "10.5.4",
     "gulp": "5.0.1",
     "gulp-csso": "4.0.1",
     "gulp-debug": "5.0.1",

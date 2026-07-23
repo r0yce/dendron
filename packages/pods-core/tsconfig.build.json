@@ -4,10 +4,9 @@
     "outDir": "lib",
     "rootDir": "src",
     "skipLibCheck": true,
-    "baseUrl": ".",
     "paths": {
-      "emailjs": ["src/typings/emailjs.d.ts"],
-      "csv-writer": ["src/typings/csv-writer.d.ts"]
+      "emailjs": ["./src/typings/emailjs.d.ts"],
+      "csv-writer": ["./src/typings/csv-writer.d.ts"]
     }
   },
   "include": ["src/**/*"],

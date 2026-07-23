@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "allowSyntheticDefaultImports": false,
-    "target": "es5",
+    "target": "ES2022",
     "module": "commonjs",
     "jsx": "react",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "noImplicitAny": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,

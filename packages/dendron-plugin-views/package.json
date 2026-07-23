@@ -9,7 +9,10 @@
     ]
   },
   "dependencies": {
-    "@babel/core": "7.29.7",
+    "@babel/core": "8.0.1",
+    "@babel/preset-env": "8.0.2",
+    "@babel/preset-react": "8.0.1",
+    "@babel/preset-typescript": "8.0.1",
     "@dendronhq/common-all": "^0.124.0",
     "@dendronhq/common-frontend": "^0.124.0",
     "@dendronhq/common-server": "^0.124.0",
@@ -21,22 +24,19 @@
     "@types/cytoscape": "3.31.0",
     "@types/cytoscape-popper": "4.0.0",
     "@types/jest": "30.0.0",
-    "@types/node": "25.9.1",
-    "@types/react": "19.2.16",
+    "@types/node": "26.1.1",
+    "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
-    "antd": "6.4.3",
+    "antd": "6.5.1",
     "babel-jest": "30.4.1",
     "babel-loader": "10.1.1",
     "babel-plugin-named-asset-import": "0.3.8",
-    "@babel/preset-env": "7.29.7",
-    "@babel/preset-react": "7.29.7",
-    "@babel/preset-typescript": "7.29.7",
-    "babel-preset-react-app": "10.1.0",
     "bfj": "9.1.3",
     "camelcase": "9.0.0",
     "case-sensitive-paths-webpack-plugin": "2.4.0",
     "css-loader": "7.1.4",
-    "cytoscape": "3.33.4",
+    "css-minimizer-webpack-plugin": "8.0.0",
+    "cytoscape": "3.34.0",
     "cytoscape-euler": "1.2.4",
     "cytoscape-popper": "4.0.1",
     "dotenv": "17.4.2",
@@ -44,7 +44,7 @@
     "eslint-config-react-app": "7.0.1",
     "eslint-plugin-flowtype": "8.0.3",
     "eslint-plugin-import": "2.32.0",
-    "eslint-plugin-jest": "29.15.2",
+    "eslint-plugin-jest": "29.15.5",
     "eslint-plugin-jsx-a11y": "6.10.2",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.1.1",
@@ -61,8 +61,6 @@
     "lodash": "4.18.1",
     "mermaid": "11.15.0",
     "mini-css-extract-plugin": "2.10.2",
-    "sass": "1.100.0",
-    "optimize-css-assets-webpack-plugin": "6.0.1",
     "path-browserify": "1.0.1",
     "pnp-webpack-plugin": "1.7.0",
     "postcss-flexbugs-fixes": "5.0.2",
@@ -71,24 +69,25 @@
     "postcss-preset-env": "11.3.0",
     "postcss-safe-parser": "7.0.1",
     "prompts": "2.4.2",
-    "react": "19.2.7",
+    "react": "19.2.8",
     "react-app-polyfill": "3.0.0",
     "react-css-theme-switcher": "0.3.0",
     "react-dev-utils": "12.0.1",
-    "react-dom": "19.2.7",
+    "react-dom": "19.2.8",
     "react-refresh": "0.18.0",
     "resolve": "1.22.12",
     "resolve-url-loader": "5.0.0",
+    "sass": "1.100.0",
     "sass-loader": "17.0.0",
     "semver": "7.8.1",
     "style-loader": "4.0.0",
     "terser-webpack-plugin": "5.6.1",
     "tippy.js": "6.3.7",
     "ts-pnp": "1.2.0",
-    "typescript": "6.0.3",
+    "typescript": "7.0.2",
     "url-loader": "4.1.1",
     "web-vitals": "5.3.0",
-    "webpack": "5.107.2",
+    "webpack": "5.109.0",
     "webpack-dev-server": "5.2.4",
     "webpack-manifest-plugin": "6.0.1",
     "workbox-webpack-plugin": "7.4.1"
@@ -98,8 +97,8 @@
     "setup": "yarn build:index && yarn build:styles",
     "build": "yarn build:dev && yarn build:styles",
     "buildCI": "echo nop",
-    "build:dev": "yarn setup && npx cross-env BUILD_DEV=1 DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS=--openssl-legacy-provider node scripts/build.js",
-    "build:prod": "yarn setup && npx cross-env GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS=--openssl-legacy-provider node scripts/build.js",
+    "build:dev": "yarn setup && npx cross-env BUILD_DEV=1 DISABLE_ESLINT_PLUGIN=true node scripts/build.js",
+    "build:prod": "yarn setup && npx cross-env GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true node scripts/build.js",
     "build:styles": "node scripts/buildStyles.js",
     "build:index": "node scripts/buildIndex.js",
     "test": "echo 0",
@@ -178,7 +177,19 @@
   },
   "babel": {
     "presets": [
-      "react-app"
+      [
+        "@babel/preset-env",
+        {
+          "modules": false
+        }
+      ],
+      [
+        "@babel/preset-react",
+        {
+          "runtime": "automatic"
+        }
+      ],
+      "@babel/preset-typescript"
     ]
   },
   "devDependencies": {

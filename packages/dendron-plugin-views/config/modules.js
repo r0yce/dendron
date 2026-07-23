@@ -108,10 +108,14 @@ function getModules() {
   // TypeScript project and set up the config
   // based on tsconfig.json
   if (hasTsConfig) {
-    const ts = require(resolve.sync('typescript', {
-      basedir: paths.appNodeModules,
-    }));
-    config = ts.readConfigFile(paths.appTsConfig, ts.sys.readFile).config;
+    // TypeScript 7+ no longer exports the classic require('typescript') API
+    // (only CLI + version). Parse tsconfig JSON directly for CRA modules paths.
+    const raw = fs.readFileSync(paths.appTsConfig, "utf8");
+    // Strip // and /* */ comments enough for our tsconfig files
+    const stripped = raw
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    config = JSON.parse(stripped);
     // Otherwise we'll check if there is jsconfig.json
     // for non TS projects.
   } else if (hasJsConfig) {

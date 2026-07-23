@@ -148,7 +148,7 @@ export class BuildUtils {
     });
   }
 
-  static installPluginLocally(version: string) {
+  static installPluginLocally(version: string): Promise<unknown[]> {
     return Promise.all([
       $$(
         `code-insiders --install-extension "dendron-${version}.vsix" --force`,

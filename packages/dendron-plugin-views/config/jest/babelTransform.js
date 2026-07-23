@@ -1,28 +1,36 @@
-'use strict';
+"use strict";
 
-const babelJest = require('babel-jest');
+const babelJest = require("babel-jest");
 
 const hasJsxRuntime = (() => {
-  if (process.env.DISABLE_NEW_JSX_TRANSFORM === 'true') {
+  if (process.env.DISABLE_NEW_JSX_TRANSFORM === "true") {
     return false;
   }
 
   try {
-    require.resolve('react/jsx-runtime');
+    require.resolve("react/jsx-runtime");
     return true;
   } catch (e) {
     return false;
   }
 })();
 
+// Babel 8 explicit presets — no babel-preset-react-app
 module.exports = babelJest.createTransformer({
   presets: [
     [
-      require.resolve('babel-preset-react-app'),
+      require.resolve("@babel/preset-env"),
       {
-        runtime: hasJsxRuntime ? 'automatic' : 'classic',
+        targets: { node: "current" },
       },
     ],
+    [
+      require.resolve("@babel/preset-react"),
+      {
+        runtime: hasJsxRuntime ? "automatic" : "classic",
+      },
+    ],
+    require.resolve("@babel/preset-typescript"),
   ],
   babelrc: false,
   configFile: false,

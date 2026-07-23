@@ -20,44 +20,36 @@ Living list of **deferred** work for the personal fork. Items here are intention
 
 ### BL-001 — True-latest dependencies without bootstrap pins (P1)
 
-**Status:** **Mostly done** (wave 3 2026-07) — remaining: TypeScript 7, CRA/plugin-views bundler modernization  
-**Goal:** Prefer **latest published versions** + **code/config migrations** over version downgrades or broad `resolutions` pins, while keeping `yarn bootstrap:init` / `yarn verify:local` green.
+**Status:** **Done for core platform** (wave 4 2026-07 fully-latest) — residual: CRA shell shrink, some majors deferred  
+**Goal:** Prefer **latest published versions** + **code/config migrations** over version downgrades or broad `resolutions` pins, while keeping `yarn verify:local` green.
 
-**Wave 3 progress (2026-07)**
+**Wave 4 fully-latest (2026-07)**
 
 | Area | Result |
 |------|--------|
-| `dendron-cli` yargs **18.0.0** | **Done** — dynamic `import()` + `hideBin`/`parseAsync` in `bin/dendron-cli.ts`; type-only `Argv` elsewhere |
-| CLI engines | **Node `>=20.19.0`** (yargs 18 requirement); root + `.nvmrc` → 20 |
-| Force-old resolutions | **Removed** `@babel/helper-compilation-targets@7.22.15`, `loader-utils@2`, `ansi-regex@5` (+ strip-ansi pin) |
-| `common-assets` antd Less | **Done** — themes are pure Dendron CSS variables (no antd Less); **antd removed** as dep |
-| `remark-footnotes` | **Removed** — footnotes via existing `remark-gfm` |
-| Legacy `vsce` package | **Removed** root + plugin-core; use `@vscode/vsce` only |
-| CLI privacy | First CLI run no longer auto-`enable`s Segment (`ENABLED_BY_CLI_DEFAULT` removed) |
+| **TypeScript 7.0.2** | **Done** — monorepo on TS 7 CLI; `moduleResolution: bundler`; TS2883 portable-type fixes; `require('typescript')` API is gone in 7 (only version) — webpack modules.js parses tsconfig JSON instead |
+| **Babel 8** | **Done** — `@babel/*` 8.x; dropped `babel-preset-react-app`; explicit presets; no `loose`/`bugfixes` opts |
+| **plugin-views** | webpack **5.109**, `css-minimizer-webpack-plugin` 8, no openssl-legacy flag, `build:dev` green |
+| **React 19.2.8**, **antd 6.5.1**, **@types/node 26.1.1**, **@types/vscode 1.125**, axios 1.18.1, sentry 10.67, prisma 7.9, etc. | Bumped |
+| Prior wave 3 | yargs 18, privacy CLI, theme CSS, vsce → @vscode/vsce |
 
-**Still open**
+**Still open (optional / higher-risk majors)**
 
-| Area | Current | Latest path |
-|------|---------|-------------|
-| TypeScript | 6.0.3 monorepo | **7.x** (major; separate compile-fix wave) |
-| `dendron-plugin-views` | CRA + `react-dev-utils` | Vite/rspack or webpack-5-native (BL-003) |
-| Root `resolutions` | ~41 CVE/compat pins | Audit each; drop when transitive trees allow |
-| `pinTrueLatest.js` | Can re-introduce fights | Run after TS 7 + views bundler |
-
-**Policy (target state)**
-
-1. Bump direct deps to latest; fix breakages in source, webpack, or scripts.
-2. Use root `resolutions` only for **CVE overrides** or **documented exceptions**.
-3. Do **not** downgrade unless: (a) the npm publish is broken, or (b) a **platform** migration is explicitly deferred.
+| Area | Notes |
+|------|--------|
+| `react-dev-utils` | Still used by CRA-ejected scripts; keeps some older transitive trees |
+| `execa` 10 | ESM-major; stay on 9 until CLI/scripts audit |
+| `@vscode/test-electron` 3 | Test harness major |
+| Root `resolutions` CVE pins | Keep until `yarn audit` + clean trees justify drops |
+| Full Vite/rspack for views | BL-003 stretch — webpack 5 path is current |
 
 **Acceptance criteria**
 
-- [x] `yarn verify:local` green after wave 3 bumps
-- [x] yargs / footnotes / antd Less / force-old babel+loader+ansi pins addressed
-- [ ] `yarn bootstrap:init` on clean clone (smoke when convenient)
-- [ ] TypeScript 7
-- [ ] plugin-views bundler (BL-003)
-- [ ] `pinTrueLatest` does not fight remaining resolutions
+- [x] `yarn verify:local` green on TypeScript 7.0.2
+- [x] `yarn workspace @dendronhq/dendron-plugin-views run build:dev` green (Babel 8 + webpack 5.109)
+- [x] yargs 18 / footnotes / antd-less themes / force-old pins
+- [ ] `yarn bootstrap:init` on clean clone (optional smoke)
+- [ ] `pinTrueLatest` full run without re-pinning removed CRA deps
 
 **Codetour:** [.tours/advanced/02-dependencies-latest-backlog.tour](../../.tours/advanced/02-dependencies-latest-backlog.tour)
 
@@ -74,10 +66,11 @@ Root `eslint.config.js` is ESLint 10 flat config (TypeScript parser + relaxed ru
 
 ### BL-003 — `dendron-plugin-views` bundler strategy (P2)
 
-**Status:** Backlog  
+**Status:** **Partial** (webpack-5-native path advanced 2026-07)  
 **Goal:** Decide long-term: evolve CRA/webpack custom config vs. Vite/rspack for webviews.
 
-Tied to BL-001 (babel, `react-dev-utils`, bundle size warnings).
+**Done:** Babel 8 explicit presets, css-minimizer 8, no openssl-legacy, webpack 5.109, stable `index.bundle.js` contract.  
+**Left:** shrink/remove `react-dev-utils`, WDS 5 start.js API, optional Vite/rspack spike.
 
 ---
 
@@ -95,3 +88,4 @@ _Move completed items here with date and PR/commit._
 | BL-014 | 2026-07 | Local-only telemetry sink (`enable_telemetry --local` → NDJSON); health understands local |
 | BL-015 | 2026-07 | `dendron dev dump_perf` + DevShowAllPerfReports includes PerfRingBuffer |
 | BL-001a | 2026-07 | yargs 18 (ESM dynamic import), drop force-old resolutions, antd-less themes, remark-gfm footnotes, @vscode/vsce only, Node ≥20.19 |
+| BL-001b | 2026-07 | TypeScript 7.0.2 + Babel 8 + webpack 5.109 plugin-views; broad latest deps (react 19.2.8, node types 26, axios 1.18, sentry 10.67, prisma 7.9, …) |

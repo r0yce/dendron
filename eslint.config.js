@@ -1,22 +1,17 @@
 /**
- * ESLint 10 flat config (BL-002).
+ * ESLint 10 flat config (BL-002 / fully-latest).
  *
- * Why not full Airbnb/React via FlatCompat?
- * - `eslint-plugin-react@7.37` only declares peer support through ESLint 9.7.
- * - Under ESLint 10 it throws: `contextOrFilename.getFilename is not a function`.
+ * TypeScript 7: `@typescript-eslint/*` hard-fails on TS 7.0 (support tracking
+ * toward ≥7.1 — typescript-eslint#10940). Use `@babel/eslint-parser` so
+ * lint-staged can parse TS/TSX without the classic typescript-eslint API.
  *
- * This config restores pre-commit / lint-staged with a TypeScript-aware,
- * style-relaxed rule set that matches the project's historical "don't care"
- * posture (most stylistic rules off; Prettier owns formatting).
+ * Rules stay relaxed (Prettier owns formatting). Re-introduce typescript-eslint
+ * type-aware rules when the plugin supports the installed TypeScript major.
  *
- * When eslint-plugin-react + airbnb officially support ESLint 10, we can
- * re-introduce FlatCompat extends. Until then, this keeps `husky` green.
- *
- * Legacy `.eslintrc.js` is reference-only (ESLint 10 ignores it).
+ * Legacy `.eslintrc.js` is reference-only.
  */
 const js = require("@eslint/js");
-const tsParser = require("@typescript-eslint/parser");
-const tsPlugin = require("@typescript-eslint/eslint-plugin");
+const babelParser = require("@babel/eslint-parser");
 
 module.exports = [
   {
@@ -46,11 +41,28 @@ module.exports = [
   {
     files: ["**/*.{js,cjs,mjs,ts,tsx,jsx}"],
     languageOptions: {
-      parser: tsParser,
+      parser: babelParser,
+      parserOptions: {
+        requireConfigFile: false,
+        babelOptions: {
+          babelrc: false,
+          configFile: false,
+          // Direct parser plugin (presets alone are not applied correctly by
+          // @babel/eslint-parser for `import type` under Babel 8).
+          parserOpts: {
+            plugins: [
+              "typescript",
+              "jsx",
+              "classProperties",
+              "decorators-legacy",
+            ],
+          },
+        },
+        ecmaFeatures: { jsx: true },
+      },
       ecmaVersion: 2022,
       sourceType: "module",
       globals: {
-        // Node + browser hybrid monorepo
         console: "readonly",
         process: "readonly",
         Buffer: "readonly",
@@ -84,14 +96,9 @@ module.exports = [
         afterAll: "readonly",
       },
     },
-    plugins: {
-      "@typescript-eslint": tsPlugin,
-    },
     rules: {
-      // Match historical dendron .eslintrc posture: formatting via prettier, low noise
       "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": "off",
-      "no-undef": "off", // TypeScript handles this
+      "no-undef": "off",
       "no-redeclare": "off",
       "no-empty": "off",
       "no-constant-condition": "off",
