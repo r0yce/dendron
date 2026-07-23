@@ -1,5 +1,6 @@
 import * as _ from "lodash";
 import { milliseconds } from "../timing";
+import { globalPerfRing } from "../perf/ringBuffer";
 
 /**
  *  Performance timer utility class to make it easier to quickly add performance
@@ -50,7 +51,10 @@ export class PerformanceTimer {
       if (this.timingsMillis.has(name)) {
         this.errors.push(`Duplicate recording of finishing name='${name}'`);
       } else {
-        this.timingsMillis.set(name, now - beforeStamp);
+        const durationMs = now - beforeStamp;
+        this.timingsMillis.set(name, durationMs);
+        const prefix = this.opts?.timerName ? `${this.opts.timerName}:` : "";
+        globalPerfRing.push({ name: `${prefix}${name}`, durationMs });
       }
     } else {
       this.errors.push(`Called after() with non existent name='${name}'`);
@@ -66,10 +70,10 @@ export class PerformanceTimer {
     report.push(
       Array.from(this.timingsMillis.keys())
         .map((name) => `${name}:${this.timingsMillis.get(name)}ms`)
-        .join(" | ")
+        .join(" | "),
     );
     report.push(
-      ` | Total: ${_.sum(Array.from(this.timingsMillis.values()))}ms`
+      ` | Total: ${_.sum(Array.from(this.timingsMillis.values()))}ms`,
     );
     if (this.errors.length) {
       report.push(`ERRORS FOUND:`);

@@ -35,6 +35,8 @@ export const CONSTANTS = {
   DENDRON_ID: ".dendron.uuid",
   DENDRON_NO_TELEMETRY: ".dendron.no-telemetry",
   DENDRON_TELEMETRY: ".dendron.telemetry",
+  /** NDJSON local event log (privacy-first opt-in; never uploaded). */
+  DENDRON_LOCAL_TELEMETRY: ".dendron.local-telemetry.ndjson",
   DENDRON_HOOKS_BASE: "hooks",
   DENDRON_USER_NOTE_TRAITS_BASE: "noteTraits",
   DENDRON_LOCAL_SITE_PORT: 8080,

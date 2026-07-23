@@ -21,10 +21,31 @@ describe("SegmentClient", () => {
     sinon.restore();
   });
 
-  test("enabled by default", (done) => {
+  test("disabled by default (personal fork privacy)", (done) => {
+    // Fork default: no telemetry config on disk → opted out.
+    // Opt in via SegmentClient.enable(...) or DENDRON_TELEMETRY_DEFAULT=on.
     const instance = SegmentClient.instance({ forceNew: true });
-    expect(instance.hasOptedOut).toEqual(false);
+    expect(instance.hasOptedOut).toEqual(true);
+    expect(SegmentClient.getStatus()).toEqual(
+      TelemetryStatus.DISABLED_BY_FORK_DEFAULT,
+    );
 
+    done();
+  });
+
+  test("enabled when DENDRON_TELEMETRY_DEFAULT=on", (done) => {
+    const prev = process.env.DENDRON_TELEMETRY_DEFAULT;
+    process.env.DENDRON_TELEMETRY_DEFAULT = "on";
+    try {
+      const instance = SegmentClient.instance({ forceNew: true });
+      expect(instance.hasOptedOut).toEqual(false);
+    } finally {
+      if (prev === undefined) {
+        delete process.env.DENDRON_TELEMETRY_DEFAULT;
+      } else {
+        process.env.DENDRON_TELEMETRY_DEFAULT = prev;
+      }
+    }
     done();
   });
 
@@ -160,6 +181,8 @@ describe("GIVEN a SegmentClient", () => {
   const filepath = path.join(tmpDir().name, "test.log");
 
   SegmentClient.unlock();
+  // Residual-cache tests need telemetry enabled (fork default is OFF).
+  SegmentClient.enable(TelemetryStatus.ENABLED_BY_CONFIG);
   const instance = SegmentClient.instance({
     forceNew: true,
     cachePath: filepath,
@@ -182,7 +205,7 @@ describe("GIVEN a SegmentClient", () => {
   const invalidPayload = "this is invalid JSON";
 
   function mockedTrackInternal(
-    opts: SegmentEventProps
+    opts: SegmentEventProps,
   ): Promise<RespV2<SegmentEventProps>> {
     return new Promise<RespV2<SegmentEventProps>>((resolve) => {
       if (opts.event === "mockFailToSend") {
@@ -198,7 +221,9 @@ describe("GIVEN a SegmentClient", () => {
   }
 
   beforeEach(() => {
-    sinon.stub(instance as any, "trackInternal").callsFake(mockedTrackInternal as any);
+    sinon
+      .stub(instance as any, "trackInternal")
+      .callsFake(mockedTrackInternal as any);
   });
 
   afterEach(() => {
@@ -313,7 +338,7 @@ describe("GIVEN a SegmentClient", () => {
     beforeEach(async () => {
       await instance.writeToResidualCache(
         filepath,
-        invalidPayload as unknown as SegmentEventProps
+        invalidPayload as unknown as SegmentEventProps,
       );
 
       results = await instance.tryFlushResidualCache();
@@ -345,7 +370,7 @@ describe("GIVEN a SegmentClient", () => {
     beforeEach(async () => {
       await instance.writeToResidualCache(
         filepath,
-        invalidPayload as unknown as SegmentEventProps
+        invalidPayload as unknown as SegmentEventProps,
       );
 
       await instance.writeToResidualCache(filepath, payloadThatWillSend);

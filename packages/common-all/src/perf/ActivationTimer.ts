@@ -9,11 +9,13 @@
  *   t.finish();
  *
  * When DENDRON_PERF=1 or LOG_LEVEL=debug, it will log structured timing info.
+ * Always records phase deltas into {@link globalPerfRing} for doctor / dump.
  */
+import { globalPerfRing } from "./ringBuffer";
+
 let now: () => number;
 try {
   // Node.js environment
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { performance: nodePerf } = require("perf_hooks");
   now = () => nodePerf.now();
 } catch {
@@ -38,17 +40,35 @@ export class ActivationTimer {
     this.mark("finish");
     const total = this.marks[this.marks.length - 1]!.ts - this.startTs;
 
+    // Always feed the global ring (cheap; fixed capacity).
+    let prev = this.startTs;
+    for (const m of this.marks) {
+      const delta = m.ts - prev;
+      globalPerfRing.push({
+        name: `activation:${m.name}`,
+        durationMs: delta,
+        meta: { fromStartMs: m.ts - this.startTs },
+      });
+      prev = m.ts;
+    }
+    globalPerfRing.push({
+      name: "activation:total",
+      durationMs: total,
+    });
+
     // Only do our nice formatted output when explicitly requested.
     // This prevents raw arrays/objects from being accidentally logged
     // by other loggers in the activation path.
     if (process.env.DENDRON_PERF === "1") {
       console.log("\n=== Dendron Activation Performance ===");
       console.log(`Total activation time: ${total.toFixed(1)}ms`);
-      let prev = this.startTs;
+      prev = this.startTs;
       for (const m of this.marks) {
         const delta = (m.ts - prev).toFixed(1);
         const fromStart = (m.ts - this.startTs).toFixed(1);
-        console.log(`  ${m.name.padEnd(30)} +${delta}ms   (${fromStart}ms from start)`);
+        console.log(
+          `  ${m.name.padEnd(30)} +${delta}ms   (${fromStart}ms from start)`,
+        );
         prev = m.ts;
       }
       console.log("======================================\n");
@@ -83,7 +103,9 @@ export class ActivationTimer {
     for (const m of this.marks) {
       const delta = (m.ts - prev).toFixed(1);
       const fromStart = (m.ts - this.startTs).toFixed(1);
-      lines.push(`  ${m.name.padEnd(32)} +${delta.padStart(7)}ms   (${fromStart.padStart(7)}ms from start)`);
+      lines.push(
+        `  ${m.name.padEnd(32)} +${delta.padStart(7)}ms   (${fromStart.padStart(7)}ms from start)`,
+      );
       prev = m.ts;
     }
     lines.push("");
@@ -95,10 +117,11 @@ export class ActivationTimer {
    * Returns the raw marks for advanced use (e.g. sending to a webview).
    */
   getMarks() {
-    return this.marks.map(m => ({
+    return this.marks.map((m) => ({
       name: m.name,
       ts: m.ts,
-      deltaFromPrevious: m.ts - (this.marks[this.marks.indexOf(m) - 1]?.ts ?? this.startTs),
+      deltaFromPrevious:
+        m.ts - (this.marks[this.marks.indexOf(m) - 1]?.ts ?? this.startTs),
       deltaFromStart: m.ts - this.startTs,
     }));
   }

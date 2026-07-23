@@ -18,6 +18,7 @@ import os from "os";
 import path from "path";
 import { getOS } from "./system";
 import { createLogger, DLogger } from "./logger";
+import { LocalTelemetry } from "./localTelemetry";
 
 enum SiteEvents {
   PUBLISH_CLICKED = "sitePublishClick",
@@ -104,6 +105,12 @@ export enum TelemetryStatus {
   DISABLED_BY_COMMAND = "disabled by command",
   /** The user disabled telemetry using dendron-cli */
   DISABLED_BY_CLI_COMMAND = "disabled by cli command",
+  /**
+   * Personal-fork default: no telemetry config on disk means off.
+   * Upstream Dendron defaulted to enabled; this fork is privacy-first.
+   * Opt in via Enable Telemetry command or CLI.
+   */
+  DISABLED_BY_FORK_DEFAULT = "disabled by fork default",
   /** The user disabled telemetry in configuration, but used the Enable Telemetry command to give permission. */
   ENABLED_BY_COMMAND = "enabled by command",
   /** The user allowed telemetry by configuration. */
@@ -114,6 +121,11 @@ export enum TelemetryStatus {
   ENABLED_BY_CLI_COMMAND = "enabled by cli command",
   /** The user used dendron-cli before setting telemetry with vscode or plugin */
   ENABLED_BY_CLI_DEFAULT = "enabled by cli default",
+  /**
+   * Personal fork: opt-in local NDJSON file only (no Segment/Sentry network).
+   * Set via `dendron dev enable_telemetry --local`.
+   */
+  ENABLED_BY_LOCAL_FILE = "enabled by local file",
 }
 
 enum SegmentResidualFlushStatus {
@@ -199,8 +211,15 @@ export class SegmentClient {
       return TelemetryStatus.DISABLED_BY_COMMAND;
 
     const config = this.readConfig();
-    // This is actually ambiguous, could have been using the command or by default.
-    if (_.isUndefined(config)) return TelemetryStatus.ENABLED_BY_CONFIG;
+    // Personal fork (r0yce/dendron): no explicit telemetry config → OFF by default.
+    // Upstream treated missing config as ENABLED_BY_CONFIG. Opt in with Enable Telemetry.
+    // Escape hatch for tests / deliberate opt-in default: DENDRON_TELEMETRY_DEFAULT=on
+    if (_.isUndefined(config)) {
+      if (process.env.DENDRON_TELEMETRY_DEFAULT === "on") {
+        return TelemetryStatus.ENABLED_BY_CONFIG;
+      }
+      return TelemetryStatus.DISABLED_BY_FORK_DEFAULT;
+    }
 
     return config.status;
   }
@@ -212,10 +231,20 @@ export class SegmentClient {
       case TelemetryStatus.DISABLED_BY_CLI_COMMAND:
       case TelemetryStatus.DISABLED_BY_VSCODE_CONFIG:
       case TelemetryStatus.DISABLED_BY_WS_CONFIG:
+      case TelemetryStatus.DISABLED_BY_FORK_DEFAULT:
         return true;
       default:
         return false;
     }
+  }
+
+  /** True when only the local NDJSON sink is active (no Segment network). */
+  static isLocalOnly(status?: TelemetryStatus) {
+    if (_.isUndefined(status)) status = this.getStatus();
+    return (
+      status === TelemetryStatus.ENABLED_BY_LOCAL_FILE ||
+      LocalTelemetry.isEnabled(status)
+    );
   }
 
   static isEnabled(status?: TelemetryStatus) {
@@ -229,6 +258,7 @@ export class SegmentClient {
       | TelemetryStatus.ENABLED_BY_CLI_DEFAULT
       | TelemetryStatus.ENABLED_BY_CONFIG
       | TelemetryStatus.ENABLED_BY_MIGRATION
+      | TelemetryStatus.ENABLED_BY_LOCAL_FILE,
   ) {
     // try to remove the legacy disable, if it exists
     try {
@@ -244,7 +274,7 @@ export class SegmentClient {
       | TelemetryStatus.DISABLED_BY_COMMAND
       | TelemetryStatus.DISABLED_BY_CLI_COMMAND
       | TelemetryStatus.DISABLED_BY_VSCODE_CONFIG
-      | TelemetryStatus.DISABLED_BY_WS_CONFIG
+      | TelemetryStatus.DISABLED_BY_WS_CONFIG,
   ) {
     fs.writeJSONSync(this.getConfigPath(), { status: why });
   }
@@ -255,14 +285,14 @@ export class SegmentClient {
       disabledByWorkspace: false,
     });
     this.logger = createLogger("SegmentClient");
-    this._segmentInstance = new Analytics(key ?? "" as string);
+    this._segmentInstance = new Analytics(key ?? ("" as string));
     if (_opts?.cachePath !== undefined) {
       this._cachePath = _opts.cachePath;
     }
 
     if (!_opts?.cachePath) {
       this.logger.info(
-        "No cache path for Segment specified. Failed event uploads will not be retried."
+        "No cache path for Segment specified. Failed event uploads will not be retried.",
       );
     }
 
@@ -275,12 +305,22 @@ export class SegmentClient {
       return;
     }
 
+    // Local-file mode: keep an anonymous id for session correlation, but never
+    // instantiate Segment network client usage beyond a dummy key.
+    if (SegmentClient.isLocalOnly(status)) {
+      this._anonymousId = "local-only";
+      this.logger.info({
+        msg: "local-file telemetry mode (no Segment network)",
+      });
+      return;
+    }
+
     const uuidPath = path.join(os.homedir(), CONSTANTS.DENDRON_ID);
     this.logger.info({ msg: "telemetry initializing" });
     if (fs.existsSync(uuidPath)) {
       this.logger.info({ msg: "using existing id" });
       this._anonymousId = _.trim(
-        fs.readFileSync(uuidPath, { encoding: "utf8" })
+        fs.readFileSync(uuidPath, { encoding: "utf8" }),
       );
     } else {
       this.logger.info({ msg: "creating new id" });
@@ -297,12 +337,17 @@ export class SegmentClient {
   identify(
     id?: string,
     props?: { [key: string]: any },
-    opts?: SegmentExtraArg
+    opts?: SegmentExtraArg,
   ) {
     if (RuntimeUtils.isRunningInTestOrCI()) {
       return;
     }
     if (this._hasOptedOut || this._segmentInstance == null) {
+      return;
+    }
+    // Never send identify traits to Segment in local-file mode
+    if (SegmentClient.isLocalOnly()) {
+      void LocalTelemetry.append("identify", props as Record<string, unknown>);
       return;
     }
     try {
@@ -334,7 +379,17 @@ export class SegmentClient {
    * is not recommended to await this function for metrics tracking.
    */
   async track(opts: SegmentEventProps): Promise<void> {
-    if (this._hasOptedOut || this._segmentInstance == null) {
+    if (this._hasOptedOut) {
+      return;
+    }
+
+    // Privacy-first local sink: write NDJSON, never call Segment.
+    if (SegmentClient.isLocalOnly()) {
+      await LocalTelemetry.append(opts.event, opts.properties);
+      return;
+    }
+
+    if (this._segmentInstance == null) {
       return;
     }
     const resp = await this.trackInternal(opts);
@@ -352,7 +407,7 @@ export class SegmentClient {
         this.logger.error(
           new DendronError({
             message: "Failed to write to segment residual cache: " + err,
-          })
+          }),
         );
       }
     }
@@ -384,7 +439,7 @@ export class SegmentClient {
             let eventTime: Date;
             try {
               eventTime = new Date(
-                JSON.parse((err as any).config.data).timestamp
+                JSON.parse((err as any).config.data).timestamp,
               );
             } catch (err) {
               eventTime = new Date();
@@ -405,7 +460,7 @@ export class SegmentClient {
           }
 
           resolve({ error: null });
-        }
+        },
       );
     });
   }
@@ -491,7 +546,7 @@ export class SegmentClient {
               resolve(
                 resp.error
                   ? SegmentResidualFlushStatus.retryableError
-                  : SegmentResidualFlushStatus.success
+                  : SegmentResidualFlushStatus.success,
               );
             })
             .catch(() => {
@@ -531,7 +586,7 @@ export class SegmentClient {
       this._cachePath,
       eventLines
         .filter((_value, index) => !nonRetryIndex.includes(index))
-        .join("\n")
+        .join("\n"),
     );
 
     const stats = {
@@ -598,7 +653,7 @@ export class SegmentUtils {
   static async track(
     opts: SegmentEventProps & {
       platformProps: VSCodeProps | CLIProps;
-    }
+    },
   ): Promise<void> {
     return this._trackCommon(opts);
   }
@@ -611,7 +666,7 @@ export class SegmentUtils {
   static async trackSync(
     opts: SegmentEventProps & {
       platformProps: VSCodeProps | CLIProps;
-    }
+    },
   ): Promise<void> {
     return this._trackCommon(opts);
   }
@@ -638,7 +693,7 @@ export class SegmentUtils {
             },
             userAgent,
           },
-        }
+        },
       );
     }
 
@@ -659,7 +714,7 @@ export class SegmentUtils {
               name: getOS(),
             },
           },
-        }
+        },
       );
     }
   }

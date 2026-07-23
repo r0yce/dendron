@@ -12,8 +12,8 @@ module.exports = {
     "prettier",
     "plugin:@typescript-eslint/eslint-recommended"
   ],
-  // NOTE: This is still a legacy .eslintrc format.
-  // Full migration to ESLint 9 flat config is tracked as future modernization work.
+  // LEGACY REFERENCE ONLY — ESLint 10 loads root `eslint.config.js` (BL-002).
+  // This file is not used by ESLint 10+; keep for historical rule intent / future airbnb restore.
   globals: {
     Atomics: "readonly",
     SharedArrayBuffer: "readonly",

@@ -93,7 +93,7 @@ const MARKDOWN_WORD_PATTERN = new RegExp("([\\w\\.]+)");
 
 // this method is called when your extension is activated
 export function activate(
-  context: vscode.ExtensionContext
+  context: vscode.ExtensionContext,
 ): vscode.ExtensionContext {
   const stage = getStage();
   // override default word pattern
@@ -137,7 +137,7 @@ export async function _activate(
      * Skip showing tree view
      */
     skipTreeView: boolean;
-  }>
+  }>,
 ): Promise<boolean> {
   const startActivate = process.hrtime();
   const isDebug = VSCodeUtils.isDevMode();
@@ -183,7 +183,12 @@ export async function _activate(
 
   // If telemetry is not disabled, we enable telemetry and error reporting ^rw8l1w51hnjz
   // - NOTE: we do this outside of the try/catch block in case we run into an error with initialization
-  if (!SegmentClient.instance().hasOptedOut && getStage() === "prod") {
+  // Personal fork: local-file mode never initializes Sentry (no network).
+  if (
+    !SegmentClient.instance().hasOptedOut &&
+    !SegmentClient.isLocalOnly() &&
+    getStage() === "prod"
+  ) {
     initializeSentry({
       environment: getStage(),
       sessionId: AnalyticsUtils.getSessionId(),
@@ -198,7 +203,7 @@ export async function _activate(
     const segmentAnonymousId = SegmentClient.instance().anonymousId;
 
     const globalStateId = context.globalState.get<string | undefined>(
-      GLOBAL_STATE_KEYS.ANONYMOUS_ID
+      GLOBAL_STATE_KEYS.ANONYMOUS_ID,
     );
 
     if (globalStateId !== segmentAnonymousId) {
@@ -209,7 +214,7 @@ export async function _activate(
       }
       context.globalState.update(
         GLOBAL_STATE_KEYS.ANONYMOUS_ID,
-        SegmentClient.instance().anonymousId
+        SegmentClient.instance().anonymousId,
       );
     }
   }
@@ -241,13 +246,15 @@ export async function _activate(
         vscode.commands.registerCommand(
           DENDRON_COMMANDS.RELOAD_INDEX!.key,
           sentryReportingCallback(async (silent?: boolean) => {
-            const out = await new ReloadIndexCommand().run({ silent: silent as boolean | undefined });
+            const out = await new ReloadIndexCommand().run({
+              silent: silent as boolean | undefined,
+            });
             if (!silent) {
               vscode.window.showInformationMessage(`finish reload`);
             }
             return out;
-          })
-        )
+          }),
+        ),
       );
     }
     await _setupCommands({ ext: ws, context, requireActiveWorkspace: true });
@@ -259,13 +266,18 @@ export async function _activate(
     // Need to recompute this for tests, because the instance of DendronExtension doesn't get re-created.
     // Probably also needed if the user switches from one workspace to the other.
     ws.type = await WorkspaceUtils.getWorkspaceType({
-      workspaceFile: vscode.workspace.workspaceFile ?? undefined as any /* TODO: vscode.Uri vs URI + exactOptional at getWorkspaceType boundary; Batch 6 debug launch sweep 2026-05-31 (per Strict-Fixer plan on _extension workspaceFile/DWorkspaceV2 + user mandate to 0 + full test + Clean Host smoke + merge); see 4-axis + di-container + ADR 0001 */,
-      workspaceFolders: vscode.workspace.workspaceFolders ?? undefined as any /* TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes (workspaceFolders | undefined at getWorkspaceType); Batch 6 debug launch sweep 2026-05-31 (per Strict-Fixer plan + user mandate "finish the remaining clusters until 0 then full test + Clean Host smoke + merge"); see 4-axis + di-container + ADR 0001 */,
+      workspaceFile:
+        vscode.workspace.workspaceFile ??
+        (undefined as any) /* TODO: vscode.Uri vs URI + exactOptional at getWorkspaceType boundary; Batch 6 debug launch sweep 2026-05-31 (per Strict-Fixer plan on _extension workspaceFile/DWorkspaceV2 + user mandate to 0 + full test + Clean Host smoke + merge); see 4-axis + di-container + ADR 0001 */,
+      workspaceFolders:
+        vscode.workspace.workspaceFolders ??
+        (undefined as any) /* TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes (workspaceFolders | undefined at getWorkspaceType); Batch 6 debug launch sweep 2026-05-31 (per Strict-Fixer plan + user mandate "finish the remaining clusters until 0 then full test + Clean Host smoke + merge"); see 4-axis + di-container + ADR 0001 */,
     });
     // Also need to reset the implementation here for testing. Doing it in all
     // cases because if the extension is activated, we'll recreate it while
     // activating the workspace
-    ws.workspaceImpl = undefined as any /* TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes (DWorkspaceV2 | undefined assignment at workspace activation); Batch 6 debug launch sweep 2026-05-31 (per Strict-Fixer plan on _extension workspaceFile/DWorkspaceV2 + user mandate "finish the remaining clusters until 0 then full test + Clean Host smoke + merge"); see 4-axis + di-container + ADR 0001 + main thread prior casts in this file (workspaceFile) and activator */; // lingering site addressed with full 4-axis boundary cast per rules (cross from common-all DWorkspaceV2)
+    ws.workspaceImpl =
+      undefined as any /* TODO: Monorepo 4-axis + di-container ergonomics + exactOptionalPropertyTypes (DWorkspaceV2 | undefined assignment at workspace activation); Batch 6 debug launch sweep 2026-05-31 (per Strict-Fixer plan on _extension workspaceFile/DWorkspaceV2 + user mandate "finish the remaining clusters until 0 then full test + Clean Host smoke + merge"); see 4-axis + di-container + ADR 0001 + main thread prior casts in this file (workspaceFile) and activator */; // lingering site addressed with full 4-axis boundary cast per rules (cross from common-all DWorkspaceV2)
 
     const currentVersion = DendronExtension.version();
     const previousWorkspaceVersionFromState =
@@ -287,7 +299,7 @@ export async function _activate(
       // For new users, we want to load graph with new graph themes as default
       let graphTheme;
       const ABUserGroup = GRAPH_THEME_TEST.getUserGroup(
-        SegmentClient.instance().anonymousId
+        SegmentClient.instance().anonymousId,
       );
       switch (ABUserGroup) {
         case GraphThemeTestGroups.monokai: {
@@ -379,7 +391,7 @@ export async function _activate(
             version: ext?.packageJSON?.version,
             active: ext?.isActive,
           };
-        }
+        },
       );
 
       Logger.info({
@@ -424,7 +436,7 @@ export async function _activate(
             semver.lt(firstInstallVersion, "0.113.0")
           ) {
             hasShown = showcase.showSpecificToast(
-              new CreateScratchNoteKeybindingTip()
+              new CreateScratchNoteKeybindingTip(),
             );
           }
           if (!hasShown) {
@@ -490,7 +502,10 @@ export async function _activate(
 }
 
 function logActivationReport(timer: ActivationTimer) {
-  const isDev = getStage() === "dev" || process.env.DENDRON_PERF === "1" || process.env.LOG_LEVEL === "debug";
+  const isDev =
+    getStage() === "dev" ||
+    process.env.DENDRON_PERF === "1" ||
+    process.env.LOG_LEVEL === "debug";
 
   timer.finish(); // always call finish
 
@@ -513,7 +528,10 @@ function logActivationReport(timer: ActivationTimer) {
   devChannel.show(true); // show but don't steal focus
 
   // 3. Also keep a compact version in the main Dendron channel
-  Logger.info({ ctx: "ActivationPerformance", totalMs: report.match(/Total: ([\d.]+)ms/)?.[1] ?? "unknown" });
+  Logger.info({
+    ctx: "ActivationPerformance",
+    totalMs: report.match(/Total: ([\d.]+)ms/)?.[1] ?? "unknown",
+  });
 }
 
 function togglePluginActiveContext(enabled: boolean) {
@@ -583,7 +601,7 @@ async function showWelcomeOrWhatsNew({
         _.set(
           installTrackProps,
           "ageOfCodeInstallInWeeks",
-          ageOfCodeInstallInWeeks
+          ageOfCodeInstallInWeeks,
         );
       }
       // track how long install process took ^e8itkyfj2rn3
@@ -614,7 +632,7 @@ async function showWelcomeOrWhatsNew({
       vscode.window
         .showInformationMessage(
           `Dendron has been upgraded to ${version}`,
-          buttonAction
+          buttonAction,
         )
         .then((resp) => {
           if (resp === buttonAction) {
@@ -625,8 +643,8 @@ async function showWelcomeOrWhatsNew({
             vscode.commands.executeCommand(
               "vscode.open",
               vscode.Uri.parse(
-                "https://dendron.so/notes/9bc92432-a24c-492b-b831-4d5378c1692b.html"
-              )
+                "https://dendron.so/notes/9bc92432-a24c-492b-b831-4d5378c1692b.html",
+              ),
             );
           }
         });
@@ -671,8 +689,8 @@ async function _setupCommands({
           cmd.key,
           sentryReportingCallback(async (args: any) => {
             await cmd.run(args);
-          })
-        )
+          }),
+        ),
       );
   });
   // ---
@@ -683,8 +701,8 @@ async function _setupCommands({
           DENDRON_COMMANDS.GO_NEXT_HIERARCHY.key,
           sentryReportingCallback(async () => {
             await new GoToSiblingCommand().execute({ direction: "next" });
-          })
-        )
+          }),
+        ),
       );
     }
     if (!existingCommands.includes(DENDRON_COMMANDS.GO_PREV_HIERARCHY.key)) {
@@ -693,8 +711,8 @@ async function _setupCommands({
           DENDRON_COMMANDS.GO_PREV_HIERARCHY.key,
           sentryReportingCallback(async () => {
             await new GoToSiblingCommand().execute({ direction: "prev" });
-          })
-        )
+          }),
+        ),
       );
     }
 
@@ -709,8 +727,8 @@ async function _setupCommands({
               args = {};
             }
             await new TogglePreviewCommand(preview).run(args);
-          })
-        )
+          }),
+        ),
       );
     }
 
@@ -723,8 +741,8 @@ async function _setupCommands({
               args = {};
             }
             await new TogglePreviewLockCommand(preview).run(args);
-          })
-        )
+          }),
+        ),
       );
     }
 
@@ -734,10 +752,10 @@ async function _setupCommands({
           DENDRON_COMMANDS.SHOW_SCHEMA_GRAPH.key,
           sentryReportingCallback(async () => {
             await new ShowSchemaGraphCommand(
-              SchemaGraphViewFactory.create(ext)
+              SchemaGraphViewFactory.create(ext),
             ).run();
-          })
-        )
+          }),
+        ),
       );
     }
 
@@ -747,10 +765,10 @@ async function _setupCommands({
           DENDRON_COMMANDS.SHOW_NOTE_GRAPH.key,
           sentryReportingCallback(async () => {
             await new ShowNoteGraphCommand(
-              NoteGraphPanelFactory.create(ext, ext.getEngine())
+              NoteGraphPanelFactory.create(ext, ext.getEngine()),
             ).run();
-          })
-        )
+          }),
+        ),
       );
     }
 
@@ -760,10 +778,10 @@ async function _setupCommands({
           DENDRON_COMMANDS.CONFIGURE_UI.key,
           sentryReportingCallback(async () => {
             await new ConfigureWithUICommand(
-              ConfigureUIPanelFactory.create(ext)
+              ConfigureUIPanelFactory.create(ext),
             ).run();
-          })
-        )
+          }),
+        ),
       );
     }
     if (!existingCommands.includes(DENDRON_COMMANDS.TREEVIEW_GOTO_NOTE.key)) {
@@ -777,8 +795,8 @@ async function _setupCommands({
               qs: data?.fname,
               vault: data?.vault,
             });
-          })
-        )
+          }),
+        ),
       );
     }
   }
@@ -804,13 +822,13 @@ async function _setupCommands({
         DENDRON_COMMANDS.SEED_BROWSE.key,
         sentryReportingCallback(async () => {
           const panel = WebViewPanelFactory.create(
-            ext.workspaceService!.seedService
+            ext.workspaceService!.seedService,
           );
           const cmd = new SeedBrowseCommand(panel);
 
           return cmd.run();
-        })
-      )
+        }),
+      ),
     );
   }
 }
@@ -824,34 +842,34 @@ function _setupLanguageFeatures(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.languages.registerReferenceProvider(
       mdLangSelector,
-      new ReferenceProvider()
-    )
+      new ReferenceProvider(),
+    ),
   );
   context.subscriptions.push(
     vscode.languages.registerDefinitionProvider(
       // Allows definition provider to work for wikilinks in non-note files
       anyLangSelector,
-      new DefinitionProvider()
-    )
+      new DefinitionProvider(),
+    ),
   );
   context.subscriptions.push(
     vscode.languages.registerHoverProvider(
       // Allows hover provider to work for wikilinks in non-note files
       anyLangSelector,
-      new ReferenceHoverProvider()
-    )
+      new ReferenceHoverProvider(),
+    ),
   );
   context.subscriptions.push(
     vscode.languages.registerFoldingRangeProvider(
       mdLangSelector,
-      new FrontmatterFoldingRangeProvider()
-    )
+      new FrontmatterFoldingRangeProvider(),
+    ),
   );
   context.subscriptions.push(
     vscode.languages.registerRenameProvider(
       mdLangSelector,
-      new RenameProvider()
-    )
+      new RenameProvider(),
+    ),
   );
   completionProvider.activate(context);
   codeActionProvider.activate(context);

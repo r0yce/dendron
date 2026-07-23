@@ -20,8 +20,14 @@ Living list of **deferred** work for the personal fork. Items here are intention
 
 ### BL-001 — True-latest dependencies without bootstrap pins (P1)
 
-**Status:** Backlog  
+**Status:** Backlog (partial — hygiene wave 2026-07)  
 **Goal:** Prefer **latest published versions** + **code/config migrations** over version downgrades or broad `resolutions` pins, while keeping `yarn bootstrap:init` green.
+
+**Wave 2 progress (2026-07)**
+
+- Removed ~800 co-located `src/**/*.js` / `.js.map` / sibling `.d.ts` build artifacts that lied about removed Airtable types and poisoned TS resolution.
+- Root `.gitignore` now blocks re-committing co-located emit under `packages/*/src` (with intentional exceptions for fixtures/shims/prisma).
+- Pin removals **not** done this wave: yargs 18 ESM, antd 6, CRA `ansi-regex`/`loader-utils`, babel helper — still require dedicated migrations (see table).
 
 **Why this exists**
 
@@ -65,10 +71,10 @@ Living list of **deferred** work for the personal fork. Items here are intention
 
 ### BL-002 — ESLint 10 + flat config for pre-commit (P2)
 
-**Status:** Backlog  
+**Status:** **Done** (2026-07)  
 **Goal:** Restore `husky` pre-commit without `--no-verify`.
 
-Pre-commit currently fails when ESLint 10 expects `eslint.config.js`. Add flat config or pin ESLint 9 until migrated.
+Root `eslint.config.js` is ESLint 10 flat config (TypeScript parser + relaxed rules). Full Airbnb/React via FlatCompat is **deferred**: `eslint-plugin-react@7.37` only peers through ESLint 9.7 and crashes under 10 (`getFilename is not a function`). Legacy `.eslintrc.js` kept as reference.
 
 ---
 
@@ -87,4 +93,10 @@ _Move completed items here with date and PR/commit._
 
 | Id | Done | Notes |
 |----|------|-------|
-| — | — | — |
+| BL-002 | 2026-07 | `eslint.config.js` + `@eslint/eslintrc` / `@eslint/js`; pre-commit ESLint 10 works |
+| BL-010 | 2026-07 | Privacy-first telemetry default OFF (`DISABLED_BY_FORK_DEFAULT`); see `docs/dev/TELEMETRY.md` |
+| BL-011 | 2026-07 | Real `PerfRingBuffer` in common-all; wired to ActivationTimer, PerformanceTimer, `dendron health --verbose` |
+| BL-012 | 2026-07 | Doctor: `node` + `telemetry` checks; ring snapshot in verbose/JSON |
+| BL-013 | 2026-07 | Co-located src emit cleanup (~800 js/map/d.ts) + gitignore; Airtable stub purge |
+| BL-014 | 2026-07 | Local-only telemetry sink (`enable_telemetry --local` → NDJSON); health understands local |
+| BL-015 | 2026-07 | `dendron dev dump_perf` + DevShowAllPerfReports includes PerfRingBuffer |

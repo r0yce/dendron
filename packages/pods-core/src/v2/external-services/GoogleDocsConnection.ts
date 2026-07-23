@@ -2,14 +2,14 @@ import { JSONSchemaType } from "ajv";
 import { ExternalService, ExternalTarget } from "./ExternalConnectionManager";
 
 /**
- * Represents a unique service connection to Airtable.
+ * Represents a unique service connection to Google Docs.
  */
 export class GoogleDocsConnection implements ExternalTarget {
   constructor(
     connectionId: string,
     accessToken: string,
     refreshToken: string,
-    expirationTime: number
+    expirationTime: number,
   ) {
     this._accessToken = accessToken;
     this._connectionId = connectionId;

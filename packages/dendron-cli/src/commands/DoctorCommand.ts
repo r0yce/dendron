@@ -2,6 +2,7 @@ import {
   ActivationTimer,
   ConfigUtils,
   DendronError,
+  globalPerfRing,
   PerformanceTimer,
   RespV3,
 } from "@dendronhq/common-all";
@@ -9,6 +10,8 @@ import {
   DConfig,
   createLogger,
   GitUtils,
+  LocalTelemetry,
+  SegmentClient,
 } from "@dendronhq/common-server";
 import {
   DEPRECATED_PATHS,
@@ -48,7 +51,10 @@ type CommandCLIOpts = {
   json?: boolean; // supported via base eval (this.opts.json) + yargs passthrough
 } & CommandCommonProps;
 
-type CommandOpts = CommandCLIOpts & { wsRoot: string; checks?: string[] | null };
+type CommandOpts = CommandCLIOpts & {
+  wsRoot: string;
+  checks?: string[] | null;
+};
 
 type CommandOutput = {
   checks: HealthCheckResult[];
@@ -99,7 +105,8 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
     super.buildArgs(yargs);
     return yargs
       .option("checks", {
-        describe: "Comma-separated subset of checks (sqlite,engine,git,yml,deps,vscode)",
+        describe:
+          "Comma-separated subset of checks (sqlite,engine,git,yml,deps,vscode,node,telemetry)",
         type: "string",
       })
       .option("fix", {
@@ -137,27 +144,21 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
     L.info({ ctx, msg: "enter health doctor (M2+ wired)", opts });
     // (debug logs removed post gap-fill hygiene)
 
-    // Perf: top-level activation style timer + per-check PerformanceTimer (existing common-all; ring buffer future)
+    // Perf: top-level activation timer + per-check PerformanceTimer → both feed globalPerfRing
     const timer = new ActivationTimer();
     const pt = new PerformanceTimer({ timerName: "doctor-health" });
 
     // simple per-phase timing capture (ms) to attach to HealthCheckResult + feed table helper (pairs with pt.before/after)
     const checkTimings: Record<string, number> = {};
 
-    // === RingBuffer/ora integration in perf output (gap fill per p7/8 stub 214.2s/65 + insiders-perf-ringbuffer) ===
-    // Stub for future PerfRingBuffer promotion to common-all/perf (see di-container + extraction)
-    // ora used for slow check UX (deps audit); SpinnerUtils in cli.ts for other; no new dep required (transitive via yargs/ora in cli)
-    const ringBufferStub = {
-      push: (_e: { name: string; durationMs: number; ts?: number }) => { /* TODO: real RingBuffer post common-all extract */ },
-      report: () => "RingBufferStub: 0 entries (promote for full)",
-    };
     let perfSpinner: any = null;
     try {
       // dynamic to avoid hard dep issues in all envs
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const oraFactory = require("ora");
       const oraInst = oraFactory.default ? oraFactory.default : oraFactory;
-      perfSpinner = oraInst({ text: "Dendron Doctor: running health checks (timers + RingBuffer ready)..." });
+      perfSpinner = oraInst({
+        text: "Dendron Doctor: running health checks...",
+      });
       perfSpinner.start();
     } catch (e) {
       // ora not critical; timings still via PerformanceTimer/ActivationTimer
@@ -230,10 +231,14 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
       pt.before("engine");
       const engineT0 = Date.now();
       try {
-        const engStart = process.hrtime.bigint ? process.hrtime.bigint() : BigInt(Date.now() * 1e6);
+        const engStart = process.hrtime.bigint
+          ? process.hrtime.bigint()
+          : BigInt(Date.now() * 1e6);
         // dynamic import to measure load (real wiring, avoids top-level cost)
         await import("@dendronhq/engine-server");
-        const engEnd = process.hrtime.bigint ? process.hrtime.bigint() : BigInt(Date.now() * 1e6);
+        const engEnd = process.hrtime.bigint
+          ? process.hrtime.bigint()
+          : BigInt(Date.now() * 1e6);
         const engMs = Number((engEnd - engStart) / 1000000n);
         // also confirm DConfig/WS (already used) as "engine-adjacent" health
         checks.push({
@@ -243,7 +248,12 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
           fixable: false,
         });
       } catch (e) {
-        checks.push({ name: "engine", status: "fail", detail: `load error: ${(e as Error).message}`, fixable: false });
+        checks.push({
+          name: "engine",
+          status: "fail",
+          detail: `load error: ${(e as Error).message}`,
+          fixable: false,
+        });
       }
       checkTimings["engine"] = Date.now() - engineT0;
       pt.after("engine");
@@ -256,12 +266,16 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
       try {
         let ver = "unknown";
         try {
-          const { stdout } = await execAsync("code --version", { timeout: 1500, maxBuffer: 1024 });
+          const { stdout } = await execAsync("code --version", {
+            timeout: 1500,
+            maxBuffer: 1024,
+          });
           ver = stdout.split("\n")[0]?.trim() || "code-in-path-but-empty";
         } catch {
           ver = process.env.VSCODE_VERSION || "not-in-PATH (editor host only?)";
         }
-        const compat = /1\.(8[5-9]|[9-9][0-9]|[0-9]{3,})/.test(ver) || ver.includes("code");
+        const compat =
+          /1\.(8[5-9]|[9-9][0-9]|[0-9]{3,})/.test(ver) || ver.includes("code");
         checks.push({
           name: "vscode",
           status: compat ? "pass" : "warn",
@@ -306,15 +320,26 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
             continue;
           }
           const hasDirty = await git.hasChanges().catch(() => false);
-          const porcelain = await git.client(["status", "--porcelain"]).catch(() => "");
-          const dirtyCount = porcelain.trim().split("\n").filter(Boolean).length;
+          const porcelain = await git
+            .client(["status", "--porcelain"])
+            .catch(() => "");
+          const dirtyCount = porcelain
+            .trim()
+            .split("\n")
+            .filter(Boolean).length;
           checks.push({
             name: `git:${vname}`,
             status: hasDirty ? "warn" : "pass",
-            detail: dirtyCount > 0 ? `${dirtyCount} uncommitted changes` : "clean",
+            detail:
+              dirtyCount > 0 ? `${dirtyCount} uncommitted changes` : "clean",
             fixable: dirtyCount > 0,
             // conditional spread avoids explicit `undefined` in literal (exactOptionalPropertyTypes in tsconfig)
-            ...(dirtyCount > 0 ? { fixHint: "git add/commit/stash (or doctor --fix for related gitignore ensures)" } : {}),
+            ...(dirtyCount > 0
+              ? {
+                  fixHint:
+                    "git add/commit/stash (or doctor --fix for related gitignore ensures)",
+                }
+              : {}),
           });
         } catch (e) {
           checks.push({
@@ -342,7 +367,8 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
           status: "pass",
           detail: `version ${version} (DConfig+ConfigUtils; base validation passed)`,
           fixable: true,
-          fixHint: "doctor --fix for comment-drift normalization + missing-defaults (DConfig backup+write; safe)",
+          fixHint:
+            "doctor --fix for comment-drift normalization + missing-defaults (DConfig backup+write; safe)",
         });
       } catch (e) {
         checks.push({
@@ -350,7 +376,8 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
           status: "fail",
           detail: `schema/load error: ${(e as Error).message}`,
           fixable: true,
-          fixHint: "doctor --fix (yml drift + defaults + deprecated removal; backups created)",
+          fixHint:
+            "doctor --fix (yml drift + defaults + deprecated removal; backups created)",
         });
       }
       checkTimings["dendron-yml"] = Date.now() - ymlT0;
@@ -363,17 +390,24 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
       const depsT0 = Date.now();
       try {
         // slice: high only, short timeout, head to avoid huge json stream
-        const auditCmd = "yarn audit --json --level high --groups dependencies 2>&1 | head -c 4096";
+        const auditCmd =
+          "yarn audit --json --level high --groups dependencies 2>&1 | head -c 4096";
         const { stdout } = await execAsync(auditCmd, {
           cwd: opts.wsRoot,
           timeout: 4500,
           maxBuffer: 1024 * 64,
-        }).catch((e: any) => ({ stdout: e?.stdout || "audit-timeout-or-no-yarn" }));
-        const hasHigh = /"severity":"(high|critical)"/i.test(stdout) && !/"found":\s*0/.test(stdout);
+        }).catch((e: any) => ({
+          stdout: e?.stdout || "audit-timeout-or-no-yarn",
+        }));
+        const hasHigh =
+          /"severity":"(high|critical)"/i.test(stdout) &&
+          !/"found":\s*0/.test(stdout);
         checks.push({
           name: "deps-cve",
           status: hasHigh ? "warn" : "pass",
-          detail: hasHigh ? "high/crit advisories in yarn output (run full yarn audit --fix)" : "no high/crit in slice or clean",
+          detail: hasHigh
+            ? "high/crit advisories in yarn output (run full yarn audit --fix)"
+            : "no high/crit in slice or clean",
           fixable: false,
         });
       } catch (e) {
@@ -386,6 +420,93 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
       }
       checkTimings["deps-cve"] = Date.now() - depsT0;
       pt.after("deps");
+    }
+
+    // 7. node runtime — engines.node is >=18; warn on ancient / unusual versions
+    if (shouldRun("node")) {
+      pt.before("node");
+      const nodeT0 = Date.now();
+      try {
+        const major = parseInt(process.versions.node.split(".")[0] || "0", 10);
+        const detail = `Node ${process.version} (${process.platform}/${process.arch})`;
+        let status: CheckStatus = "pass";
+        if (major < 18) {
+          status = "fail";
+        } else if (major < 20) {
+          status = "warn"; // works, but 20+ recommended for this fork
+        }
+        checks.push({
+          name: "node",
+          status,
+          detail:
+            status === "pass"
+              ? detail
+              : status === "warn"
+                ? `${detail} — Node 20+ recommended`
+                : `${detail} — requires Node >= 18`,
+          fixable: false,
+        });
+      } catch (e) {
+        checks.push({
+          name: "node",
+          status: "skip",
+          detail: `node probe error: ${(e as Error).message}`,
+          fixable: false,
+        });
+      }
+      checkTimings["node"] = Date.now() - nodeT0;
+      pt.after("node");
+    }
+
+    // 8. telemetry — personal fork is privacy-first (default OFF); local-file is pass
+    if (shouldRun("telemetry")) {
+      pt.before("telemetry");
+      const telT0 = Date.now();
+      try {
+        // Unlock only if needed; doctor may run before extension host unlock.
+        try {
+          SegmentClient.unlock();
+        } catch {
+          // already unlocked
+        }
+        const status = SegmentClient.getStatus();
+        const disabled = SegmentClient.isDisabled(status);
+        const localOnly = SegmentClient.isLocalOnly(status);
+        const localSum = LocalTelemetry.summary();
+        let detail: string;
+        let statusOut: CheckStatus;
+        if (disabled) {
+          statusOut = "pass";
+          detail = `off (${status}) — privacy-first; optional: dendron dev enable_telemetry --local`;
+        } else if (localOnly) {
+          statusOut = "pass";
+          detail = `local-file only (${status}); ${localSum.path} lines≈${localSum.approxLines}`;
+        } else {
+          statusOut = "warn";
+          detail = `on (${status}) — events may go to upstream Segment/Sentry`;
+        }
+        checks.push({
+          name: "telemetry",
+          status: statusOut,
+          detail,
+          fixable: statusOut === "warn",
+          ...(statusOut === "warn"
+            ? {
+                fixHint:
+                  "dendron dev disable_telemetry  OR  enable_telemetry --local",
+              }
+            : {}),
+        });
+      } catch (e) {
+        checks.push({
+          name: "telemetry",
+          status: "skip",
+          detail: `telemetry probe error: ${(e as Error).message.slice(0, 80)}`,
+          fixable: false,
+        });
+      }
+      checkTimings["telemetry"] = Date.now() - telT0;
+      pt.after("telemetry");
     }
 
     // Attach per-check timings (captured alongside pt) to results for table + --json polish (timingMs on each check)
@@ -413,18 +534,31 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
     // 3. minor config validation: deprecated keys removal (detectDeprecatedConfigs + backup + write, per DoctorService)
     if (opts.fix) {
       const appliedFixes: string[] = [];
-      const fixRequestedYml = !requestedChecks || requestedChecks.some((c) => c.includes("yml"));
-      const fixRequestedGit = !requestedChecks || requestedChecks.some((c) => c.includes("git"));
+      const fixRequestedYml =
+        !requestedChecks || requestedChecks.some((c) => c.includes("yml"));
+      const fixRequestedGit =
+        !requestedChecks || requestedChecks.some((c) => c.includes("git"));
 
       try {
         // Safe fix #1: ensure .gitignore entries for metadata (task explicit) + .dendron.*
         if (fixRequestedGit || !requestedChecks) {
-          await GitUtils.addToGitignore({ addPath: ".dendron.*", root: opts.wsRoot });
-          await GitUtils.addToGitignore({ addPath: "metadata.db", root: opts.wsRoot, noCreateIfMissing: true });
+          await GitUtils.addToGitignore({
+            addPath: ".dendron.*",
+            root: opts.wsRoot,
+          });
+          await GitUtils.addToGitignore({
+            addPath: "metadata.db",
+            root: opts.wsRoot,
+            noCreateIfMissing: true,
+          });
           appliedFixes.push("gitignore-metadata-dendron");
         }
       } catch (e) {
-        L.warn({ ctx, msg: "gitignore --fix skipped (non-fatal)", err: (e as Error).message });
+        L.warn({
+          ctx,
+          msg: "gitignore --fix skipped (non-fatal)",
+          err: (e as Error).message,
+        });
       }
 
       try {
@@ -432,10 +566,18 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
         if (fixRequestedYml || !requestedChecks) {
           // missing defaults (conditional backfill, with backup)
           const rawForDetect = DConfig.getRaw(opts.wsRoot);
-          const detectOut = ConfigUtils.detectMissingDefaults({ config: rawForDetect });
+          const detectOut = ConfigUtils.detectMissingDefaults({
+            config: rawForDetect,
+          });
           if (detectOut?.needsBackfill) {
-            await DConfig.createBackup(opts.wsRoot, "doctor-fix-missing-defaults");
-            await DConfig.writeConfig({ wsRoot: opts.wsRoot, config: detectOut.backfilledConfig });
+            await DConfig.createBackup(
+              opts.wsRoot,
+              "doctor-fix-missing-defaults",
+            );
+            await DConfig.writeConfig({
+              wsRoot: opts.wsRoot,
+              config: detectOut.backfilledConfig,
+            });
             appliedFixes.push("dendron-yml-missing-defaults");
           }
           // explicit comment drift normalization (always safe roundtrip when --fix yml; backup protects; this IS the drift repair action)
@@ -445,9 +587,13 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
           appliedFixes.push("dendron-yml-drift-normalized");
 
           // minor validation: deprecated paths (safe remove, pattern from notes doctor)
-          const depPaths = DEPRECATED_PATHS && DEPRECATED_PATHS.length
-            ? ConfigUtils.detectDeprecatedConfigs({ config: rawForDetect, deprecatedPaths: DEPRECATED_PATHS })
-            : [];
+          const depPaths =
+            DEPRECATED_PATHS && DEPRECATED_PATHS.length
+              ? ConfigUtils.detectDeprecatedConfigs({
+                  config: rawForDetect,
+                  deprecatedPaths: DEPRECATED_PATHS,
+                })
+              : [];
           if (depPaths.length > 0) {
             await DConfig.createBackup(opts.wsRoot, "doctor-fix-deprecated");
             const cfgCopy = _.cloneDeep(current);
@@ -457,20 +603,24 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
           }
         }
       } catch (e) {
-        L.warn({ ctx, msg: "yml/config --fix skipped (safe no-op on error)", err: (e as Error).message.slice(0, 120) });
+        L.warn({
+          ctx,
+          msg: "yml/config --fix skipped (safe no-op on error)",
+          err: (e as Error).message.slice(0, 120),
+        });
       }
 
       if (appliedFixes.length > 0) {
         const msg = `✅ --fix applied: ${appliedFixes.join(", ")} (backups in .dendron/backups/ where yml touched). Re-run without --fix or with --checks to verify.`;
         if (useJson) {
           // json path already printed; append note? for now console for visibility (or enhance printJson future)
-          // eslint-disable-next-line no-console
           console.log(msg);
         } else {
           this.print(msg);
         }
       } else if (opts.fix) {
-        const note = "ℹ️  --fix: no mutations needed (or only idempotent like gitignore already present).";
+        const note =
+          "ℹ️  --fix: no mutations needed (or only idempotent like gitignore already present).";
         if (!useJson) this.print(note);
       }
     }
@@ -485,30 +635,37 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
     const exitCode = summary.fail > 0 ? 2 : summary.warn > 0 ? 1 : 0;
 
     timer.mark("health-checks-complete");
+    timer.finish();
     const perfReport = timer.getDetailedReport();
     const ptReport = pt.report();
+    const ringSnap = globalPerfRing.toSnapshot(50);
 
-    // ora + RingBuffer stub surface (p7/8)
     if (perfSpinner) {
-      const overallMs = (ptReport.match(/Total:\s*(\d+)/) || [0, "300"])[1];
-      ringBufferStub.push({ name: "doctor-overall", durationMs: parseInt(overallMs, 10), ts: Date.now() });
-      perfSpinner.succeed(`Checks complete. ${ptReport} | ${ringBufferStub.report()}`);
+      perfSpinner.succeed(
+        `Checks complete. ${ptReport} | ring=${ringSnap.summary.totalEntries} samples`,
+      );
     }
 
-    // Perf hook surface (verbose or DENDRON_PERF); future: global PerfRingBuffer in common-all
     if (useVerbose) {
       this.print(perfReport);
       this.print(`Per-check: ${ptReport}`);
+      this.print(globalPerfRing.formatReport(15));
     }
 
     // json from CLI opts (base sets this.opts.json from args via eval; super.buildArgs ensures declared)
-    // Polished: always emits checks[] + summary + exitCode; perf (activation + perCheck) only when verbose
+    // Polished: always emits checks[] + summary + exitCode; perf (activation + perCheck + ring) when verbose
     if (useJson) {
       this.printJson({
         checks,
         summary,
         exitCode,
-        perf: useVerbose ? { activation: perfReport, perCheck: ptReport } : undefined,
+        perf: useVerbose
+          ? {
+              activation: perfReport,
+              perCheck: ptReport,
+              ring: ringSnap.summary,
+            }
+          : undefined,
         ts: Date.now(),
       });
     } else {
@@ -518,7 +675,7 @@ export class DoctorCommand extends CLICommand<CommandOpts, CommandOutput> {
         timings: checkTimings,
         summary,
         exitCode,
-        fixNote: !!(opts.fix && (summary.fail + summary.warn > 0)),
+        fixNote: !!(opts.fix && summary.fail + summary.warn > 0),
       });
     }
 

@@ -4,6 +4,7 @@ import {
   DendronError,
   DVault,
   ERROR_STATUS,
+  globalPerfRing,
   NoteProps,
   NoteUtils,
   stringifyError,
@@ -11,6 +12,7 @@ import {
 } from "@dendronhq/common-all";
 import {
   DConfig,
+  LocalTelemetry,
   readYAML,
   SegmentClient,
   TelemetryStatus,
@@ -56,13 +58,16 @@ export enum DevCommands {
   SHOW_TELEMETRY = "show_telemetry",
   SHOW_MIGRATIONS = "show_migrations",
   RUN_MIGRATION = "run_migration",
+  /** Dump PerfRingBuffer + session timing summary (local, no network). */
+  DUMP_PERF = "dump_perf",
 }
 
 type CommandOpts = CommandCLIOpts &
   CommandCommonProps &
   Partial<BuildCmdOpts> &
   Partial<RunMigrationOpts> &
-  Partial<CreateTestVaultOpts>;
+  Partial<CreateTestVaultOpts> &
+  Partial<{ local?: boolean }>;
 
 type CommandOutput = Partial<{ error: DendronError; data: any }>;
 
@@ -167,6 +172,12 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     args.option("wsRoot", {
       describe: "root directory of the Dendron workspace",
     });
+    args.option("local", {
+      describe:
+        "with enable_telemetry: write events to ~/.dendron.local-telemetry.ndjson only (no Segment/Sentry)",
+      type: "boolean",
+      default: false,
+    });
     args.option("jsonData", {
       describe: "json data to pass into command",
     });
@@ -202,7 +213,7 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
 
     const ratioTotal = _.values(payload.ratios).reduce(
       (acc, cur) => acc + cur,
-      0
+      0,
     );
     const vaultTotal = payload.numVaults;
     const { engine, server } = await setupEngine({ wsRoot });
@@ -213,7 +224,7 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
         const numNotes = Math.round(
           (payload.ratios[key as keyof JsonDataForCreateTestVault["ratios"]] /
             ratioTotal) *
-            payload.numNotes
+            payload.numNotes,
         );
         this.print(`creating ${numNotes} ${key} notes...`);
         const vault = svc.vaults[_.random(0, vaultTotal - 1)];
@@ -223,10 +234,10 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
         const notes: NoteProps[] = await Promise.all(
           _.times(numNotes, async (i) => {
             return NoteUtils.create({ fname: `${key}.${i}`, vault });
-          })
+          }),
         );
         await engine.bulkWriteNotes({ notes });
-      })
+      }),
     );
     return { server };
   }
@@ -239,14 +250,14 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
       "packages",
       "common-all",
       "data",
-      "dendron-yml.validator.json"
+      "dendron-yml.validator.json",
     );
     const pluginOutputPath = path.join(
       repoRoot,
       "packages",
       "plugin-core",
       "dist",
-      "dendron-yml.validator.json"
+      "dendron-yml.validator.json",
     );
     const configType = "ConfigForSchemaGenerator";
     // NOTE: this is removed by webpack when building plugin which is why we're loading this dynamically
@@ -300,7 +311,7 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
           }
           const { wsRoot, jsonData } = opts;
           const payload = fs.readJSONSync(
-            jsonData
+            jsonData,
           ) as JsonDataForCreateTestVault;
           this.print(`reading json data from ${jsonData}`);
           const { server } = await this.createTestVault({ wsRoot, payload });
@@ -378,7 +389,7 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
           return { error: null };
         }
         case DevCommands.ENABLE_TELEMETRY: {
-          this.enableTelemetry();
+          this.enableTelemetry({ local: !!(opts as any).local });
           return { error: null };
         }
         case DevCommands.DISABLE_TELEMETRY: {
@@ -387,6 +398,7 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
         }
         case DevCommands.SHOW_TELEMETRY: {
           CLIAnalyticsUtils.showTelemetryMessage();
+          this.showLocalTelemetryStatus();
           return { error: null };
         }
         case DevCommands.SHOW_MIGRATIONS: {
@@ -402,6 +414,10 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
             };
           }
           this.runMigration(opts);
+          return { error: null };
+        }
+        case DevCommands.DUMP_PERF: {
+          this.dumpPerf();
           return { error: null };
         }
         default:
@@ -463,13 +479,13 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
 
     if (!shouldPublishLocal) {
       this.print(
-        "sleeping 2 mins for remote npm registry to have packages ready"
+        "sleeping 2 mins for remote npm registry to have packages ready",
       );
       await TimeUtils.sleep(2 * 60 * 1000);
     } else {
       const localSleepSeconds = 15;
       this.print(
-        `sleeping ${localSleepSeconds}s for local npm registry to have packages ready`
+        `sleeping ${localSleepSeconds}s for local npm registry to have packages ready`,
       );
       await TimeUtils.sleep(localSleepSeconds * 1000);
     }
@@ -518,14 +534,14 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
       "docs",
       "seeds",
       "dendron.dendron-site",
-      "vault"
+      "vault",
     );
 
     const tutorialDirPath = path.join(
       BuildUtils.getPluginRootPath(),
       "assets",
       "dendron-ws",
-      "tutorial"
+      "tutorial",
     );
 
     const commonDirPath = path.join(tutorialDirPath, "common");
@@ -548,7 +564,7 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
       });
     // determine treatment name
     const treatmentNames = _.uniq(
-      tutorialNotePaths.map((basename) => basename.split(".")[1])
+      tutorialNotePaths.map((basename) => basename.split(".")[1]),
     );
 
     treatmentNames.forEach((treatmentName) => {
@@ -567,7 +583,7 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
           const src = path.join(dendronSiteVaultPath, basename);
           const dest = path.join(
             treatmentNameDirPath,
-            basename.replace(`tutorial.${treatmentName}`, "tutorial")
+            basename.replace(`tutorial.${treatmentName}`, "tutorial"),
           );
           fs.copyFileSync(src, dest);
         });
@@ -608,18 +624,39 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     }
     if (opts.migrationVersion) {
       return MIGRATION_ENTRIES.map((m) => m.version).includes(
-        opts.migrationVersion
+        opts.migrationVersion,
       );
     }
     return true;
   }
 
-  enableTelemetry() {
+  enableTelemetry(opts?: { local?: boolean }) {
+    if (opts?.local) {
+      const reason = TelemetryStatus.ENABLED_BY_LOCAL_FILE;
+      SegmentClient.enable(reason);
+      // Force new client so constructor picks up local-only mode
+      try {
+        SegmentClient.unlock();
+      } catch {
+        /* already unlocked */
+      }
+      SegmentClient.instance({ forceNew: true });
+      void LocalTelemetry.append("telemetry_enabled_local", { reason });
+      this.print(
+        [
+          "Local-only telemetry enabled.",
+          `Events → ${LocalTelemetry.getPath()}`,
+          "No Segment/Sentry network calls. Disable with: dendron dev disable_telemetry",
+        ].join("\n"),
+      );
+      return;
+    }
     const reason = TelemetryStatus.ENABLED_BY_CLI_COMMAND;
     SegmentClient.enable(reason);
     CLIAnalyticsUtils.track(CLIEvents.CLITelemetryEnabled, { reason });
     const message = [
-      "Telemetry is enabled.",
+      "Telemetry is enabled (network Segment/Sentry may be used).",
+      "Prefer privacy-first: dendron dev enable_telemetry --local",
       "Thank you for helping us improve Dendron 🌱",
     ].join("\n");
     this.print(message);
@@ -631,6 +668,44 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
     SegmentClient.disable(reason);
     const message = "Telemetry is disabled.";
     this.print(message);
+  }
+
+  showLocalTelemetryStatus() {
+    const sum = LocalTelemetry.summary();
+    const status = SegmentClient.getStatus();
+    this.print(
+      [
+        "",
+        "=== Local telemetry (fork) ===",
+        `status: ${status}`,
+        `localOnly: ${SegmentClient.isLocalOnly(status)}`,
+        `file: ${sum.path}`,
+        `exists: ${sum.exists} bytes=${sum.bytes} lines≈${sum.approxLines}`,
+      ].join("\n"),
+    );
+  }
+
+  dumpPerf() {
+    // Touch the ring so empty dumps still show structure
+    globalPerfRing.push({
+      name: "cli:dump_perf",
+      durationMs: 0,
+      meta: { ts: Date.now() },
+    });
+    const snap = globalPerfRing.toSnapshot(100);
+    this.print(globalPerfRing.formatReport(30));
+    this.print("");
+    this.print(
+      JSON.stringify(
+        {
+          summary: snap.summary,
+          sampleCount: snap.entries.length,
+          ts: snap.ts,
+        },
+        null,
+        2,
+      ),
+    );
   }
 
   showMigrations() {
@@ -666,14 +741,14 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
   async runMigration(opts: CommandOpts) {
     // grab the migration we want to run
     const migrationsToRun = MIGRATION_ENTRIES.filter(
-      (m) => m.version === opts.migrationVersion
+      (m) => m.version === opts.migrationVersion,
     );
 
     // run it
     const migration = migrationsToRun[0];
     if (!migration) {
       throw new Error(
-        `no migration found for version ${opts.migrationVersion}`
+        `no migration found for version ${opts.migrationVersion}`,
       );
     }
     const currentVersion = migration.version;
@@ -706,7 +781,7 @@ export class DevCLICommand extends CLICommand<CommandOpts, CommandOutput> {
 
         CLIAnalyticsUtils.track(
           event,
-          MigrationUtils.getMigrationAnalyticProps(change)
+          MigrationUtils.getMigrationAnalyticProps(change),
         );
 
         if (change.error) {

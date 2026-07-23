@@ -6,6 +6,7 @@ export * from "./git";
 export * from "./etc";
 export * from "./system";
 export * from "./analytics";
+export * from "./localTelemetry";
 export * from "./errorReporting";
 export * from "./types";
 export * from "./server";

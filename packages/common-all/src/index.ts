@@ -50,3 +50,4 @@ export { DateTime };
 export { minimatch };
 
 export * from "./perf/ActivationTimer";
+export * from "./perf/ringBuffer";

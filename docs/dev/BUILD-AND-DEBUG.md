@@ -85,7 +85,15 @@ After bootstrap:
 
 ```bash
 yarn dendron health --verbose
-yarn dendron health --checks sqlite,git,yml --json
+yarn dendron health --checks sqlite,git,yml,node,telemetry --json
+```
+
+Checks include sqlite, engine, vscode, git, dendron.yml, deps-cve, **node**, and **telemetry** (privacy-first: default off; `--local` file mode is pass). `--verbose` prints ActivationTimer + PerfRingBuffer summary.
+
+```bash
+yarn dendron dev dump_perf              # ring buffer summary (JSON)
+yarn dendron dev enable_telemetry --local
+yarn dendron dev show_telemetry
 ```
 
 Note: workspace health is `dendron health` (not `dendron doctor` — that name is still the notes doctor).
