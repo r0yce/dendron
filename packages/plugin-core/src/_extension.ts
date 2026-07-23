@@ -92,6 +92,7 @@ import {
   ensurePerfStatusBar,
   updatePerfStatusBar,
 } from "./utils/perfStatusBar";
+import { scheduleDeferred } from "./utils/lazyActivation";
 
 const MARKDOWN_WORD_PATTERN = new RegExp("([\\w\\.]+)");
 // === Main
@@ -264,9 +265,8 @@ export async function _activate(
     }
     await _setupCommands({ ext: ws, context, requireActiveWorkspace: true });
 
-    if (!opts?.skipLanguageFeatures) {
-      _setupLanguageFeatures(context);
-    }
+    // Sprint 1: language features move to post-engine activation (lazy path).
+    // Registering them before the engine is ready costs startup without benefit.
 
     // Need to recompute this for tests, because the instance of DendronExtension doesn't get re-created.
     // Probably also needed if the user switches from one workspace to the other.
@@ -421,6 +421,37 @@ export async function _activate(
       if (respActivate.error) {
         return false;
       }
+
+      // Language features: critical path immediately after engine ready;
+      // heavier providers deferred to idle tick (Sprint 1 lazy activation).
+      if (!opts?.skipLanguageFeatures) {
+        _setupCriticalLanguageFeatures(context);
+        const handle = scheduleDeferred(
+          () => {
+            _setupDeferredLanguageFeatures(context);
+          },
+          { delayMs: 50, label: "language-features-deferred" }
+        );
+        context.subscriptions.push({ dispose: () => handle.cancel() });
+      }
+
+      // Warm lookup index so first Ctrl+L is not a cold fuse hit
+      scheduleDeferred(
+        async () => {
+          try {
+            const engine = getExtension().getEngine();
+            await engine.queryNotes({
+              qs: "root",
+              originalQS: "root",
+              limit: 10,
+            });
+          } catch {
+            // warm is best-effort
+          }
+        },
+        { delayMs: 100, label: "lookup-warm" }
+      );
+
       if (!opts?.skipInteractiveElements && !isQuietMode()) {
         // on first install, warn if extensions are incompatible ^dlx35gstwsun
         if (extensionInstallStatus === InstallStatus.INITIAL_INSTALL) {
@@ -875,7 +906,24 @@ async function _setupCommands({
   }
 }
 
-function _setupLanguageFeatures(context: vscode.ExtensionContext) {
+/**
+ * Critical language features needed for immediate note navigation after activate.
+ */
+function _setupCriticalLanguageFeatures(context: vscode.ExtensionContext) {
+  const anyLangSelector: vscode.DocumentFilter = { scheme: "file" };
+  context.subscriptions.push(
+    vscode.languages.registerDefinitionProvider(
+      anyLangSelector,
+      new DefinitionProvider(),
+    ),
+  );
+  completionProvider.activate(context);
+}
+
+/**
+ * Heavier providers deferred until after activation returns (Sprint 1).
+ */
+function _setupDeferredLanguageFeatures(context: vscode.ExtensionContext) {
   const mdLangSelector: vscode.DocumentFilter = {
     language: "markdown",
     scheme: "file",
@@ -888,15 +936,7 @@ function _setupLanguageFeatures(context: vscode.ExtensionContext) {
     ),
   );
   context.subscriptions.push(
-    vscode.languages.registerDefinitionProvider(
-      // Allows definition provider to work for wikilinks in non-note files
-      anyLangSelector,
-      new DefinitionProvider(),
-    ),
-  );
-  context.subscriptions.push(
     vscode.languages.registerHoverProvider(
-      // Allows hover provider to work for wikilinks in non-note files
       anyLangSelector,
       new ReferenceHoverProvider(),
     ),
@@ -913,6 +953,5 @@ function _setupLanguageFeatures(context: vscode.ExtensionContext) {
       new RenameProvider(),
     ),
   );
-  completionProvider.activate(context);
   codeActionProvider.activate(context);
 }

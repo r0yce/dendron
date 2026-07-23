@@ -100,7 +100,7 @@ type CachedPreview = {
 
 function createRenderedCache(
   config: DendronConfig,
-  logger: DLogger
+  logger: DLogger,
 ): Cache<string, CachedPreview> {
   const ctx = "createRenderedCache";
 
@@ -261,7 +261,7 @@ export class DendronEngineV2 implements DEngine {
       });
       this.logger.info({ ctx, msg: "initialize hooks" });
       const allErrors = (_.isUndefined(storeError) ? [] : [storeError]).concat(
-        hookErrors
+        hookErrors,
       );
       let error: IDendronError | undefined;
       switch (_.size(allErrors)) {
@@ -360,14 +360,14 @@ export class DendronEngineV2 implements DEngine {
 
   async deleteNote(
     id: string,
-    opts?: EngineDeleteOpts
+    opts?: EngineDeleteOpts,
   ): ReturnType<DEngineClient["deleteNote"]> {
     try {
       const note = this.notes[id];
       const changed = await this.store.deleteNote(id, opts);
       const noteChangeEntry = _.find(
         changed,
-        (ent) => ent.note.id === id
+        (ent) => ent.note.id === id,
       ) as NoteChangeEntry;
       if (noteChangeEntry.status === "delete" && note !== undefined) {
         await this.fuseEngine.removeNoteFromIndex(note);
@@ -384,7 +384,7 @@ export class DendronEngineV2 implements DEngine {
 
   async deleteSchema(
     id: string,
-    opts?: EngineDeleteOpts
+    opts?: EngineDeleteOpts,
   ): Promise<DeleteSchemaResp> {
     const data = (await this.store.deleteSchema(id, opts)) as DeleteSchemaResp;
     // deleted schema might affect notes
@@ -434,9 +434,10 @@ export class DendronEngineV2 implements DEngine {
   async querySchema(queryString: string): Promise<QuerySchemaResp> {
     const ctx = "querySchema";
 
-    let items: SchemaModuleProps[] = [];
     const results = await this.fuseEngine.querySchema({ qs: queryString });
-    items = results.map((ent) => this.schemas[ent.id]).filter(isNotUndefined);
+    const items: SchemaModuleProps[] = results
+      .map((ent) => this.schemas[ent.id])
+      .filter(isNotUndefined);
     // if (queryString === "") {
     //   items = [this.schemas.root];
     // } else if (queryString === "*") {
@@ -453,7 +454,7 @@ export class DendronEngineV2 implements DEngine {
 
   async queryNotes(opts: QueryNotesOpts): Promise<QueryNotesResp> {
     const ctx = "Engine:queryNotes";
-    const { qs, vault, onlyDirectChildren, originalQS } = opts;
+    const { qs, vault, onlyDirectChildren, originalQS, limit } = opts;
 
     // Need to ignore this because the engine stringifies this property, so the types are incorrect.
     // @ts-ignore
@@ -464,6 +465,7 @@ export class DendronEngineV2 implements DEngine {
       qs,
       originalQS,
       ...(onlyDirectChildren !== undefined ? { onlyDirectChildren } : {}),
+      ...(limit !== undefined ? { limit } : {}),
     });
 
     if (items.length === 0) {
@@ -476,7 +478,7 @@ export class DendronEngineV2 implements DEngine {
       notes = notes.filter(
         (ent): ent is NoteProps =>
           ent !== undefined &&
-          VaultUtils.isEqual(vault, ent.vault, this.wsRoot)
+          VaultUtils.isEqual(vault, ent.vault, this.wsRoot),
       );
     }
     return notes.filter((ent): ent is NoteProps => ent !== undefined);
@@ -539,7 +541,7 @@ export class DendronEngineV2 implements DEngine {
       return {
         error: new DendronError({
           message: `Unable to render note ${note.fname} in ${VaultUtils.getName(
-            note.vault
+            note.vault,
           )}`,
           payload: error,
         }),
@@ -565,7 +567,7 @@ export class DendronEngineV2 implements DEngine {
 
   private isCachedPreviewUpToDate(
     cachedPreview: CachedPreview,
-    note: NoteProps
+    note: NoteProps,
   ) {
     // Most of the times the preview is going to be invalidated by users making changes to
     // the note itself, hence before going through the trouble of checking whether linked
@@ -669,21 +671,14 @@ export class DendronEngineV2 implements DEngine {
     flavor: ProcFlavor;
     dest: DendronASTDest;
   }): Promise<string> {
-    let proc: import("unified").Processor<
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      any,
-      any,
-      any,
-      any,
-      any
-    >;
+    let proc: import("unified").Processor<any, any, any, any, any>;
     const config = DConfig.readConfigSync(this.wsRoot);
 
     const noteCacheForRenderDict = await getParsingDependencyDicts(
       note,
       this,
       config,
-      this.vaults
+      this.vaults,
     );
 
     if (dest === DendronASTDest.HTML) {
@@ -697,7 +692,7 @@ export class DendronEngineV2 implements DEngine {
           vaults: this._vaults,
           wsRoot: this.wsRoot,
         },
-        { flavor }
+        { flavor },
       );
     } else {
       proc = MDUtilsV5.procRemarkFull(
@@ -711,7 +706,7 @@ export class DendronEngineV2 implements DEngine {
           vaults: this._vaults,
           wsRoot: this.wsRoot,
         },
-        { flavor }
+        { flavor },
       );
     }
     const payload = await proc.process(NoteUtils.serialize(note));
@@ -735,7 +730,7 @@ export class DendronEngineV2 implements DEngine {
           });
           this.store.updateNote(ent.note);
         }
-      })
+      }),
     );
     this.fuseEngine.replaceNotesIndex(this.notes);
   }
@@ -765,7 +760,7 @@ export class DendronEngineV2 implements DEngine {
 
   async writeNote(
     note: NoteProps,
-    opts?: EngineWriteOptsV2
+    opts?: EngineWriteOptsV2,
   ): Promise<WriteNoteResp> {
     const out = await this.store.writeNote(note, opts);
     this.fuseEngine.replaceNotesIndex(this.notes);
@@ -793,7 +788,7 @@ export class DendronEngineV2 implements DEngine {
       if (opts.filterByAnchorType) {
         _.remove(
           blocks,
-          (block) => block.anchor?.type !== opts.filterByAnchorType
+          (block) => block.anchor?.type !== opts.filterByAnchorType,
         );
       }
       return { data: blocks };
@@ -821,7 +816,7 @@ export class DendronEngineV2 implements DEngine {
             _.toNumber(item.range.start.line),
             _.toNumber(item.range.start.character),
             _.toNumber(item.range.end.line),
-            _.toNumber(item.range.end.character)
+            _.toNumber(item.range.end.character),
           ),
         };
       });

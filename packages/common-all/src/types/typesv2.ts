@@ -317,6 +317,10 @@ export type QueryNotesOpts = {
   onlyDirectChildren?: boolean | undefined;
   vault?: DVault | undefined;
   /**
+   * Cap results after ranking (lookup UX). Engine may still scan the full index.
+   */
+  limit?: number | undefined;
+  /**
    * @deprecated - we shouldn't be creating any notes in the engine from a query API call
    */
   createIfNew?: boolean | undefined;

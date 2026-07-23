@@ -79,7 +79,7 @@ Success: you open VS Code and Dendron is the PKM you want every day.
 
 ## Sprints
 
-### Sprint 1 — “Feels fast + quiet” (**ACTIVE**)
+### Sprint 1 — “Feels fast + quiet” (**COMPLETE**)
 
 | # | Item | Lane | Status |
 |---|------|------|--------|
@@ -87,8 +87,10 @@ Success: you open VS Code and Dendron is the PKM you want every day.
 | S1.2 | **Perf status bar** after activation (total ms + note count when available) | P | **Done** |
 | S1.3 | Wire activation report into status bar + ring | P | **Done** |
 | S1.4 | Defer non-critical interactive toasts (gated by quiet) | P/Q | **Done** |
-| S1.5 | Lazy activation: defer non-critical providers/panels | P | Next |
-| S1.6 | Lookup: warm index + virtualized results | P | Next |
+| S1.5 | Lazy activation: defer language providers, tree init, secondary webviews, initializer | P | **Done** |
+| S1.6 | Lookup: query `limit`, batched schema enhance, fuse warm after activate | P | **Done** |
+
+**Next sprint:** Sprint 2 — Feels modern (hub, welcome, preview polish, backlinks, webview split).
 
 ### Sprint 2 — “Feels modern”
 - Dendron hub + welcome rework  
@@ -126,4 +128,4 @@ Success: you open VS Code and Dendron is the PKM you want every day.
 
 | Date | Note |
 |------|------|
-| 2026-07 | Product roadmap established; replaces modernization-as-product narrative. Sprint 1: quiet mode + perf status bar **shipped** (settings `dendron.quietMode`, `dendron.showPerfStatusBar`). Next: lazy activation + lookup. |
+| 2026-07 | Product roadmap established; Sprint 1 **complete**: quiet mode, perf status bar, lazy activation (critical vs deferred language features, non-blocking tree/views), lookup limit + schema batch enhance + fuse warm. Next: Sprint 2. |

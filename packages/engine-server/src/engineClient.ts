@@ -333,7 +333,7 @@ export class DendronEngineClient implements DEngineClient, EngineEventEmitter {
   }
 
   async queryNotes(opts: QueryNotesOpts): Promise<QueryNotesResp> {
-    const { qs, onlyDirectChildren, vault, originalQS } = opts;
+    const { qs, onlyDirectChildren, vault, originalQS, limit } = opts;
     let noteIndexProps: NoteIndexProps[] | NoteIndexLightProps[];
     const config = DConfig.readConfigSync(this.wsRoot);
     if (config.workspace.metadataStore === "sqlite") {
@@ -341,6 +341,9 @@ export class DendronEngineClient implements DEngineClient, EngineEventEmitter {
         const resp = await SQLiteMetadataStore.search(qs);
         noteIndexProps = resp.hits;
         this.logger.debug({ ctx: "queryNote", query: resp.query });
+        if (limit !== undefined && noteIndexProps.length > limit) {
+          noteIndexProps = noteIndexProps.slice(0, limit);
+        }
       } catch (err) {
         fs.appendFileSync("/tmp/out.log", "ERROR: unable to query note", {
           encoding: "utf8",
@@ -352,6 +355,7 @@ export class DendronEngineClient implements DEngineClient, EngineEventEmitter {
         qs,
         originalQS,
         ...(onlyDirectChildren !== undefined ? { onlyDirectChildren } : {}),
+        ...(limit !== undefined ? { limit } : {}),
       });
     }
     let noteProps = noteIndexProps.map((ent) => this.notes[ent.id]);

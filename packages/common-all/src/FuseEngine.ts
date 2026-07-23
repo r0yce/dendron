@@ -188,10 +188,13 @@ export class FuseEngine {
     qs,
     onlyDirectChildren,
     originalQS,
+    limit,
   }: {
     qs: string;
     onlyDirectChildren?: boolean;
     originalQS: string;
+    /** Cap ranked results (lookup pagination). */
+    limit?: number;
   }): NoteIndexProps[] {
     let items: NoteIndexProps[];
 
@@ -222,7 +225,15 @@ export class FuseEngine {
       }
       results = FuseEngine.sortResults({ results, originalQS });
 
+      // Cap before mapping when possible (cheaper for huge result sets)
+      if (limit !== undefined && results.length > limit) {
+        results = results.slice(0, limit);
+      }
+
       items = _.map(results, (resp) => resp.item);
+    }
+    if (limit !== undefined && items.length > limit) {
+      items = items.slice(0, limit);
     }
     return items;
   }

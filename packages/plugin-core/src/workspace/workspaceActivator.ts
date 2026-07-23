@@ -613,11 +613,15 @@ export class WorkspaceActivator {
       togglePluginActiveContext(true);
     }
 
-    // Setup tree view
-    // This needs to happen after activation because we need the engine.
+    // Setup tree view (needs engine). Do not block activation return — schedule
+    // immediately so UI can report active first (Sprint 1 lazy activation).
     if (!opts?.skipTreeView) {
-      await initTreeView({
-        context,
+      void initTreeView({ context }).catch((err) => {
+        Logger.error({
+          ctx,
+          msg: "initTreeView failed",
+          error: err as Error,
+        });
       });
     }
 
@@ -627,17 +631,26 @@ export class WorkspaceActivator {
     const workspace = DendronExtension.tryWorkspaceFile()?.fsPath || wsRoot;
     MetadataService.instance().addToRecentWorkspaces(workspace);
 
-    if (workspaceInitializer?.onWorkspaceActivate) {
-      workspaceInitializer.onWorkspaceActivate({
-        skipOpts: opts,
-      });
-    } else {
-      const initializer = WorkspaceInitFactory.create();
-      if (initializer && initializer.onWorkspaceActivate) {
-        initializer.onWorkspaceActivate({
+    // Workspace initializer (tutorial surveys etc.) — defer slightly so
+    // first paint/keystroke isn't competing with toast work.
+    const runInitializer = () => {
+      if (workspaceInitializer?.onWorkspaceActivate) {
+        workspaceInitializer.onWorkspaceActivate({
           skipOpts: opts,
         });
+      } else {
+        const initializer = WorkspaceInitFactory.create();
+        if (initializer && initializer.onWorkspaceActivate) {
+          initializer.onWorkspaceActivate({
+            skipOpts: opts,
+          });
+        }
       }
+    };
+    if (getStage() === "test") {
+      runInitializer();
+    } else {
+      setTimeout(runInitializer, 0);
     }
     return { data: true };
   }

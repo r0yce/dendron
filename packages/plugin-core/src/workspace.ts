@@ -528,35 +528,34 @@ export class DendronExtension implements IDendronExtension {
     HistoryService.instance().subscribe("extension", async (event) => {
       if (event.action === "initialized") {
         Logger.info({ ctx, msg: "init:treeViewV2" });
-        const sampleView = new SampleView();
 
-        context.subscriptions.push(
-          vscode.window.registerWebviewViewProvider(
-            SampleView.viewType,
-            sampleView
-          )
-        );
-
-        const calendarView = new CalendarView(this);
-        context.subscriptions.push(
-          vscode.window.registerWebviewViewProvider(
-            CalendarView.viewType,
-            calendarView
-          )
-        );
-
-        // backlinks
+        // Critical sidebar: backlinks (used constantly while editing)
         const backlinkTreeView = this.setupBacklinkTreeView();
-
-        // Tip of the Day
-        const tipOfDayView = this.setupTipOfTheDayView();
-
-        // Graph panel (side)
-        const graphPanel = this.setupGraphPanel();
-
         context.subscriptions.push(backlinkTreeView);
-        context.subscriptions.push(tipOfDayView);
-        context.subscriptions.push(graphPanel);
+
+        // Secondary views: register on next tick so activation stays snappy
+        setTimeout(() => {
+          const sampleView = new SampleView();
+          context.subscriptions.push(
+            vscode.window.registerWebviewViewProvider(
+              SampleView.viewType,
+              sampleView
+            )
+          );
+
+          const calendarView = new CalendarView(this);
+          context.subscriptions.push(
+            vscode.window.registerWebviewViewProvider(
+              CalendarView.viewType,
+              calendarView
+            )
+          );
+
+          const tipOfDayView = this.setupTipOfTheDayView();
+          const graphPanel = this.setupGraphPanel();
+          context.subscriptions.push(tipOfDayView);
+          context.subscriptions.push(graphPanel);
+        }, 0);
       }
     });
   }

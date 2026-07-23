@@ -46,11 +46,9 @@ Toolchain / hygiene (not product lanes): privacy-first telemetry, health CLI, Pe
 
 ## Immediate product focus
 
-**Sprint 1 — Feels fast + quiet** (see PRODUCT-ROADMAP.md):
+**Sprint 1 — Feels fast + quiet: COMPLETE** (see PRODUCT-ROADMAP.md).
 
-- Quiet mode (default on)
-- Perf status bar
-- Then lazy activation + lookup speed
+**Sprint 2 — Feels modern** is next (hub, welcome, preview, backlinks, webview split).
 
 ---
 

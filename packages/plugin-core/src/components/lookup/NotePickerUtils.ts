@@ -26,7 +26,10 @@ import {
 import { DendronQuickPickerV2 } from "./types";
 import { filterPickerResults, PickerUtilsV2 } from "./utils";
 
+/** Max items shown in the quickpick at once (virtualized page). */
 export const PAGINATE_LIMIT = 50;
+/** Fetch a bit more than a page so pagination "more" works without a second round-trip. */
+export const QUERY_FETCH_LIMIT = PAGINATE_LIMIT * 3;
 
 export class NotePickerUtils {
   static async createItemsFromSelectedWikilinks(): Promise<
@@ -217,6 +220,8 @@ export class NotePickerUtils {
       qs: transformedQuery.queryString,
       onlyDirectChildren: transformedQuery.onlyDirectChildren,
       originalQS,
+      // Cap fuse/sqlite hits early — lookup only needs a page + small buffer
+      limit: QUERY_FETCH_LIMIT,
     });
 
     if (nodes.length === 0) {
@@ -236,15 +241,32 @@ export class NotePickerUtils {
     } else {
       PickerUtilsV2.resetPaginationOpts(picker);
     }
+
+    // Batch schema module loads (unique modules) — avoids N sequential getSchema calls
+    const schemaModuleIds = _.uniq(
+      nodes
+        .map((ent) => ent.schema?.moduleId)
+        .filter((id): id is string => !!id)
+    );
+    const schemaByModule = new Map<string, Awaited<
+      ReturnType<DEngineClient["getSchema"]>
+    >["data"]>();
+    await Promise.all(
+      schemaModuleIds.map(async (moduleId) => {
+        const resp = await engine.getSchema(moduleId);
+        if (resp.data) {
+          schemaByModule.set(moduleId, resp.data);
+        }
+      })
+    );
+
     const updatedItems = await Promise.all(
       nodes.map(async (ent) =>
         DNodeUtils.enhancePropForQuickInputV3({
           wsRoot,
           props: ent,
-          schema: ent.schema
-            ? (
-                await engine.getSchema(ent.schema.moduleId)
-              ).data
+          schema: ent.schema?.moduleId
+            ? schemaByModule.get(ent.schema.moduleId)
             : undefined,
           vaults,
           alwaysShow: picker.alwaysShowAll,

@@ -295,7 +295,7 @@ export abstract class EngineV3Base implements ReducedDEngine {
 
   async queryNotes(opts: QueryNotesOpts): Promise<QueryNotesResp> {
     // const ctx = "Engine:queryNotes";
-    const { qs, vault, onlyDirectChildren, originalQS } = opts;
+    const { qs, vault, onlyDirectChildren, originalQS, limit } = opts;
     // Need to ignore this because the engine stringifies this property, so the types are incorrect.
     // @ts-ignore
     if (vault?.selfContained === "true" || vault?.selfContained === "false")
@@ -309,7 +309,10 @@ export abstract class EngineV3Base implements ReducedDEngine {
       // TODO: need to return an error
       return [];
     }
-    const items = response.value;
+    let items = response.value;
+    if (limit !== undefined && items.length > limit) {
+      items = items.slice(0, limit);
+    }
     if (items.length === 0) {
       return [];
     }
