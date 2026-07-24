@@ -5,13 +5,13 @@ import {
   VaultUtils,
 } from "@dendronhq/common-all";
 import * as vscode from "vscode";
-import { GotoNoteCommand } from "../commands/GotoNote";
 import { DENDRON_COMMANDS } from "../constants";
 import { IDendronExtension } from "../dendronExtensionInterface";
 import { WorkspaceModesService } from "../services/WorkspaceModesService";
 import { getLastActivationReport } from "../utils/dev";
 import { escapeAttr, escapeHtml } from "../utils/htmlEscape";
 import { countOpenInboxBullets } from "../utils/noteBodyUtils";
+import { gotoNoteByVaultName } from "../utils/webviewNoteActions";
 
 /**
  * Dendron Home — HTML sidebar dashboard (no React bundle).
@@ -38,12 +38,9 @@ export class HubHomeWebview implements vscode.WebviewViewProvider {
     webviewView.webview.options = { enableScripts: true };
     webviewView.webview.onDidReceiveMessage(async (msg) => {
       if (msg?.type === "openNote" && msg.fname) {
-        const vault = this._ext
-          .getDWorkspace()
-          .vaults.find((v) => VaultUtils.getName(v) === msg.vaultName);
-        await new GotoNoteCommand(this._ext).execute({
-          qs: msg.fname,
-          ...(vault ? { vault } : {}),
+        await gotoNoteByVaultName(this._ext, {
+          fname: msg.fname,
+          vaultName: msg.vaultName,
         });
       } else if (msg?.type === "command" && msg.command) {
         await vscode.commands.executeCommand(msg.command);

@@ -4,10 +4,10 @@ import {
   VaultUtils,
 } from "@dendronhq/common-all";
 import _ from "lodash";
-import { GotoNoteCommand } from "../commands/GotoNote";
 import { IDendronExtension } from "../dendronExtensionInterface";
 import { WorkspaceModesService } from "../services/WorkspaceModesService";
 import { escapeHtml } from "../utils/htmlEscape";
+import { gotoNoteByVaultName } from "../utils/webviewNoteActions";
 
 export /**
  * Shared Task Board data + HTML for sidebar WebviewView and editor WebviewPanel.
@@ -53,12 +53,9 @@ export async function handleTaskBoardMessage(
   refresh: () => Promise<void>
 ): Promise<void> {
   if (msg?.type === "open" && msg.fname) {
-    const vault = ext
-      .getDWorkspace()
-      .vaults.find((v) => VaultUtils.getName(v) === msg.vaultName);
-    await new GotoNoteCommand(ext).execute({
-      qs: msg.fname,
-      ...(vault ? { vault } : {}),
+    await gotoNoteByVaultName(ext, {
+      fname: msg.fname,
+      vaultName: msg.vaultName,
     });
   } else if (msg?.type === "setStatus" && msg.id && msg.status !== undefined) {
     const engine = ext.getEngine();
