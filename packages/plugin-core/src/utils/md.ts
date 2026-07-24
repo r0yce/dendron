@@ -1,9 +1,9 @@
 /**
  * Markdown / wiki-link reference helpers used by language features and lookup.
  *
- * Implementation: `./md/_impl.ts` (split further when touching one area heavily).
- * Prefer importing from `utils/md` (this facade) for stable paths.
+ * Modules: `md/types`, `md/core` (getReferenceAtPosition, paths, MarkdownUtils),
+ * `md/anchors`, `md/findReferences`.
  *
- * Frontmatter line helpers are **1-indexed** — check callers before changing.
+ * Frontmatter ending line helpers are **1-indexed**.
  */
-export * from "./md/_impl";
+export * from "./md/index";

@@ -1,19 +1,15 @@
 /**
- * Markdown reference helpers (implementation).
- * Public surface re-exported from ../md.ts for stable import paths.
+ * Core markdown path/ref helpers (getReferenceAtPosition, paths, MarkdownUtils).
  */
+
 
 import {
   ConfigUtils,
-  DLink,
   DLinkType,
   DNoteAnchorBasic,
   DVault,
   isBlockAnchor,
   isLineAnchor,
-  isNotUndefined,
-  NoteProps,
-  NotePropsMeta,
   NoteUtils,
   TAGS_HIERARCHY,
   USERS_HIERARCHY,
@@ -27,13 +23,11 @@ import {
   USERTAG_REGEX_LOOSE,
 } from "@dendronhq/unified";
 import { sort as sortPaths } from "cross-path-sort";
-import fs from "fs";
 import _ from "lodash";
 import path from "path";
 import vscode, {
   commands,
   extensions,
-  Location,
   Position,
   Range,
   Selection,
@@ -41,23 +35,7 @@ import vscode, {
 } from "vscode";
 import { ExtensionProvider } from "../../ExtensionProvider";
 import { VSCodeUtils } from "../../vsCodeUtils";
-
-export type RefT = {
-  label: string;
-  /** If undefined, then the file this reference is located in is the ref */
-  ref?: string | undefined;
-  anchorStart?: DNoteAnchorBasic | undefined;
-  anchorEnd?: DNoteAnchorBasic | undefined;
-  vaultName?: string | undefined;
-};
-
-export type FoundRefT = {
-  location: Location;
-  matchText: string;
-  isCandidate?: boolean | undefined;
-  isFrontmatterTag?: boolean | undefined;
-  note: NotePropsMeta;
-};
+import { RefT } from "./types";
 
 const markdownExtRegex = /\.md$/i;
 export const refPattern = "(\\[\\[)([^\\[\\]]+?)(\\]\\])";
@@ -457,168 +435,6 @@ export const containsNonMdExt = (ref: string) => {
   );
 };
 
-export const noteLinks2Locations = (note: NoteProps) => {
-  const refs: {
-    location: Location;
-    matchText: string;
-    link: DLink;
-  }[] = [];
-  const linksMatch = note.links.filter((l) => l.type !== "backlink");
-  const fsPath = NoteUtils.getFullPath({
-    note,
-    wsRoot: ExtensionProvider.getDWorkspace().wsRoot,
-  });
-  const fileContent = fs.readFileSync(fsPath).toString();
-  const fmOffset = getFrontmatterEndingOffsetPosition(fileContent) ?? 0;
-  linksMatch.forEach((link) => {
-    const startOffset = link.position?.start.offset || 0;
-    const lines = fileContent.slice(0, fmOffset + startOffset).split("\n");
-    const lineNum = lines.length;
-
-    refs.push({
-      location: new vscode.Location(
-        vscode.Uri.file(fsPath),
-        new vscode.Range(
-          new vscode.Position(lineNum, 0),
-          new vscode.Position(lineNum + 1, 0)
-        )
-      ),
-      matchText: lines.slice(-1)[0] || "",
-      link,
-    });
-  });
-  return refs;
-};
-
-export async function findReferencesById(opts: {
-  id: string;
-  isLinkCandidateEnabled?: boolean | undefined;
-}) {
-  const { id, isLinkCandidateEnabled } = opts;
-  const refs: FoundRefT[] = [];
-
-  const engine = ExtensionProvider.getEngine();
-
-  const note = (await engine.getNoteMeta(id)).data;
-
-  if (!note) {
-    return;
-  }
-
-  let notesWithRefs;
-  if (isLinkCandidateEnabled) {
-    const engineNotes = await engine.findNotesMeta({ excludeStub: true });
-    notesWithRefs = NoteUtils.getNotesWithLinkTo({
-      note,
-      notes: engineNotes,
-    });
-  } else {
-    const notesRefIds = _.uniq(
-      note.links
-        .filter((link) => link.type === "backlink")
-        .map((link) => link.from.id)
-        .filter(isNotUndefined)
-    );
-
-    notesWithRefs = (await engine.bulkGetNotesMeta(notesRefIds)).data;
-  }
-
-  _.forEach(notesWithRefs, (noteWithRef) => {
-    const linksMatch = noteWithRef.links.filter(
-      (l) => l.to?.fname?.toLowerCase() === note.fname.toLowerCase()
-    );
-    const fsPath = NoteUtils.getFullPath({
-      note: noteWithRef,
-      wsRoot: ExtensionProvider.getDWorkspace().wsRoot,
-    });
-
-    if (!fs.existsSync(fsPath)) {
-      return;
-    }
-    const fileContent = fs.readFileSync(fsPath).toString();
-    const fmOffset = getFrontmatterEndingOffsetPosition(fileContent) ?? 0;
-
-    linksMatch.forEach((link) => {
-      const endOffset = link.position?.end.offset;
-
-      let lines;
-      if (endOffset) {
-        lines = fileContent.slice(0, fmOffset + endOffset + 1).split("\n");
-      } else {
-        const fmLine =
-          getOneIndexedFrontmatterEndingLineNumber(fileContent) || 0;
-        const allLines = fileContent.split("\n");
-        const index = link.position?.end.line ?? allLines.length;
-        lines = allLines.slice(0, index + fmLine);
-      }
-      const lineNum = lines.length;
-      let range: vscode.Range;
-      switch (link.type) {
-        case "frontmatterTag":
-          // -2 in lineNum so that it targets the end of the frontmatter
-          range = new vscode.Range(
-            new vscode.Position(
-              lineNum - 2,
-              (link.position?.start.column || 1) - 1
-            ),
-            new vscode.Position(
-              lineNum - 2,
-              (link.position?.end.column || 1) - 1
-            )
-          );
-          break;
-        default:
-          range = new vscode.Range(
-            new vscode.Position(
-              lineNum - 1,
-              (link.position?.start.column || 1) - 1
-            ),
-            new vscode.Position(
-              lineNum - 1,
-              (link.position?.end.column || 1) - 1
-            )
-          );
-      }
-      const location = new vscode.Location(vscode.Uri.file(fsPath), range);
-      const foundRef: FoundRefT = {
-        location,
-        matchText: lines.slice(-1)[0] || "",
-        note: noteWithRef,
-      };
-      if (link.type === "linkCandidate") {
-        foundRef.isCandidate = true;
-      } else if (link.type === "frontmatterTag") {
-        foundRef.isFrontmatterTag = true;
-      }
-
-      refs.push(foundRef);
-    });
-  });
-
-  return refs;
-}
-
-/**
- *  ^find-references
- * @param fname
- * @param excludePaths
- * @returns
- */
-export const findReferences = async (fname: string): Promise<FoundRefT[]> => {
-  const engine = ExtensionProvider.getEngine();
-  // clean for anchor
-  const notes = await engine.findNotesMeta({ fname });
-
-  const all = Promise.all(
-    notes.map((noteProps) => findReferencesById({ id: noteProps.id }))
-  );
-
-  return all.then((results) => {
-    const arrays = _.compact(results);
-    return _.concat(...arrays);
-  });
-};
-
 export const containsMarkdownExt = (pathParam: string): boolean =>
   !!markdownExtRegex.exec(path.parse(pathParam).ext);
 
@@ -663,70 +479,3 @@ export const containsImageExt = (pathParam: string): boolean =>
  * @param input
  * @returns
  */
-function getFrontmatterEndingOffsetPosition(input: string): number | undefined {
-  const frontMatterEndingStringPattern = "\n---";
-  const offset = input.indexOf(frontMatterEndingStringPattern);
-
-  if (offset < 0) {
-    return undefined;
-  }
-
-  return offset + frontMatterEndingStringPattern.length;
-}
-
-/**
- * This returns the line number of the '---' that concludes the frontmatter
- * section of a note. The line numbers are 1 indexed in the document. If the
- * frontmatter ending marker is not found, this returns undefined.
- * @param input
- * @returns
- */
-export function getOneIndexedFrontmatterEndingLineNumber(
-  input: string
-): number | undefined {
-  const offset = getFrontmatterEndingOffsetPosition(input);
-
-  if (!offset) {
-    return undefined;
-  }
-
-  return (_.countBy(input.slice(0, offset))["\n"] || 0) + 1;
-}
-
-/**
- * Given a {@link FoundRefT} and a list of anchor names,
- * check if ref contains an anchor name to update.
- * @param ref
- * @param anchorNamesToUpdate
- * @returns
- */
-export function hasAnchorsToUpdate(
-  ref: FoundRefT,
-  anchorNamesToUpdate: string[]
-) {
-  const matchText = ref.matchText;
-  const wikiLinkRegEx = /\[\[(?<text>.+?)\]\]/;
-
-  const wikiLinkMatch = wikiLinkRegEx.exec(matchText);
-
-  if (wikiLinkMatch && wikiLinkMatch.groups?.text) {
-    let processed = wikiLinkMatch.groups.text;
-    if (processed.includes("|")) {
-      const [_alias, link] = processed.split("|");
-      processed = link || processed;
-    }
-
-    if (processed.includes("#")) {
-      const [_fname, anchor] = processed.split("#");
-      const a = anchor!; // guarded by includes("#")
-      if (a.startsWith("^")) {
-        return anchorNamesToUpdate.includes(a.substring(1));
-      }
-      return anchorNamesToUpdate.includes(a);
-    } else {
-      return false;
-    }
-  } else {
-    return false;
-  }
-}

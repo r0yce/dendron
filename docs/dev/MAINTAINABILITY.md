@@ -9,60 +9,50 @@
 
 | Module | Package | Use for |
 |--------|---------|---------|
-| `genVSCodeHTMLIndex` / `WebViewThemeMap` | **common-all** | Pure webview HTML shell (desktop + web) |
-| `TaskNoteUtils` (+ open/board helpers) | **common-all** | Task detection, complete/open, board columns |
-| `noteBodyUtils` | plugin-core | Inbox/open bullets, slugify, AI parse |
-| `taskNoteFactory` | plugin-core | Create tasks with workspace task config |
-| `htmlEscape` | plugin-core | HTML webview escaping |
-| `webviewNoteMeta` / `webviewMessages` / `webviewNoteActions` | plugin-core | Payload diet + open-note from webview |
-| `taskBoardShared` | plugin-core | Task Board sidebar + editor |
-| `WorkspaceModesService` | plugin-core | Vault focus / workmodes / lookup focus filter |
-| `selectionProcessing` | plugin-core lookup | selectionExtract / selection2link / backlink retarget |
-| `pickerCreateNew` / `pickerSort` | plugin-core lookup | Create New bubble-up + similarity sort |
-| `registerHtmlSidePanels` | plugin-core workspace | Calendar / Task Board / Hub Home / Sample register |
-| `SmartReloadService` / `safeBulkRenamePlan` | plugin-core | Index reconcile / rename plan |
-
-**Rule:** same 5+ lines twice → extract. Prefer **common-all** when pure; **plugin-core/utils** when host-only pure.
+| `genVSCodeHTMLIndex` | **common-all** | Pure webview HTML shell |
+| `TaskNoteUtils` | **common-all** | Task open/done/board columns |
+| `noteBodyUtils` / `taskNoteFactory` / `htmlEscape` | plugin-core | Rituals + HTML |
+| `webviewNoteMeta` / `webviewMessages` / `webviewNoteActions` | plugin-core | Webview payload diet |
+| `taskBoardShared` | plugin-core | Task Board UI |
+| `WorkspaceModesService` | plugin-core | Vault focus / workmodes |
+| `selectionProcessing` | lookup | selectionExtract / selection2link |
+| `pickerCreateNew` / `pickerSort` / `pickerVault` | lookup | Create New ranking + vault pick |
+| `utils/md/*` | plugin-core | types, core, anchors, findReferences |
+| `registerHtmlSidePanels` / `setupBacklinks` / `setupGraphPanel` / `setupTipOfTheDay` | workspace/ | Side panel registration |
+| `extension/setupCommands` / `setupLanguageFeatures` | extension/ | Activation registration |
+| `SmartReloadService` / `safeBulkRenamePlan` | plugin-core | Index / rename |
 
 ---
 
 ## Extraction waves
 
-### Wave 1 — DONE
-Task/inbox helpers, htmlEscape, webview meta, module headers
+### Waves 1–3 — DONE
+Helpers, HTML shell, lookup selection, md facade, side-panel register, picker free helpers.
 
-### Wave 2 — DONE
-`createTaskNoteFromTitle`, `buildActiveEditorMsg`, `filterQuickPickItemsByFocus`
-
-### Wave 3 — DONE (this push)
+### Wave 4 — DONE (this push)
 
 | Item | Result |
 |------|--------|
-| Pure webview HTML shell | `common-all/webviewHtmlIndex.ts`; common-server + web WebViewUtils delegate |
-| LookupControllerV3 selection | → `selectionProcessing.ts` (~200 LOC peeled; controller ~720) |
-| `utils/md.ts` | Facade → `utils/md/_impl.ts` (stable imports; peel files next) |
-| Lookup free helpers | `pickerCreateNew.ts`, `pickerSort.ts` re-exported from `utils.ts` |
-| Side panel registration | `workspace/registerSidePanels.ts` |
+| Split `md/_impl` | `md/types`, `md/core`, `md/anchors`, `md/findReferences` + index facade |
+| Peel vault picker | `pickerVault.ts` (recommendations + prompt); thin `PickerUtilsV2` wrappers |
+| Workspace panel setup | `setupBacklinks.ts`, `setupGraphPanel.ts`, `setupTipOfTheDay.ts` |
+| Extension registration | `extension/setupCommands.ts`, `extension/setupLanguageFeatures.ts` |
+| Size | `_extension` ~964→**723**; `workspace` ~797→**610**; `lookup/utils` ~800→**628** |
 
-### Wave 4 — NEXT (optional)
+### Wave 5 — optional next
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | Split `md/_impl.ts` into `findReferences.ts` / `anchors.ts` / `MarkdownUtils.ts` |
-| P2 | Peel more of `PickerUtilsV2` (vault picker methods) |
-| P3 | Move backlink/graph setup out of `workspace.ts` |
-| P4 | Peel `_extension.ts` command registration modules |
+| P1 | Split `md/core.ts` further (getReferenceAtPosition vs path utils vs MarkdownUtils) |
+| P2 | Peel remaining `PickerUtilsV2` filter/create-new static methods |
+| P3 | Thin `workspaceActivator.ts` |
+| P4 | More pure unit tests for pickerVault / anchors |
 
 ---
-
-## Comment policy
-
-Module headers for contracts (vault focus, dual-build, payload diet, smart reload, web HTML shell). Inline only for non-obvious algorithms.
 
 ## Verify
 
 ```bash
 yarn workspace @dendronhq/common-all build
-yarn workspace @dendronhq/common-server compile
 yarn workspace @dendronhq/plugin-core compile
 ```
