@@ -1,6 +1,9 @@
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
-const SentryWebpackPlugin = require("@sentry/webpack-plugin");
+// @sentry/webpack-plugin v3+ exports { sentryWebpackPlugin } (not a class constructor)
+const {
+  sentryWebpackPlugin,
+} = require("@sentry/webpack-plugin");
 const BundleAnalyzerPlugin =
   require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 const CircularDependencyPlugin = require("circular-dependency-plugin");
@@ -73,27 +76,40 @@ const config = {
     ...(process.env.SKIP_SENTRY
       ? []
       : [
-          // Upload one set of source maps to associate it with the vscode@ prefixed client release:
-          // @ts-ignore
-          new SentryWebpackPlugin({
+          // Upload source maps for the vscode@ and express@ client releases.
+          // Only runs when SENTRY_AUTH_TOKEN is set; otherwise plugin no-ops.
+          sentryWebpackPlugin({
             authToken: process.env.SENTRY_AUTH_TOKEN,
             org: "dendron",
             project: "dendron",
-            release: "vscode@" + process.env.DENDRON_RELEASE_VERSION,
-
-            // other SentryWebpackPlugin configuration
-            include: ".",
-            ignore: ["node_modules", "webpack.*.js"],
+            release: {
+              name: "vscode@" + (process.env.DENDRON_RELEASE_VERSION || "dev"),
+            },
+            sourcemaps: {
+              assets: ["./dist/**"],
+              ignore: ["node_modules", "webpack.*.js"],
+            },
+            // Don't fail the package build if upload is skipped/unavailable.
+            errorHandler: (err) => {
+              // eslint-disable-next-line no-console
+              console.warn("[sentry-webpack-plugin]", err.message || err);
+            },
           }),
-          // Upload a second set of source maps to associate it with the express@ prefixed client release:
-          // @ts-ignore
-          new SentryWebpackPlugin({
+          sentryWebpackPlugin({
             authToken: process.env.SENTRY_AUTH_TOKEN,
             org: "dendron",
             project: "dendron",
-            release: "express@" + process.env.DENDRON_RELEASE_VERSION,
-            include: ".",
-            ignore: ["node_modules", "webpack.*.js"],
+            release: {
+              name: "express@" + (process.env.DENDRON_RELEASE_VERSION || "dev"),
+            },
+            sourcemaps: {
+              assets: ["./dist/**"],
+              ignore: ["node_modules", "webpack.*.js"],
+            },
+            errorHandler: (err) => {
+              // eslint-disable-next-line no-console
+              console.warn("[sentry-webpack-plugin]", err.message || err);
+            },
           }),
         ]),
     // bundle analysis only done when enabled

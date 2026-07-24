@@ -85,11 +85,37 @@ const webExtensionConfig = {
     new webpack.ProvidePlugin({
       Buffer: ["buffer", "Buffer"],
     }),
+    // Webpack 5 does not resolve node: protocol imports in webworker targets.
+    // Strip the prefix so resolve.fallback / externals can handle them.
+    new webpack.NormalModuleReplacementPlugin(/^node:/, (resource) => {
+      resource.request = resource.request.replace(/^node:/, "");
+    }),
   ],
   externals: [
     {
       vscode: "commonjs vscode", // ignored because it doesn't exist
     },
+    // Native / node-only packages that must not be bundled into webworker
+    "fs",
+    "fs/promises",
+    "child_process",
+    "net",
+    "tls",
+    "http2",
+    "dns",
+    "async_hooks",
+    "diagnostics_channel",
+    "worker_threads",
+    "module",
+    "inspector",
+    "perf_hooks",
+    "v8",
+    "vm",
+    "readline",
+    "repl",
+    "cluster",
+    "dgram",
+    "zlib",
     /\.\/webpack-require-hack/,
   ],
   performance: {
