@@ -2,15 +2,11 @@ import {
   DEngineClient,
   DNodeProps,
   DNodePropsQuickInputV2,
-  DNodeUtils,
   DVault,
   extractNoteChangeEntryCounts,
-  NoteUtils,
   RefactoringCommandUsedPayload,
   StatisticsUtils,
 } from "@dendronhq/common-all";
-import { vault2Path } from "@dendronhq/common-server";
-import fs from "fs-extra";
 import _ from "lodash";
 import _md from "markdown-it";
 import { HistoryEvent } from "@dendronhq/engine-server";
@@ -33,6 +29,12 @@ import { ProxyMetricUtils } from "../utils/ProxyMetricUtils";
 import { LinkUtils } from "@dendronhq/unified";
 import { AutoCompleter } from "../utils/autoCompleter";
 import { AutoCompletableRegistrar } from "../utils/registers/AutoCompletableRegistrar";
+import {
+  buildRefactorOverwriteErrorMarkdown,
+  filterCapturedNotesForRefactor,
+  findExistingRefactorTargets,
+  getRefactorRenameOperations,
+} from "./refactorHierarchyOps";
 
 const md = _md();
 
@@ -135,7 +137,7 @@ export class RefactorHierarchyCommandV2 extends BasicCommand<
       disposable = AutoCompletableRegistrar.OnAutoComplete(() => {
         if (lc.quickPick) {
           lc.quickPick.value = AutoCompleter.getAutoCompletedValue(
-            lc.quickPick
+            lc.quickPick,
           );
 
           lc.provider.onUpdatePickerItems({
@@ -202,7 +204,7 @@ export class RefactorHierarchyCommandV2 extends BasicCommand<
       window.showInformationMessage("Refactor scoped to all notes.");
     } else {
       window.showInformationMessage(
-        `Refactor scoped to ${scope.selectedItems.length} selected note(s).`
+        `Refactor scoped to ${scope.selectedItems.length} selected note(s).`,
       );
     }
 
@@ -244,43 +246,30 @@ export class RefactorHierarchyCommandV2 extends BasicCommand<
             .concat(
               ops.map(({ oldUri, newUri }) => {
                 return `| ${path.basename(oldUri.fsPath)} |-->| ${path.basename(
-                  newUri.fsPath
+                  newUri.fsPath,
                 )} |`;
-              })
+              }),
             )
             .join("\n");
-        }
-      )
+        },
+      ),
     );
     const panel = window.createWebviewPanel(
       "refactorPreview", // Identifies the type of the webview. Used internally
       "Refactor Preview", // Title of the panel displayed to the user
       { viewColumn: ViewColumn.One, preserveFocus: true }, // Editor column to show the new webview panel in.
-      {} // Webview options. More on these later.
+      {}, // Webview options. More on these later.
     );
     panel.webview.html = md.render(content.join("\n"));
   }
 
   async showError(operations: RenameOperation[]) {
-    const content = [
-      "# Error - Refactoring would overwrite files",
-      "",
-      "### The following files would be overwritten",
-    ]
-      .concat("\n||||\n|-|-|-|")
-      .concat(
-        operations.map(({ oldUri, newUri }) => {
-          return `| ${path.basename(oldUri.fsPath)} |-->| ${path.basename(
-            newUri.fsPath
-          )} |`;
-        })
-      )
-      .join("\n");
+    const content = buildRefactorOverwriteErrorMarkdown(operations);
     const panel = window.createWebviewPanel(
-      "refactorPreview", // Identifies the type of the webview. Used internally
-      "Refactor Preview", // Title of the panel displayed to the user
-      ViewColumn.One, // Editor column to show the new webview panel in.
-      {} // Webview options. More on these later.
+      "refactorPreview",
+      "Refactor Preview",
+      ViewColumn.One,
+      {},
     );
     panel.webview.html = md.render(content);
   }
@@ -298,27 +287,13 @@ export class RefactorHierarchyCommandV2 extends BasicCommand<
         ? await engine.findNotes({ excludeStub: false })
         : scope.selectedItems.map(
             (item) =>
-              _.omit(item, ["label", "detail", "alwaysShow"]) as DNodeProps
+              _.omit(item, ["label", "detail", "alwaysShow"]) as DNodeProps,
           );
 
-    const capturedNotes: DNodeProps[] = scopedItems.filter((item) => {
-      const result = matchRE.exec(item.fname);
-      return result && !DNodeUtils.isRoot(item);
-    });
-
-    // filter out notes that are not in fs (virtual stub notes)
-    return capturedNotes.filter((note) => {
-      if (note.stub) {
-        // if a stub is captured, see if it actually exists in the file system.
-        // if it is in the file system, we should include it should be part of the refactor
-        // otherwise, this should be omitted.
-        // as the virtual stubs will automatically be handled by the rename operation.
-        const notePath = NoteUtils.getFullPath({ wsRoot: engine.wsRoot, note });
-        const existsInFileSystem = fs.existsSync(notePath);
-        return existsInFileSystem;
-      } else {
-        return true;
-      }
+    return filterCapturedNotesForRefactor({
+      scopedItems,
+      matchRE,
+      wsRoot: engine.wsRoot,
     });
   }
 
@@ -328,31 +303,15 @@ export class RefactorHierarchyCommandV2 extends BasicCommand<
     replace: string;
     wsRoot: string;
   }) {
-    const { capturedNotes, matchRE, replace, wsRoot } = opts;
-    const operations = capturedNotes.map((note) => {
-      const vault = note.vault;
-      const vpath = vault2Path({ wsRoot, vault });
-      const rootUri = Uri.file(vpath);
-      const source = note.fname;
-      const dest = note.fname.replace(matchRE, replace);
-      return {
-        oldUri: VSCodeUtils.joinPath(rootUri, source + ".md"),
-        newUri: VSCodeUtils.joinPath(rootUri, dest + ".md"),
-        vault,
-      };
-    });
-    return operations;
+    return getRefactorRenameOperations(opts);
   }
 
   async hasExistingFiles(opts: { operations: RenameOperation[] }) {
-    const { operations } = opts;
-    const filesThatExist: RenameOperation[] = _.filter(operations, (op) => {
-      return fs.pathExistsSync(op.newUri.fsPath);
-    });
+    const filesThatExist = findExistingRefactorTargets(opts.operations);
     if (!_.isEmpty(filesThatExist)) {
       await this.showError(filesThatExist);
       window.showErrorMessage(
-        "refactored files would overwrite existing files"
+        "refactored files would overwrite existing files",
       );
       return true;
     }
@@ -366,7 +325,7 @@ export class RefactorHierarchyCommandV2 extends BasicCommand<
     const { operations, renameCmd } = opts;
     const ctx = "RefactorHierarchy:runOperations";
     const out = await _.reduce<
-      typeof operations[0],
+      (typeof operations)[0],
       Promise<RenameNoteOutputV2a>
     >(
       operations,
@@ -389,7 +348,7 @@ export class RefactorHierarchyCommandV2 extends BasicCommand<
       },
       Promise.resolve({
         changed: [],
-      })
+      }),
     );
     return out;
   }
@@ -418,7 +377,7 @@ export class RefactorHierarchyCommandV2 extends BasicCommand<
     const { numChildren, numLinks, numChars, noteDepth, ...rest } = basicStats;
 
     const traitsAcc = capturedNotes.flatMap((note) =>
-      note.traits && note.traits.length > 0 ? note.traits : []
+      note.traits && note.traits.length > 0 ? note.traits : [],
     );
     const traitsSet = new Set(traitsAcc);
     this._proxyMetricPayload = {
@@ -483,7 +442,7 @@ export class RefactorHierarchyCommandV2 extends BasicCommand<
       async () => {
         const out = await this.runOperations({ operations, renameCmd });
         return out;
-      }
+      },
     );
     return { ...out, operations };
   }
@@ -499,7 +458,7 @@ export class RefactorHierarchyCommandV2 extends BasicCommand<
       window.showInformationMessage(
         `Dendron updated ${
           _.uniqBy(changed, (ent) => ent.note.fname).length
-        } files`
+        } files`,
       );
     }
   }

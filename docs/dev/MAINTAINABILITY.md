@@ -248,12 +248,27 @@ Still >400 LOC and not fully modular shells:
 | `VaultAddCommand.ts` | **~437** (was ~510) |
 | `AddExistingVaultCommand.ts` | **~480** (was ~550) |
 
-### Wave 18 — optional next
+### Wave 18 — DONE (this push)
+
+| Item | Result |
+|------|--------|
+| Shared remote vault | `vaultRemoteHandlers` — standard + self-contained clone/register |
+| Refactor hierarchy ops | `refactorHierarchyOps` — capture filter, rename ops, overwrite detect, error md |
+| Move note ops | `moveNoteOps` — desired moves, sequential rename, multi-move preview md |
+
+| Hotspot | ~LOC after wave 18 |
+|---------|-------------------|
+| `VaultAddCommand.ts` | **~316** (was ~437) |
+| `AddExistingVaultCommand.ts` | **~359** (was ~480) |
+| `MoveNoteCommand.ts` | **~396** (was ~484) |
+| `RefactorHierarchyV2.ts` | **~508** (was ~547; still >400 — prompts/UI remain) |
+
+### Wave 19 — optional next
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | Peel VaultAdd/AddExisting `handleRemoteRepo*` into shared remote vault module |
-| P2 | RefactorHierarchyV2 / MoveNote / MergeNote / GotoNote |
+| P1 | Peel RefactorHierarchy prompts + execute further; MergeNote / GotoNote |
+| P2 | BaseExportPodCommand + remaining ≥400 commands |
 | P3 | Continue until no command ≥400 LOC |
 
 ---

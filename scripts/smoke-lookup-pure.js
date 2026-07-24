@@ -23,6 +23,8 @@ const acceptHelp = out("commands/noteLookupAcceptHelpers.js");
 // noteLookupGatherInputs pulls ExtensionProvider/vscode — do not require here.
 const hierarchy = out("commands/hierarchySchemaModels.js");
 const doctorActions = out("commands/doctorActions.js");
+const moveNoteOps = out("commands/moveNoteOps.js");
+const refactorOps = out("commands/refactorHierarchyOps.js");
 const constants = out("components/lookup/vaultPickerConstants.js");
 
 let failed = 0;
@@ -174,6 +176,34 @@ check(
   doctorActions.shouldDoctorReloadWorkspaceBeforeDoctorAction(
     "fixFrontmatter"
   ) === true
+);
+
+// --- move note / refactor pure ---
+check(
+  "isMoveNecessary same vault+name",
+  moveNoteOps.isMoveNecessary({
+    oldLoc: { fname: "a", vaultName: "v1" },
+    newLoc: { fname: "a", vaultName: "v1" },
+  }) === false
+);
+check(
+  "isMultiMove",
+  moveNoteOps.isMultiMove([{}, {}]) === true &&
+    moveNoteOps.isMultiMove([{}]) === false
+);
+check(
+  "getRefactorRenameOperations produces dest fname",
+  (() => {
+    const ops = refactorOps.getRefactorRenameOperations({
+      capturedNotes: [
+        { fname: "foo.bar", vault: { fsPath: "v1", name: "v1" } },
+      ],
+      matchRE: /^foo\./,
+      replace: "baz.",
+      wsRoot: "/tmp/ws",
+    });
+    return ops.length === 1 && ops[0].newUri.fsPath.includes("baz.bar");
+  })()
 );
 
 if (failed) {

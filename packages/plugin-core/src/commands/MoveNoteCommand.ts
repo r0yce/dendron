@@ -24,7 +24,6 @@ import {
 import { NoteLookupProviderUtils } from "../components/lookup/NoteLookupProviderUtils";
 import { DendronContext, DENDRON_COMMANDS } from "../constants";
 import { FileItem } from "../external/fileutils/FileItem";
-import { UNKNOWN_ERROR_MSG } from "../logger";
 import { VSCodeUtils } from "../vsCodeUtils";
 import { ProceedCancel, QuickPickUtil } from "../utils/quickPick";
 import { BasicCommand } from "./base";
@@ -34,6 +33,12 @@ import { ProxyMetricUtils } from "../utils/ProxyMetricUtils";
 import { IDendronExtension } from "../dendronExtensionInterface";
 import { AutoCompletableRegistrar } from "../utils/registers/AutoCompletableRegistrar";
 import { AutoCompleter } from "../utils/autoCompleter";
+import {
+  buildMultiMovePreviewMarkdown,
+  getDesiredMoves as getDesiredMovesHelper,
+  isMultiMove,
+  moveNotesSequential,
+} from "./moveNoteOps";
 
 type CommandInput = any;
 
@@ -70,17 +75,6 @@ export type CommandOpts = {
 export type CommandOutput = {
   changed: NoteChangeEntry[];
 };
-
-function isMultiMove(moves: RenameNoteOpts[]) {
-  return moves.length > 1;
-}
-
-function isMoveNecessary(move: RenameNoteOpts) {
-  return (
-    move.oldLoc.vaultName !== move.newLoc.vaultName ||
-    move.oldLoc.fname.toLowerCase() !== move.newLoc.fname.toLowerCase()
-  );
-}
 
 export class MoveNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
   key = DENDRON_COMMANDS.MOVE_NOTE.key;
@@ -136,7 +130,7 @@ export class MoveNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
     provider.registerOnAcceptHook(ProviderAcceptHooks.oldNewLocationHook);
     const initialValue = path.basename(
       VSCodeUtils.getActiveTextEditor()?.document.uri.fsPath || "",
-      ".md"
+      ".md",
     );
 
     return new Promise((resolve) => {
@@ -183,7 +177,7 @@ export class MoveNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
       disposable = AutoCompletableRegistrar.OnAutoComplete(() => {
         if (lc.quickPick) {
           lc.quickPick.value = AutoCompleter.getAutoCompletedValue(
-            lc.quickPick
+            lc.quickPick,
           );
 
           lc.provider.onUpdatePickerItems({
@@ -195,7 +189,7 @@ export class MoveNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
   }
 
   private async prepareProxyMetricPayload(
-    data: NoteLookupProviderSuccessResp<OldNewLocation>
+    data: NoteLookupProviderSuccessResp<OldNewLocation>,
   ) {
     const ctx = `${this.key}:prepareProxyMetricPayload`;
     const engine = ExtensionProvider.getEngine();
@@ -206,22 +200,22 @@ export class MoveNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
       if (!hookResp) {
         items = [];
       } else {
-      const { oldLoc } = hookResp;
-      const { fname, vaultName: vname } = oldLoc;
-      if (fname !== undefined && vname !== undefined) {
-        const vault = VaultUtils.getVaultByName({
-          vaults: engine.vaults,
-          vname,
-        });
-        const note = (await engine.findNotes({ fname, vault }))[0]!;
-        items = [note];
-      } else {
-        items = [];
-      }
+        const { oldLoc } = hookResp;
+        const { fname, vaultName: vname } = oldLoc;
+        if (fname !== undefined && vname !== undefined) {
+          const vault = VaultUtils.getVaultByName({
+            vaults: engine.vaults,
+            vname,
+          });
+          const note = (await engine.findNotes({ fname, vault }))[0]!;
+          items = [note];
+        } else {
+          items = [];
+        }
       }
     } else {
       const notes = data.selectedItems.map(
-        (item): NoteProps => _.omit(item, ["label", "detail", "alwaysShow"])
+        (item): NoteProps => _.omit(item, ["label", "detail", "alwaysShow"]),
       );
       items = notes;
     }
@@ -235,7 +229,7 @@ export class MoveNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
     const { numChildren, numLinks, numChars, noteDepth, ...rest } = basicStats;
 
     const traitsAcc = items.flatMap((item) =>
-      item.traits && item.traits.length > 0 ? item.traits : []
+      item.traits && item.traits.length > 0 ? item.traits : [],
     );
     const traitsSet = new Set(traitsAcc);
 
@@ -255,38 +249,9 @@ export class MoveNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
   }
 
   private getDesiredMoves(
-    data: NoteLookupProviderSuccessResp<OldNewLocation>
+    data: NoteLookupProviderSuccessResp<OldNewLocation>,
   ): RenameNoteOpts[] {
-    if (data.selectedItems.length === 1) {
-      // If there is only a single element that we are working on then we can allow
-      // for the file name to be renamed as part of the move, hence we need to
-      // use onAcceptHookResp since it contains the destination file name.
-      return data.onAcceptHookResp;
-    } else if (data.selectedItems.length > 1) {
-      // If there are multiple elements selected then we are aren't doing multi rename
-      // in multi note move and therefore we will use selected items to get
-      // all the files that the user has selected.
-
-      const newVaultName = data.onAcceptHookResp[0]!.newLoc.vaultName;
-
-      return data.selectedItems.map((item) => {
-        const renameOpt: RenameNoteOpts = {
-          oldLoc: {
-            fname: item.fname,
-            vaultName: VaultUtils.getName(item.vault),
-          },
-          newLoc: {
-            fname: item.fname,
-            vaultName: newVaultName,
-          },
-        };
-        return renameOpt;
-      });
-    } else {
-      throw new DendronError({
-        message: `MoveNoteCommand: No items are selected. ${UNKNOWN_ERROR_MSG}`,
-      });
-    }
+    return getDesiredMovesHelper(data);
   }
 
   async execute(opts: CommandOpts): Promise<{ changed: NoteChangeEntry[] }> {
@@ -324,7 +289,7 @@ export class MoveNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
         async () => {
           const allChanges = await this.moveNotes(engine, opts.moves);
           return allChanges;
-        }
+        },
       );
 
       if (opts.closeAndOpenFile) {
@@ -351,74 +316,19 @@ export class MoveNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
   /** Performs the actual move of the notes. */
   private async moveNotes(
     engine: DEngineClient,
-    moves: RenameNoteOpts[]
+    moves: RenameNoteOpts[],
   ): Promise<NoteChangeEntry[]> {
-    const necessaryMoves = moves.filter((move) => isMoveNecessary(move));
-
-    const allChanges: NoteChangeEntry[] = [];
-
-    for (const move of necessaryMoves) {
-      // We need to wait for a rename to finish before triggering another rename
-      // eslint-disable-next-line no-await-in-loop
-      const changes = await engine.renameNote(move);
-
-      allChanges.push(...(changes.data as NoteChangeEntry[]));
-    }
-
-    return allChanges;
+    return moveNotesSequential(engine, moves);
   }
 
   private async showMultiMovePreview(moves: RenameNoteOpts[]) {
-    // All the moves when doing bulk-move will have the same destination vault.
-    const destVault = moves[0]!.newLoc.vaultName;
-
-    const contentLines = [
-      "# Move notes preview",
-      "",
-      `## The following files will be moved to vault: ${destVault}`,
-    ];
-
-    const necessaryMoves = moves.filter((m) => isMoveNecessary(m));
-    const movesBySourceVaultName = _.groupBy(
-      necessaryMoves,
-      "oldLoc.vaultName"
-    );
-
-    function formatRowFileName(move: RenameNoteOpts) {
-      return `| ${path.basename(move.oldLoc.fname)} |`;
-    }
-
-    _.forEach(
-      movesBySourceVaultName,
-      (moves: RenameNoteOpts[], sourceVault: string) => {
-        contentLines.push(`| From vault: ${sourceVault} to ${destVault} |`);
-        contentLines.push(`|------------------------|`);
-        moves.forEach((move) => {
-          contentLines.push(formatRowFileName(move));
-        });
-        contentLines.push("---");
-      }
-    );
-
-    // When we are doing multi select move we don't support renaming file name
-    // functionality hence the files that do not require a move must have
-    // been attempted to be moved into the vault that they are already are.
-    const sameVaultMoves = moves.filter((m) => !isMoveNecessary(m));
-    if (sameVaultMoves.length) {
-      contentLines.push(`|The following are already in vault: ${destVault}|`);
-      contentLines.push(`|-----------------------------------------------|`);
-      sameVaultMoves.forEach((m) => {
-        contentLines.push(formatRowFileName(m));
-      });
-    }
-
     const panel = window.createWebviewPanel(
-      "noteMovePreview", // Identifies the type of the webview. Used internally
-      "Move Notes Preview", // Title of the panel displayed to the user
-      ViewColumn.One, // Editor column to show the new webview panel in.
-      {} // Webview options. More on these later.
+      "noteMovePreview",
+      "Move Notes Preview",
+      ViewColumn.One,
+      {},
     );
-    panel.webview.html = md.render(contentLines.join("\n"));
+    panel.webview.html = md.render(buildMultiMovePreviewMarkdown(moves));
   }
 
   trackProxyMetrics({
@@ -470,7 +380,7 @@ export class MoveNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
 async function closeCurrentFileOpenMovedFile(
   engine: DEngineClient,
   moveOpts: RenameNoteOpts,
-  wsRoot: string
+  wsRoot: string,
 ) {
   const vault = VaultUtils.getVaultByName({
     vaults: engine.vaults,

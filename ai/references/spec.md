@@ -161,7 +161,9 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | Lookup enrich (History) | `lookupCommandEnrichInputs` (note + schema) |
 | Doctor | `doctorActions`, `doctorPreviews`, `doctorExecute` |
 | MoveHeader helpers | `moveHeaderHelpers`, `moveHeaderLinks`, `moveHeaderValidate` |
-| Vault add shared | `vaultWorkspaceHelpers` |
+| Vault add shared | `vaultWorkspaceHelpers`, `vaultRemoteHandlers` |
+| Refactor hierarchy ops | `refactorHierarchyOps` |
+| Move note ops | `moveNoteOps` |
 | Schema-from-hierarchy pure | `hierarchySchemaModels`, `hierarchySchemaCreator` |
 | Lookup controller modifiers | `lookupControllerModifiers`, `lookupControllerViewState` |
 | Lookup sentinels / open note | `pickerSentinels`, `pickerDisplay` |
