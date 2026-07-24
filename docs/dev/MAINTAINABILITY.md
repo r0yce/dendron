@@ -16,9 +16,10 @@
 | `taskBoardShared` | plugin-core | Task Board UI |
 | `WorkspaceModesService` | plugin-core | Vault focus / workmodes |
 | `selectionProcessing` | lookup | selectionExtract / selection2link |
-| `pickerCreateNew` / `pickerSort` / `pickerVault` | lookup | Create New ranking + vault pick |
-| `utils/md/*` | plugin-core | types, core, anchors, findReferences |
-| `registerHtmlSidePanels` / `setupBacklinks` / `setupGraphPanel` / `setupTipOfTheDay` | workspace/ | Side panel registration |
+| `pickerCreateNew` / `pickerSort` / `pickerVault` / `pickerFilters` | lookup | Ranking, vault pick, filters |
+| `utils/md/*` | plugin-core | types, paths, anchors, markdownUtils, getReferenceAtPosition, findReferences |
+| `registerHtmlSidePanels` / `setupBacklinks` / `setupGraphPanel` / `setupTipOfTheDay` | workspace/ | Side panels |
+| `activatorHelpers` | workspace/ | trackTopLevelRepo, getOrPromptWSRoot, duplicate vault check |
 | `extension/setupCommands` / `setupLanguageFeatures` | extension/ | Activation registration |
 | `SmartReloadService` / `safeBulkRenamePlan` | plugin-core | Index / rename |
 
@@ -26,27 +27,32 @@
 
 ## Extraction waves
 
-### Waves 1–3 — DONE
-Helpers, HTML shell, lookup selection, md facade, side-panel register, picker free helpers.
+### Waves 1–4 — DONE
+See git history `f92ad1059`…`b9e2664b6`.
 
-### Wave 4 — DONE (this push)
+### Wave 5 — DONE (this push)
 
 | Item | Result |
 |------|--------|
-| Split `md/_impl` | `md/types`, `md/core`, `md/anchors`, `md/findReferences` + index facade |
-| Peel vault picker | `pickerVault.ts` (recommendations + prompt); thin `PickerUtilsV2` wrappers |
-| Workspace panel setup | `setupBacklinks.ts`, `setupGraphPanel.ts`, `setupTipOfTheDay.ts` |
-| Extension registration | `extension/setupCommands.ts`, `extension/setupLanguageFeatures.ts` |
-| Size | `_extension` ~964→**723**; `workspace` ~797→**610**; `lookup/utils` ~800→**628** |
+| Split `md/core.ts` | → `paths.ts`, `markdownUtils.ts`, `getReferenceAtPosition.ts` |
+| Peel PickerUtils filters | → `pickerFilters.ts` (create-new detection, depth, stubs, …) |
+| Thin workspaceActivator | → `activatorHelpers.ts` (repo analytics, ws root pick, vault name check) |
+| Tests | `maintainabilityHelpers.test.ts` + node smoke for anchors/pickers |
 
-### Wave 5 — optional next
+| Hotspot | ~LOC after wave 5 |
+|---------|-------------------|
+| `utils/md/*` modules | paths 113, getRef ~250, markdownUtils ~137, anchors ~73, findRefs ~181 |
+| `lookup/utils.ts` | **~560** (was ~800 before wave 4–5) |
+| `workspaceActivator.ts` | **~665** (helpers peeled) |
+
+### Wave 6 — optional next
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | Split `md/core.ts` further (getReferenceAtPosition vs path utils vs MarkdownUtils) |
-| P2 | Peel remaining `PickerUtilsV2` filter/create-new static methods |
-| P3 | Thin `workspaceActivator.ts` |
-| P4 | More pure unit tests for pickerVault / anchors |
+| P1 | Peel remaining `PickerUtilsV2` quickpick factory methods |
+| P2 | Further thin `workspaceActivator` class methods into files |
+| P3 | `workspaceActivator` reload/postReload helpers |
+| P4 | More pure tests for `pickerVault` ranking |
 
 ---
 
@@ -55,4 +61,5 @@ Helpers, HTML shell, lookup selection, md facade, side-panel register, picker fr
 ```bash
 yarn workspace @dendronhq/common-all build
 yarn workspace @dendronhq/plugin-core compile
+node -e "require('./packages/plugin-core/out/src/utils/md/anchors.js')"
 ```

@@ -34,10 +34,8 @@ import { Logger } from "../../logger";
 import { VSCodeUtils } from "../../vsCodeUtils";
 import { DendronBtn, getButtonCategory } from "./ButtonTypes";
 import {
-  CREATE_NEW_DETAIL_LIST,
   CREATE_NEW_LABEL,
   CREATE_NEW_NOTE_DETAIL,
-  CREATE_NEW_NOTE_WITH_TEMPLATE_DETAIL,
   MORE_RESULTS_LABEL,
 } from "./constants";
 import type { CreateQuickPickOpts } from "./LookupControllerV3Interface";
@@ -48,6 +46,18 @@ import {
   DendronQuickPickState,
   VaultSelectionMode,
 } from "./types";
+import {
+  filterByDepth,
+  filterCreateNewItem,
+  filterDefaultItems,
+  filterNonStubs,
+  getCreateNewItem,
+  getQueryUpToLastDot,
+  isCreateNewNotePicked,
+  isCreateNewNotePickedForSingle,
+  isCreateNewNoteWithTemplatePicked,
+  isInputEmpty,
+} from "./pickerFilters";
 import {
   getOrPromptVaultForNewNote,
   getVaultRecommendations,
@@ -300,44 +310,11 @@ export class PickerUtilsV2 {
     return [...picker.selectedItems];
   }
 
-  static filterCreateNewItem = (
-    items: DNodePropsQuickInputV2[]
-  ): DNodePropsQuickInputV2[] => {
-    return _.reject(items, { label: CREATE_NEW_LABEL });
-  };
-
-  static filterDefaultItems = (
-    items: DNodePropsQuickInputV2[]
-  ): DNodePropsQuickInputV2[] => {
-    return _.reject(
-      items,
-      (ent) =>
-        ent.label === CREATE_NEW_LABEL || ent.label === MORE_RESULTS_LABEL
-    );
-  };
-
-  /**
-   * Reject all items that are over a given level
-   * @param items
-   * @param lvl
-   */
-  static filterByDepth = (
-    items: DNodePropsQuickInputV2[],
-    depth: number
-  ): DNodePropsQuickInputV2[] => {
-    return _.reject(items, (ent) => {
-      return DNodeUtils.getDepth(ent) > depth;
-    });
-  };
-
+  static filterCreateNewItem = filterCreateNewItem;
+  static filterDefaultItems = filterDefaultItems;
+  static filterByDepth = filterByDepth;
   /** Reject all items that are stubs */
-  static filterNonStubs(
-    items: DNodePropsQuickInputV2[]
-  ): DNodePropsQuickInputV2[] {
-    return _.filter(items, (ent) => {
-      return !ent.stub;
-    });
-  }
+  static filterNonStubs = filterNonStubs;
 
   static getFnameForOpenEditor(): string | undefined {
     const activeEditor = VSCodeUtils.getActiveTextEditor();
@@ -386,17 +363,8 @@ export class PickerUtilsV2 {
     return PickerUtilsV2.getVaultForOpenEditor();
   }
 
-  static getQueryUpToLastDot = (query: string) => {
-    return query.lastIndexOf(".") >= 0
-      ? query.slice(0, query.lastIndexOf("."))
-      : "";
-  };
-
-  static getCreateNewItem = (
-    items: readonly DNodePropsQuickInputV2[]
-  ): DNodePropsQuickInputV2 | undefined => {
-    return _.find(items, { label: CREATE_NEW_LABEL });
-  };
+  static getQueryUpToLastDot = getQueryUpToLastDot;
+  static getCreateNewItem = getCreateNewItem;
 
   /**
    * Check if this picker still has further pickers
@@ -410,7 +378,7 @@ export class PickerUtilsV2 {
   ): quickpick is Required<DendronQuickPickerV2> => {
     const { selectedItems, providerId } = opts;
     const nextPicker = quickpick.nextPicker;
-    const isNewPick = PickerUtilsV2.isCreateNewNotePicked(selectedItems[0]!);
+    const isNewPick = isCreateNewNotePicked(selectedItems[0]!);
     const isNewPickAllowed = ["lookup", "dendron.moveHeader"];
     return (
       !_.isUndefined(nextPicker) &&
@@ -418,54 +386,10 @@ export class PickerUtilsV2 {
     );
   };
 
-  static isCreateNewNotePickedForSingle(node: DNodePropsQuickInputV2): boolean {
-    if (!node) {
-      return true;
-    }
-    if (
-      CREATE_NEW_DETAIL_LIST.includes(node.detail || "") ||
-      node.stub ||
-      node.schemaStub
-    ) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  static isCreateNewNotePicked(node: DNodePropsQuickInputV2): boolean {
-    if (!node) {
-      return true;
-    }
-    if (
-      CREATE_NEW_DETAIL_LIST.includes(node.detail || "") ||
-      node.stub ||
-      node.schemaStub
-    ) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  static isCreateNewNoteWithTemplatePicked(
-    node: DNodePropsQuickInputV2
-  ): boolean {
-    return (
-      this.isCreateNewNotePicked(node) &&
-      node.detail === CREATE_NEW_NOTE_WITH_TEMPLATE_DETAIL
-    );
-  }
-
-  static isInputEmpty(value?: string): value is undefined {
-    if (_.isUndefined(value)) {
-      return true;
-    }
-    if (_.isEmpty(value)) {
-      return true;
-    }
-    return false;
-  }
+  static isCreateNewNotePickedForSingle = isCreateNewNotePickedForSingle;
+  static isCreateNewNotePicked = isCreateNewNotePicked;
+  static isCreateNewNoteWithTemplatePicked = isCreateNewNoteWithTemplatePicked;
+  static isInputEmpty = isInputEmpty;
 
   public static async getOrPromptVaultForNewNote(opts: {
     vault: DVault;

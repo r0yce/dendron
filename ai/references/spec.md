@@ -150,7 +150,9 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | HTML side panels register | `registerHtmlSidePanels` |
 | Backlinks / graph panel setup | `workspace/setupBacklinks`, `setupGraphPanel` |
 | Command / language registration | `extension/setupCommands`, `setupLanguageFeatures` |
-| Markdown refs / anchors | `utils/md` (`findReferences`, `anchors`, `core`) |
+| Markdown refs / anchors | `utils/md` (`paths`, `anchors`, `getReferenceAtPosition`, `findReferences`, `markdownUtils`) |
+| Lookup item filters | `pickerFilters` (also on `PickerUtilsV2` wrappers) |
+| Activation helpers | `workspace/activatorHelpers` |
 
 **Extract when:** same logic appears in ≥2 commands/views. Prefer pure functions + thin commands.
 
