@@ -98,8 +98,10 @@ const coreGraphConfig: CoreGraphConfig = {
 };
 
 const noteGraphConfig: NoteGraphConfig = {
+  // Local-first defaults: open neighborhood of active note (not full vault).
+  // Users can still toggle "Show Full Graph" in the filter UI.
   "connections.links": {
-    value: false,
+    value: true,
     mutable: true,
   },
   "information.edges-links": {
@@ -111,7 +113,7 @@ const noteGraphConfig: NoteGraphConfig = {
     mutable: true,
   },
   "options.show-local-graph": {
-    value: false,
+    value: true,
     mutable: true,
   },
 };

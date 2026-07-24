@@ -9,7 +9,6 @@ import {
 import { createLogger, DendronNote } from "@dendronhq/common-frontend";
 import { Button } from "antd";
 import _ from "lodash";
-import mermaid from "mermaid";
 import type { SyntheticEvent } from "react";
 import React from "react";
 import { useCurrentTheme, useMermaid, useRenderedNoteBody } from "../hooks";
@@ -91,7 +90,8 @@ const DendronNotePreview: DendronComponent = (props) => {
 
   useClickHandler(noteProps?.id);
   const { currentTheme: themeType } = useCurrentTheme();
-  useMermaid({ themeType, mermaid, noteRenderedBody });
+  // Lazy mermaid: only loads when rendered body contains mermaid blocks.
+  useMermaid({ themeType, noteRenderedBody });
 
   if (props.engine.error) {
     return (

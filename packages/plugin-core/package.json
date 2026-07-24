@@ -122,6 +122,18 @@
           "name": "Graph Panel",
           "type": "webview",
           "when": "dendron:pluginActive && shellExecutionSupported"
+        },
+        {
+          "id": "dendron.task-board",
+          "name": "Task Board",
+          "type": "webview",
+          "when": "dendron:pluginActive && shellExecutionSupported"
+        },
+        {
+          "id": "dendron.hub-home",
+          "name": "Dendron Home",
+          "type": "webview",
+          "when": "dendron:pluginActive && shellExecutionSupported"
         }
       ]
     },
@@ -1493,12 +1505,12 @@
         "dendron.localAI.endpoint": {
           "type": "string",
           "default": "",
-          "description": "Optional local OpenAI-compatible chat endpoint (e.g. http://127.0.0.1:11434/v1/chat/completions). Empty = offline scaffold only."
+          "description": "Optional local OpenAI-compatible chat endpoint. Empty = offline scaffold only. Ollama example: http://127.0.0.1:11434/v1/chat/completions"
         },
         "dendron.localAI.model": {
           "type": "string",
-          "default": "local",
-          "description": "Model name sent to the local AI endpoint when configured."
+          "default": "llama3.2",
+          "description": "Model name sent to the local AI endpoint (Ollama: run `ollama pull llama3.2` first)."
         }
       }
     },

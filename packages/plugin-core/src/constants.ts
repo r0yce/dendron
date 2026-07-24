@@ -136,6 +136,16 @@ export const DENDRON_VIEWS = [
     when: `${DendronContext.PLUGIN_ACTIVE} && shellExecutionSupported`,
     where: "dendron-view",
   },
+  {
+    ...treeViewConfig2VSCodeEntry(DendronTreeViewKey.TASK_BOARD),
+    when: `${DendronContext.PLUGIN_ACTIVE} && shellExecutionSupported`,
+    where: "dendron-view",
+  },
+  {
+    ...treeViewConfig2VSCodeEntry(DendronTreeViewKey.HUB_HOME),
+    when: `${DendronContext.PLUGIN_ACTIVE} && shellExecutionSupported`,
+    where: "dendron-view",
+  },
 ];
 
 type KeyBinding = {

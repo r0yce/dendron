@@ -23,6 +23,7 @@ import { Logger } from "../logger";
 import { GraphStyleService } from "../styles";
 import { AnalyticsUtils } from "../utils/analytics";
 import { VSCodeUtils } from "../vsCodeUtils";
+import { toWebviewNoteMeta } from "../utils/webviewNoteMeta";
 import { WebViewUtils } from "./utils";
 
 export class GraphPanel implements vscode.WebviewViewProvider {
@@ -333,15 +334,17 @@ export class GraphPanel implements vscode.WebviewViewProvider {
       if (note) {
         this._view.show?.(true);
       }
+      const active =
+        note?.stub && !createStub
+          ? note
+          : await this._ext.wsUtils.getActiveNote();
+      // Payload diet: meta-only postMessage (no bodies). Single-note sync still OK.
       this._view.webview.postMessage({
         type: DMessageEnum.ON_DID_CHANGE_ACTIVE_TEXT_EDITOR,
         data: {
-          note,
+          note: toWebviewNoteMeta(note),
           syncChangedNote: true,
-          activeNote:
-            note?.stub && !createStub
-              ? note
-              : await this._ext.wsUtils.getActiveNote(),
+          activeNote: toWebviewNoteMeta(active || undefined),
         },
         source: "vscode",
       } as OnDidChangeActiveTextEditorMsg);

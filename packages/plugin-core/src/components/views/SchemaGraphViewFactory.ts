@@ -116,11 +116,14 @@ export class SchemaGraphViewFactory {
 
           const note = await ext.wsUtils.getNoteFromDocument(editor.document);
 
+          // Payload diet: do NOT full workspace sync on every editor change.
+          // Engine already initialized via useEngine on mount; only push active note meta.
           SchemaGraphViewFactory._panel.webview.postMessage({
             type: DMessageEnum.ON_DID_CHANGE_ACTIVE_TEXT_EDITOR,
             data: {
-              note,
-              sync: true,
+              note: note ? { ...note, body: "" } : note,
+              sync: false,
+              syncChangedNote: false,
             },
             source: "vscode",
           } as OnDidChangeActiveTextEditorMsg);

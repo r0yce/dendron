@@ -59,7 +59,10 @@ export class WorkspaceController {
 
   async sync({ ws }: WorkspaceSyncRequest): Promise<DEngineInitResp> {
     const engine = await getWSEngine({ ws });
-    const notes = await engine.findNotes({ excludeStub: false });
+    // Payload diet: webviews (graph/calendar) only need metadata + links.
+    // Shipping full note bodies for every vault note was the largest HTTP cost.
+    const meta = await engine.findNotesMeta({ excludeStub: false });
+    const notes = meta.map((n) => ({ ...n, body: "" }));
     return {
       data: {
         notes: NoteDictsUtils.createNotePropsByIdDict(notes),

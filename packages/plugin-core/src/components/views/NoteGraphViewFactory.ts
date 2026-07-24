@@ -28,6 +28,7 @@ import { AnalyticsUtils } from "../../utils/analytics";
 import { VSCodeUtils } from "../../vsCodeUtils";
 import { DendronExtension } from "../../workspace";
 import { ConfigureGraphStylesCommand } from "../../commands/ConfigureGraphStyles";
+import { toWebviewNoteMeta } from "../../utils/webviewNoteMeta";
 
 export class NoteGraphPanelFactory {
   private static _panel: vscode.WebviewPanel | undefined = undefined;
@@ -247,15 +248,18 @@ export class NoteGraphPanelFactory {
    */
   static async refresh(note: NoteProps, createStub?: boolean): Promise<any> {
     if (this._panel) {
+      const active =
+        note.stub && !createStub
+          ? note
+          : await this._ext.wsUtils.getActiveNote();
+      // Payload diet: strip bodies from postMessage (bodies dominate size).
+      // Keep syncChangedNote so graph engine state picks up renames/creates via single-note fetch.
       this._panel.webview.postMessage({
         type: DMessageEnum.ON_DID_CHANGE_ACTIVE_TEXT_EDITOR,
         data: {
-          note,
+          note: toWebviewNoteMeta(note),
           syncChangedNote: true,
-          activeNote:
-            note.stub && !createStub
-              ? note
-              : await this._ext.wsUtils.getActiveNote(),
+          activeNote: toWebviewNoteMeta(active || undefined),
         },
         source: DMessageSource.vscode,
       } as OnDidChangeActiveTextEditorMsg);

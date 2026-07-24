@@ -87,8 +87,8 @@ export const useRenderedNoteBody = ({
 };
 
 /**
- * Initialize mermaid if it is enabled in the config file.
- * Converts all divs with the class "mermaid" into svgs.
+ * Initialize mermaid if diagrams are present in the rendered body.
+ * Lazy-loads the mermaid bundle so notes without diagrams don't pay the cost.
  *
  * https://mermaid-js.github.io/mermaid/#/
  */
@@ -98,26 +98,49 @@ export const useMermaid = ({
   noteRenderedBody,
 }: {
   themeType: "light" | "dark";
-  mermaid: Mermaid;
+  /** Optional preloaded mermaid; if omitted, dynamically imported when needed. */
+  mermaid?: Mermaid;
   noteRenderedBody?: string;
 }) => {
   React.useEffect(() => {
     const logger = createLogger("useMermaid");
+    let cancelled = false;
 
-    mermaid.initialize({
-      startOnLoad: true,
-      // Cast here because the type definitions seem to be incorrect. I can't
-      // get a value for the mermaid Theme enum, it's always undefined at
-      // runtime.
-      theme: (themeType === "light" ? "forest" : "dark") as any,
-    });
-    // use for debugging
-    // @ts-ignore
-    window._mermaid = mermaid;
-    // @ts-ignore
-    mermaid.init();
-    logger.info({ msg: "init mermaid library", themeType });
+    const run = async () => {
+      // Skip load entirely when no mermaid blocks in the HTML.
+      if (
+        noteRenderedBody &&
+        !noteRenderedBody.includes("class=\"mermaid\"") &&
+        !noteRenderedBody.includes("class='mermaid'") &&
+        !noteRenderedBody.includes("class=mermaid")
+      ) {
+        return;
+      }
+      if (!noteRenderedBody) {
+        return;
+      }
 
+      const mod =
+        mermaid ||
+        ((await import("mermaid")).default as unknown as Mermaid);
+      if (cancelled) return;
+
+      mod.initialize({
+        startOnLoad: true,
+        // Cast: mermaid Theme enum typings are unreliable at runtime.
+        theme: (themeType === "light" ? "forest" : "dark") as any,
+      });
+      // @ts-ignore
+      window._mermaid = mod;
+      // @ts-ignore
+      mod.init();
+      logger.info({ msg: "init mermaid library", themeType });
+    };
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noteRenderedBody, themeType]);
 };

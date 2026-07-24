@@ -747,7 +747,8 @@ export type OnDidChangeActiveTextEditorData = {
 };
 
 export type OnUpdatePreviewHTMLData = {
-  note: NoteProps; // TODO: Change to NotePropsMeta
+  /** Prefer meta-only (empty body); HTML carries rendered content. */
+  note: NoteProps;
   html: string;
 };
 

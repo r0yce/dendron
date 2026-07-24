@@ -63,29 +63,57 @@ const getCytoscapeStyle = (
   }
 };
 
-export const getEulerConfig = (shouldAnimate: boolean) => ({
-  name: "euler",
-  springLength: () => 80,
-  springCoeff: () => 0.0008,
-  mass: () => 4,
-  gravity: -1.2,
-  pull: 0.0001,
-  theta: 0.666,
-  dragCoeff: 0.02,
-  movementThreshold: 1,
-  timeStep: 20,
-  refresh: 10,
-  animate: shouldAnimate,
-  animationDuration: undefined,
-  animationEasing: undefined,
-  maxIterations: 1000,
-  maxSimulationTime: 4000,
-  ungrabifyWhileSimulating: false,
-  fit: true,
-  padding: 30,
-  boundingBox: undefined,
-  randomize: false,
-});
+/**
+ * Progressive / size-aware Euler layout.
+ * Large graphs get fewer iterations and shorter sim time so the UI stays responsive.
+ * Local graphs stay snappy; small full graphs can still animate.
+ */
+export const getEulerConfig = (
+  shouldAnimate: boolean,
+  opts?: { elementCount?: number; isLocal?: boolean }
+) => {
+  const count = opts?.elementCount ?? 0;
+  const isLarge = count > 1000;
+  const isMedium = count > 300;
+  const isLocal = opts?.isLocal ?? false;
+
+  let maxIterations = 1000;
+  let maxSimulationTime = 4000;
+  if (isLarge) {
+    maxIterations = 250;
+    maxSimulationTime = 800;
+  } else if (isMedium) {
+    maxIterations = 500;
+    maxSimulationTime = 1500;
+  } else if (isLocal) {
+    maxIterations = 600;
+    maxSimulationTime = 1200;
+  }
+
+  return {
+    name: "euler",
+    springLength: () => 80,
+    springCoeff: () => 0.0008,
+    mass: () => 4,
+    gravity: -1.2,
+    pull: 0.0001,
+    theta: 0.666,
+    dragCoeff: 0.02,
+    movementThreshold: 1,
+    timeStep: 20,
+    refresh: 10,
+    animate: shouldAnimate && !isLarge,
+    animationDuration: undefined,
+    animationEasing: undefined,
+    maxIterations,
+    maxSimulationTime,
+    ungrabifyWhileSimulating: false,
+    fit: true,
+    padding: 30,
+    boundingBox: undefined,
+    randomize: false,
+  };
+};
 
 cytoscape.use(popper);
 
@@ -225,11 +253,29 @@ export default function Graph({
         id2tooltip[event.target.id()].destroy();
       });
 
+      const isLocal = GraphUtils.isLocalGraph(config);
+      const elementCount = nodes.length + parsedEdges.length;
       const shouldAnimate =
-        type === "schema" ||
-        (!isLargeGraph && !GraphUtils.isLocalGraph(config));
+        type === "schema" || (!isLargeGraph && !isLocal);
 
-      network.layout(getEulerConfig(shouldAnimate)).run();
+      // Defer layout so first paint / spinner can show before Euler blocks the thread.
+      const runLayout = () => {
+        network
+          .layout(
+            getEulerConfig(shouldAnimate, {
+              elementCount,
+              isLocal,
+            })
+          )
+          .run();
+      };
+      if (typeof requestAnimationFrame === "function") {
+        requestAnimationFrame(() => {
+          setTimeout(runLayout, 0);
+        });
+      } else {
+        setTimeout(runLayout, 0);
+      }
 
       network.on("select", (e) => onSelect(e));
 

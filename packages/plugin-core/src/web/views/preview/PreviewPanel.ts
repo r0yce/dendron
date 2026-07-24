@@ -384,8 +384,9 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
         html = resp.data!;
       }
 
+      // Payload diet: HTML already has rendered content; strip body from note meta.
       const data: OnUpdatePreviewHTMLData = {
-        note,
+        note: { ...note, body: "" },
         html,
       };
 

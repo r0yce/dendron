@@ -32,6 +32,8 @@ export enum DendronTreeViewKey {
   HELP_AND_FEEDBACK = "dendron.help-and-feedback",
   GRAPH_PANEL = "dendron.graph-panel",
   RECENT_WORKSPACES = "dendron.recent-workspaces",
+  TASK_BOARD = "dendron.task-board",
+  HUB_HOME = "dendron.hub-home",
 }
 
 export const EDITOR_VIEWS: Record<DendronEditorViewKey, DendronViewEntry> = {
@@ -120,6 +122,18 @@ export const TREE_VIEWS: Record<DendronTreeViewKey, DendronViewEntry> = {
     label: "Graph Panel",
     bundleName: "DendronSideGraphPanel",
     type: "webview",
+  },
+  [DendronTreeViewKey.TASK_BOARD]: {
+    desc: "Task board by status",
+    label: "Task Board",
+    type: "webview",
+    bundleName: "DendronTaskBoard",
+  },
+  [DendronTreeViewKey.HUB_HOME]: {
+    desc: "Dendron home with live counts",
+    label: "Dendron Home",
+    type: "webview",
+    bundleName: "DendronHubHome",
   },
 };
 

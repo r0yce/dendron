@@ -8,6 +8,10 @@ import { window } from "vscode";
 import { DENDRON_COMMANDS } from "../constants";
 import { IDendronExtension } from "../dendronExtensionInterface";
 import { WorkspaceModesService } from "../services/WorkspaceModesService";
+import {
+  extractOpenBullets,
+  slugifyTaskTitle,
+} from "../utils/noteBodyUtils";
 import { BasicCommand } from "./base";
 
 type CommandOpts = {};
@@ -40,18 +44,7 @@ export class ExtractTasksFromNoteCommand extends BasicCommand<
       return { created: 0 };
     }
 
-    const bullets = (note.body || "")
-      .split("\n")
-      .map((l) => l.trim())
-      .filter(
-        (l) =>
-          (l.startsWith("- ") || l.startsWith("* ")) &&
-          !l.includes("[x]") &&
-          !l.includes("[X]")
-      )
-      .map((l) => l.replace(/^[-*]\s+(\[[ xX]\]\s*)?/, "").trim())
-      .filter((t) => t.length > 2)
-      .slice(0, 25);
+    const bullets = extractOpenBullets(note.body || "", 25);
 
     if (bullets.length === 0) {
       window.showInformationMessage(
@@ -80,11 +73,7 @@ export class ExtractTasksFromNoteCommand extends BasicCommand<
     let created = 0;
 
     for (const text of bullets) {
-      const slug = text
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, ".")
-        .replace(/^\.+|\.+$/g, "")
-        .slice(0, 48);
+      const slug = slugifyTaskTitle(text);
       const fname = `task.${Time.now().toFormat("y.MM.dd")}.${slug || "item"}`;
       const base = NoteUtils.create({
         fname,

@@ -37,6 +37,7 @@ import { IEngineAPIService } from "../services/EngineAPIServiceInterface";
 import { logPerfReport } from "../utils/dev";
 import { AnalyticsUtils } from "../utils/analytics";
 import { MessageSeverity, VSCodeUtils } from "../vsCodeUtils";
+import { SmartReloadService } from "../services/SmartReloadService";
 import { BasicCommand } from "./base";
 
 enum AutoFixAction {
@@ -59,6 +60,8 @@ function categorizeActions(actions: (AutoFixAction | undefined)[]) {
 
 type ReloadIndexCommandOpts = {
   silent?: boolean | undefined;
+  /** When true, prefer incremental disk reconcile over full engine.init() */
+  smart?: boolean | undefined;
 };
 
 export class ReloadIndexCommand extends BasicCommand<
@@ -232,6 +235,33 @@ export class ReloadIndexCommand extends BasicCommand<
         })
       );
       perf.after("autoFixActions");
+
+      // Smart path: incremental reconcile when engine already has notes loaded
+      const preferSmart =
+        opts?.smart === true ||
+        (opts?.smart !== false &&
+          typeof (engine as any).notes === "object" &&
+          Object.keys((engine as any).notes || {}).length > 0);
+
+      if (preferSmart && opts?.smart !== false) {
+        try {
+          perf.before("smartReload");
+          const result = await SmartReloadService.reconcile();
+          perf.after("smartReload");
+          this.L.info({ ctx, msg: "smartReload", ...result });
+          if (!(opts && opts.silent)) {
+            window.showInformationMessage(
+              `Smart reload: ${result.updated} updated, ${result.created} created, ${result.deleted} deleted (${result.durationMs}ms, scanned ${result.scanned})`
+            );
+          }
+          // Skip full init when smart path succeeds
+          if (result.scanned > 0 || result.updated + result.created + result.deleted >= 0) {
+            return autoFixActions;
+          }
+        } catch (err) {
+          this.L.info({ ctx, msg: "smartReload failed, falling back to full init", err });
+        }
+      }
 
       perf.before("engineInit");
       if (autoFixActions.filter(isNotUndefined).length > 0) {

@@ -208,7 +208,24 @@ const useApplyGraphConfig = ({
   };
 
   const layoutGraph = () => {
-    if (graph) graph.layout(getEulerConfig(!isLargeGraph)).run();
+    if (!graph) return;
+    const elementCount = nodes.length + Object.values(edges).flat().length;
+    const isLocal = GraphUtils.isLocalGraph(config);
+    // Defer so filter toggles don't freeze the webview mid-click.
+    const run = () =>
+      graph
+        .layout(
+          getEulerConfig(!isLargeGraph && !isLocal, {
+            elementCount,
+            isLocal,
+          })
+        )
+        .run();
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(() => setTimeout(run, 0));
+    } else {
+      setTimeout(run, 0);
+    }
   };
 
   useEffect(() => {

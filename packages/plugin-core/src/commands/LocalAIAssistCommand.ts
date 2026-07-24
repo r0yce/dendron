@@ -1,17 +1,27 @@
 import * as vscode from "vscode";
 import { DENDRON_COMMANDS } from "../constants";
 import { IDendronExtension } from "../dendronExtensionInterface";
+import {
+  offlineAIScaffold,
+  parseChatCompletionResponse,
+} from "../utils/noteBodyUtils";
 import { BasicCommand } from "./base";
 
 type CommandOpts = { prompt?: string };
 type CommandOutput = void;
+
+/** Default OpenAI-compatible Ollama chat completions URL. */
+export const DEFAULT_OLLAMA_ENDPOINT =
+  "http://127.0.0.1:11434/v1/chat/completions";
+/** Default model tag for Ollama users (pull with `ollama pull llama3.2`). */
+export const DEFAULT_OLLAMA_MODEL = "llama3.2";
 
 /**
  * Sprint 3: Local AI assist scaffold (opt-in).
  *
  * Does not call cloud APIs by default. When `dendron.localAI.enabled` is true:
  * - builds a local prompt package from the active note
- * - if `dendron.localAI.endpoint` is set, POSTs JSON { prompt, note } and shows the response
+ * - if `dendron.localAI.endpoint` is set, POSTs OpenAI-compatible chat JSON
  * - otherwise generates a deterministic local outline (offline scaffold)
  */
 export class LocalAIAssistCommand extends BasicCommand<
@@ -99,7 +109,11 @@ export class LocalAIAssistCommand extends BasicCommand<
         return;
       }
     } else {
-      result = this.offlineScaffold({ prompt, noteFname: note.fname, bodyPreview });
+      result = offlineAIScaffold({
+        prompt,
+        noteFname: note.fname,
+        bodyPreview,
+      });
     }
 
     const doc = await vscode.workspace.openTextDocument({
@@ -120,47 +134,6 @@ export class LocalAIAssistCommand extends BasicCommand<
     await vscode.window.showTextDocument(doc, { preview: true });
   }
 
-  private offlineScaffold(opts: {
-    prompt: string;
-    noteFname: string;
-    bodyPreview: string;
-  }): string {
-    const lines = opts.bodyPreview
-      .split("\n")
-      .map((l) => l.trim())
-      .filter(Boolean);
-    const headings = lines.filter((l) => l.startsWith("#")).slice(0, 12);
-    const bullets = lines
-      .filter((l) => l.startsWith("- ") || l.startsWith("* "))
-      .slice(0, 12);
-
-    return [
-      `## Offline scaffold (no model endpoint configured)`,
-      ``,
-      `This is a **local structure assist**, not a model completion.`,
-      `Set \`dendron.localAI.endpoint\` to a local OpenAI-compatible URL to use a real model.`,
-      ``,
-      `### Your prompt`,
-      opts.prompt,
-      ``,
-      `### Note structure`,
-      headings.length
-        ? headings.map((h) => `- ${h}`).join("\n")
-        : `- (no headings found in first ${opts.bodyPreview.length} chars)`,
-      ``,
-      `### Candidate bullets`,
-      bullets.length
-        ? bullets.map((b) => `- ${b.replace(/^[-*]\s+/, "")}`).join("\n")
-        : `- (no list items found)`,
-      ``,
-      `### Suggested next steps`,
-      `- [ ] Refine the note title / hierarchy under \`${opts.noteFname}\``,
-      `- [ ] Promote any capture bullets into task notes`,
-      `- [ ] Link related concepts with wiki-links`,
-      ``,
-    ].join("\n");
-  }
-
   private async callLocalEndpoint(
     endpoint: string,
     payload: {
@@ -168,11 +141,12 @@ export class LocalAIAssistCommand extends BasicCommand<
       note: { fname: string; title: string; body: string };
     }
   ): Promise<string> {
-    // Minimal OpenAI-compatible chat/completions shape for local servers (ollama, lmstudio, etc.)
+    // OpenAI-compatible chat/completions for Ollama, LM Studio, etc.
+    const model = vscode.workspace
+      .getConfiguration()
+      .get<string>("dendron.localAI.model", DEFAULT_OLLAMA_MODEL);
     const body = {
-      model: vscode.workspace
-        .getConfiguration()
-        .get<string>("dendron.localAI.model", "local"),
+      model,
       messages: [
         {
           role: "system",
@@ -187,20 +161,38 @@ export class LocalAIAssistCommand extends BasicCommand<
       temperature: 0.2,
     };
 
-    const resp = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!resp.ok) {
-      throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
+    const controller = new AbortController();
+    const timeoutMs = 30000;
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const resp = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+      if (!resp.ok) {
+        throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
+      }
+      const json = await resp.json();
+      return parseChatCompletionResponse(json);
+    } catch (err: any) {
+      if (err?.name === "AbortError") {
+        throw new Error(
+          `Local AI timed out after ${timeoutMs}ms. Is Ollama running? Try: ollama serve && ollama pull ${model}`
+        );
+      }
+      const msg = err?.message || String(err);
+      if (
+        /ECONNREFUSED|fetch failed|NetworkError|Failed to fetch/i.test(msg)
+      ) {
+        throw new Error(
+          `Cannot reach local AI at ${endpoint}. Is Ollama running? Example: ollama serve && ollama pull ${model}`
+        );
+      }
+      throw err;
+    } finally {
+      clearTimeout(timer);
     }
-    const json = (await resp.json()) as any;
-    const text =
-      json?.choices?.[0]?.message?.content ||
-      json?.message?.content ||
-      json?.response ||
-      JSON.stringify(json, null, 2);
-    return String(text);
   }
 }

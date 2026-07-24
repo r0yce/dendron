@@ -48,6 +48,8 @@ import BacklinksTreeDataProvider from "./features/BacklinksTreeDataProvider";
 import TipOfTheDayWebview from "./features/TipOfTheDayWebview";
 import { FileWatcher } from "./fileWatcher";
 import { Logger } from "./logger";
+import { TaskBoardWebview } from "./views/TaskBoardWebview";
+import { HubHomeWebview } from "./views/HubHomeWebview";
 import { CommandRegistrar } from "./services/CommandRegistrar";
 import { EngineAPIService } from "./services/EngineAPIService";
 import { NoteTraitManager } from "./services/NoteTraitManager";
@@ -559,6 +561,24 @@ export class DendronExtension implements IDendronExtension {
 
         // Graph panel (side)
         const graphPanel = this.setupGraphPanel();
+
+        // Awesome list: Task Board + Hub Home webviews (HTML, no CRA bundle)
+        const taskBoard = new TaskBoardWebview(this);
+        const hubHome = new HubHomeWebview(this);
+        context.subscriptions.push(
+          vscode.window.registerWebviewViewProvider(
+            TaskBoardWebview.viewType,
+            taskBoard,
+            { webviewOptions: { retainContextWhenHidden: true } }
+          )
+        );
+        context.subscriptions.push(
+          vscode.window.registerWebviewViewProvider(
+            HubHomeWebview.viewType,
+            hubHome,
+            { webviewOptions: { retainContextWhenHidden: true } }
+          )
+        );
 
         context.subscriptions.push(backlinkTreeView);
         context.subscriptions.push(tipOfDayView);
