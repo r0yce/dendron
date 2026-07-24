@@ -194,8 +194,8 @@ Helpers, HTML shell, lookup selection, md modules, picker filters, activator hel
 
 | Hotspot | ~LOC after wave 14 |
 |---------|-------------------|
-| `NoteLookupCommand.ts` | **~290** (was ~394 after wave 13; ~802 peak) |
-| `SchemaLookupCommand.ts` | **~150** (was ~243) |
+| `NoteLookupCommand.ts` | **~293** (was ~394 after wave 13; ~802 peak) |
+| `SchemaLookupCommand.ts` | **~148** (was ~243) |
 | Lookup command stack | fully modular gather → enrich → accept → execute |
 
 ### Wave 15 — optional next
