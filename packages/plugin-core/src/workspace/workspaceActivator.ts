@@ -48,6 +48,17 @@ import { WorkspaceInitFactory } from "./WorkspaceInitFactory";
 import { WorkspaceInitializer } from "./workspaceInitializer";
 
 /**
+ * Workspace activation orchestration (init → reload → watchers → tree).
+ *
+ * Free helpers peeld to:
+ * - `activatorHelpers` / `activatorReload` / `activatorLifecycle`
+ * - `activatorTreeView` / `activatorServer`
+ *
+ * Dual-build: activation path is tsc `out/` under F5; do not assume webpack
+ * `dist/` bundles are loaded for the local extension host.
+ */
+
+/**
  * Get version of Dendron when workspace was last activated
  */
 

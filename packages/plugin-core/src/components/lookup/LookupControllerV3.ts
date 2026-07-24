@@ -2,38 +2,42 @@
  * Lookup controller V3 — wires QuickPick UI to note/schema providers.
  *
  * Owns button/modifier state and QuickPick wiring.
- * Selection extract/link logic lives in `selectionProcessing.ts`.
+ * Selection extract/link → `selectionProcessing.ts`
+ * Name/selection modifiers → `lookupControllerModifiers.ts`
+ * Initial view state from buttons → `lookupControllerViewState.ts`
  * See docs/dev/MAINTAINABILITY.md.
  */
 
 import {
   assertUnreachable,
-  ConfigUtils,
   DendronError,
   DNodeType,
   ERROR_STATUS,
-  getSlugger,
   LookupNoteTypeEnum,
   LookupSelectionTypeEnum,
   NoteProps,
   NoteQuickInput,
-  NoteUtils,
-  TaskNoteUtils,
 } from "@dendronhq/common-all";
 import { HistoryService } from "@dendronhq/engine-server";
 import _ from "lodash";
 import * as vscode from "vscode";
 import { CancellationTokenSource } from "vscode";
-import { DendronClientUtilsV2 } from "../../clientUtils";
-import { ExtensionProvider } from "../../ExtensionProvider";
 import { Logger } from "../../logger";
-import { clipboard } from "../../utils";
 import { VersionProvider } from "../../versionProvider";
 import { LookupPanelView } from "../../views/LookupPanelView";
 import { VSCodeUtils } from "../../vsCodeUtils";
 import { LookupV3QuickPickView } from "../views/LookupV3QuickPickView";
 import { ButtonType, DendronBtn } from "./ButtonTypes";
-import { selectionToNoteProps as selectionToNotePropsHelper } from "./selectionProcessing";
+import {
+  onCopyNoteLinkBtnToggled,
+  onJournalButtonToggled,
+  onScratchButtonToggled,
+  onSelect2ItemsBtnToggled,
+  onSelection2LinkBtnToggled,
+  onSelectionExtractBtnToggled,
+  onTaskButtonToggled,
+} from "./lookupControllerModifiers";
+import { initializeViewStateFromButtons } from "./lookupControllerViewState";
 import type {
   CreateQuickPickOpts,
   ILookupControllerV3,
@@ -43,7 +47,6 @@ import type {
 } from "./LookupControllerV3Interface";
 import { ILookupProviderV3 } from "./LookupProviderV3Interface";
 import { ILookupViewModel } from "./LookupViewModel";
-import { NotePickerUtils } from "./NotePickerUtils";
 import { DendronQuickPickerV2, VaultSelectionMode } from "./types";
 import { PickerUtilsV2 } from "./utils";
 
@@ -182,7 +185,10 @@ export class LookupControllerV3 implements ILookupControllerV3 {
     );
 
     // Set the initial View Model State from the initial Button state:
-    this.initializeViewStateFromButtons(this._initButtons);
+    initializeViewStateFromButtons({
+      buttons: this._initButtons,
+      viewModel: this._viewModel,
+    });
 
     quickpick.onDidHide(() => {
       if (opts.onDidHide) {
@@ -284,17 +290,18 @@ export class LookupControllerV3 implements ILookupControllerV3 {
     if (ToLinkBtn || ExtractBtn || ToItemsBtn) {
       this._disposables.push(
         this._viewModel.selectionState.bind(async (newValue, prevValue) => {
+          const qp = this.quickPick;
           switch (prevValue) {
             case LookupSelectionTypeEnum.selection2Items: {
-              await this.onSelect2ItemsBtnToggled(false);
+              await onSelect2ItemsBtnToggled(qp, false);
               break;
             }
             case LookupSelectionTypeEnum.selection2link: {
-              this.onSelection2LinkBtnToggled(false);
+              onSelection2LinkBtnToggled(qp, false);
               break;
             }
             case LookupSelectionTypeEnum.selectionExtract: {
-              this.onSelectionExtractBtnToggled(false);
+              onSelectionExtractBtnToggled(qp, false);
               break;
             }
             default:
@@ -303,15 +310,15 @@ export class LookupControllerV3 implements ILookupControllerV3 {
 
           switch (newValue) {
             case LookupSelectionTypeEnum.selection2Items: {
-              await this.onSelect2ItemsBtnToggled(true);
+              await onSelect2ItemsBtnToggled(qp, true);
               break;
             }
             case LookupSelectionTypeEnum.selection2link: {
-              this.onSelection2LinkBtnToggled(true);
+              onSelection2LinkBtnToggled(qp, true);
               break;
             }
             case LookupSelectionTypeEnum.selectionExtract: {
-              this.onSelectionExtractBtnToggled(true);
+              onSelectionExtractBtnToggled(qp, true);
               break;
             }
             case LookupSelectionTypeEnum.none: {
@@ -346,7 +353,7 @@ export class LookupControllerV3 implements ILookupControllerV3 {
     if (copyLinkBtn) {
       this._disposables.push(
         this._viewModel.isCopyNoteLinkEnabled.bind(async (enabled) => {
-          this.onCopyNoteLinkBtnToggled(enabled);
+          onCopyNoteLinkBtnToggled(this.quickPick, enabled);
         })
       );
     }
@@ -380,15 +387,16 @@ export class LookupControllerV3 implements ILookupControllerV3 {
     if (journalBtn || scratchBtn || taskBtn) {
       this._disposables.push(
         this._viewModel.nameModifierMode.bind(async (newValue, prevValue) => {
+          const qp = this.quickPick;
           switch (prevValue) {
             case LookupNoteTypeEnum.journal:
-              if (journalBtn) this.onJournalButtonToggled(false);
+              if (journalBtn) onJournalButtonToggled(qp, false);
               break;
             case LookupNoteTypeEnum.scratch:
-              if (scratchBtn) this.onScratchButtonToggled(false);
+              if (scratchBtn) onScratchButtonToggled(qp, false);
               break;
             case LookupNoteTypeEnum.task:
-              if (taskBtn) this.onTaskButtonToggled(false);
+              if (taskBtn) await onTaskButtonToggled(qp, false);
               break;
             default:
               break;
@@ -396,13 +404,13 @@ export class LookupControllerV3 implements ILookupControllerV3 {
 
           switch (newValue) {
             case LookupNoteTypeEnum.journal:
-              if (journalBtn) this.onJournalButtonToggled(true);
+              if (journalBtn) onJournalButtonToggled(qp, true);
               break;
             case LookupNoteTypeEnum.scratch:
-              if (scratchBtn) this.onScratchButtonToggled(true);
+              if (scratchBtn) onScratchButtonToggled(qp, true);
               break;
             case LookupNoteTypeEnum.task:
-              if (taskBtn) this.onTaskButtonToggled(true);
+              if (taskBtn) await onTaskButtonToggled(qp, true);
               break;
             case LookupNoteTypeEnum.none:
               break;
@@ -431,71 +439,6 @@ export class LookupControllerV3 implements ILookupControllerV3 {
     }
   }
 
-  /**
-   *  Adjust View State based on what the initial button state is
-   * @param buttons
-   */
-  private initializeViewStateFromButtons(buttons: DendronBtn[]) {
-    if (
-      this.getButtonFromArray(LookupSelectionTypeEnum.selection2Items, buttons)
-        ?.pressed
-    ) {
-      this._viewModel.selectionState.value =
-        LookupSelectionTypeEnum.selection2Items;
-    } else if (
-      this.getButtonFromArray(LookupSelectionTypeEnum.selection2link, buttons)
-        ?.pressed
-    ) {
-      this._viewModel.selectionState.value =
-        LookupSelectionTypeEnum.selection2link;
-    } else if (
-      this.getButtonFromArray(LookupSelectionTypeEnum.selectionExtract, buttons)
-        ?.pressed
-    ) {
-      this._viewModel.selectionState.value =
-        LookupSelectionTypeEnum.selectionExtract;
-    }
-
-    if (this.getButtonFromArray(LookupNoteTypeEnum.scratch, buttons)?.pressed) {
-      this._viewModel.nameModifierMode.value = LookupNoteTypeEnum.scratch;
-    } else if (
-      this.getButtonFromArray(LookupNoteTypeEnum.journal, buttons)?.pressed
-    ) {
-      this._viewModel.nameModifierMode.value = LookupNoteTypeEnum.journal;
-    } else if (
-      this.getButtonFromArray(LookupNoteTypeEnum.task, buttons)?.pressed
-    ) {
-      this._viewModel.nameModifierMode.value = LookupNoteTypeEnum.task;
-    }
-
-    this._viewModel.vaultSelectionMode.value = this.getButtonFromArray(
-      "selectVault",
-      buttons
-    )?.pressed
-      ? VaultSelectionMode.alwaysPrompt
-      : VaultSelectionMode.smart;
-
-    this._viewModel.isMultiSelectEnabled.value = !!this.getButtonFromArray(
-      "multiSelect",
-      buttons
-    )?.pressed;
-
-    this._viewModel.isCopyNoteLinkEnabled.value = !!this.getButtonFromArray(
-      "copyNoteLink",
-      buttons
-    )?.pressed;
-
-    this._viewModel.isApplyDirectChildFilter.value = !!this.getButtonFromArray(
-      "directChildOnly",
-      buttons
-    )?.pressed;
-
-    this._viewModel.isSplitHorizontally.value = !!this.getButtonFromArray(
-      "horizontal",
-      buttons
-    )?.pressed;
-  }
-
   private setNextPicker({
     quickPick,
     mode,
@@ -521,201 +464,11 @@ export class LookupControllerV3 implements ILookupControllerV3 {
     };
   }
 
-  private onJournalButtonToggled(enabled: boolean) {
-    const quickPick = this._quickPick!;
-    if (enabled) {
-      quickPick.modifyPickerValueFunc = () => {
-        try {
-          return DendronClientUtilsV2.genNoteName(LookupNoteTypeEnum.journal);
-        } catch (error) {
-          return { noteName: "", prefix: "" };
-        }
-      };
-
-      const { noteName, prefix } = quickPick.modifyPickerValueFunc();
-
-      quickPick.noteModifierValue = _.difference(
-        noteName.split("."),
-        prefix.split(".")
-      ).join(".");
-      quickPick.prevValue = quickPick.value;
-      quickPick.prefix = prefix;
-      quickPick.value = NotePickerUtils.getPickerValue(quickPick);
-      return;
-    } else {
-      quickPick.modifyPickerValueFunc = undefined;
-      quickPick.noteModifierValue = undefined;
-      quickPick.prevValue = quickPick.value;
-      quickPick.prefix = quickPick.rawValue;
-      quickPick.value = NotePickerUtils.getPickerValue(quickPick);
-    }
-  }
-
-  private onScratchButtonToggled(enabled: boolean) {
-    const quickPick = this._quickPick!;
-    if (enabled) {
-      quickPick.modifyPickerValueFunc = () => {
-        try {
-          return DendronClientUtilsV2.genNoteName(LookupNoteTypeEnum.scratch);
-        } catch (error) {
-          return { noteName: "", prefix: "" };
-        }
-      };
-      quickPick.prevValue = quickPick.value;
-      const { noteName, prefix } = quickPick.modifyPickerValueFunc();
-      quickPick.noteModifierValue = _.difference(
-        noteName.split("."),
-        prefix.split(".")
-      ).join(".");
-      quickPick.prefix = prefix;
-      quickPick.value = NotePickerUtils.getPickerValue(quickPick);
-    } else {
-      quickPick.modifyPickerValueFunc = undefined;
-      quickPick.noteModifierValue = undefined;
-      quickPick.prevValue = quickPick.value;
-      quickPick.prefix = quickPick.rawValue;
-      quickPick.value = NotePickerUtils.getPickerValue(quickPick);
-    }
-  }
-
-  private async onTaskButtonToggled(enabled: boolean) {
-    const quickPick = this._quickPick!;
-    if (enabled) {
-      quickPick.modifyPickerValueFunc = () => {
-        try {
-          return DendronClientUtilsV2.genNoteName(LookupNoteTypeEnum.task);
-        } catch (error) {
-          return { noteName: "", prefix: "" };
-        }
-      };
-      quickPick.prevValue = quickPick.value;
-      const { noteName, prefix } = quickPick.modifyPickerValueFunc();
-      quickPick.noteModifierValue = _.difference(
-        noteName.split("."),
-        prefix.split(".")
-      ).join(".");
-      quickPick.prefix = prefix;
-      quickPick.value = NotePickerUtils.getPickerValue(quickPick);
-      // If the lookup value ends up being identical to the current note, this will be confusing for the user because
-      // they won't be able to create a new note. This can happen with the default settings of Task notes.
-      // In that case, we add a trailing dot to suggest that they need to type something more.
-      const activeName = (await ExtensionProvider.getWSUtils().getActiveNote())
-        ?.fname;
-      if (quickPick.value === activeName)
-        quickPick.value = `${quickPick.value}.`;
-      // Add default task note props to the created note
-      quickPick.onCreate = async (note) => {
-        note.custom = {
-          ...TaskNoteUtils.genDefaultTaskNoteProps(
-            note,
-            ConfigUtils.getTask(ExtensionProvider.getDWorkspace().config)
-          ).custom,
-          ...note.custom,
-        };
-        return note;
-      };
-      return;
-    } else {
-      quickPick.modifyPickerValueFunc = undefined;
-      quickPick.noteModifierValue = undefined;
-      quickPick.onCreate = undefined;
-      quickPick.prevValue = quickPick.value;
-      quickPick.prefix = quickPick.rawValue;
-      quickPick.value = NotePickerUtils.getPickerValue(quickPick);
-    }
-  }
-
-  private async onSelect2ItemsBtnToggled(enabled: boolean) {
-    const quickPick = this._quickPick!;
-    if (enabled) {
-      const pickerItemsFromSelection =
-        await NotePickerUtils.createItemsFromSelectedWikilinks();
-      quickPick.prevValue = quickPick.value;
-      quickPick.value = "";
-      quickPick.itemsFromSelection = pickerItemsFromSelection;
-    } else {
-      quickPick.value = NotePickerUtils.getPickerValue(quickPick);
-      quickPick.itemsFromSelection = undefined;
-      return;
-    }
-  }
-
-  private onCopyNoteLinkBtnToggled(enabled: boolean) {
-    const quickPick = this._quickPick!;
-    if (enabled) {
-      quickPick.copyNoteLinkFunc = async (items: NoteProps[]) => {
-        const links = items.map((note) =>
-          NoteUtils.createWikiLink({ note, alias: { mode: "title" } })
-        );
-        if (_.isEmpty(links)) {
-          vscode.window.showInformationMessage(`no items selected`);
-        } else {
-          await clipboard.writeText(links.join("\n"));
-          vscode.window.showInformationMessage(`${links.length} links copied`);
-        }
-      };
-    } else {
-      quickPick.copyNoteLinkFunc = undefined;
-    }
-  }
-
-  private onSelectionExtractBtnToggled(enabled: boolean) {
-    const quickPick = this._quickPick!;
-    if (enabled) {
-      quickPick.selectionProcessFunc = (note: NoteProps) => {
-        return selectionToNotePropsHelper({
-          selectionType: "selectionExtract",
-          note,
-        });
-      };
-      Object.defineProperty(quickPick.selectionProcessFunc, "name", {
-        value: "selectionExtract",
-        writable: false,
-      });
-    } else {
-      quickPick.selectionProcessFunc = undefined;
-    }
-  }
-
-  private onSelection2LinkBtnToggled(enabled: boolean) {
-    const quickPick = this._quickPick!;
-    if (enabled) {
-      quickPick.selectionProcessFunc = (note: NoteProps) => {
-        return selectionToNotePropsHelper({
-          selectionType: "selection2link",
-          note,
-        });
-      };
-      Object.defineProperty(quickPick.selectionProcessFunc, "name", {
-        value: "selection2link",
-        writable: false,
-      });
-
-      quickPick.prevValue = quickPick.value;
-      const { text } = VSCodeUtils.getSelection();
-      const slugger = getSlugger();
-      quickPick.selectionModifierValue = slugger.slug(text!);
-      if (quickPick.noteModifierValue || quickPick.prefix) {
-        quickPick.value = NotePickerUtils.getPickerValue(quickPick);
-      } else {
-        quickPick.value = [
-          quickPick.rawValue,
-          NotePickerUtils.getPickerValue(quickPick),
-        ].join(".");
-      }
-      return;
-    } else {
-      quickPick.selectionProcessFunc = undefined;
-      quickPick.selectionModifierValue = undefined;
-      quickPick.value = NotePickerUtils.getPickerValue(quickPick);
-      return;
-    }
-  }
-
   // eslint-disable-next-line camelcase
   __DO_NOT_USE_IN_PROD_exposePropsForTesting() {
     return {
-      onSelect2ItemsBtnToggled: this.onSelect2ItemsBtnToggled.bind(this),
+      onSelect2ItemsBtnToggled: (enabled: boolean) =>
+        onSelect2ItemsBtnToggled(this.quickPick, enabled),
     };
   }
 }

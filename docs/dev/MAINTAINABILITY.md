@@ -18,8 +18,9 @@
 | `selectionProcessing` | lookup | selectionExtract / selection2link |
 | `pickerCreateNew` / `pickerSort` / `pickerFilters` | lookup | Ranking + filters |
 | `pickerVault` / `pickerVaultRank` / `vaultPickerConstants` | lookup | Vault recommendations (pure rank + selection-mode, Node-testable) |
-| `pickerFilterResults` | lookup | Pure post-query filter/rank (`filterPickerResults`) |
+| `pickerFilterResults` / `pickerCreateNewPolicy` / `pickerValue` | lookup | Pure post-query filter, Create New gates, value compose |
 | `pickerSentinels` / `pickerDisplay` | lookup | Create New / More Results sentinels; open doc + hide picker |
+| `lookupControllerModifiers` / `lookupControllerViewState` | lookup | Note-type/selection toggles + initial VM from buttons |
 | `providerAcceptHooks` | lookup | Rename/move on-accept location hooks |
 | `pickerQuickPick` / `pickerEditorContext` | lookup | QuickPick factory + open-editor vault/fname |
 | `utils/md/*` | plugin-core | paths, anchors, markdownUtils, getReferenceAtPosition, findReferences |
@@ -84,13 +85,33 @@ Helpers, HTML shell, lookup selection, md modules, picker filters, activator hel
 | `pickerSentinels` / `pickerDisplay` | ~36 / ~58 |
 | `activatorServer.ts` | ~51 |
 
-### Wave 9 — optional next
+### Wave 9 — DONE (this push)
+
+| Item | Result |
+|------|--------|
+| Create New policy (pure) | `pickerCreateNewPolicy.ts` — `shouldAddCreateNewOption`, `shouldRejectLookupItem`, `countExactFnameMatches`; wired into `NoteLookupProvider` |
+| Picker value compose (pure) | `pickerValue.ts` — `getPickerValue`; used by `NotePickerUtils` + controller modifiers |
+| Controller modifiers peel | `lookupControllerModifiers.ts` — journal/scratch/task + selection/copy toggles |
+| Controller view state peel | `lookupControllerViewState.ts` — `initializeViewStateFromButtons` |
+| Node smoke | `scripts/smoke-lookup-pure.js` (vault mode + filter + policy + value) |
+| Dual-build comments | headers on `lookup/utils.ts` + `workspaceActivator.ts` |
+| Tests | create-new policy + picker value cases in `maintainabilityHelpers.test.ts` |
+
+| Hotspot | ~LOC after wave 9 |
+|---------|-------------------|
+| `LookupControllerV3.ts` | **~474** (was ~721) |
+| `NoteLookupProvider.ts` | **~524** (was ~547; policy extracted) |
+| `lookupControllerModifiers.ts` | ~200 |
+| `lookupControllerViewState.ts` | ~79 |
+| `pickerCreateNewPolicy.ts` / `pickerValue.ts` | ~74 / ~21 pure |
+
+### Wave 10 — optional next
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | Further split `NoteLookupProvider` / `LookupControllerV3` if still noisy |
-| P2 | Optional pure Node smoke script in CI for `pickerFilterResults` + vault rank |
-| P3 | Comment pass on remaining dual-build / activation contracts |
+| P1 | Peel schema-completion block from `NoteLookupProvider.onUpdatePickerItems` |
+| P2 | Further thin `NotePickerUtils.fetchPickerResults` if still noisy |
+| P3 | Wire `scripts/smoke-lookup-pure.js` into a lightweight CI job if desired |
 
 ---
 
@@ -98,5 +119,5 @@ Helpers, HTML shell, lookup selection, md modules, picker filters, activator hel
 
 ```bash
 yarn workspace @dendronhq/plugin-core compile
-node -e "require('./packages/plugin-core/out/src/components/lookup/pickerFilterResults.js'); require('./packages/plugin-core/out/src/components/lookup/pickerVaultRank.js')"
+node scripts/smoke-lookup-pure.js
 ```

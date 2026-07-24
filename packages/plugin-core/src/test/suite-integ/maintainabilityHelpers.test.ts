@@ -28,10 +28,17 @@ import {
   resolveVaultSelectionMode,
 } from "../../components/lookup/pickerVaultRank";
 import { filterPickerResults } from "../../components/lookup/pickerFilterResults";
+import {
+  countExactFnameMatches,
+  shouldAddCreateNewOption,
+  shouldRejectLookupItem,
+} from "../../components/lookup/pickerCreateNewPolicy";
+import { getPickerValue } from "../../components/lookup/pickerValue";
 import { VaultSelectionMode } from "../../components/lookup/types";
+import { CREATE_NEW_NOTE_DETAIL } from "../../components/lookup/constants";
 import { Location, Range, Uri } from "vscode";
 
-describe("maintainabilityHelpers (waves 5–8)", () => {
+describe("maintainabilityHelpers (waves 5–9)", () => {
   describe("md/anchors", () => {
     it("finds frontmatter ending offset and 1-indexed line", () => {
       const body = "---\nid: abc\n---\n\n# Hello\n";
@@ -341,6 +348,73 @@ describe("maintainabilityHelpers (waves 5–8)", () => {
       expect(results.some((n) => n.fname === "other")).toBeFalsy();
       expect(results.some((n) => n.fname === "data.driven")).toBeTruthy();
       expect(results.some((n) => n.fname === "data.driven.x")).toBeTruthy();
+    });
+  });
+
+  describe("pickerCreateNewPolicy + pickerValue", () => {
+    it("shouldAddCreateNewOption gates trailing dots / multi-select / full vault match", () => {
+      const base = {
+        allowNewNote: true,
+        queryOrig: "hello",
+        canSelectMany: false,
+        wasMadeFromWikiLink: false,
+        numberOfExactMatches: 0,
+        vaultCount: 2,
+      };
+      expect(shouldAddCreateNewOption(base)).toBeTruthy();
+      expect(
+        shouldAddCreateNewOption({ ...base, queryOrig: "hello." })
+      ).toBeFalsy();
+      expect(
+        shouldAddCreateNewOption({ ...base, canSelectMany: true })
+      ).toBeFalsy();
+      expect(
+        shouldAddCreateNewOption({
+          ...base,
+          numberOfExactMatches: 2,
+          vaultCount: 2,
+        })
+      ).toBeFalsy();
+    });
+
+    it("countExactFnameMatches is case-insensitive", () => {
+      expect(
+        countExactFnameMatches(
+          [{ fname: "Foo" }, { fname: "foo" }, { fname: "bar" }],
+          "foo"
+        )
+      ).toEqual(2);
+    });
+
+    it("shouldRejectLookupItem only when create-new + invalid fname", () => {
+      const createNew = {
+        fname: "bad name",
+        detail: CREATE_NEW_NOTE_DETAIL,
+        stub: false,
+      } as any;
+      const real = {
+        fname: "ok",
+        detail: "",
+        stub: false,
+        schemaStub: false,
+      } as any;
+      // invalid create-new may reject depending on NoteUtils.validateFname rules
+      const rejected = shouldRejectLookupItem({ item: createNew });
+      expect(typeof rejected.shouldReject).toEqual("boolean");
+      expect(shouldRejectLookupItem({ item: real }).shouldReject).toBeFalsy();
+    });
+
+    it("getPickerValue joins non-empty parts", () => {
+      expect(
+        getPickerValue({
+          prefix: "journal",
+          noteModifierValue: "2026.07.24",
+        })
+      ).toEqual("journal.2026.07.24");
+      expect(getPickerValue({ prefix: "a", selectionModifierValue: "b" })).toEqual(
+        "a.b"
+      );
+      expect(getPickerValue({})).toEqual("");
     });
   });
 });

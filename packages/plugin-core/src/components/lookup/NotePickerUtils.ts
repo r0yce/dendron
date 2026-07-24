@@ -24,6 +24,7 @@ import {
   CREATE_NEW_NOTE_WITH_TEMPLATE_DETAIL,
 } from "./constants";
 import { DendronQuickPickerV2 } from "./types";
+import { getPickerValue } from "./pickerValue";
 import { filterPickerResults, PickerUtilsV2 } from "./utils";
 
 /** Max items shown in the quickpick at once (virtualized page). */
@@ -279,13 +280,5 @@ export class NotePickerUtils {
     return updatedItems;
   }
 
-  static getPickerValue(picker: DendronQuickPickerV2) {
-    return [
-      picker.prefix,
-      picker.noteModifierValue,
-      picker.selectionModifierValue,
-    ]
-      .filter((ent) => !_.isEmpty(ent))
-      .join(".");
-  }
+  static getPickerValue = getPickerValue;
 }

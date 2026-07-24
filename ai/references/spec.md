@@ -149,8 +149,11 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | Vault pick for new notes | `pickerVault` / `PickerUtilsV2.getVaultRecommendations` |
 | Vault rank + selection mode (pure) | `rankVaultSuggestions` / `resolveVaultSelectionMode` in `pickerVaultRank` |
 | Lookup result filter (pure) | `filterPickerResults` in `pickerFilterResults` |
+| Create New policy / picker value (pure) | `pickerCreateNewPolicy`, `pickerValue` |
+| Lookup controller modifiers | `lookupControllerModifiers`, `lookupControllerViewState` |
 | Lookup sentinels / open note | `pickerSentinels`, `pickerDisplay` |
 | Lookup accept hooks (rename/move) | `providerAcceptHooks.ProviderAcceptHooks` |
+| Pure Node smoke | `scripts/smoke-lookup-pure.js` (after plugin-core compile) |
 | HTML side panels register | `registerHtmlSidePanels` |
 | Backlinks / graph panel setup | `workspace/setupBacklinks`, `setupGraphPanel` |
 | Command / language registration | `extension/setupCommands`, `setupLanguageFeatures` |

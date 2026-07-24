@@ -1,7 +1,6 @@
 import {
   ConfigUtils,
   DNodeUtils,
-  InvalidFilenameReason,
   LookupEvents,
   NoteLookupUtils,
   NoteProps,
@@ -31,6 +30,11 @@ import {
   OnAcceptHook,
   OnUpdatePickerItemsOpts,
 } from "./LookupProviderV3Interface";
+import {
+  countExactFnameMatches,
+  shouldAddCreateNewOption,
+  shouldRejectLookupItem,
+} from "./pickerCreateNewPolicy";
 import { DendronQuickPickerV2, DendronQuickPickState } from "./types";
 import {
   OldNewLocation,
@@ -120,29 +124,8 @@ export class NoteLookupProvider implements ILookupProviderV3 {
     return;
   }
 
-  shouldRejectItem(opts: { item: NoteQuickInput }):
-    | {
-        shouldReject: true;
-        reason: InvalidFilenameReason;
-      }
-    | {
-        shouldReject: false;
-        reason?: never;
-      } {
-    const { item } = opts;
-    const result = NoteUtils.validateFname(item.fname);
-    const shouldReject =
-      !result.isValid && PickerUtilsV2.isCreateNewNotePicked(item);
-    if (shouldReject) {
-      return {
-        shouldReject,
-        reason: result.reason,
-      };
-    } else {
-      return {
-        shouldReject,
-      };
-    }
+  shouldRejectItem(opts: { item: NoteQuickInput }) {
+    return shouldRejectLookupItem(opts);
   }
 
   /**
@@ -450,24 +433,18 @@ export class NoteLookupProvider implements ILookupProviderV3 {
 
       // If each of the vaults in the workspace already have exact match of the file name
       // then we should not allow create new option.
-      const queryOrigLowerCase = queryOrig.toLowerCase();
-      const numberOfExactMatches = updatedItems.filter(
-        (item) => item.fname.toLowerCase() === queryOrigLowerCase
-      ).length;
-      const vaultsHaveSpaceForExactMatch =
-        this.extension.getDWorkspace().engine.vaults.length >
-        numberOfExactMatches;
-
-      const shouldAddCreateNew =
-        // sometimes lookup is in mode where new notes are not allowed (eg. move an existing note, this option is manually passed in)
-        this.opts.allowNewNote &&
-        // notes can't end with dot, invalid note
-        !queryOrig.endsWith(".") &&
-        // if you can select mult notes, new note is not valid
-        !picker.canSelectMany &&
-        // when you create lookup from selection, new note is not valid
-        !transformedQuery.wasMadeFromWikiLink &&
-        vaultsHaveSpaceForExactMatch;
+      const numberOfExactMatches = countExactFnameMatches(
+        updatedItems,
+        queryOrig
+      );
+      const shouldAddCreateNew = shouldAddCreateNewOption({
+        allowNewNote: !!this.opts.allowNewNote,
+        queryOrig,
+        canSelectMany: !!picker.canSelectMany,
+        wasMadeFromWikiLink: !!transformedQuery.wasMadeFromWikiLink,
+        numberOfExactMatches,
+        vaultCount: this.extension.getDWorkspace().engine.vaults.length,
+      });
 
       if (shouldAddCreateNew) {
         const entryCreateNew = NotePickerUtils.createNoActiveItem({

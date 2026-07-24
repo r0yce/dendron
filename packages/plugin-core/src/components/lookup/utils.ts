@@ -5,6 +5,10 @@
  * - `pickerCreateNew` / `pickerSort` / `pickerFilters` / `pickerVault`
  * - `pickerQuickPick` / `pickerEditorContext` / `pickerFilterResults`
  * - `pickerSentinels` / `pickerDisplay` / `providerAcceptHooks`
+ * - `pickerCreateNewPolicy` / `pickerValue` / controller modifiers
+ *
+ * Dual-build note: F5 / local debug loads tsc `out/src/extension.js`, not
+ * webpack `dist/`. Pure helpers here have no vscode so they are Node-smokeable.
  */
 /* eslint-disable no-dupe-class-members */
 import {
