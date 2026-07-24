@@ -146,7 +146,7 @@ export class NoteLookupCommand extends BaseCommand<
     AutoCompletableRegistrar.OnAutoComplete(() => {
       if (this._quickPick) {
         this._quickPick.value = AutoCompleter.getAutoCompletedValue(
-          this._quickPick
+          this._quickPick,
         );
 
         this.provider.onUpdatePickerItems({
@@ -201,7 +201,7 @@ export class NoteLookupCommand extends BaseCommand<
     const lookupConfig = ConfigUtils.getCommands(ws.config).lookup;
     const noteLookupConfig = lookupConfig.note;
     const selectionType = selectionModeConfigToType(
-      noteLookupConfig.selectionMode
+      noteLookupConfig.selectionMode,
     );
 
     const confirmVaultOnCreate = noteLookupConfig.confirmVaultOnCreate;
@@ -279,11 +279,11 @@ export class NoteLookupCommand extends BaseCommand<
   }
 
   async enrichInputs(
-    opts: CommandGatherOutput
+    opts: CommandGatherOutput,
   ): Promise<CommandOpts | undefined> {
     const ctx = "NoteLookupCommand:enrichInputs";
     let promiseResolve: (
-      value: CommandOpts | undefined
+      value: CommandOpts | undefined,
     ) => PromiseLike<CommandOpts | undefined>;
     HistoryService.instance().subscribev2("lookupProvider", {
       id: "lookup",
@@ -317,7 +317,7 @@ export class NoteLookupCommand extends BaseCommand<
                   DendronQuickPickState.PENDING_NEXT_PICK,
                   DendronQuickPickState.FULFILLED,
                 ],
-                quickpick.state
+                quickpick.state,
               )
             ) {
               this.cleanUp();
@@ -393,7 +393,7 @@ export class NoteLookupCommand extends BaseCommand<
           });
           if (journalTrait) {
             const trait = new JournalNote(
-              ExtensionProvider.getDWorkspace().config
+              ExtensionProvider.getDWorkspace().config,
             );
             if (item.traits) {
               item.traits.push(trait.id);
@@ -402,10 +402,10 @@ export class NoteLookupCommand extends BaseCommand<
             }
           }
           return this.acceptItem(item);
-        })
+        }),
       );
       const notesToShow = out.filter(
-        (ent) => !_.isUndefined(ent)
+        (ent) => !_.isUndefined(ent),
       ) as OnDidAcceptReturn[];
       if (!_.isUndefined(quickpick.copyNoteLinkFunc)) {
         await quickpick.copyNoteLinkFunc!(notesToShow.map((item) => item.node));
@@ -416,13 +416,14 @@ export class NoteLookupCommand extends BaseCommand<
           await acc;
           return quickpick.showNote!(item.uri);
         },
-        Promise.resolve({})
+        Promise.resolve({}),
       );
       perf.after("showNotes");
     } finally {
       perf.after("total");
 
-      const shouldLogPerf = getStage() === "dev" || process.env.DENDRON_PERF === "1";
+      const shouldLogPerf =
+        getStage() === "dev" || process.env.DENDRON_PERF === "1";
       if (shouldLogPerf) {
         const report = perf.report();
         Logger.info({ ctx, msg: "perf-report", report });
@@ -447,7 +448,7 @@ export class NoteLookupCommand extends BaseCommand<
   }
 
   async acceptItem(
-    item: NoteQuickInput
+    item: NoteQuickInput,
   ): Promise<OnDidAcceptReturn | undefined> {
     let result: Promise<OnDidAcceptReturn | undefined>;
     const start = process.hrtime();
@@ -479,7 +480,7 @@ export class NoteLookupCommand extends BaseCommand<
   }
 
   async acceptExistingItem(
-    item: NoteQuickInput
+    item: NoteQuickInput,
   ): Promise<OnDidAcceptReturn | undefined> {
     const picker = this.controller.quickPick;
     const uri = node2Uri(item);
@@ -487,9 +488,8 @@ export class NoteLookupCommand extends BaseCommand<
     const originalNoteDeepCopy = _.cloneDeep(originalNoteFromItem);
 
     if (picker.selectionProcessFunc !== undefined) {
-      const processedNode = await picker.selectionProcessFunc(
-        originalNoteDeepCopy
-      );
+      const processedNode =
+        await picker.selectionProcessFunc(originalNoteDeepCopy);
       if (processedNode !== undefined) {
         if (!_.isEqual(originalNoteFromItem, processedNode)) {
           const engine = ExtensionProvider.getEngine();
@@ -522,7 +522,7 @@ export class NoteLookupCommand extends BaseCommand<
   }
 
   async acceptNewItem(
-    item: NoteQuickInput
+    item: NoteQuickInput,
   ): Promise<OnDidAcceptReturn | undefined> {
     const ctx = "acceptNewItem";
     const picker = this.controller.quickPick;
@@ -571,12 +571,14 @@ export class NoteLookupCommand extends BaseCommand<
           return { data: toCSNoteProps(resp.data) };
         }
         return resp;
-      }) as Parameters<typeof TemplateUtils.findAndApplyTemplate>[0]["pickNote"],
+      }) as Parameters<
+        typeof TemplateUtils.findAndApplyTemplate
+      >[0]["pickNote"],
     });
 
     if (templateAppliedResp.error) {
       window.showWarningMessage(
-        `Warning: Problem with ${nodeNew.fname} schema. ${templateAppliedResp.error.message}`
+        `Warning: Problem with ${nodeNew.fname} schema. ${templateAppliedResp.error.message}`,
       );
     } else if (templateAppliedResp.data) {
       AnalyticsUtils.track(EngagementEvents.TemplateApplied, {
@@ -603,19 +605,18 @@ export class NoteLookupCommand extends BaseCommand<
   }
 
   async acceptNewWithTemplateItem(
-    item: NoteQuickInput
+    item: NoteQuickInput,
   ): Promise<OnDidAcceptReturn | undefined> {
     const ctx = "acceptNewWithTemplateItem";
     const picker = this.controller.quickPick;
     const fname = this.getFNameForNewItem(item);
 
     const engine = ExtensionProvider.getEngine();
-    let nodeNew: NoteProps = item;
     const vault = await this.getVaultForNewNote({ fname, picker });
     if (vault === undefined) {
       return;
     }
-    nodeNew = NoteUtils.create({
+    let nodeNew: NoteProps = NoteUtils.create({
       fname,
       vault,
       title: item.title,
@@ -630,7 +631,7 @@ export class NoteLookupCommand extends BaseCommand<
     } else {
       // template note is not selected. cancel note creation.
       window.showInformationMessage(
-        `No template selected. Cancelling note creation.`
+        `No template selected. Cancelling note creation.`,
       );
       return;
     }
