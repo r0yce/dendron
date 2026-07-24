@@ -15,6 +15,7 @@ Large monorepos stay maintainable when **shared pure logic** lives in one place 
 | `noteBodyUtils` | plugin-core | Open bullets, inbox parse/mark, slugify, AI parse/scaffold |
 | `htmlEscape` | plugin-core | HTML webview string escaping |
 | `webviewNoteMeta` / `toWebviewNoteMeta` | plugin-core | Strip bodies on host → webview messages |
+| `webviewNoteActions` / `gotoNoteByVaultName` | plugin-core | HTML webview open-note messages |
 | `taskBoardShared` | plugin-core | Task Board load + HTML + messages (sidebar + editor) |
 | `WorkspaceModesService` | plugin-core | Vault focus / workmodes |
 | `SmartReloadService` | plugin-core | Incremental index reconcile |
