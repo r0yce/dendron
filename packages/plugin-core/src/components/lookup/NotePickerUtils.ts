@@ -23,6 +23,8 @@ import {
   CREATE_NEW_WITH_TEMPLATE_LABEL,
   CREATE_NEW_NOTE_WITH_TEMPLATE_DETAIL,
 } from "./constants";
+import { enhanceNotesForQuickInput } from "./notePickerEnhance";
+import { sliceForPaginationLimit } from "./pickerPagination";
 import { DendronQuickPickerV2 } from "./types";
 import { getPickerValue } from "./pickerValue";
 import { filterPickerResults, PickerUtilsV2 } from "./utils";
@@ -65,14 +67,12 @@ export class NotePickerUtils {
         DNodeUtils.enhancePropForQuickInputV3({
           props: note,
           schema: note.schema
-            ? (
-                await engine.getSchema(note.schema.moduleId)
-              ).data
+            ? (await engine.getSchema(note.schema.moduleId)).data
             : undefined,
           vaults,
           wsRoot,
-        })
-      )
+        }),
+      ),
     );
     return pickerItemsFromSelection;
   }
@@ -130,7 +130,7 @@ export class NotePickerUtils {
   static getInitialValueFromOpenEditor() {
     const initialValue = path.basename(
       VSCodeUtils.getActiveTextEditor()?.document.uri.fsPath || "",
-      ".md"
+      ".md",
     );
     return initialValue;
   }
@@ -156,7 +156,7 @@ export class NotePickerUtils {
             : undefined,
           vaults,
         });
-      })
+      }),
     );
   };
 
@@ -234,46 +234,26 @@ export class NotePickerUtils {
     nodes = filterPickerResults({ itemsToFilter: nodes, transformedQuery });
 
     Logger.info({ ctx, msg: "post:queryNotes" });
-    if (nodes.length > PAGINATE_LIMIT) {
-      picker.allResults = nodes;
-      picker.offset = PAGINATE_LIMIT;
+    const pageSlice = sliceForPaginationLimit(nodes, PAGINATE_LIMIT);
+    if (pageSlice.hasMore && pageSlice.allResults) {
+      picker.allResults = pageSlice.allResults;
+      picker.offset = pageSlice.offset;
       picker.moreResults = true;
-      nodes = nodes.slice(0, PAGINATE_LIMIT);
+      nodes = pageSlice.page;
     } else {
       PickerUtilsV2.resetPaginationOpts(picker);
+      nodes = pageSlice.page;
     }
 
-    // Batch schema module loads (unique modules) — avoids N sequential getSchema calls
-    const schemaModuleIds = _.uniq(
-      nodes
-        .map((ent) => ent.schema?.moduleId)
-        .filter((id): id is string => !!id)
-    );
-    const schemaByModule = new Map<string, Awaited<
-      ReturnType<DEngineClient["getSchema"]>
-    >["data"]>();
-    await Promise.all(
-      schemaModuleIds.map(async (moduleId) => {
-        const resp = await engine.getSchema(moduleId);
-        if (resp.data) {
-          schemaByModule.set(moduleId, resp.data);
-        }
-      })
-    );
-
-    const updatedItems = await Promise.all(
-      nodes.map(async (ent) =>
-        DNodeUtils.enhancePropForQuickInputV3({
-          wsRoot,
-          props: ent,
-          schema: ent.schema?.moduleId
-            ? schemaByModule.get(ent.schema.moduleId)
-            : undefined,
-          vaults,
-          alwaysShow: picker.alwaysShowAll,
-        })
-      )
-    );
+    const updatedItems = await enhanceNotesForQuickInput({
+      nodes,
+      engine,
+      wsRoot,
+      vaults,
+      ...(picker.alwaysShowAll !== undefined
+        ? { alwaysShow: picker.alwaysShowAll }
+        : {}),
+    });
 
     const profile = getDurationMilliseconds(start);
     Logger.info({ ctx, msg: "engine.query", profile });

@@ -34,11 +34,16 @@ import {
   shouldRejectLookupItem,
 } from "../../components/lookup/pickerCreateNewPolicy";
 import { getPickerValue } from "../../components/lookup/pickerValue";
+import { sliceForPaginationLimit } from "../../components/lookup/pickerPagination";
+import {
+  buildSchemaChildNoteCandidates,
+  selectNewSchemaCandidates,
+} from "../../components/lookup/noteLookupSchemaCompletions";
 import { VaultSelectionMode } from "../../components/lookup/types";
 import { CREATE_NEW_NOTE_DETAIL } from "../../components/lookup/constants";
 import { Location, Range, Uri } from "vscode";
 
-describe("maintainabilityHelpers (waves 5–9)", () => {
+describe("maintainabilityHelpers (waves 5–10)", () => {
   describe("md/anchors", () => {
     it("finds frontmatter ending offset and 1-indexed line", () => {
       const body = "---\nid: abc\n---\n\n# Hello\n";
@@ -363,17 +368,17 @@ describe("maintainabilityHelpers (waves 5–9)", () => {
       };
       expect(shouldAddCreateNewOption(base)).toBeTruthy();
       expect(
-        shouldAddCreateNewOption({ ...base, queryOrig: "hello." })
+        shouldAddCreateNewOption({ ...base, queryOrig: "hello." }),
       ).toBeFalsy();
       expect(
-        shouldAddCreateNewOption({ ...base, canSelectMany: true })
+        shouldAddCreateNewOption({ ...base, canSelectMany: true }),
       ).toBeFalsy();
       expect(
         shouldAddCreateNewOption({
           ...base,
           numberOfExactMatches: 2,
           vaultCount: 2,
-        })
+        }),
       ).toBeFalsy();
     });
 
@@ -381,8 +386,8 @@ describe("maintainabilityHelpers (waves 5–9)", () => {
       expect(
         countExactFnameMatches(
           [{ fname: "Foo" }, { fname: "foo" }, { fname: "bar" }],
-          "foo"
-        )
+          "foo",
+        ),
       ).toEqual(2);
     });
 
@@ -409,12 +414,100 @@ describe("maintainabilityHelpers (waves 5–9)", () => {
         getPickerValue({
           prefix: "journal",
           noteModifierValue: "2026.07.24",
-        })
+        }),
       ).toEqual("journal.2026.07.24");
-      expect(getPickerValue({ prefix: "a", selectionModifierValue: "b" })).toEqual(
-        "a.b"
-      );
+      expect(
+        getPickerValue({ prefix: "a", selectionModifierValue: "b" }),
+      ).toEqual("a.b");
       expect(getPickerValue({})).toEqual("");
+    });
+  });
+
+  describe("pickerPagination + schema candidate select", () => {
+    it("sliceForPaginationLimit pages and retains full list when over limit", () => {
+      const over = sliceForPaginationLimit([1, 2, 3, 4, 5], 2);
+      expect(over.hasMore).toBeTruthy();
+      expect(over.page).toEqual([1, 2]);
+      expect(over.offset).toEqual(2);
+      expect(over.allResults?.length).toEqual(5);
+
+      const under = sliceForPaginationLimit(["a", "b"], 10);
+      expect(under.hasMore).toBeFalsy();
+      expect(under.page).toEqual(["a", "b"]);
+      expect(under.allResults).toEqual(undefined);
+    });
+
+    it("selectNewSchemaCandidates drops existing fnames", () => {
+      const candidates = [
+        { fname: "foo.bar" },
+        { fname: "foo.baz" },
+        { fname: "foo.qux" },
+      ] as any[];
+      const selected = selectNewSchemaCandidates({
+        candidates,
+        existingItems: [{ fname: "foo.bar" }],
+        originalQuery: "foo.b",
+      });
+      expect(selected.some((n) => n.fname === "foo.bar")).toBeFalsy();
+      expect(selected.some((n) => n.fname === "foo.baz")).toBeTruthy();
+    });
+
+    it("buildSchemaChildNoteCandidates emits simple-pattern children only", () => {
+      const vault = { fsPath: "v1", name: "v1" };
+      const childId = "child";
+      const schemaModule = {
+        version: 1,
+        imports: [],
+        schemas: {
+          root: {
+            id: "root",
+            fname: "root",
+            title: "root",
+            desc: "",
+            type: "schema",
+            updated: 1,
+            created: 1,
+            children: [childId],
+            parent: null,
+            data: {},
+            vault,
+          },
+          [childId]: {
+            id: childId,
+            fname: "child",
+            title: "child",
+            desc: "",
+            type: "schema",
+            updated: 1,
+            created: 1,
+            children: [],
+            parent: "root",
+            data: { pattern: "bar" },
+            vault,
+          },
+        },
+        root: {
+          id: "root",
+          fname: "root",
+          title: "root",
+          desc: "",
+          type: "schema",
+          updated: 1,
+          created: 1,
+          children: [childId],
+          parent: null,
+          data: {},
+          vault,
+        },
+      } as any;
+      const notes = buildSchemaChildNoteCandidates({
+        dirName: "foo",
+        vault: vault as any,
+        schema: schemaModule.schemas.root,
+        schemaModule,
+      });
+      expect(notes.length).toEqual(1);
+      expect(notes[0]!.fname).toEqual("foo.bar");
     });
   });
 });

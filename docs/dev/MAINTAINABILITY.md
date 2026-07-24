@@ -19,6 +19,8 @@
 | `pickerCreateNew` / `pickerSort` / `pickerFilters` | lookup | Ranking + filters |
 | `pickerVault` / `pickerVaultRank` / `vaultPickerConstants` | lookup | Vault recommendations (pure rank + selection-mode, Node-testable) |
 | `pickerFilterResults` / `pickerCreateNewPolicy` / `pickerValue` | lookup | Pure post-query filter, Create New gates, value compose |
+| `pickerPagination` / `notePickerEnhance` | lookup | Pure page slice; batch schema load + QuickInput enhance |
+| `noteLookupSchemaCompletions` | lookup | Schema child candidates + append completions |
 | `pickerSentinels` / `pickerDisplay` | lookup | Create New / More Results sentinels; open doc + hide picker |
 | `lookupControllerModifiers` / `lookupControllerViewState` | lookup | Note-type/selection toggles + initial VM from buttons |
 | `providerAcceptHooks` | lookup | Rename/move on-accept location hooks |
@@ -105,13 +107,31 @@ Helpers, HTML shell, lookup selection, md modules, picker filters, activator hel
 | `lookupControllerViewState.ts` | ~79 |
 | `pickerCreateNewPolicy.ts` / `pickerValue.ts` | ~74 / ~21 pure |
 
-### Wave 10 — optional next
+### Wave 10 — DONE (this push)
+
+| Item | Result |
+|------|--------|
+| Schema completions peel | `noteLookupSchemaCompletions.ts` — pure candidates + `appendSchemaCompletions`; wired from `NoteLookupProvider` |
+| Pagination pure helper | `pickerPagination.sliceForPaginationLimit` used by `NotePickerUtils.fetchPickerResults` |
+| Enhance batch peel | `notePickerEnhance.enhanceNotesForQuickInput` shared by fetch + schema completions |
+| Catch cleanup | `onUpdatePickerItems` preserves error cause (eslint preserve-caught-error) |
+| Smoke in verify | root `yarn smoke:lookup-pure`; also chained from `verify:full` |
+| Tests | pagination + schema candidate cases in `maintainabilityHelpers.test.ts` |
+
+| Hotspot | ~LOC after wave 10 |
+|---------|-------------------|
+| `NoteLookupProvider.ts` | **~471** (was ~524 after wave 9) |
+| `NotePickerUtils.ts` | **~266** (was ~284) |
+| `noteLookupSchemaCompletions.ts` | ~132 |
+| `notePickerEnhance.ts` / `pickerPagination.ts` | ~66 / ~28 |
+
+### Wave 11 — optional next
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | Peel schema-completion block from `NoteLookupProvider.onUpdatePickerItems` |
-| P2 | Further thin `NotePickerUtils.fetchPickerResults` if still noisy |
-| P3 | Wire `scripts/smoke-lookup-pure.js` into a lightweight CI job if desired |
+| P1 | Peel remaining accept-flow / empty-qs branches from `NoteLookupProvider` if still noisy |
+| P2 | Split `SchemaLookupProvider` along same patterns as note provider |
+| P3 | Comment pass on remaining large command files |
 
 ---
 
@@ -119,5 +139,5 @@ Helpers, HTML shell, lookup selection, md modules, picker filters, activator hel
 
 ```bash
 yarn workspace @dendronhq/plugin-core compile
-node scripts/smoke-lookup-pure.js
+yarn smoke:lookup-pure
 ```

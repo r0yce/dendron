@@ -150,10 +150,12 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | Vault rank + selection mode (pure) | `rankVaultSuggestions` / `resolveVaultSelectionMode` in `pickerVaultRank` |
 | Lookup result filter (pure) | `filterPickerResults` in `pickerFilterResults` |
 | Create New policy / picker value (pure) | `pickerCreateNewPolicy`, `pickerValue` |
+| Pagination / enhance notes | `pickerPagination`, `notePickerEnhance` |
+| Schema lookup completions | `noteLookupSchemaCompletions` |
 | Lookup controller modifiers | `lookupControllerModifiers`, `lookupControllerViewState` |
 | Lookup sentinels / open note | `pickerSentinels`, `pickerDisplay` |
 | Lookup accept hooks (rename/move) | `providerAcceptHooks.ProviderAcceptHooks` |
-| Pure Node smoke | `scripts/smoke-lookup-pure.js` (after plugin-core compile) |
+| Pure Node smoke | `yarn smoke:lookup-pure` → `scripts/smoke-lookup-pure.js` (after plugin-core compile) |
 | HTML side panels register | `registerHtmlSidePanels` |
 | Backlinks / graph panel setup | `workspace/setupBacklinks`, `setupGraphPanel` |
 | Command / language registration | `extension/setupCommands`, `setupLanguageFeatures` |

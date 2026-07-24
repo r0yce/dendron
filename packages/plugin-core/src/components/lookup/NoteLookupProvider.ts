@@ -1,12 +1,9 @@
 import {
   ConfigUtils,
-  DNodeUtils,
   LookupEvents,
   NoteLookupUtils,
-  NoteProps,
   NoteQuickInput,
   NoteUtils,
-  SchemaUtils,
   VSCodeEvents,
 } from "@dendronhq/common-all";
 import { getDurationMilliseconds } from "@dendronhq/common-server";
@@ -30,6 +27,7 @@ import {
   OnAcceptHook,
   OnUpdatePickerItemsOpts,
 } from "./LookupProviderV3Interface";
+import { appendSchemaCompletions } from "./noteLookupSchemaCompletions";
 import {
   countExactFnameMatches,
   shouldAddCreateNewOption,
@@ -40,7 +38,6 @@ import {
   OldNewLocation,
   PickerUtilsV2,
   shouldBubbleUpCreateNew,
-  sortBySimilarity,
 } from "./utils";
 import { WorkspaceModesService } from "../../services/WorkspaceModesService";
 
@@ -52,7 +49,7 @@ export class NoteLookupProvider implements ILookupProviderV3 {
   constructor(
     public id: string,
     opts: ILookupProviderOptsV3,
-    extension: IDendronExtension
+    extension: IDendronExtension,
   ) {
     this.extension = extension;
     this._onAcceptHooks = [];
@@ -85,7 +82,7 @@ export class NoteLookupProvider implements ILookupProviderV3 {
         // Use trailing to make sure we get the latest letters typed by the user
         // before accepting.
         leading: false,
-      }
+      },
     );
     quickpick.onDidChangeValue(onUpdateDebounced);
 
@@ -113,7 +110,7 @@ export class NoteLookupProvider implements ILookupProviderV3 {
       if (
         quickpick.selectedItems.length === 1 &&
         [CREATE_NEW_LABEL, CREATE_NEW_WITH_TEMPLATE_LABEL].includes(
-          quickpick.selectedItems[0]!.label
+          quickpick.selectedItems[0]!.label,
         )
       ) {
         quickpick.selectedItems[0]!.fname = quickpick.value;
@@ -220,8 +217,8 @@ export class NoteLookupProvider implements ILookupProviderV3 {
       }
       const onAcceptHookResp = await Promise.all(
         this._onAcceptHooks.map((hook) =>
-          hook({ quickpick: picker, selectedItems })
-        )
+          hook({ quickpick: picker, selectedItems }),
+        ),
       );
       const errors = _.filter(onAcceptHookResp, (ent) => ent.error);
       if (!_.isEmpty(errors)) {
@@ -338,7 +335,7 @@ export class NoteLookupProvider implements ILookupProviderV3 {
         {
           alwaysKeepLabels: [CREATE_NEW_LABEL, CREATE_NEW_WITH_TEMPLATE_LABEL],
           alwaysKeepDetails: [CREATE_NEW_NOTE_DETAIL],
-        }
+        },
       );
 
       if (token?.isCancellationRequested) {
@@ -357,68 +354,19 @@ export class NoteLookupProvider implements ILookupProviderV3 {
         return;
       }
 
-      // add schema completions
-      if (
-        !_.isUndefined(queryUpToLastDot) &&
-        !transformedQuery.wasMadeFromWikiLink
-      ) {
-        const results = await SchemaUtils.matchPath({
-          notePath: queryUpToLastDot,
+      // add schema completions for hierarchical paths
+      {
+        const { wsRoot, vaults } = this.extension.getDWorkspace();
+        updatedItems = await appendSchemaCompletions({
+          queryUpToLastDot,
+          wasMadeFromWikiLink: !!transformedQuery.wasMadeFromWikiLink,
           engine,
+          vault: PickerUtilsV2.getVaultForOpenEditor(),
+          wsRoot,
+          vaults,
+          existingItems: updatedItems,
+          originalQuery: transformedQuery.originalQuery,
         });
-        // since namespace matches everything, we don't do queries on that
-        if (results && !results.namespace) {
-          const { schema, schemaModule } = results;
-          const dirName = queryUpToLastDot;
-          const candidates = schema.children
-            .map((ent) => {
-              const mschema = schemaModule.schemas[ent];
-              if (
-                mschema &&
-                SchemaUtils.hasSimplePattern(mschema, {
-                  isNotNamespace: true,
-                })
-              ) {
-                const pattern = SchemaUtils.getPattern(mschema, {
-                  isNotNamespace: true,
-                });
-                const fname = [dirName, pattern].join(".");
-                return NoteUtils.fromSchema({
-                  schemaModule,
-                  schemaId: ent,
-                  fname,
-                  vault: PickerUtilsV2.getVaultForOpenEditor(),
-                });
-              }
-              return;
-            })
-            .filter(Boolean) as NoteProps[];
-          let candidatesToAdd = _.differenceBy(
-            candidates,
-            updatedItems,
-            (ent) => ent.fname
-          );
-          const { wsRoot, vaults } = this.extension.getDWorkspace();
-
-          candidatesToAdd = sortBySimilarity(
-            candidatesToAdd,
-            transformedQuery.originalQuery
-          );
-
-          const itemsToAdd = await Promise.all(
-            candidatesToAdd.map(async (ent) => {
-              return DNodeUtils.enhancePropForQuickInputV3({
-                wsRoot,
-                props: ent,
-                schema: ent.schema
-                  ? (await engine.getSchema(ent.schema.moduleId)).data
-                  : undefined,
-                vaults,
-              });
-            })
-          );
-          updatedItems = updatedItems.concat(itemsToAdd);
-        }
       }
 
       // filter the results through optional middleware
@@ -435,7 +383,7 @@ export class NoteLookupProvider implements ILookupProviderV3 {
       // then we should not allow create new option.
       const numberOfExactMatches = countExactFnameMatches(
         updatedItems,
-        queryOrig
+        queryOrig,
       );
       const shouldAddCreateNew = shouldAddCreateNewOption({
         allowNewNote: !!this.opts.allowNewNote,
@@ -494,9 +442,9 @@ export class NoteLookupProvider implements ILookupProviderV3 {
       });
 
       picker.items = updatedItems;
-    } catch (err: any) {
-      window.showErrorMessage(err);
-      throw Error(err);
+    } catch (err: unknown) {
+      window.showErrorMessage(String(err));
+      throw err instanceof Error ? err : new Error(String(err), { cause: err });
     } finally {
       profile = getDurationMilliseconds(start);
       picker.busy = false;
@@ -514,7 +462,6 @@ export class NoteLookupProvider implements ILookupProviderV3 {
       AnalyticsUtils.track(VSCodeEvents.NoteLookup_Update, {
         duration: profile,
       });
-      return; // eslint-disable-line no-unsafe-finally -- probably can be just removed
     }
   }
 

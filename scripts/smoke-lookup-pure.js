@@ -15,6 +15,8 @@ const rank = out("components/lookup/pickerVaultRank.js");
 const filter = out("components/lookup/pickerFilterResults.js");
 const policy = out("components/lookup/pickerCreateNewPolicy.js");
 const value = out("components/lookup/pickerValue.js");
+const pagination = out("components/lookup/pickerPagination.js");
+const schemaComp = out("components/lookup/noteLookupSchemaCompletions.js");
 const constants = out("components/lookup/vaultPickerConstants.js");
 
 let failed = 0;
@@ -107,6 +109,26 @@ check(
     noteModifierValue: "2026.07.24",
     selectionModifierValue: undefined,
   }) === "journal.2026.07.24"
+);
+
+// --- pagination ---
+const page = pagination.sliceForPaginationLimit([1, 2, 3, 4, 5], 2);
+check(
+  "sliceForPaginationLimit",
+  page.hasMore === true &&
+    page.page.length === 2 &&
+    page.allResults.length === 5
+);
+
+// --- schema candidate select ---
+const selected = schemaComp.selectNewSchemaCandidates({
+  candidates: [{ fname: "a.b" }, { fname: "a.c" }],
+  existingItems: [{ fname: "a.b" }],
+  originalQuery: "a.",
+});
+check(
+  "selectNewSchemaCandidates drops existing",
+  selected.length === 1 && selected[0].fname === "a.c"
 );
 
 if (failed) {
