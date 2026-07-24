@@ -192,9 +192,9 @@ check(
     moveNoteOps.isMultiMove([{}]) === false
 );
 check(
-  "getRefactorRenameOperations produces dest fname",
+  "getRefactorRenamePathOps produces dest fname",
   (() => {
-    const ops = refactorOps.getRefactorRenameOperations({
+    const ops = refactorOps.getRefactorRenamePathOps({
       capturedNotes: [
         { fname: "foo.bar", vault: { fsPath: "v1", name: "v1" } },
       ],
@@ -202,7 +202,7 @@ check(
       replace: "baz.",
       wsRoot: "/tmp/ws",
     });
-    return ops.length === 1 && ops[0].newUri.fsPath.includes("baz.bar");
+    return ops.length === 1 && ops[0].newPath.includes("baz.bar");
   })()
 );
 

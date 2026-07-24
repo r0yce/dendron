@@ -33,8 +33,9 @@ import {
   buildRefactorOverwriteErrorMarkdown,
   filterCapturedNotesForRefactor,
   findExistingRefactorTargets,
-  getRefactorRenameOperations,
+  getRefactorRenamePathOps,
 } from "./refactorHierarchyOps";
+import { Uri } from "vscode";
 
 const md = _md();
 
@@ -303,7 +304,11 @@ export class RefactorHierarchyCommandV2 extends BasicCommand<
     replace: string;
     wsRoot: string;
   }) {
-    return getRefactorRenameOperations(opts);
+    return getRefactorRenamePathOps(opts).map((op) => ({
+      oldUri: Uri.file(op.oldPath),
+      newUri: Uri.file(op.newPath),
+      vault: op.vault,
+    }));
   }
 
   async hasExistingFiles(opts: { operations: RenameOperation[] }) {

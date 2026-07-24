@@ -1,5 +1,6 @@
 /**
  * Pure / fs-light helpers for RefactorHierarchyCommandV2 rename planning.
+ * (No vscode imports — Node-smokeable.)
  */
 import {
   DNodeProps,
@@ -11,12 +12,10 @@ import { vault2Path } from "@dendronhq/common-server";
 import fs from "fs-extra";
 import _ from "lodash";
 import path from "path";
-import { Uri } from "vscode";
-import { VSCodeUtils } from "../vsCodeUtils";
 
-export type RefactorRenameOperation = {
-  oldUri: Uri;
-  newUri: Uri;
+export type RefactorRenamePaths = {
+  oldPath: string;
+  newPath: string;
   vault: DVault;
 };
 
@@ -44,24 +43,23 @@ export function filterCapturedNotesForRefactor(opts: {
 }
 
 /**
- * Build old→new Uri rename operations from captured notes.
+ * Build old→new absolute fs paths from captured notes.
  */
-export function getRefactorRenameOperations(opts: {
+export function getRefactorRenamePathOps(opts: {
   capturedNotes: DNodeProps[];
   matchRE: RegExp;
   replace: string;
   wsRoot: string;
-}): RefactorRenameOperation[] {
+}): RefactorRenamePaths[] {
   const { capturedNotes, matchRE, replace, wsRoot } = opts;
   return capturedNotes.map((note) => {
     const vault = note.vault;
     const vpath = vault2Path({ wsRoot, vault });
-    const rootUri = Uri.file(vpath);
     const source = note.fname;
     const dest = note.fname.replace(matchRE, replace);
     return {
-      oldUri: VSCodeUtils.joinPath(rootUri, source + ".md"),
-      newUri: VSCodeUtils.joinPath(rootUri, dest + ".md"),
+      oldPath: path.join(vpath, source + ".md"),
+      newPath: path.join(vpath, dest + ".md"),
       vault,
     };
   });
@@ -69,14 +67,17 @@ export function getRefactorRenameOperations(opts: {
 
 /** True if any destination path already exists on disk. */
 export function findExistingRefactorTargets(
-  operations: RefactorRenameOperation[],
-): RefactorRenameOperation[] {
-  return _.filter(operations, (op) => fs.pathExistsSync(op.newUri.fsPath));
+  operations: { newPath?: string; newUri?: { fsPath: string } }[]
+): typeof operations {
+  return _.filter(operations, (op) => {
+    const p = op.newPath ?? op.newUri?.fsPath;
+    return p ? fs.pathExistsSync(p) : false;
+  });
 }
 
 /** Markdown error preview body for overwrite conflicts. */
 export function buildRefactorOverwriteErrorMarkdown(
-  operations: RefactorRenameOperation[],
+  operations: { oldUri?: { fsPath: string }; oldPath?: string; newUri?: { fsPath: string }; newPath?: string }[]
 ): string {
   return [
     "# Error - Refactoring would overwrite files",
@@ -85,11 +86,11 @@ export function buildRefactorOverwriteErrorMarkdown(
   ]
     .concat("\n||||\n|-|-|-|")
     .concat(
-      operations.map(({ oldUri, newUri }) => {
-        return `| ${path.basename(oldUri.fsPath)} |-->| ${path.basename(
-          newUri.fsPath,
-        )} |`;
-      }),
+      operations.map((op) => {
+        const oldP = op.oldPath ?? op.oldUri!.fsPath;
+        const newP = op.newPath ?? op.newUri!.fsPath;
+        return `| ${path.basename(oldP)} |-->| ${path.basename(newP)} |`;
+      })
     )
     .join("\n");
 }
