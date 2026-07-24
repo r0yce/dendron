@@ -1,6 +1,8 @@
 # Package: @dendronhq/plugin-core
 
-**Status**: The main VS Code extension. Largest and most complex package in the monorepo. Base modernization + extremely detailed documentation complete. Known areas for future work documented.
+**Status**: The main VS Code extension. Largest and most complex package in the monorepo.
+
+> **Agents (2026-07+):** Prefer **[ai/references/context.md](../../../ai/references/context.md)** + **[ai/references/spec.md](../../../ai/references/spec.md)** for current fork features (Task Board, Hub Home, vault focus, smart reload, dual-build). This package doc is deeper historical modernization notes and may lag product surface.
 
 ## Table of Contents
 - [Overview](#overview)
