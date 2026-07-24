@@ -23,6 +23,7 @@ import { Logger } from "../logger";
 import { GraphStyleService } from "../styles";
 import { AnalyticsUtils } from "../utils/analytics";
 import { VSCodeUtils } from "../vsCodeUtils";
+import { WorkspaceModesService } from "../services/WorkspaceModesService";
 import { toWebviewNoteMeta } from "../utils/webviewNoteMeta";
 import { WebViewUtils } from "./utils";
 
@@ -50,7 +51,8 @@ export class GraphPanel implements vscode.WebviewViewProvider {
     this.showHierarchy =
       MetadataService.instance().graphPanelShowHierarchy ?? true;
 
-    this.graphDepth = MetadataService.instance().graphDepth || 1;
+    // Default depth 2 for a richer local neighborhood when user has not set depth.
+    this.graphDepth = MetadataService.instance().graphDepth || 2;
   }
 
   public get graphDepth(): number | undefined {
@@ -153,6 +155,19 @@ export class GraphPanel implements vscode.WebviewViewProvider {
     if (this._view) this._view.webview.postMessage(msg);
   }
 
+  /** Push vault focus so webview can hide other vaults. */
+  private postFocusedVault() {
+    if (!this._view) return;
+    this._view.webview.postMessage({
+      type: GraphViewMessageEnum.onGraphLoad,
+      data: {
+        focusedVault: WorkspaceModesService.getFocusedVaultName(),
+        graphDepth: this.graphDepth,
+      },
+      source: "vscode",
+    } as any);
+  }
+
   public increaseGraphDepth() {
     if (this._view && this.graphDepth && this.graphDepth < 3) {
       this.graphDepth += 1;
@@ -179,6 +194,13 @@ export class GraphPanel implements vscode.WebviewViewProvider {
     webviewView.webview.onDidReceiveMessage(
       this.onDidReceiveMessageHandler,
       this
+    );
+
+    // Keep side graph vault filters in sync with WorkspaceModes vault focus.
+    this._ext.context.subscriptions.push(
+      WorkspaceModesService.onFocusChange(() => {
+        this.postFocusedVault();
+      })
     );
 
     webviewView.onDidChangeVisibility(() => {
@@ -252,16 +274,9 @@ export class GraphPanel implements vscode.WebviewViewProvider {
         // Set graph styles
         const styles = GraphStyleService.getParsedStyles();
         const graphTheme = MetadataService.instance().getGraphTheme();
-        this.graphDepth = MetadataService.instance().graphDepth;
-        if (
-          this._view &&
-          (styles ||
-            graphTheme ||
-            this.graphDepth ||
-            this.showBacklinks ||
-            this.showOutwardLinks ||
-            this.showHierarchy)
-        ) {
+        this.graphDepth =
+          MetadataService.instance().graphDepth || this.graphDepth || 2;
+        if (this._view) {
           this._view.webview.postMessage({
             type: GraphViewMessageEnum.onGraphLoad,
             data: {
@@ -271,9 +286,10 @@ export class GraphPanel implements vscode.WebviewViewProvider {
               showBacklinks: this.showBacklinks,
               showOutwardLinks: this.showOutwardLinks,
               showHierarchy: this.showHierarchy,
+              focusedVault: WorkspaceModesService.getFocusedVaultName(),
             },
             source: "vscode",
-          });
+          } as any);
         }
         break;
       }

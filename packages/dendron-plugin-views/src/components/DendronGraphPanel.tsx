@@ -2,6 +2,7 @@ import {
   DMessageSource,
   GraphViewMessage,
   GraphViewMessageEnum,
+  VaultUtils,
 } from "@dendronhq/common-all";
 import { createLogger, engineHooks } from "@dendronhq/common-frontend";
 import { useEffect, useState } from "react";
@@ -105,6 +106,34 @@ const DendronGraphPanel: DendronComponent = (props) => {
       }));
     }
   }, [isSidePanel]);
+
+  // Apply vault focus: hide other vaults when WorkspaceModes has a focus vault.
+  useEffect(() => {
+    if (!engine.vaults?.length) return;
+    const focused = ide.focusedVault;
+    setConfig((c) => {
+      const next: GraphConfig = { ...c };
+      for (const vault of engine.vaults) {
+        const name = VaultUtils.getName(vault);
+        const key = `vaults.${name}` as keyof GraphConfig;
+        const existing = next[key] as
+          | { value: boolean; mutable: boolean; label?: string }
+          | undefined;
+        const value = !focused || focused === name;
+        if (existing) {
+          (next as any)[key] = { ...existing, value };
+        } else {
+          (next as any)[key] = {
+            value,
+            mutable: true,
+            label: name,
+          };
+        }
+      }
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ide.focusedVault, engine.vaults]);
 
   const onSelect: EventHandler = (e) => {
     const { id, source } = e.target[0]._private.data;

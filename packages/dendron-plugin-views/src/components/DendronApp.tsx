@@ -127,7 +127,14 @@ function DendronVSCodeApp({ Component }: { Component: DendronComponent }) {
           showBacklinks,
           showOutwardLinks,
           showHierarchy,
-        } = cmsg.data;
+          focusedVault,
+        } = cmsg.data as typeof cmsg.data & {
+          focusedVault?: string;
+          styles?: string;
+          showBacklinks?: boolean;
+          showOutwardLinks?: boolean;
+          showHierarchy?: boolean;
+        };
         logger.info({ ctx, styles, msg: "styles" });
         if (styles) {
           ideDispatch(ideSlice.actions.setGraphStyles(styles));
@@ -143,9 +150,19 @@ function DendronVSCodeApp({ Component }: { Component: DendronComponent }) {
           logger.info({ ctx, graphDepth, msg: "default graph depth" });
           ideDispatch(ideSlice.actions.setGraphDepth(graphDepth));
         }
-        ideDispatch(ideSlice.actions.setShowBacklinks(showBacklinks));
-        ideDispatch(ideSlice.actions.setShowOutwardLinks(showOutwardLinks));
-        ideDispatch(ideSlice.actions.setShowHierarchy(showHierarchy));
+        // Vault focus: undefined clears to all vaults
+        if ("focusedVault" in (cmsg.data || {})) {
+          ideDispatch(ideSlice.actions.setFocusedVault(focusedVault));
+        }
+        if (!_.isUndefined(showBacklinks)) {
+          ideDispatch(ideSlice.actions.setShowBacklinks(showBacklinks));
+        }
+        if (!_.isUndefined(showOutwardLinks)) {
+          ideDispatch(ideSlice.actions.setShowOutwardLinks(showOutwardLinks));
+        }
+        if (!_.isUndefined(showHierarchy)) {
+          ideDispatch(ideSlice.actions.setShowHierarchy(showHierarchy));
+        }
         break;
       }
       case SeedBrowserMessageType.onSeedStateChange: {

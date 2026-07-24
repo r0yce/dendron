@@ -28,6 +28,7 @@ import { AnalyticsUtils } from "../../utils/analytics";
 import { VSCodeUtils } from "../../vsCodeUtils";
 import { DendronExtension } from "../../workspace";
 import { ConfigureGraphStylesCommand } from "../../commands/ConfigureGraphStyles";
+import { WorkspaceModesService } from "../../services/WorkspaceModesService";
 import { toWebviewNoteMeta } from "../../utils/webviewNoteMeta";
 
 export class NoteGraphPanelFactory {
@@ -138,17 +139,16 @@ export class NoteGraphPanelFactory {
             if (graphDepth) {
               this.graphDepth = graphDepth;
             }
-            if (styles || graphTheme || graphDepth) {
-              this._panel!.webview.postMessage({
-                type: GraphViewMessageEnum.onGraphLoad,
-                data: {
-                  styles,
-                  graphTheme,
-                  graphDepth,
-                },
-                source: "vscode",
-              });
-            }
+            this._panel!.webview.postMessage({
+              type: GraphViewMessageEnum.onGraphLoad,
+              data: {
+                styles,
+                graphTheme,
+                graphDepth: this.graphDepth || graphDepth || 1,
+                focusedVault: WorkspaceModesService.getFocusedVaultName(),
+              },
+              source: "vscode",
+            } as any);
             break;
           }
           case GraphViewMessageEnum.onReady:

@@ -26,6 +26,8 @@ type InitialState = {
   tree?: TreeMenu | undefined;
   graphTheme?: GraphThemeEnum | undefined;
   graphDepth?: number | undefined;
+  /** Vault focus name from host (undefined = all vaults). */
+  focusedVault?: string | undefined;
   showBacklinks?: boolean | undefined;
   showOutwardLinks?: boolean | undefined;
   showHierarchy?: boolean | undefined;
@@ -44,6 +46,7 @@ const INITIAL_STATE: InitialState = {
   tree: undefined,
   graphTheme: GraphThemeEnum.Classic,
   graphDepth: 1,
+  focusedVault: undefined,
   showBacklinks: true,
   showOutwardLinks: true,
   showHierarchy: true,
@@ -94,6 +97,12 @@ export const ideSlice: Slice<InitialState> = createSlice({
     },
     setGraphDepth: (state, action: PayloadAction<number>) => {
       state.graphDepth = action.payload;
+    },
+    setFocusedVault: (
+      state,
+      action: PayloadAction<string | undefined>
+    ) => {
+      state.focusedVault = action.payload;
     },
     setShowBacklinks: (state, action: PayloadAction<boolean>) => {
       state.showBacklinks = action.payload;
