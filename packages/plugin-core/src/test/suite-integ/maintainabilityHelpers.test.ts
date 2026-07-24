@@ -18,9 +18,15 @@ import {
   CREATE_NEW_LABEL,
   MORE_RESULTS_LABEL,
 } from "../../components/lookup/constants";
+import {
+  CONTEXT_DETAIL,
+  FULL_MATCH_DETAIL,
+  HIERARCHY_MATCH_DETAIL,
+} from "../../components/lookup/vaultPickerConstants";
+import { rankVaultSuggestions } from "../../components/lookup/pickerVaultRank";
 import { Location, Range, Uri } from "vscode";
 
-describe("maintainabilityHelpers (wave 5)", () => {
+describe("maintainabilityHelpers (waves 5–6)", () => {
   describe("md/anchors", () => {
     it("finds frontmatter ending offset and 1-indexed line", () => {
       const body = "---\nid: abc\n---\n\n# Hello\n";
@@ -127,4 +133,45 @@ describe("maintainabilityHelpers (wave 5)", () => {
       expect(sorted[0]!.fname).toEqual("hello.world");
     });
   });
+
+  describe("pickerVault rankVaultSuggestions", () => {
+    const v1 = { fsPath: "vault1", name: "vault1" };
+    const v2 = { fsPath: "vault2", name: "vault2" };
+    const v3 = { fsPath: "vault3", name: "vault3" };
+
+    it("single hierarchy-less path puts context first", () => {
+      const ranked = rankVaultSuggestions({
+        contextVault: v2 as any,
+        allVaults: [v1, v2, v3] as any[],
+        hierarchyMatchVaults: [],
+      });
+      expect(ranked[0]!.vault.fsPath).toEqual("vault2");
+      expect(ranked[0]!.detail).toEqual(CONTEXT_DETAIL);
+      expect(ranked.length).toEqual(3);
+    });
+
+    it("full match when context vault has hierarchy", () => {
+      const ranked = rankVaultSuggestions({
+        contextVault: v1 as any,
+        allVaults: [v1, v2, v3] as any[],
+        hierarchyMatchVaults: [v1, v3] as any[],
+      });
+      expect(ranked[0]!.detail).toEqual(FULL_MATCH_DETAIL);
+      expect(ranked[0]!.vault.fsPath).toEqual("vault1");
+      expect(ranked.some((r) => r.detail === HIERARCHY_MATCH_DETAIL)).toBeTruthy();
+    });
+
+    it("hierarchy-only matches come before context when context not in hierarchy", () => {
+      const ranked = rankVaultSuggestions({
+        contextVault: v2 as any,
+        allVaults: [v1, v2, v3] as any[],
+        hierarchyMatchVaults: [v1] as any[],
+      });
+      expect(ranked[0]!.vault.fsPath).toEqual("vault1");
+      expect(ranked[0]!.detail).toEqual(HIERARCHY_MATCH_DETAIL);
+      const ctx = ranked.find((r) => r.vault.fsPath === "vault2");
+      expect(ctx?.detail).toEqual(CONTEXT_DETAIL);
+    });
+  });
 });
+

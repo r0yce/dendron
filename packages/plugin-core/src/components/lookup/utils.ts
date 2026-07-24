@@ -2,10 +2,8 @@
  * Lookup picker utilities (PickerUtilsV2 + free helpers).
  *
  * Peeled modules (import from here or directly):
- * - `pickerCreateNew.ts` — shouldBubbleUpCreateNew
- * - `pickerSort.ts` — sortBySimilarity
- *
- * Prefer extracting more vault-picker helpers here before growing this file.
+ * - `pickerCreateNew` / `pickerSort` / `pickerFilters` / `pickerVault`
+ * - `pickerQuickPick` / `pickerEditorContext`
  */
 /* eslint-disable no-dupe-class-members */
 import {
@@ -25,7 +23,6 @@ import {
   VaultUtils,
 } from "@dendronhq/common-all";
 import { vault2Path } from "@dendronhq/common-server";
-import { WorkspaceUtils } from "@dendronhq/engine-server";
 import _, { orderBy } from "lodash";
 import path from "path";
 import { QuickPickItem, TextEditor, Uri, ViewColumn, window } from "vscode";
@@ -38,12 +35,9 @@ import {
   CREATE_NEW_NOTE_DETAIL,
   MORE_RESULTS_LABEL,
 } from "./constants";
-import type { CreateQuickPickOpts } from "./LookupControllerV3Interface";
 import { OnAcceptHook } from "./LookupProviderV3Interface";
-import { TabUtils } from "./TabUtils";
 import {
   DendronQuickPickerV2,
-  DendronQuickPickState,
   VaultSelectionMode,
 } from "./types";
 import {
@@ -59,6 +53,17 @@ import {
   isInputEmpty,
 } from "./pickerFilters";
 import {
+  getFnameForOpenEditor,
+  getVaultForOpenEditor,
+} from "./pickerEditorContext";
+import {
+  createDendronQuickPick,
+  createDendronQuickPickItem,
+  createDendronQuickPickItemFromNote,
+  getPickerSelection,
+  getPickerValue,
+} from "./pickerQuickPick";
+import {
   getOrPromptVaultForNewNote,
   getVaultRecommendations,
   promptVault,
@@ -68,10 +73,12 @@ export const UPDATET_SOURCE = {
   UPDATE_PICKER_FILTER: "UPDATE_PICKER_FILTER",
 };
 
-// Vault Recommendation Detail Descriptions
-export const CONTEXT_DETAIL = "current note context";
-export const HIERARCHY_MATCH_DETAIL = "hierarchy match";
-export const FULL_MATCH_DETAIL = "hierarchy match and current note context";
+// Vault Recommendation Detail Descriptions (re-export pure constants)
+export {
+  CONTEXT_DETAIL,
+  FULL_MATCH_DETAIL,
+  HIERARCHY_MATCH_DETAIL,
+} from "./vaultPickerConstants";
 
 export type VaultPickerItem = { vault: DVault; label: string } & Partial<
   Omit<QuickPickItem, "label">
@@ -231,84 +238,11 @@ export class ProviderAcceptHooks {
 }
 
 export class PickerUtilsV2 {
-  static createDendronQuickPick(
-    opts: CreateQuickPickOpts
-  ): DendronQuickPickerV2 {
-    const { title, placeholder, ignoreFocusOut, initialValue } = _.defaults(
-      opts,
-      {
-        ignoreFocusOut: true,
-      }
-    );
-    const quickPick =
-      window.createQuickPick<DNodePropsQuickInputV2>() as DendronQuickPickerV2;
-    quickPick.title = title;
-    quickPick.state = DendronQuickPickState.IDLE;
-    quickPick.nonInteractive = opts.nonInteractive;
-    quickPick.placeholder = placeholder;
-    quickPick.ignoreFocusOut = ignoreFocusOut;
-    quickPick._justActivated = true;
-    quickPick.canSelectMany = false;
-    quickPick.matchOnDescription = false;
-    quickPick.matchOnDetail = false;
-    quickPick.sortByLabel = false;
-    quickPick.showNote = async (uri) => {
-      let viewColumn;
-
-      // if current tab is a preview, open note in a different view
-      if (TabUtils.tabAPIAvailable()) {
-        const allTabGroups = TabUtils.getAllTabGroups();
-        const activeTabGroup = allTabGroups.activeTabGroup;
-        if (
-          activeTabGroup.activeTab &&
-          TabUtils.isPreviewTab(activeTabGroup.activeTab)
-        ) {
-          const nonPreviewTabGroup = _.find(
-            allTabGroups.all,
-            (tb) => tb.viewColumn !== activeTabGroup.viewColumn
-          );
-          if (nonPreviewTabGroup) {
-            viewColumn = nonPreviewTabGroup.viewColumn;
-          }
-        }
-      }
-      return window.showTextDocument(
-        uri,
-        viewColumn !== undefined ? { viewColumn } : undefined
-      );
-    };
-    if (initialValue !== undefined) {
-      quickPick.rawValue = initialValue;
-      quickPick.prefix = initialValue;
-      quickPick.value = initialValue;
-    }
-    return quickPick;
-  }
-
-  static createDendronQuickPickItem(
-    opts: DNodePropsQuickInputV2
-  ): DNodePropsQuickInputV2 {
-    return {
-      ...opts,
-    };
-  }
-
-  static createDendronQuickPickItemFromNote(
-    opts: NoteProps
-  ): DNodePropsQuickInputV2 {
-    return {
-      ...opts,
-      label: opts.fname,
-    };
-  }
-
-  static getValue(picker: DendronQuickPickerV2) {
-    return picker.value;
-  }
-
-  static getSelection(picker: DendronQuickPickerV2): DNodePropsQuickInputV2[] {
-    return [...picker.selectedItems];
-  }
+  static createDendronQuickPick = createDendronQuickPick;
+  static createDendronQuickPickItem = createDendronQuickPickItem;
+  static createDendronQuickPickItemFromNote = createDendronQuickPickItemFromNote;
+  static getValue = getPickerValue;
+  static getSelection = getPickerSelection;
 
   static filterCreateNewItem = filterCreateNewItem;
   static filterDefaultItems = filterDefaultItems;
@@ -316,51 +250,12 @@ export class PickerUtilsV2 {
   /** Reject all items that are stubs */
   static filterNonStubs = filterNonStubs;
 
-  static getFnameForOpenEditor(): string | undefined {
-    const activeEditor = VSCodeUtils.getActiveTextEditor();
-    if (activeEditor) {
-      return path.basename(activeEditor.document.fileName, ".md");
-    }
-    return;
-  }
-
-  /**
-   * Defaults to first vault if current note is not part of a vault
-   * @returns
-   */
-  static getVaultForOpenEditor(fsPath?: string): DVault {
-    const ctx = "getVaultForOpenEditor";
-    const { vaults, wsRoot } = ExtensionProvider.getDWorkspace();
-
-    let vault: DVault;
-    const activeDocument = VSCodeUtils.getActiveTextEditor()?.document;
-    const fpath = fsPath || activeDocument?.uri.fsPath;
-    if (
-      fpath &&
-      WorkspaceUtils.isPathInWorkspace({
-        wsRoot,
-        vaults,
-        fpath,
-      })
-    ) {
-      Logger.info({ ctx, activeDocument: fpath });
-      vault = VaultUtils.getVaultByFilePath({
-        vaults,
-        wsRoot,
-        fsPath: fpath,
-      });
-    } else {
-      Logger.info({ ctx, msg: "no active doc" });
-      vault = vaults[0]!;
-    }
-    // TODO: remove
-    Logger.info({ ctx, msg: "exit", vault });
-    return vault;
-  }
+  static getFnameForOpenEditor = getFnameForOpenEditor;
+  static getVaultForOpenEditor = getVaultForOpenEditor;
 
   /** @deprecated use `getVaultForOpenEditor` instead, this function no longer prompts anything. */
   static getOrPromptVaultForOpenEditor(): DVault {
-    return PickerUtilsV2.getVaultForOpenEditor();
+    return getVaultForOpenEditor();
   }
 
   static getQueryUpToLastDot = getQueryUpToLastDot;

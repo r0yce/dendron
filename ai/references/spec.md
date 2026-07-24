@@ -152,7 +152,10 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | Command / language registration | `extension/setupCommands`, `setupLanguageFeatures` |
 | Markdown refs / anchors | `utils/md` (`paths`, `anchors`, `getReferenceAtPosition`, `findReferences`, `markdownUtils`) |
 | Lookup item filters | `pickerFilters` (also on `PickerUtilsV2` wrappers) |
+| QuickPick factory | `pickerQuickPick` / `PickerUtilsV2.createDendronQuickPick` |
+| Vault ranking (pure) | `rankVaultSuggestions` in `pickerVaultRank` |
 | Activation helpers | `workspace/activatorHelpers` |
+| Reload / engine port | `workspace/activatorReload` |
 
 **Extract when:** same logic appears in ≥2 commands/views. Prefer pure functions + thin commands.
 
