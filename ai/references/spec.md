@@ -127,6 +127,24 @@ Subscribe: `WorkspaceModesService.onFocusChange(() => …)` for live refresh.
 
 ---
 
+## 2.9 Maintainability / shared libraries
+
+See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
+
+**Before copy-pasting:**
+
+| Need | Use |
+|------|-----|
+| Task open/done/column | `TaskNoteUtils.isOpenTaskNote` / `getBoardColumn` |
+| Inbox/open bullets | `noteBodyUtils` (`extractOpenBullets`, `parseOpenBulletLines`, `countOpenInboxBullets`) |
+| HTML escape in webviews | `htmlEscape.escapeHtml` / `escapeAttr` |
+| Strip body for postMessage | `toWebviewNoteMeta` |
+| Vault scope | `WorkspaceModesService.filterNotesByFocus` |
+
+**Extract when:** same logic appears in ≥2 commands/views. Prefer pure functions + thin commands.
+
+**Comment when:** dual-build, payload diet, vault-focus contracts, or smart-vs-full reload invariants.
+
 ## 3. Code conventions
 
 | Topic | Spec |

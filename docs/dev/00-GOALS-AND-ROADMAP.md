@@ -25,6 +25,7 @@
 | Doc | Role |
 |-----|------|
 | [DEV-EXTENSION.md](./DEV-EXTENSION.md) | **F5 uses tsc `out/`** vs webpack `dist/` |
+| [MAINTAINABILITY.md](./MAINTAINABILITY.md) | Shared libs, extraction priorities, comment policy |
 | [BUILD-AND-DEBUG.md](./BUILD-AND-DEBUG.md) | Daily verify gates |
 | [BACKLOG.md](./BACKLOG.md) | Deferred **engineering** items (deps, ESLint) |
 | [06-PERFORMANCE-PLAN.md](./06-PERFORMANCE-PLAN.md) | Perf measurement philosophy |

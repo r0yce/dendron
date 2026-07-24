@@ -20,9 +20,15 @@ export type SmartReloadResult = {
 };
 
 /**
- * Incremental reconcile: walk vault markdown files, re-ingest those whose mtime
- * is newer than engine note.updated, remove engine notes missing on disk.
- * Faster than full engine.init() when only a few files changed.
+ * Incremental index reconcile (prefer over full `engine.init()`).
+ *
+ * Walks vault `*.md` files (top-level vault dirs), re-parses notes whose disk
+ * mtime is newer than engine `note.updated`, metaOnly-writes them, deletes
+ * engine metas whose files vanished, then optionally rebuilds Fuse via
+ * `updateIndex("note")`.
+ *
+ * Used by ReloadIndex when the engine already has notes loaded. Cold start
+ * still uses full init. Complements FileWatcher create/change/delete paths.
  */
 export class SmartReloadService {
   static async reconcile(): Promise<SmartReloadResult> {

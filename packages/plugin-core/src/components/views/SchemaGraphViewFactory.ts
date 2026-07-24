@@ -13,6 +13,7 @@ import * as vscode from "vscode";
 import { Uri, ViewColumn, window } from "vscode";
 import { Logger } from "../../logger";
 import { sentryReportingCallback } from "../../utils/analytics";
+import { toWebviewNoteMeta } from "../../utils/webviewNoteMeta";
 import { WebViewUtils } from "../../views/utils";
 import { VSCodeUtils } from "../../vsCodeUtils";
 import { DendronExtension } from "../../workspace";
@@ -121,7 +122,7 @@ export class SchemaGraphViewFactory {
           SchemaGraphViewFactory._panel.webview.postMessage({
             type: DMessageEnum.ON_DID_CHANGE_ACTIVE_TEXT_EDITOR,
             data: {
-              note: note ? { ...note, body: "" } : note,
+              note: toWebviewNoteMeta(note || undefined),
               sync: false,
               syncChangedNote: false,
             },

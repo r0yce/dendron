@@ -8,18 +8,25 @@ import { QuickPickItem, window } from "vscode";
 import { DENDRON_COMMANDS } from "../constants";
 import { IDendronExtension } from "../dendronExtensionInterface";
 import { WorkspaceModesService } from "../services/WorkspaceModesService";
+import {
+  markBulletsProcessedInBody,
+  parseOpenBulletLines,
+  OpenBulletLine,
+  slugifyTaskTitle,
+} from "../utils/noteBodyUtils";
 import { BasicCommand } from "./base";
 import { GotoNoteCommand } from "./GotoNote";
 
 type CommandOpts = {};
 type CommandOutput = void;
 
-type Bullet = { lineIdx: number; text: string; raw: string };
+type Bullet = OpenBulletLine;
 
 const INBOX_FNAME = "inbox";
 
 /**
- * Sprint 5: Process inbox bullets → note / task / journal / dismiss.
+ * Process Inbox — interactive triage of open bullets on the `inbox` note.
+ * Parsing / mark-done / slugify live in noteBodyUtils for unit testing.
  */
 export class ProcessInboxCommand extends BasicCommand<
   CommandOpts,
@@ -186,38 +193,17 @@ export class ProcessInboxCommand extends BasicCommand<
   }
 
   private parseOpenBullets(body: string): Bullet[] {
-    const lines = body.split("\n");
-    const out: Bullet[] = [];
-    lines.forEach((raw, lineIdx) => {
-      const m = raw.match(/^- (?:\[ \] )?(.+)$/);
-      if (!m) return;
-      if (raw.includes("[x]") || raw.includes("[X]")) return;
-      const text = m[1]!.replace(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2} — /, "").trim();
-      if (!text || text.startsWith("#")) return;
-      out.push({ lineIdx, text, raw });
-    });
-    return out;
+    return parseOpenBulletLines(body);
   }
 
   private markProcessedInBody(body: string, done: Bullet[]): string {
-    const doneTexts = new Set(done.map((d) => d.raw));
-    return body
-      .split("\n")
-      .map((line) => {
-        if (!doneTexts.has(line)) return line;
-        if (line.includes("[x]") || line.includes("[X]")) return line;
-        if (line.startsWith("- [ ] ")) return line.replace("- [ ] ", "- [x] ");
-        if (line.startsWith("- ")) return line.replace("- ", "- [x] ");
-        return line;
-      })
-      .join("\n");
+    return markBulletsProcessedInBody(
+      body,
+      done.map((d) => d.raw)
+    );
   }
 
   private slugify(text: string): string {
-    return text
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, ".")
-      .replace(/^\.+|\.+$/g, "")
-      .slice(0, 64);
+    return slugifyTaskTitle(text, 64);
   }
 }

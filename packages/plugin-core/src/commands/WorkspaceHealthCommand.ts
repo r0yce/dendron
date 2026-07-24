@@ -4,13 +4,16 @@ import { DENDRON_COMMANDS } from "../constants";
 import { IDendronExtension } from "../dendronExtensionInterface";
 import { WorkspaceModesService } from "../services/WorkspaceModesService";
 import { getLastActivationReport } from "../utils/dev";
+import { countOpenInboxBullets } from "../utils/noteBodyUtils";
 import { BasicCommand } from "./base";
 
 type CommandOpts = {};
 type CommandOutput = void;
 
 /**
- * Sprint 5: Workspace Health dashboard (markdown report).
+ * Workspace Health — markdown dashboard for ritual scope.
+ * Counts use shared TaskNoteUtils / noteBodyUtils (same rules as Hub Home).
+ * Distinct from CLI `dendron health` (system doctor: sqlite, git, node, …).
  */
 export class WorkspaceHealthCommand extends BasicCommand<
   CommandOpts,
@@ -33,26 +36,14 @@ export class WorkspaceHealthCommand extends BasicCommand<
     const focused = WorkspaceModesService.filterNotesByFocus(notes);
 
     const tasks = focused.filter((n) => TaskNoteUtils.isTaskNote(n));
-    const openTasks = tasks.filter((n) => {
-      const status = String((n as any).custom?.status || "")
-        .toLowerCase()
-        .trim();
-      return status !== "done" && status !== "x";
-    });
+    const openTasks = tasks.filter((n) => TaskNoteUtils.isOpenTaskNote(n));
 
     const inbox = focused.find((n) => n.fname === "inbox");
     let inboxOpen = 0;
     if (inbox) {
       const full = (await engine.getNote(inbox.id)).data;
       if (full?.body) {
-        inboxOpen = full.body
-          .split("\n")
-          .filter(
-            (l) =>
-              l.startsWith("- ") &&
-              !l.includes("[x]") &&
-              !l.includes("[X]")
-          ).length;
+        inboxOpen = countOpenInboxBullets(full.body);
       }
     }
 

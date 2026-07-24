@@ -22,6 +22,19 @@ import { ExtensionProvider } from "./ExtensionProvider";
 import { Logger } from "./logger";
 import { AnalyticsUtils, sentryReportingCallback } from "./utils/analytics";
 
+/**
+ * Vault markdown file watchers → engine index (metaOnly).
+ *
+ * | Event | Behavior |
+ * |-------|----------|
+ * | create | file2Note → writeNote(metaOnly) |
+ * | change | debounced reindex (git pull, external editors) |
+ * | delete | deleteNote(metaOnly) |
+ *
+ * Ignores events that HistoryService marks as engine-originated (save path
+ * already updated the index via TextDocumentService). `pause` is set during
+ * bulk engine operations to avoid thrash.
+ */
 export class FileWatcher {
   public watchers: { vault: DVault; watcher: FileWatcherAdapter }[];
   /**

@@ -132,6 +132,71 @@ export class TaskNoteUtils {
     return status && taskConfig.taskCompleteStatus?.includes(status);
   }
 
+  /**
+   * Normalize task status for comparisons (trim + lower-case).
+   * Empty / missing → "open" (Dendron treats blank status as open work).
+   */
+  static normalizeStatus(status: string | undefined | null): string {
+    const raw = String(status ?? "")
+      .trim()
+      .toLowerCase();
+    return raw || "open";
+  }
+
+  /** Read + normalize `custom.status` from any note meta. */
+  static getNormalizedStatus(note: NotePropsMeta): string {
+    return this.normalizeStatus((note as any).custom?.status);
+  }
+
+  /**
+   * Whether a normalized status counts as complete.
+   * Defaults match dendron.yml defaults: done, x.
+   */
+  static isCompleteStatus(
+    status: string | undefined | null,
+    completeStatuses: string[] = ["done", "x"]
+  ): boolean {
+    const s = this.normalizeStatus(status);
+    const complete = new Set(
+      (completeStatuses.length ? completeStatuses : ["done", "x"]).map((x) =>
+        x.toLowerCase().trim()
+      )
+    );
+    // normalizeStatus maps empty → "open", so empty is never complete
+    if (s === "open" && !String(status ?? "").trim()) {
+      return false;
+    }
+    return complete.has(s);
+  }
+
+  /**
+   * Task is "open-ish" if it is a task note and status is not complete.
+   * Used by Task Board, Hub Home, Workspace Health, etc.
+   */
+  static isOpenTaskNote(
+    note: NotePropsMeta,
+    completeStatuses: string[] = ["done", "x"]
+  ): boolean {
+    if (!this.isTaskNote(note)) return false;
+    return !this.isCompleteStatus(
+      (note as any).custom?.status,
+      completeStatuses
+    );
+  }
+
+  /**
+   * Board column key: "open" | "done" | raw status string (wip, blocked, …).
+   */
+  static getBoardColumn(
+    note: NotePropsMeta,
+    completeStatuses: string[] = ["done", "x"]
+  ): string {
+    const raw = String((note as any).custom?.status ?? "").trim();
+    if (!raw) return "open";
+    if (this.isCompleteStatus(raw, completeStatuses)) return "done";
+    return raw;
+  }
+
   static getPrioritySymbol({
     note,
     taskConfig,

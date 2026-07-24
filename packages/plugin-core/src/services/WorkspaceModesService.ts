@@ -13,7 +13,15 @@ export type Workmode = {
 };
 
 /**
- * Sprint 4: vault focus + named workmodes (spaces), persisted in workspace state.
+ * Vault focus + named workmodes ("spaces"), persisted in VS Code workspaceState.
+ *
+ * **Vault focus** — when set, rituals (inbox, board, health, review), lookup
+ * candidates, tree roots, and graph vault filters should call
+ * `filterNotesByFocus` / `getFocusedVaultName` so the UX stays single-vault.
+ *
+ * **Workmodes** — named presets that can apply a vault focus (and later more).
+ *
+ * Subscribe with `onFocusChange` so tree/graph webviews refresh live.
  */
 export class WorkspaceModesService {
   private static _statusBar: vscode.StatusBarItem | undefined;

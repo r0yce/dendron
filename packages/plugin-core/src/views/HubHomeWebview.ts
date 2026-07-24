@@ -10,9 +10,15 @@ import { DENDRON_COMMANDS } from "../constants";
 import { IDendronExtension } from "../dendronExtensionInterface";
 import { WorkspaceModesService } from "../services/WorkspaceModesService";
 import { getLastActivationReport } from "../utils/dev";
+import { escapeAttr, escapeHtml } from "../utils/htmlEscape";
+import { countOpenInboxBullets } from "../utils/noteBodyUtils";
 
 /**
- * Awesome list: Hub home sidebar with live counts + quick actions.
+ * Dendron Home — HTML sidebar dashboard (no React bundle).
+ *
+ * Shows vault-focus-scoped counts (notes, inbox bullets, open tasks),
+ * quick-action buttons that run existing Dendron commands, and recent notes.
+ * Register in workspace.ts with retainContextWhenHidden.
  */
 export class HubHomeWebview implements vscode.WebviewViewProvider {
   public static readonly viewType = DendronTreeViewKey.HUB_HOME;
@@ -62,23 +68,13 @@ export class HubHomeWebview implements vscode.WebviewViewProvider {
     let notes = await engine.findNotesMeta({ excludeStub: true });
     notes = WorkspaceModesService.filterNotesByFocus(notes);
     const tasks = notes.filter((n) => TaskNoteUtils.isTaskNote(n));
-    const openTasks = tasks.filter((n) => {
-      const s = String((n as any).custom?.status || "")
-        .toLowerCase()
-        .trim();
-      return s !== "done" && s !== "x";
-    });
+    const openTasks = tasks.filter((n) => TaskNoteUtils.isOpenTaskNote(n));
     const inbox = notes.find((n) => n.fname === "inbox");
     let inboxOpen = 0;
     if (inbox) {
       const full = (await engine.getNote(inbox.id)).data;
       if (full?.body) {
-        inboxOpen = full.body
-          .split("\n")
-          .filter(
-            (l) =>
-              l.startsWith("- ") && !l.includes("[x]") && !l.includes("[X]")
-          ).length;
+        inboxOpen = countOpenInboxBullets(full.body);
       }
     }
     const now = Time.now().toSeconds();
@@ -185,13 +181,4 @@ export class HubHomeWebview implements vscode.WebviewViewProvider {
   }
 }
 
-function escapeHtml(s: string) {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-function escapeAttr(s: string) {
-  return escapeHtml(s).replace(/'/g, "&#39;");
-}
+

@@ -7,8 +7,14 @@ import _ from "lodash";
 import { GotoNoteCommand } from "../commands/GotoNote";
 import { IDendronExtension } from "../dendronExtensionInterface";
 import { WorkspaceModesService } from "../services/WorkspaceModesService";
+import { escapeHtml } from "../utils/htmlEscape";
 
-export type TaskRow = {
+export /**
+ * Shared Task Board data + HTML for sidebar WebviewView and editor WebviewPanel.
+ * Keep both surfaces identical by routing all board UI through this module.
+ */
+
+type TaskRow = {
   id: string;
   fname: string;
   title: string;
@@ -25,24 +31,16 @@ export async function loadTaskRows(ext: IDendronExtension): Promise<TaskRow[]> {
   const taskConfig = ConfigUtils.getTask(config);
   let notes = await engine.findNotesMeta({ excludeStub: true });
   notes = WorkspaceModesService.filterNotesByFocus(notes);
-  const complete = new Set(
-    (taskConfig.taskCompleteStatus || ["done", "x"]).map((s) => s.toLowerCase())
-  );
+  const complete = taskConfig.taskCompleteStatus || ["done", "x"];
 
   return notes
     .filter((n) => TaskNoteUtils.isTaskNote(n))
     .map((n) => {
-      const statusRaw = String((n as any).custom?.status ?? "").trim();
-      const status = !statusRaw
-        ? "open"
-        : complete.has(statusRaw.toLowerCase())
-        ? "done"
-        : statusRaw;
       return {
         id: n.id,
         fname: n.fname,
         title: n.title || n.fname,
-        status,
+        status: TaskNoteUtils.getBoardColumn(n, complete),
         due: (n as any).custom?.due,
         vaultName: VaultUtils.getName(n.vault),
       };
@@ -241,10 +239,4 @@ export function renderTaskBoardHtml(
 </html>`;
 }
 
-function escapeHtml(s: string) {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+
