@@ -135,15 +135,18 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 
 | Need | Use |
 |------|-----|
+| Webview HTML shell | `genVSCodeHTMLIndex` from `@dendronhq/common-all` |
 | Task open/done/column | `TaskNoteUtils.isOpenTaskNote` / `getBoardColumn` |
 | Create task note | `createTaskNoteFromTitle` (workspace task config) |
-| Inbox/open bullets | `noteBodyUtils` (`extractOpenBullets`, `parseOpenBulletLines`, `countOpenInboxBullets`) |
+| Inbox/open bullets | `noteBodyUtils` |
 | HTML escape in webviews | `htmlEscape.escapeHtml` / `escapeAttr` |
-| Strip body for postMessage | `toWebviewNoteMeta` |
-| Active editor → webview msg | `buildActiveEditorMsg` |
+| Strip body for postMessage | `toWebviewNoteMeta` / `buildActiveEditorMsg` |
 | Open note from webview | `gotoNoteByVaultName` |
 | Vault scope | `WorkspaceModesService.filterNotesByFocus` |
-| Lookup focus + create-new | `WorkspaceModesService.filterQuickPickItemsByFocus` |
+| Lookup focus + create-new | `filterQuickPickItemsByFocus` |
+| Lookup selection extract | `selectionProcessing.selectionToNoteProps` |
+| Create New ranking | `shouldBubbleUpCreateNew` / `sortBySimilarity` |
+| HTML side panels register | `registerHtmlSidePanels` |
 
 **Extract when:** same logic appears in ≥2 commands/views. Prefer pure functions + thin commands.
 

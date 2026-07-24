@@ -51,3 +51,4 @@ export { minimatch };
 
 export * from "./perf/ActivationTimer";
 export * from "./perf/ringBuffer";
+export * from "./webviewHtmlIndex";

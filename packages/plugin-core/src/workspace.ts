@@ -48,8 +48,6 @@ import BacklinksTreeDataProvider from "./features/BacklinksTreeDataProvider";
 import TipOfTheDayWebview from "./features/TipOfTheDayWebview";
 import { FileWatcher } from "./fileWatcher";
 import { Logger } from "./logger";
-import { TaskBoardWebview } from "./views/TaskBoardWebview";
-import { HubHomeWebview } from "./views/HubHomeWebview";
 import { CommandRegistrar } from "./services/CommandRegistrar";
 import { EngineAPIService } from "./services/EngineAPIService";
 import { NoteTraitManager } from "./services/NoteTraitManager";
@@ -61,12 +59,11 @@ import { DisplayLocation } from "./showcase/IFeatureShowcaseMessage";
 import { DisposableStore } from "./utils";
 import { AnalyticsUtils, sentryReportingCallback } from "./utils/analytics";
 import { VersionProvider } from "./versionProvider";
-import { CalendarView } from "./views/CalendarView";
 import { GraphPanel } from "./views/GraphPanel";
-import { SampleView } from "./views/SampleView";
 import { VSCodeUtils } from "./vsCodeUtils";
 import { WindowWatcher } from "./windowWatcher";
 import { WorkspaceWatcher } from "./WorkspaceWatcher";
+import { registerHtmlSidePanels } from "./workspace/registerSidePanels";
 import { WSUtilsV2 } from "./WSUtilsV2";
 import { IWSUtilsV2 } from "./WSUtilsV2Interface";
 
@@ -537,48 +534,12 @@ export class DendronExtension implements IDendronExtension {
         // is registered; a delayed register can miss resolveWebviewView.
         // (Sprint 1 lazy-activation lesson; keep deferred work elsewhere.)
 
-        const sampleView = new SampleView();
-        context.subscriptions.push(
-          vscode.window.registerWebviewViewProvider(
-            SampleView.viewType,
-            sampleView
-          )
-        );
+        registerHtmlSidePanels(this, context);
 
-        const calendarView = new CalendarView(this);
-        context.subscriptions.push(
-          vscode.window.registerWebviewViewProvider(
-            CalendarView.viewType,
-            calendarView
-          )
-        );
-
-        // backlinks
+        // backlinks / tip-of-day / graph still need instance methods below
         const backlinkTreeView = this.setupBacklinkTreeView();
-
-        // Tip of the Day
         const tipOfDayView = this.setupTipOfTheDayView();
-
-        // Graph panel (side)
         const graphPanel = this.setupGraphPanel();
-
-        // Awesome list: Task Board + Hub Home webviews (HTML, no CRA bundle)
-        const taskBoard = new TaskBoardWebview(this);
-        const hubHome = new HubHomeWebview(this);
-        context.subscriptions.push(
-          vscode.window.registerWebviewViewProvider(
-            TaskBoardWebview.viewType,
-            taskBoard,
-            { webviewOptions: { retainContextWhenHidden: true } }
-          )
-        );
-        context.subscriptions.push(
-          vscode.window.registerWebviewViewProvider(
-            HubHomeWebview.viewType,
-            hubHome,
-            { webviewOptions: { retainContextWhenHidden: true } }
-          )
-        );
 
         context.subscriptions.push(backlinkTreeView);
         context.subscriptions.push(tipOfDayView);
