@@ -1,25 +1,22 @@
 /**
- * Note lookup command — gather inputs, wait for picker, accept selection, open notes.
+ * Note lookup command — thin shell over modular helpers.
  *
- * Modular peels (prefer importing helpers for tests / reuse):
- * - `noteLookupButtons` / `noteLookupSelectionMode` / `noteLookupVault`
- * - `noteLookupAcceptHelpers` / `noteLookupAcceptItem` (+ existing/new/template)
- * - `noteLookupExecute` / `noteLookupCleanup` / `lookupCommandEnrichInputs`
+ * Modular peels:
+ * - gather: `noteLookupGatherInputs`
+ * - enrich: `lookupCommandEnrichInputs`
+ * - execute / cleanup: `noteLookupExecute` / `noteLookupCleanup`
+ * - accept: `noteLookupAcceptItem` (+ Existing/New/Template)
  *
  * Dual-build: F5 loads tsc `out/src/extension.js` (not webpack `dist/`).
  */
 import {
-  ConfigUtils,
   DendronError,
   ERROR_STATUS,
   LookupNoteType,
-  LookupNoteTypeEnum,
   LookupSelectionType,
   NoteProps,
   NoteQuickInput,
-  VSCodeEvents,
 } from "@dendronhq/common-all";
-import { getDurationMilliseconds } from "@dendronhq/common-server";
 import _ from "lodash";
 import {
   LookupFilterType,
@@ -30,21 +27,16 @@ import {
   ILookupProviderV3,
   NoteLookupProviderSuccessResp,
 } from "../components/lookup/LookupProviderV3Interface";
-import { NotePickerUtils } from "../components/lookup/NotePickerUtils";
 import {
   DendronQuickPickerV2,
   VaultSelectionMode,
 } from "../components/lookup/types";
 import { OldNewLocation, PickerUtilsV2 } from "../components/lookup/utils";
-import { VaultSelectionModeConfigUtils } from "../components/lookup/vaultSelectionModeConfigUtils";
-import { DendronContext, DENDRON_COMMANDS } from "../constants";
-import { ExtensionProvider } from "../ExtensionProvider";
-import { Logger } from "../logger";
+import { DENDRON_COMMANDS } from "../constants";
 import { IEngineAPIService } from "../services/EngineAPIServiceInterface";
-import { AnalyticsUtils, getAnalyticsPayload } from "../utils/analytics";
+import { getAnalyticsPayload } from "../utils/analytics";
 import { AutoCompleter } from "../utils/autoCompleter";
 import { AutoCompletableRegistrar } from "../utils/registers/AutoCompletableRegistrar";
-import { VSCodeUtils } from "../vsCodeUtils";
 import { BaseCommand } from "./base";
 import { enrichNoteLookupInputs } from "./lookupCommandEnrichInputs";
 import { acceptLookupItem } from "./noteLookupAcceptItem";
@@ -56,11 +48,13 @@ import {
   getFNameForNewLookupItem,
   getSelectedLookupItems,
 } from "./noteLookupAcceptHelpers";
-import { buildNoteLookupExtraButtons } from "./noteLookupButtons";
 import { cleanupNoteLookup } from "./noteLookupCleanup";
 import { executeNoteLookupSelection } from "./noteLookupExecute";
+import {
+  gatherNoteLookupInputs,
+  NoteLookupGatherOutput,
+} from "./noteLookupGatherInputs";
 import { prepareStubLookupItem } from "./noteLookupPrepareStub";
-import { selectionModeConfigToType } from "./noteLookupSelectionMode";
 
 export type CommandRunOpts = {
   initialValue?: string | undefined;
@@ -78,16 +72,7 @@ export type CommandRunOpts = {
   vaultSelectionMode?: VaultSelectionMode | undefined;
 };
 
-/**
- * Everything that's necessary to initialize the quickpick
- */
-type CommandGatherOutput = {
-  quickpick: DendronQuickPickerV2;
-  controller: ILookupControllerV3;
-  provider: ILookupProviderV3;
-  noConfirm?: boolean | undefined;
-  fuzzThreshold?: number | undefined;
-};
+type CommandGatherOutput = NoteLookupGatherOutput;
 
 /**
  * Passed into execute command
@@ -175,87 +160,15 @@ export class NoteLookupCommand extends BaseCommand<
   }
 
   async gatherInputs(opts?: CommandRunOpts): Promise<CommandGatherOutput> {
-    const extension = ExtensionProvider.getExtension();
-    const start = process.hrtime();
-    const ws = extension.getDWorkspace();
-    const lookupConfig = ConfigUtils.getCommands(ws.config).lookup;
-    const noteLookupConfig = lookupConfig.note;
-    const selectionType = selectionModeConfigToType(
-      noteLookupConfig.selectionMode,
-    );
-
-    const confirmVaultOnCreate = noteLookupConfig.confirmVaultOnCreate;
-
-    const copts: CommandRunOpts = _.defaults(opts || {}, {
-      multiSelect: false,
-      filterMiddleware: [],
-      initialValue: NotePickerUtils.getInitialValueFromOpenEditor(),
-      selectionType,
-    } as CommandRunOpts);
-
-    let vaultButtonPressed: boolean;
-    if (copts.vaultSelectionMode) {
-      vaultButtonPressed =
-        copts.vaultSelectionMode === VaultSelectionMode.alwaysPrompt;
-    } else {
-      vaultButtonPressed =
-        VaultSelectionModeConfigUtils.shouldAlwaysPromptVaultSelection();
-    }
-
-    const ctx = "NoteLookupCommand:gatherInput";
-    Logger.info({ ctx, opts, msg: "enter" });
-    // initialize controller and provider
-    const disableVaultSelection = !confirmVaultOnCreate;
-    if (_.isUndefined(this._controller)) {
-      this._controller = extension.lookupControllerFactory.create({
-        nodeType: "note",
-        disableVaultSelection,
-        vaultButtonPressed,
-        extraButtons: buildNoteLookupExtraButtons(copts),
-        enableLookupView: true,
-      });
-    }
-    if (this._provider === undefined) {
-      // hack. we need to do this because
-      // moveSelectionTo sets a custom provider instead of the
-      // one that lookup creates.
-      // TODO: fix moveSelectionTo so that it doesn't rely on this.
-      this._provider = extension.noteLookupProviderFactory.create("lookup", {
-        allowNewNote: true,
-        allowNewNoteWithTemplate: true,
-        noHidePickerOnAccept: false,
-        forceAsIsPickerValueUsage:
-          copts.noteType === LookupNoteTypeEnum.scratch,
-      });
-    }
-    const lc = this.controller;
-    if (copts.fuzzThreshold) {
-      lc.fuzzThreshold = copts.fuzzThreshold;
-    }
-
-    VSCodeUtils.setContext(DendronContext.NOTE_LOOK_UP_ACTIVE, true);
-
-    const { quickpick } = await lc.prepareQuickPick({
-      placeholder: "a seed",
-      provider: this.provider,
-      initialValue: copts.initialValue,
-      nonInteractive: copts.noConfirm,
-      alwaysShow: true,
+    const gathered = await gatherNoteLookupInputs({
+      runOpts: opts,
+      existingController: this._controller,
+      existingProvider: this._provider,
     });
-    this._quickPick = quickpick;
-
-    const profile = getDurationMilliseconds(start);
-    AnalyticsUtils.track(VSCodeEvents.NoteLookup_Gather, {
-      duration: profile,
-    });
-
-    return {
-      controller: this.controller,
-      provider: this.provider,
-      quickpick,
-      noConfirm: copts.noConfirm,
-      fuzzThreshold: copts.fuzzThreshold,
-    };
+    this._controller = gathered.controller;
+    this._provider = gathered.provider;
+    this._quickPick = gathered.quickpick;
+    return gathered;
   }
 
   async enrichInputs(
@@ -290,9 +203,6 @@ export class NoteLookupCommand extends BaseCommand<
     });
   }
 
-  /**
-   * Executed after user accepts a quickpick item
-   */
   async execute(opts: CommandOpts) {
     await executeNoteLookupSelection({
       quickpick: opts.quickpick,
@@ -335,10 +245,6 @@ export class NoteLookupCommand extends BaseCommand<
     });
   }
 
-  /**
-   * Given a selected note item that is a stub note,
-   * Prepare it for accepting as a new item.
-   */
   async prepareStubItem(opts: {
     item: NoteQuickInput;
     engine: IEngineAPIService;
@@ -368,9 +274,6 @@ export class NoteLookupCommand extends BaseCommand<
     });
   }
 
-  /**
-   * TODO: align note creation file name choosing for follow a single path when accepting new item.
-   */
   private getFNameForNewItem(item: NoteQuickInput) {
     return getFNameForNewLookupItem({
       item,

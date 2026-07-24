@@ -20,6 +20,7 @@ const schemaComp = out("components/lookup/noteLookupSchemaCompletions.js");
 const schemaHelpers = out("components/lookup/schemaLookupHelpers.js");
 const selMode = out("commands/noteLookupSelectionMode.js");
 const acceptHelp = out("commands/noteLookupAcceptHelpers.js");
+// noteLookupGatherInputs pulls ExtensionProvider/vscode — do not require here.
 const constants = out("components/lookup/vaultPickerConstants.js");
 
 let failed = 0;

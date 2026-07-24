@@ -156,7 +156,8 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | Schema lookup helpers | `schemaLookupHelpers` |
 | Shared provider accept/history/wire | `lookupProviderAccept`, `lookupProviderHistory`, `lookupProviderWire` |
 | NoteLookupCommand peels | `noteLookupButtons`, `noteLookupSelectionMode`, `noteLookupVault`, `noteLookupAcceptHelpers` |
-| NoteLookup accept/execute | `noteLookupAcceptItem` (+ Existing/New/Template), `noteLookupExecute`, `noteLookupCleanup` |
+| NoteLookup accept/execute/gather | `noteLookupAcceptItem` (+ Existing/New/Template), `noteLookupExecute`, `noteLookupCleanup`, `noteLookupGatherInputs` |
+| SchemaLookup modular | `schemaLookupGatherInputs`, `schemaLookupAccept*`, `schemaLookupExecute` |
 | Lookup enrich (History) | `lookupCommandEnrichInputs` (note + schema) |
 | Lookup controller modifiers | `lookupControllerModifiers`, `lookupControllerViewState` |
 | Lookup sentinels / open note | `pickerSentinels`, `pickerDisplay` |

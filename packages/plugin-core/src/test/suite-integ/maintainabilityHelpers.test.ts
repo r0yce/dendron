@@ -49,11 +49,12 @@ import {
   getFNameForNewLookupItem,
   getSelectedLookupItems,
 } from "../../commands/noteLookupAcceptHelpers";
+import { resolveVaultButtonPressed } from "../../commands/noteLookupGatherInputs";
 import { VaultSelectionMode } from "../../components/lookup/types";
 import { CREATE_NEW_NOTE_DETAIL } from "../../components/lookup/constants";
 import { Location, Range, Uri } from "vscode";
 
-describe("maintainabilityHelpers (waves 5–12)", () => {
+describe("maintainabilityHelpers (waves 5–14)", () => {
   describe("md/anchors", () => {
     it("finds frontmatter ending offset and 1-indexed line", () => {
       const body = "---\nid: abc\n---\n\n# Hello\n";
@@ -568,11 +569,11 @@ describe("maintainabilityHelpers (waves 5–12)", () => {
       const items = [{ fname: "a" }, { fname: "b" }] as any[];
       expect(
         getSelectedLookupItems({ canSelectMany: false, selectedItems: items })
-          .length
+          .length,
       ).toEqual(1);
       expect(
         getSelectedLookupItems({ canSelectMany: true, selectedItems: items })
-          .length
+          .length,
       ).toEqual(2);
     });
 
@@ -583,14 +584,14 @@ describe("maintainabilityHelpers (waves 5–12)", () => {
           item,
           isJournal: true,
           pickerValue: "journal.2026.07.24",
-        })
+        }),
       ).toEqual("journal.2026.07.24");
       expect(
         getFNameForNewLookupItem({
           item,
           isJournal: false,
           pickerValue: "ignored",
-        })
+        }),
       ).toEqual("item.fname");
     });
 
@@ -603,6 +604,19 @@ describe("maintainabilityHelpers (waves 5–12)", () => {
         enableFullHierarchyNoteTitle: true,
       });
       expect(item.title).toEqual("A B C");
+    });
+
+    it("resolveVaultButtonPressed honors explicit alwaysPrompt", () => {
+      expect(
+        resolveVaultButtonPressed({
+          vaultSelectionMode: VaultSelectionMode.alwaysPrompt,
+        }),
+      ).toBeTruthy();
+      expect(
+        resolveVaultButtonPressed({
+          vaultSelectionMode: VaultSelectionMode.smart,
+        }),
+      ).toBeFalsy();
     });
   });
 });

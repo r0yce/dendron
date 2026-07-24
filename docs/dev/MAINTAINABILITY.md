@@ -25,7 +25,8 @@
 | `schemaLookupHelpers` | lookup | Schema empty-qs, create-new row, multi-level gate |
 | `lookupProviderAccept` / `lookupProviderHistory` / `lookupProviderWire` | lookup | Shared accept, history, provide() debounce wiring |
 | `noteLookupButtons` / `noteLookupSelectionMode` / `noteLookupVault` / `noteLookupAcceptHelpers` | commands/ | NoteLookupCommand peels |
-| `noteLookupAcceptItem` / `AcceptNew` / `Existing` / `Template` / `Execute` / `Cleanup` | commands/ | Full accept + execute modularity |
+| `noteLookupAcceptItem` / `AcceptNew` / `Existing` / `Template` / `Execute` / `Cleanup` / `Gather` | commands/ | Full note lookup modularity |
+| `schemaLookupAccept*` / `Gather` / `Execute` | commands/ | Full schema lookup modularity |
 | `lookupCommandEnrichInputs` | commands/ | Shared History subscribe for note + schema lookup |
 | `pickerSentinels` / `pickerDisplay` | lookup | Create New / More Results sentinels; open doc + hide picker |
 | `lookupControllerModifiers` / `lookupControllerViewState` | lookup | Note-type/selection toggles + initial VM from buttons |
@@ -183,13 +184,27 @@ Helpers, HTML shell, lookup selection, md modules, picker filters, activator hel
 | `SchemaLookupCommand.ts` | **~243** |
 | Accept modules | existing / new / template / item / execute |
 
-### Wave 14 — optional next
+### Wave 14 — DONE (this push)
+
+| Item | Result |
+|------|--------|
+| Note gather peel | `noteLookupGatherInputs` (+ `resolveVaultButtonPressed`) |
+| Schema full modularity | `schemaLookupGatherInputs`, `schemaLookupAcceptExisting/New/Item`, `schemaLookupExecute` |
+| Command shells | `NoteLookupCommand` ~290; `SchemaLookupCommand` ~150 thin wrappers |
+
+| Hotspot | ~LOC after wave 14 |
+|---------|-------------------|
+| `NoteLookupCommand.ts` | **~290** (was ~394 after wave 13; ~802 peak) |
+| `SchemaLookupCommand.ts` | **~150** (was ~243) |
+| Lookup command stack | fully modular gather → enrich → accept → execute |
+
+### Wave 15 — optional next
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | Peel remaining `gatherInputs` (controller/provider factory) if desired |
-| P2 | Thin other large commands (`Doctor`, `MoveHeader`, vault commands) |
-| P3 | Schema accept paths modularity (parallel to note accept modules) |
+| P1 | Start modularizing other large commands (`Doctor`, `MoveHeader`, vault) |
+| P2 | Extract shared `lookupCommandState` getters if controller/provider setters still noisy |
+| P3 | Product pause — lookup modularity is largely complete |
 
 ---
 
