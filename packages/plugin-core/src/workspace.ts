@@ -529,33 +529,40 @@ export class DendronExtension implements IDendronExtension {
       if (event.action === "initialized") {
         Logger.info({ ctx, msg: "init:treeViewV2" });
 
-        // Critical sidebar: backlinks (used constantly while editing)
+        // IMPORTANT: register WebviewViewProviders in the same turn as
+        // "initialized". Deferring with setTimeout leaves calendar/graph
+        // empty — VS Code resolves visible sidebar views when the provider
+        // is registered; a delayed register can miss resolveWebviewView.
+        // (Sprint 1 lazy-activation lesson; keep deferred work elsewhere.)
+
+        const sampleView = new SampleView();
+        context.subscriptions.push(
+          vscode.window.registerWebviewViewProvider(
+            SampleView.viewType,
+            sampleView
+          )
+        );
+
+        const calendarView = new CalendarView(this);
+        context.subscriptions.push(
+          vscode.window.registerWebviewViewProvider(
+            CalendarView.viewType,
+            calendarView
+          )
+        );
+
+        // backlinks
         const backlinkTreeView = this.setupBacklinkTreeView();
+
+        // Tip of the Day
+        const tipOfDayView = this.setupTipOfTheDayView();
+
+        // Graph panel (side)
+        const graphPanel = this.setupGraphPanel();
+
         context.subscriptions.push(backlinkTreeView);
-
-        // Secondary views: register on next tick so activation stays snappy
-        setTimeout(() => {
-          const sampleView = new SampleView();
-          context.subscriptions.push(
-            vscode.window.registerWebviewViewProvider(
-              SampleView.viewType,
-              sampleView
-            )
-          );
-
-          const calendarView = new CalendarView(this);
-          context.subscriptions.push(
-            vscode.window.registerWebviewViewProvider(
-              CalendarView.viewType,
-              calendarView
-            )
-          );
-
-          const tipOfDayView = this.setupTipOfTheDayView();
-          const graphPanel = this.setupGraphPanel();
-          context.subscriptions.push(tipOfDayView);
-          context.subscriptions.push(graphPanel);
-        }, 0);
+        context.subscriptions.push(tipOfDayView);
+        context.subscriptions.push(graphPanel);
       }
     });
   }

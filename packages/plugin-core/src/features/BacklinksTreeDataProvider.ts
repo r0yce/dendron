@@ -310,7 +310,11 @@ export default class BacklinksTreeDataProvider
         ? new ThemeIcon(ICONS.LINK_CANDIDATE)
         : new ThemeIcon(ICONS.WIKILINK);
       backlink.parentBacklink = parent;
-      backlink.description = `on line ${lineNum + 1}`;
+      // Sprint 2: surface a one-line context snippet inline (not only on hover)
+      const snippet = this.getOneLineSnippet(ref);
+      backlink.description = snippet
+        ? `L${lineNum + 1} · ${snippet}`
+        : `on line ${lineNum + 1}`;
 
       backlink.command = {
         command: DENDRON_COMMANDS.GOTO_BACKLINK.key,
@@ -333,6 +337,31 @@ export default class BacklinksTreeDataProvider
       return backlink;
     });
   };
+
+  /**
+   * One-line context from the source note for tree-item description (Sprint 2).
+   * Full multi-line context remains available via tooltip hover.
+   */
+  private getOneLineSnippet(ref: FoundRefT): string {
+    try {
+      if (ref.isFrontmatterTag) {
+        return "frontmatter tag";
+      }
+      if (!ref.note) {
+        return "";
+      }
+      const fullPath = NoteUtils.getFullPath({
+        note: ref.note,
+        wsRoot: ExtensionProvider.getDWorkspace().wsRoot,
+      });
+      const lines = fs.readFileSync(fullPath, "utf8").split("\n");
+      const line = lines[ref.location.range.start.line] ?? "";
+      // Collapse whitespace and cap length for the tree description column
+      return line.replace(/\s+/g, " ").trim().slice(0, 72);
+    } catch {
+      return "";
+    }
+  }
 
   /**
    * Return the array of notes that have backlinks to the current note ID as

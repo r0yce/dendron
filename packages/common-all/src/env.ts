@@ -4,6 +4,27 @@ import { Stage } from "./types";
 
 let overrideStage: string | undefined;
 
+/**
+ * Safe access to process.env for Node, webpack-bundled webviews, and plain browsers.
+ *
+ * Important: do NOT use `process?.env` — optional chaining on an undeclared free
+ * variable still throws `ReferenceError: process is not defined` in browsers.
+ * Use `typeof process !== "undefined"` instead.
+ *
+ * Webpack DefinePlugin can still replace plain `process.env.NODE_ENV` member
+ * access when present in the source graph.
+ */
+function getProcessEnv(): Record<string, string | undefined> {
+  if (typeof process === "undefined") {
+    return {};
+  }
+  try {
+    return (process.env || {}) as Record<string, string | undefined>;
+  } catch {
+    return {};
+  }
+}
+
 /** Get the env variables we are interested in.
  *
  * This workaround is needed because nextjs replaces these with static values at
@@ -12,7 +33,7 @@ let overrideStage: string | undefined;
  * `const {stage} = process.env;`.
  */
 function getProcEnvs() {
-  const _env = process?.env || ({} as any);
+  const _env = getProcessEnv();
   const stage = _env["stage"];
   const NODE_ENV = _env["NODE_ENV"];
   const STAGE = _env["STAGE"];
@@ -40,7 +61,9 @@ export function getStage(): Stage {
     stage ||
     STAGE ||
     NODE_ENV ||
-    process.env.NODE_ENV || // Webpack will do a direct text substitution on this value. See https://webpack.js.org/configuration/mode/
+    // Prefer safe lookup; webpack may still inline NODE_ENV from DefinePlugin
+    // when this file is bundled into plugin-views.
+    getProcessEnv().NODE_ENV ||
     overrideStage;
   // TODO
   if (stageOut === "development") {
@@ -75,7 +98,11 @@ export function setStageIfUndefined(newStage: Stage) {
   const stageOut = REACT_APP_STAGE || BUILD_STAGE || stage || STAGE || NODE_ENV;
   if (_.isUndefined(stageOut)) {
     try {
-      process.env.stage = newStage;
+      if (typeof process !== "undefined" && process.env) {
+        process.env.stage = newStage;
+      } else {
+        overrideStage = newStage;
+      }
     } catch {
       // This might fail in the browser where process.env doesn't exist
       overrideStage = newStage;
@@ -84,11 +111,14 @@ export function setStageIfUndefined(newStage: Stage) {
 }
 
 export function setEnv(name: ConfigKey, value: any): void {
+  if (typeof process === "undefined" || !process.env) {
+    return;
+  }
   process.env[name] = value;
 }
 
 export function env(name: ConfigKey, opts?: { shouldThrow?: boolean }): any {
-  const override = process.env[name];
+  const override = getProcessEnv()[name];
   if (override) {
     return override;
   }

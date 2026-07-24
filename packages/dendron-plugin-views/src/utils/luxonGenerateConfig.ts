@@ -1,7 +1,8 @@
 // from https://github.com/react-component/picker/pull/230
+// Updated for antd 6 / @rc-component/picker (getMillisecond/setMillisecond required).
 
 import { DateTime, Info } from "luxon";
-import type { GenerateConfig } from "rc-picker/lib/generate";
+import type { GenerateConfig } from "@rc-component/picker/generate";
 
 /**
  * Normalizes part of a moment format string that should
@@ -57,6 +58,7 @@ const generateConfig: GenerateConfig<DateTime> = {
   getHour: (date) => date.hour,
   getMinute: (date) => date.minute,
   getSecond: (date) => date.second,
+  getMillisecond: (date) => date.millisecond,
 
   // set
   addYear: (date, diff) => date.plus({ year: diff }),
@@ -69,6 +71,7 @@ const generateConfig: GenerateConfig<DateTime> = {
   setHour: (date, hour) => date.set({ hour }),
   setMinute: (date, minute) => date.set({ minute }),
   setSecond: (date, second) => date.set({ second }),
+  setMillisecond: (date, millisecond) => date.set({ millisecond }),
 
   // Compare
   isAfter: (date1, date2) => date1 > date2,
@@ -95,10 +98,9 @@ const generateConfig: GenerateConfig<DateTime> = {
     },
     getShortMonths: (locale) =>
       Info.months("short", { locale: normalizeLocale(locale) }),
-    // @ts-ignore -- allow format to return `null`
     format: (locale, date, format) => {
       if (!date || !date.isValid) {
-        return null;
+        return "";
       }
 
       return date

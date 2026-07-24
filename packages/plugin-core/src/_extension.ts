@@ -88,6 +88,8 @@ import { GotoNoteCommand } from "./commands/GotoNote";
 import { ActivationTimer } from "@dendronhq/common-all";
 import { getDevOutputChannel, setLastActivationReport } from "./utils/dev";
 import { isQuietMode } from "./utils/quietMode";
+import { NoteHistoryService } from "./services/NoteHistoryService";
+import { WorkspaceModesService } from "./services/WorkspaceModesService";
 import {
   ensurePerfStatusBar,
   updatePerfStatusBar,
@@ -535,6 +537,11 @@ export async function _activate(
         await PreviewPanelFactory.create(getExtension()).show(note);
       }
       StartupUtils.showUninstallMarkdownLinksExtensionMessage();
+
+      // Sprint 4: note history + vault-focus status bar
+      NoteHistoryService.init(context);
+      WorkspaceModesService.ensureStatusBar();
+
       activationTimer.mark("activate:success");
       logActivationReport(activationTimer);
       return true;

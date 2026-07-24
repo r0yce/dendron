@@ -50,6 +50,10 @@ const webExtensionConfig = {
           {
             loader: "ts-loader",
             options: {
+              // TypeScript 7 is CLI-native and no longer exports the classic
+              // compiler API (sys.fileExists, etc.) that ts-loader requires.
+              // Use a classic 5.x package alias for webpack transpile only.
+              compiler: "typescript-classic",
               ignoreDiagnostics: [
                 6196,
                 // never read

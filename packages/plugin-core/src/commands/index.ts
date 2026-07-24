@@ -72,6 +72,22 @@ import { SetupWorkspaceCommand } from "./SetupWorkspace";
 import { ShowHelpCommand } from "./ShowHelp";
 import { ShowLegacyPreviewCommand } from "./ShowLegacyPreview";
 import { ShowWelcomePageCommand } from "./ShowWelcomePageCommand";
+import { DendronHubCommand } from "./DendronHubCommand";
+import {
+  PreviewBackCommand,
+  PreviewForwardCommand,
+} from "./PreviewHistoryCommand";
+import { ReviewRitualCommand } from "./ReviewRitualCommand";
+import { CaptureInboxCommand } from "./CaptureInboxCommand";
+import { TaskBoardCommand } from "./TaskBoardCommand";
+import { LocalAIAssistCommand } from "./LocalAIAssistCommand";
+import { VaultFocusCommand } from "./VaultFocusCommand";
+import { WorkmodeCommand } from "./WorkmodeCommand";
+import {
+  NoteHistoryBackCommand,
+  NoteHistoryForwardCommand,
+} from "./NoteHistoryCommand";
+import { SafeBulkRenameCommand } from "./SafeBulkRenameCommand";
 import { SignInCommand } from "./SignIn";
 import { SignUpCommand } from "./SignUp";
 import { SnapshotVaultCommand } from "./SnapshotVault";
@@ -158,6 +174,18 @@ const ALL_COMMANDS = [
   SetupWorkspaceCommand,
   ShowHelpCommand,
   ShowLegacyPreviewCommand,
+  DendronHubCommand,
+  PreviewBackCommand,
+  PreviewForwardCommand,
+  ReviewRitualCommand,
+  CaptureInboxCommand,
+  TaskBoardCommand,
+  LocalAIAssistCommand,
+  VaultFocusCommand,
+  WorkmodeCommand,
+  NoteHistoryBackCommand,
+  NoteHistoryForwardCommand,
+  SafeBulkRenameCommand,
   SignInCommand,
   SignUpCommand,
   PublishExportCommand,

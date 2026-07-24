@@ -1,122 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
-  <style>
-    * {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    h1 {
-      text-align: center;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin-bottom: 0px;
-      margin-top: 0px;
-      padding-right: 20px;
-    }
-    .container{
-      text-align: center;
-    }
-    .subtitle {
-      margin-top: 12px;
-    }
-    #btn_container {
-      padding-top: 20px;
-      padding-bottom: 50px;
-    }
-    .initialize_btn {
-      border-radius: 2px;
-      background-color: rgb(0, 168, 36);
-      border: none;
-      color: #FFFFFF;
-      text-align: center;
-      font-size: 22px;
-      padding: 8px;
-      width: 220px;
-      transition: all 0.4s;
-      cursor: pointer;
-      margin: 25px;
-    }
-    .initialize_btn span {
-      cursor: pointer;
-      display: inline-block;
-      position: relative;
-      transition: 0.4s;
-    }
-    .initialize_btn span:after {
-      content: '\00bb';
-      position: absolute;
-      opacity: 0;
-      top: 0;
-      right: -20px;
-      transition: 0.5s;
-    }
-    .initialize_btn:hover {
-      background-color: rgb(2, 95, 22);
-      color: #FFFFFF;
-    }
-    .initialize_btn:hover span {
-      padding-right: 25px;
-    }
-    .initialize_btn:hover span:after {
-      opacity: 1;
-      right: 0;
-    }
-    #btn_subtext {
-      margin-top: 20px;
-    }
-    #gif-ctn {
-      text-align: center;
-    }
-    #usage-gif {
-      width: 100%;
-      max-width: 1200px;
-      vertical-align: middle;
-    }
-    #header-block {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .inline-header {
-      display: inline-block;
-    }
-  </style>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dendron</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Welcome to Dendron</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: var(--vscode-editor-background, #1e1e1e);
+        --fg: var(--vscode-editor-foreground, #cccccc);
+        --muted: var(--vscode-descriptionForeground, #9d9d9d);
+        --card: var(--vscode-sideBar-background, #252526);
+        --border: var(--vscode-panel-border, #3c3c3c);
+        --accent: var(--vscode-button-background, #0e639c);
+        --accent-fg: var(--vscode-button-foreground, #ffffff);
+        --accent-hover: var(--vscode-button-hoverBackground, #1177bb);
+        --link: var(--vscode-textLink-foreground, #3794ff);
+      }
+      * {
+        box-sizing: border-box;
+        font-family: var(
+          --vscode-font-family,
+          "Segoe UI",
+          system-ui,
+          sans-serif
+        );
+      }
+      body {
+        margin: 0;
+        padding: 32px 24px 48px;
+        background: var(--bg);
+        color: var(--fg);
+        line-height: 1.5;
+      }
+      .wrap {
+        max-width: 720px;
+        margin: 0 auto;
+      }
+      header {
+        text-align: center;
+        margin-bottom: 28px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.75rem;
+        font-weight: 600;
+      }
+      .subtitle {
+        margin: 0;
+        color: var(--muted);
+        font-size: 1rem;
+      }
+      .grid {
+        display: grid;
+        gap: 12px;
+        margin: 24px 0;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px 18px;
+      }
+      .card h2 {
+        margin: 0 0 6px;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+      .card kbd {
+        font-family: var(--vscode-editor-font-family, ui-monospace, monospace);
+        font-size: 0.85em;
+        padding: 1px 6px;
+        border-radius: 4px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+        margin: 28px 0 12px;
+      }
+      button {
+        appearance: none;
+        border: none;
+        border-radius: 6px;
+        padding: 10px 18px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        background: var(--accent);
+        color: var(--accent-fg);
+      }
+      button:hover {
+        background: var(--accent-hover);
+      }
+      button.secondary {
+        background: transparent;
+        color: var(--link);
+        border: 1px solid var(--border);
+      }
+      button.secondary:hover {
+        border-color: var(--link);
+      }
+      footer {
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-top: 20px;
+      }
+    </style>
   </head>
   <body>
-    <div class="container">
-      <div id="header-block">
-        <img class="inline-header" width="100" src="https://org-dendron-public-assets.s3.amazonaws.com/images/tutorial-logo.png">
-        <div class="inline-header">
-          <h1>Welcome to Dendron</h1>
+    <div class="wrap">
+      <header>
+        <h1>Welcome to Dendron</h1>
+        <p class="subtitle">
+          Your hierarchical knowledge base — local-first, private, and fast.
+        </p>
+      </header>
+
+      <div class="grid">
+        <div class="card">
+          <h2>Lookup notes instantly</h2>
+          <p>
+            Use <kbd>Ctrl/Cmd+L</kbd> for Note Lookup, or open the
+            <strong>Dendron Hub</strong> (<kbd>Ctrl/Cmd+Shift+H</kbd>) for
+            common actions.
+          </p>
+        </div>
+        <div class="card">
+          <h2>Link everything</h2>
+          <p>
+            Connect ideas with <code>[[wiki-links]]</code>. Backlinks and the
+            graph panel update as you write.
+          </p>
+        </div>
+        <div class="card">
+          <h2>Stay in the flow</h2>
+          <p>
+            Daily journal, preview, and tree view live in the Dendron sidebar.
+            Quiet mode keeps startup free of nags.
+          </p>
         </div>
       </div>
-    <h2>
-      Knowledge Management. Redefined.
-    </h2>
-    <p class="subtitle">Note, organize, and reference any amount of information.</p>
-  </div>
-    <br>
-    <div id="btn_container" class="container">
-      <a class="initialize_btn" id="btn_id" target="_blank" rel="nofollow"><span>Get Started</a>
-    </div>
-    
-    <div id="gif-ctn">
-      <img id="usage-gif" src="https://org-dendron-public-assets.s3.amazonaws.com/images/tutorial-welcome-usage-demo.gif">
+
+      <div class="actions">
+        <button id="init-btn" type="button">Start tutorial workspace</button>
+        <button id="hub-btn" class="secondary" type="button">
+          Open Dendron Hub
+        </button>
+      </div>
+      <footer>
+        Personal fork · no cloud required · data stays on your machine
+      </footer>
     </div>
 
     <script>
-      var btn = document.getElementById("btn_id");
       const vscode = acquireVsCodeApi();
-      vscode.postMessage({
-          command: "loaded",
-        });
-
-      btn.addEventListener("click", function () {
-        vscode.postMessage({
-          command: "initializeWorkspace",
-        });
+      vscode.postMessage({ command: "loaded" });
+      document.getElementById("init-btn").addEventListener("click", () => {
+        vscode.postMessage({ command: "initializeWorkspace" });
+      });
+      document.getElementById("hub-btn").addEventListener("click", () => {
+        vscode.postMessage({ command: "openHub" });
       });
     </script>
   </body>

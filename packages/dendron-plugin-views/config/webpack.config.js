@@ -208,8 +208,9 @@ module.exports = function (webpackEnv) {
         : isEnvDevelopment && "static/js/bundle.js",
       // webpack uses `publicPath` to determine where the app is being served from.
       // It requires a trailing slash, or the file assets will get an incorrect path.
-      // We inferred the "public path" (such as / or /my-project) from homepage.
-      publicPath: paths.publicUrlOrPath,
+      // Use "auto" so chunk/media URLs resolve from the script tag location.
+      // Absolute "/" breaks VS Code webviews (script is a vscode-webview:// URI).
+      publicPath: "auto",
       // Point sourcemap entries to original disk location (format as URL on Windows)
       devtoolModuleFilenameTemplate: isEnvProduction
         ? (info) =>
@@ -445,8 +446,11 @@ module.exports = function (webpackEnv) {
             },
             // Process any JS outside of the app with Babel.
             // Unlike the application JS, we only compile the standard ES features.
+            // Include .cjs: modern packages (zod 4, axios, react-redux, etc.) ship
+            // CommonJS as *.cjs. If we don't match them here, the asset/resource
+            // fallback emits a URL string and runtime crashes (e.g. z.union).
             {
-              test: /\.(js|mjs)$/,
+              test: /\.(js|mjs|cjs)$/,
               exclude: [
                 /@babel(?:\/|\\{1,2})runtime/,
                 /node_modules[\\/]css-loader/,
@@ -556,8 +560,10 @@ module.exports = function (webpackEnv) {
               ),
             },
             // Emit remaining assets (webpack 5 asset modules; replaces file-loader).
+            // Must exclude .cjs as well as .js/.mjs so CJS package entrypoints
+            // are never turned into static media URLs.
             {
-              exclude: [/\.(js|mjs|jsx|ts|tsx)$/, /\.html$/, /\.json$/],
+              exclude: [/\.(js|mjs|cjs|jsx|ts|tsx)$/, /\.html$/, /\.json$/],
               type: "asset/resource",
               generator: {
                 filename: "static/media/[name].[hash:8][ext]",
@@ -617,6 +623,13 @@ module.exports = function (webpackEnv) {
       // during a production build.
       // Otherwise React will be compiled in the very slow development mode.
       new webpack.DefinePlugin(env.stringified),
+      // Provide Node's `process` for browser/webview bundles. Dendron packages
+      // (and some deps) read process.env; without this, webviews throw
+      // `ReferenceError: process is not defined` during store init.
+      new webpack.ProvidePlugin({
+        // Extension required for fully-specified ESM packages (e.g. RTK).
+        process: "process/browser.js",
+      }),
       // This is necessary to emit hot updates (CSS and Fast Refresh):
       isEnvDevelopment && new webpack.HotModuleReplacementPlugin(),
       // Experimental hot reloading for React .

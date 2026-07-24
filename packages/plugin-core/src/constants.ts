@@ -60,15 +60,17 @@ const commandUri = `command:dendron.launchTutorialWorkspace?${encodedArgs}`;
 export const DENDRON_VIEWS_WELCOME = [
   {
     view: DendronTreeViewKey.BACKLINKS,
-    contents: "There are no backlinks to this note.",
+    contents:
+      "No backlinks to this note yet.\n\nLink here from another note with `[[wiki-links]]` to build your graph.",
   },
   {
     view: DendronTreeViewKey.RECENT_WORKSPACES,
-    contents: `No recent workspaces detected. If this is your first time using Dendron, [try out our tutorial workspace](${commandUri}).`,
+    contents: `**Welcome to Dendron**\n\nNo recent workspaces yet.\n\n- [Open the Dendron Hub](command:dendron.showHub) for common actions\n- [Start the tutorial workspace](${commandUri})\n- Or open a folder that already has a \`dendron.yml\``,
   },
   {
     view: DendronTreeViewKey.TREE_VIEW,
-    contents: "First open a Dendron note to see the tree view.",
+    contents:
+      "**Tree View**\n\nOpen any Dendron note to populate the hierarchy.\n\nTip: use [Dendron Hub](command:dendron.showHub) or Note Lookup (`Ctrl/Cmd+L`) to jump around.",
   },
 ];
 
@@ -991,6 +993,92 @@ export const DENDRON_COMMANDS = {
     icon: `$(lock)`,
     when: "dendron:pluginActive",
   },
+  PREVIEW_BACK: {
+    key: "dendron.previewBack",
+    title: `${CMD_PREFIX} Preview: Back`,
+    icon: `$(arrow-left)`,
+    when: `${DendronContext.PLUGIN_ACTIVE}`,
+  },
+  PREVIEW_FORWARD: {
+    key: "dendron.previewForward",
+    title: `${CMD_PREFIX} Preview: Forward`,
+    icon: `$(arrow-right)`,
+    when: `${DendronContext.PLUGIN_ACTIVE}`,
+  },
+  SHOW_HUB: {
+    key: "dendron.showHub",
+    title: `${CMD_PREFIX} Hub`,
+    icon: `$(home)`,
+    // Do not use ctrl/cmd+shift+d — that is Dendron: Delete.
+    keybindings: {
+      key: "ctrl+shift+h",
+      mac: "cmd+shift+h",
+      when: "shellExecutionSupported",
+    },
+    when: "shellExecutionSupported",
+  },
+  // --- Sprint 3 rituals
+  REVIEW_RITUAL: {
+    key: "dendron.reviewRitual",
+    title: `${CMD_PREFIX} Review Ritual`,
+    icon: `$(book)`,
+    when: `${DendronContext.PLUGIN_ACTIVE} && shellExecutionSupported`,
+  },
+  CAPTURE_INBOX: {
+    key: "dendron.captureInbox",
+    title: `${CMD_PREFIX} Capture to Inbox`,
+    icon: `$(inbox)`,
+    // Avoid cmd+shift+c (Copy Note Link). Use alt chord for capture.
+    keybindings: {
+      key: "ctrl+alt+c",
+      mac: "cmd+alt+c",
+      when: `${DendronContext.PLUGIN_ACTIVE}`,
+    },
+    when: `${DendronContext.PLUGIN_ACTIVE} && shellExecutionSupported`,
+  },
+  TASK_BOARD: {
+    key: "dendron.taskBoard",
+    title: `${CMD_PREFIX} Task Board`,
+    icon: `$(checklist)`,
+    when: `${DendronContext.PLUGIN_ACTIVE} && shellExecutionSupported`,
+  },
+  LOCAL_AI_ASSIST: {
+    key: "dendron.localAIAssist",
+    title: `${CMD_PREFIX} Local AI Assist`,
+    icon: `$(sparkle)`,
+    when: `${DendronContext.PLUGIN_ACTIVE} && shellExecutionSupported`,
+  },
+  // --- Sprint 4 polish
+  VAULT_FOCUS: {
+    key: "dendron.vaultFocus",
+    title: `${CMD_PREFIX} Vault Focus`,
+    icon: `$(folder)`,
+    when: `${DendronContext.PLUGIN_ACTIVE} && shellExecutionSupported`,
+  },
+  WORKMODE: {
+    key: "dendron.workmode",
+    title: `${CMD_PREFIX} Workmodes (Spaces)`,
+    icon: `$(versions)`,
+    when: `${DendronContext.PLUGIN_ACTIVE} && shellExecutionSupported`,
+  },
+  NOTE_HISTORY_BACK: {
+    key: "dendron.noteHistoryBack",
+    title: `${CMD_PREFIX} Note History: Back`,
+    icon: `$(arrow-left)`,
+    when: `${DendronContext.PLUGIN_ACTIVE}`,
+  },
+  NOTE_HISTORY_FORWARD: {
+    key: "dendron.noteHistoryForward",
+    title: `${CMD_PREFIX} Note History: Forward`,
+    icon: `$(arrow-right)`,
+    when: `${DendronContext.PLUGIN_ACTIVE}`,
+  },
+  SAFE_BULK_RENAME: {
+    key: "dendron.safeBulkRename",
+    title: `${CMD_PREFIX} Safe Bulk Rename`,
+    icon: `$(replace-all)`,
+    when: `${DendronContext.PLUGIN_ACTIVE} && shellExecutionSupported`,
+  },
   PASTE_FILE: {
     key: "dendron.pasteFile",
     title: `${CMD_PREFIX} Paste File`,
@@ -1311,6 +1399,27 @@ export const CONFIG: { [key: string]: ConfigEntry } = {
     default: true,
     description:
       "When enabled, newly created workspaces will be created as self contained vaults.",
+  },
+  // --- Sprint 3: Local AI (opt-in)
+  LOCAL_AI_ENABLED: {
+    key: "dendron.localAI.enabled",
+    type: "boolean",
+    default: false,
+    description:
+      "Opt-in local AI assist. When false, Dendron: Local AI Assist only offers to enable. No cloud calls by default.",
+  },
+  LOCAL_AI_ENDPOINT: {
+    key: "dendron.localAI.endpoint",
+    type: "string",
+    default: "",
+    description:
+      "Optional local OpenAI-compatible chat endpoint (e.g. http://127.0.0.1:11434/v1/chat/completions). Empty = offline scaffold only.",
+  },
+  LOCAL_AI_MODEL: {
+    key: "dendron.localAI.model",
+    type: "string",
+    default: "local",
+    description: "Model name sent to the local AI endpoint when configured.",
   },
 } as const;
 

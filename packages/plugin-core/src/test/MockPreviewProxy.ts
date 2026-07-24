@@ -32,4 +32,10 @@ export class MockPreviewProxy implements PreviewProxy {
   isLocked(): boolean {
     return this._isLocked;
   }
+  async goBack(): Promise<void> {
+    // no-op for tests
+  }
+  async goForward(): Promise<void> {
+    // no-op for tests
+  }
 }

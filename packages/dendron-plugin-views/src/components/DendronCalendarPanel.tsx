@@ -162,12 +162,14 @@ export default function DendronCalendarPanel({ ide, engine }: DendronProps) {
     [activeMode, journalDateFormat]
   );
 
+  // antd 6: onSelect second arg is SelectInfo `{ source }`, not CalendarMode.
+  // Use activeMode (from onPanelChange) for date-key formatting.
   const onSelect = useCallback<
-    (date: DateTime, mode?: CalendarProps["mode"]) => void
+    Exclude<CalendarProps["onSelect"], undefined>
   >(
-    (date, mode) => {
+    (date) => {
       logger.info({ ctx: "onSelect", date });
-      const dateKey = getDateKey(date, mode);
+      const dateKey = getDateKey(date, activeMode);
       const selectedNote = dateKey
         ? _.first(groupedDailyNotes[dateKey])
         : undefined;
@@ -181,7 +183,7 @@ export default function DendronCalendarPanel({ ide, engine }: DendronProps) {
         source: DMessageSource.webClient,
       });
     },
-    [groupedDailyNotes, getDateKey, journalDailyDomain, journalName]
+    [groupedDailyNotes, getDateKey, journalDailyDomain, journalName, activeMode]
   );
 
   const onPanelChange = useCallback<
@@ -192,13 +194,12 @@ export default function DendronCalendarPanel({ ide, engine }: DendronProps) {
   }, []);
 
   const onClickToday = useCallback(() => {
-    const mode = "month";
-    setActiveMode(mode);
-    onSelect(Time.now(), mode);
+    setActiveMode("month");
+    onSelect(Time.now(), { source: "date" });
   }, [onSelect]);
 
-  const dateFullCellRender = useCallback<
-    Exclude<CalendarProps["dateFullCellRender"], undefined>
+  const fullCellRender = useCallback<
+    Exclude<CalendarProps["fullCellRender"], undefined>
   >(
     (date) => {
       const dateKey = getDateKey(date);
@@ -263,8 +264,10 @@ export default function DendronCalendarPanel({ ide, engine }: DendronProps) {
           )}
         >
           <div
-            className={`${calendarPrefixCls}-date-value`}
-            style={{ color: !dailyNote ? "gray" : undefined }}
+            className={classNames(`${calendarPrefixCls}-date-value`, {
+              "dendron-calendar-date-empty": !dailyNote,
+              "dendron-calendar-date-has-note": !!dailyNote,
+            })}
           >
             {_.padStart(String(luxonGenerateConfig.getDate(date)), 2, "0")}
           </div>
@@ -284,8 +287,8 @@ export default function DendronCalendarPanel({ ide, engine }: DendronProps) {
           onPanelChange={onPanelChange}
           /*
           // @ts-ignore -- `null` initializes ant Calendar into a controlled component whereby it does not render an selected/visible date (today) when `activeDate` is `undefined`*/
-          value={activeDate || null}
-          dateFullCellRender={dateFullCellRender}
+          value={activeDate}
+          fullCellRender={fullCellRender}
           fullscreen={false}
         />
       </div>

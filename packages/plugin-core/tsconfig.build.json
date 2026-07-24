@@ -5,7 +5,11 @@
     "rootDirs": ["src", "scripts"],
     "declaration": false,
     "skipLibCheck": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    // Override monorepo "bundler" settings so tsc can emit CommonJS for the
+    // extension host entry (package.json main → out/src/extension.js).
+    "module": "commonjs",
+    "moduleResolution": "node"
   },
   "exclude": ["node_modules", "lib", "local", ".vscode-test", "out", "dist", "src/test", "src/web/test"]
 }

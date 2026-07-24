@@ -23,11 +23,6 @@ Modernization/build history remains useful archive in:
 
 **Rule:** Pick **one Sprint focus**. Optionally run a **support track** that does not edit the same hot files. Finish a vertical slice (code + verify + short doc note) before switching lanes.
 
-```text
-Primary lane (this sprint)  ──►  ship vertical slice
-Support track (optional)    ──►  docs / CLI / pure CSS only
-```
-
 ---
 
 ## North star (personal fork)
@@ -45,82 +40,50 @@ Success: you open VS Code and Dendron is the PKM you want every day.
 ## Lanes
 
 ### Lane P — Performance
-- Lazy / deferred activation  
-- Lookup warm + virtualization  
-- Incremental index / smarter reload  
-- Preview cache, graph progressive layout  
-- Webview bundle split  
-- Perf status bar + CI baselines  
+- Lazy / deferred activation, lookup warm, webview split, perf status bar  
 
 ### Lane U — UI / UX
-- Dendron hub command  
-- Welcome / empty state (fork branding)  
-- Preview chrome (history, sticky title)  
-- Backlinks redesign  
-- Graph local-first defaults  
-- Calendar → journal flow  
-- Settings UI search  
+- Hub, welcome, preview history, backlinks snippets  
 
 ### Lane Q — Quality of life
-- Quiet mode (**in progress**)  
-- Vault focus, safe bulk rename  
-- Note history stack  
-- CLI: search / stats / backup  
-- Personal VSIX identity  
+- Quiet mode, vault focus, note history, safe bulk rename, personal VSIX identity  
 
-### Lane F — Flagship features
-- Daily/weekly review ritual  
-- Capture inbox  
-- Tasks board lite  
-- Local AI assist (opt-in)  
-- Spaces / workmodes  
+### Lane F — Flagship
+- Review ritual, capture inbox, task board, local AI, workmodes/spaces  
 
 ---
 
 ## Sprints
 
 ### Sprint 1 — “Feels fast + quiet” (**COMPLETE**)
+Quiet mode, perf status bar, lazy activation, lookup limits.
+
+### Sprint 2 — “Feels modern” (**COMPLETE**)
+Hub (`Cmd+Shift+H`), welcome, preview history, backlinks snippets, webview split.
+
+### Sprint 3 — “Can’t live without” (**COMPLETE**)
+Review ritual, capture inbox (`Cmd+Alt+C`), task board, local AI opt-in.
+
+### Sprint 4 — “Daily driver polish” (**COMPLETE**)
 
 | # | Item | Lane | Status |
 |---|------|------|--------|
-| S1.1 | **Quiet mode** setting (default on): skip surveys, lapsed-user modals, feature showcase spam | Q | **Done** |
-| S1.2 | **Perf status bar** after activation (total ms + note count when available) | P | **Done** |
-| S1.3 | Wire activation report into status bar + ring | P | **Done** |
-| S1.4 | Defer non-critical interactive toasts (gated by quiet) | P/Q | **Done** |
-| S1.5 | Lazy activation: defer language providers, tree init, secondary webviews, initializer | P | **Done** |
-| S1.6 | Lookup: query `limit`, batched schema enhance, fuse warm after activate | P | **Done** |
+| S4.1 | **Vault Focus** (`dendron.vaultFocus`) — status bar + workspace state; capture/review/board/bulk-rename respect focus | Q | **Done** |
+| S4.2 | **Workmodes / Spaces** (`dendron.workmode`) — save/apply/delete named vault-focus presets | F/Q | **Done** |
+| S4.3 | **Note history stack** (`dendron.noteHistoryBack` / `Forward`, `Cmd+Alt+-` / `=`) — navigate recently opened Dendron notes | Q | **Done** |
+| S4.4 | **Safe Bulk Rename** (`dendron.safeBulkRename`) — regex dry-run markdown preview, conflict skip, confirm then apply | Q | **Done** |
+| S4.5 | **Personal VSIX identity** — `displayName: Dendron Personal`, privacy-first description | Q | **Done** |
 
-**Next sprint:** Sprint 2 — Feels modern (hub, welcome, preview polish, backlinks, webview split).
+Hub lists vault focus, workmodes, and safe bulk rename.
 
-### Sprint 2 — “Feels modern”
-- Dendron hub + welcome rework  
-- Preview history + polish  
-- Backlinks context snippets  
-- Webview split (preview vs graph)  
-
-### Sprint 3 — “Can’t live without”
-- Review ritual  
-- Capture inbox  
-- Task board lite  
-- Local AI scaffold (opt-in)  
+**Next:** ad-hoc polish only (no Sprint 5 scheduled).
 
 ---
 
-## Done recently (platform, not product lanes)
+## Done recently (platform)
 
-- Privacy-first telemetry + local NDJSON  
-- PerfRingBuffer + `dendron health` / `dump_perf`  
-- TypeScript 7, Babel 8, yargs 18, modern deps  
-- ESLint 10 flat config  
-
----
-
-## How to pick work
-
-1. Read **Sprint ACTIVE** table above.  
-2. Implement one row → verify (`yarn verify:local` + F5 smoke).  
-3. Check off Status; add short note under “Changelog” below.  
-4. Only then open the next row or next sprint.
+- Privacy-first telemetry, perf ring, TS7/Babel8, ESLint 10  
+- Webview recovery (React 19, zod/cjs, process, ideSlice, preview dark mode)  
 
 ---
 
@@ -128,4 +91,5 @@ Success: you open VS Code and Dendron is the PKM you want every day.
 
 | Date | Note |
 |------|------|
-| 2026-07 | Product roadmap established; Sprint 1 **complete**: quiet mode, perf status bar, lazy activation (critical vs deferred language features, non-blocking tree/views), lookup limit + schema batch enhance + fuse warm. Next: Sprint 2. |
+| 2026-07 | Sprints 1–3 complete. |
+| 2026-07 | **Sprint 4 complete:** vault focus + status bar, workmodes, note history, safe bulk rename, personal VSIX branding. |

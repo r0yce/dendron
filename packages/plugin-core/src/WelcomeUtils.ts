@@ -77,6 +77,10 @@ export function showWelcome(assetUri: vscode.Uri) {
             await initWorkspace();
             return;
           }
+          case "openHub": {
+            await vscode.commands.executeCommand("dendron.showHub");
+            return;
+          }
           default:
             break;
         }

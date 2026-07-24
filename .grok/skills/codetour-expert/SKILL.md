@@ -249,7 +249,7 @@ MAX AUTONOMY. THE CHAIN OF KNOWLEDGE DOES NOT STOP.
 1. "If another agent (or future self) later edits a .tour file without going through the expert, will the system now catch it?" → YES (the new `on_file_change` hook on `.tours/**` + the explicit "prefer expert" language now in the public README).
 2. "Would a future reader of .tours/README.md have known the full power of the automated healer without this birth improvement?" → NO → now fixed.
 3. "Does the skill's own SKILL.md now contain the record of its first real-world action + the new guardian-creation rule?" → YES (this exact section).
-
+          
 **Cross-Encoded**:
 - Lesson + new rule pushed to `self-improver/SKILL.md` (via the `codetour-healed-orchestra` hook + direct note in the next self-improver evolution).
 - The three new hooks are the first "on_codetour_*" family and follow the exact orchestra pattern of `on_strict_green` / `on_m2_commit` etc.

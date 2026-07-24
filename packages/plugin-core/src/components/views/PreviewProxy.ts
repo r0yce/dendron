@@ -47,4 +47,14 @@ export interface PreviewProxy {
    * Is the view locked?
    */
   isLocked(): boolean;
+
+  /**
+   * Navigate preview history backward when available (Sprint 2).
+   */
+  goBack(): Promise<void>;
+
+  /**
+   * Navigate preview history forward when available (Sprint 2).
+   */
+  goForward(): Promise<void>;
 }

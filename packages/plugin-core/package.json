@@ -1,8 +1,8 @@
 {
   "name": "@dendronhq/plugin-core",
   "private": true,
-  "displayName": "dendron",
-  "description": "Dendron is a hierarchical note taking tool that grows as you do.",
+  "displayName": "Dendron Personal",
+  "description": "Personal local-first fork of Dendron — hierarchical PKM for VS Code. Privacy-first, no cloud required.",
   "publisher": "dendron",
   "version": "0.124.0",
   "sponsor": {
@@ -48,15 +48,15 @@
     "viewsWelcome": [
       {
         "view": "dendron.backlinks",
-        "contents": "There are no backlinks to this note."
+        "contents": "No backlinks to this note yet.\n\nLink here from another note with `[[wiki-links]]` to build your graph."
       },
       {
         "view": "dendron.recent-workspaces",
-        "contents": "No recent workspaces detected. If this is your first time using Dendron, [try out our tutorial workspace](command:dendron.launchTutorialWorkspace?%7B%22invocationPoint%22%3A%22RecentWorkspacesPanel%22%7D)."
+        "contents": "**Welcome to Dendron**\n\nNo recent workspaces yet.\n\n- [Open the Dendron Hub](command:dendron.showHub) for common actions\n- [Start the tutorial workspace](command:dendron.launchTutorialWorkspace?%7B%22invocationPoint%22%3A%22RecentWorkspacesPanel%22%7D)\n- Or open a folder that already has a `dendron.yml`"
       },
       {
         "view": "dendron.treeView",
-        "contents": "First open a Dendron note to see the tree view."
+        "contents": "**Tree View**\n\nOpen any Dendron note to populate the hierarchy.\n\nTip: use [Dendron Hub](command:dendron.showHub) or Note Lookup (`Ctrl/Cmd+L`) to jump around."
       }
     ],
     "viewsContainers": {
@@ -551,6 +551,66 @@
         "icon": "$(lock)"
       },
       {
+        "command": "dendron.previewBack",
+        "title": "Dendron: Preview: Back",
+        "icon": "$(arrow-left)"
+      },
+      {
+        "command": "dendron.previewForward",
+        "title": "Dendron: Preview: Forward",
+        "icon": "$(arrow-right)"
+      },
+      {
+        "command": "dendron.showHub",
+        "title": "Dendron: Hub",
+        "icon": "$(home)"
+      },
+      {
+        "command": "dendron.reviewRitual",
+        "title": "Dendron: Review Ritual",
+        "icon": "$(book)"
+      },
+      {
+        "command": "dendron.captureInbox",
+        "title": "Dendron: Capture to Inbox",
+        "icon": "$(inbox)"
+      },
+      {
+        "command": "dendron.taskBoard",
+        "title": "Dendron: Task Board",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "dendron.localAIAssist",
+        "title": "Dendron: Local AI Assist",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "dendron.vaultFocus",
+        "title": "Dendron: Vault Focus",
+        "icon": "$(folder)"
+      },
+      {
+        "command": "dendron.workmode",
+        "title": "Dendron: Workmodes (Spaces)",
+        "icon": "$(versions)"
+      },
+      {
+        "command": "dendron.noteHistoryBack",
+        "title": "Dendron: Note History: Back",
+        "icon": "$(arrow-left)"
+      },
+      {
+        "command": "dendron.noteHistoryForward",
+        "title": "Dendron: Note History: Forward",
+        "icon": "$(arrow-right)"
+      },
+      {
+        "command": "dendron.safeBulkRename",
+        "title": "Dendron: Safe Bulk Rename",
+        "icon": "$(replace-all)"
+      },
+      {
         "command": "dendron.pasteFile",
         "title": "Dendron: Paste File"
       },
@@ -974,6 +1034,54 @@
           "when": "dendron:pluginActive"
         },
         {
+          "command": "dendron.previewBack",
+          "when": "dendron:pluginActive"
+        },
+        {
+          "command": "dendron.previewForward",
+          "when": "dendron:pluginActive"
+        },
+        {
+          "command": "dendron.showHub",
+          "when": "shellExecutionSupported"
+        },
+        {
+          "command": "dendron.reviewRitual",
+          "when": "dendron:pluginActive && shellExecutionSupported"
+        },
+        {
+          "command": "dendron.captureInbox",
+          "when": "dendron:pluginActive && shellExecutionSupported"
+        },
+        {
+          "command": "dendron.taskBoard",
+          "when": "dendron:pluginActive && shellExecutionSupported"
+        },
+        {
+          "command": "dendron.localAIAssist",
+          "when": "dendron:pluginActive && shellExecutionSupported"
+        },
+        {
+          "command": "dendron.vaultFocus",
+          "when": "dendron:pluginActive && shellExecutionSupported"
+        },
+        {
+          "command": "dendron.workmode",
+          "when": "dendron:pluginActive && shellExecutionSupported"
+        },
+        {
+          "command": "dendron.noteHistoryBack",
+          "when": "dendron:pluginActive"
+        },
+        {
+          "command": "dendron.noteHistoryForward",
+          "when": "dendron:pluginActive"
+        },
+        {
+          "command": "dendron.safeBulkRename",
+          "when": "dendron:pluginActive && shellExecutionSupported"
+        },
+        {
           "command": "dendron.pasteFile",
           "when": "dendron:pluginActive && shellExecutionSupported"
         },
@@ -1349,10 +1457,49 @@
           "type": "boolean",
           "default": true,
           "description": "Show a status bar item with last activation time and light perf summary (click for full report)."
+        },
+        "dendron.localAI.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Opt-in local AI assist. When false, Dendron: Local AI Assist only offers to enable. No cloud calls by default."
+        },
+        "dendron.localAI.endpoint": {
+          "type": "string",
+          "default": "",
+          "description": "Optional local OpenAI-compatible chat endpoint (e.g. http://127.0.0.1:11434/v1/chat/completions). Empty = offline scaffold only."
+        },
+        "dendron.localAI.model": {
+          "type": "string",
+          "default": "local",
+          "description": "Model name sent to the local AI endpoint when configured."
         }
       }
     },
     "keybindings": [
+      {
+        "command": "dendron.showHub",
+        "key": "ctrl+shift+h",
+        "mac": "cmd+shift+h",
+        "when": "shellExecutionSupported"
+      },
+      {
+        "command": "dendron.captureInbox",
+        "key": "ctrl+alt+c",
+        "mac": "cmd+alt+c",
+        "when": "dendron:pluginActive"
+      },
+      {
+        "command": "dendron.noteHistoryBack",
+        "key": "ctrl+alt+-",
+        "mac": "cmd+alt+-",
+        "when": "dendron:pluginActive"
+      },
+      {
+        "command": "dendron.noteHistoryForward",
+        "key": "ctrl+alt+=",
+        "mac": "cmd+alt+=",
+        "when": "dendron:pluginActive"
+      },
       {
         "command": "dendron.goto",
         "when": "editorFocus"
@@ -1557,6 +1704,7 @@
     "source-map-loader": "5.0.0",
     "terser-webpack-plugin": "5.6.1",
     "ts-loader": "9.6.0",
+    "typescript-classic": "npm:typescript@5.9.3",
     "ts-node": "10.9.2",
     "ts-sinon": "2.0.2",
     "tsyringe": "4.10.0",

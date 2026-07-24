@@ -53,6 +53,11 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
   private _onTextChanged: vscode.Disposable | undefined = undefined;
   private _linkHandler: IPreviewLinkHandler;
   private _lockedEditorNoteId: string | undefined;
+  /** Preview navigation history (note ids). Sprint 2. */
+  private _history: string[] = [];
+  private _historyIndex = -1;
+  private _navigatingHistory = false;
+  private static readonly MAX_HISTORY = 50;
 
   /**
    *
@@ -197,12 +202,81 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
     const note = await this._ext.wsUtils.getActiveNote();
     return this.isLocked() && note?.id !== this._lockedEditorNoteId;
   }
+
+  /** Push note onto history unless we are walking history with back/forward. */
+  private pushHistory(noteId: string) {
+    if (this._navigatingHistory) {
+      return;
+    }
+    if (this._historyIndex >= 0 && this._history[this._historyIndex] === noteId) {
+      return;
+    }
+    // Drop any forward stack when navigating to a new note
+    if (this._historyIndex < this._history.length - 1) {
+      this._history = this._history.slice(0, this._historyIndex + 1);
+    }
+    this._history.push(noteId);
+    if (this._history.length > PreviewPanel.MAX_HISTORY) {
+      this._history.shift();
+    } else {
+      this._historyIndex = this._history.length - 1;
+      return;
+    }
+    this._historyIndex = this._history.length - 1;
+  }
+
+  private async showNoteById(noteId: string): Promise<void> {
+    const note = (await this._ext.getEngine().getNote(noteId)).data;
+    if (!note) {
+      Logger.info({
+        ctx: "PreviewPanel.showNoteById",
+        msg: "note missing from history",
+        noteId,
+      });
+      return;
+    }
+    this._navigatingHistory = true;
+    try {
+      if (!this.isOpen()) {
+        await this.show(note);
+      } else {
+        await this.sendRefreshMessage(this._panel!, note, false);
+      }
+    } finally {
+      this._navigatingHistory = false;
+    }
+  }
+
+  async goBack(): Promise<void> {
+    if (this._historyIndex <= 0) {
+      return;
+    }
+    this._historyIndex -= 1;
+    const noteId = this._history[this._historyIndex];
+    if (noteId) {
+      await this.showNoteById(noteId);
+    }
+  }
+
+  async goForward(): Promise<void> {
+    if (this._historyIndex >= this._history.length - 1) {
+      return;
+    }
+    this._historyIndex += 1;
+    const noteId = this._history[this._historyIndex];
+    if (noteId) {
+      await this.showNoteById(noteId);
+    }
+  }
+
   dispose() {
     this.unlock();
     if (this._panel) {
       this._panel.dispose();
       this._panel = undefined;
     }
+    this._history = [];
+    this._historyIndex = -1;
   }
 
   private setupCallbacks(): void {
@@ -398,6 +472,14 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
         );
       }
       note = this.rewriteImageUrls(note, panel);
+
+      // Sticky title + history (Sprint 2 polish)
+      try {
+        panel.title = note.title || note.fname || "Note Preview";
+      } catch {
+        // panel may be disposed
+      }
+      this.pushHistory(note.id);
 
       try {
         return panel.webview.postMessage({

@@ -14,26 +14,163 @@ hr {
   border-width: 1px;
 }
 
-
-// content.scss
-
+// ---------------------------------------------------------------------------
+// Note preview (and other webviews): force VS Code theme colors.
+//
+// index.styles.css bakes light Just-the-Docs colors (body #5c5962, headings
+// #27262b). antd Layout also defaults to light-theme text. We only used to
+// override backgrounds, so dark mode became black text on a dark editor bg.
+// ---------------------------------------------------------------------------
+html,
+body,
+.ant-layout,
+.ant-layout-content,
+#root,
+#main-content-wrap,
+#main-content,
+.main-content-wrap,
 .main-content {
+  background-color: var(--vscode-editor-background) !important;
+  color: var(--vscode-editor-foreground) !important;
+}
 
+.main-content,
+.ant-layout-content {
   h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
+    color: var(--vscode-editor-foreground) !important;
     white-space: pre-wrap;
   }
 
+  p,
+  li,
+  td,
+  th,
+  span,
+  div {
+    color: inherit;
+  }
+
+  a,
+  a:hover,
+  a:active {
+    color: var(--vscode-textLink-foreground) !important;
+  }
+
+  // Inline code / fenced blocks
+  code,
+  pre,
+  .hljs,
+  .highlighter-rouge {
+    color: var(--vscode-editor-foreground) !important;
+    background-color: var(
+      --vscode-textCodeBlock-background,
+      rgba(127, 127, 127, 0.18)
+    ) !important;
+  }
+
+  pre code {
+    background-color: transparent !important;
+  }
+
+  blockquote {
+    color: var(--vscode-descriptionForeground, var(--vscode-editor-foreground));
+    border-left-color: var(--vscode-textBlockQuote-border, #6f777d);
+  }
+
+  hr {
+    background-color: var(--vscode-panel-border, #444);
+    border-color: var(--vscode-panel-border, #444);
+  }
+
+  table,
+  td,
+  th {
+    border-color: var(--vscode-panel-border, #555) !important;
+  }
+
+  // Portal / note-ref chrome
+  .portal-container {
+    border-color: var(--vscode-panel-border, #555);
+    background: var(--vscode-sideBar-background, transparent);
+  }
+  .portal-title,
+  .portal-parent-text {
+    color: var(--vscode-descriptionForeground, var(--vscode-editor-foreground)) !important;
+  }
+  .portal-text-title {
+    color: var(--vscode-editor-foreground) !important;
+  }
 }
+
+// content.scss (heading wrap already covered above)
 
 // main.scss
 
-.ant-picker-calendar, .ant-picker-calendar .ant-picker-panel {
-  background-color: var(--vscode-editor-background) !important,
+// Calendar in VS Code webviews: follow editor theme colors so day numbers
+// stay readable (antd dark tokens alone blend into the webview chrome).
+.ant-picker-calendar,
+.ant-picker-calendar .ant-picker-panel {
+  background-color: var(--vscode-editor-background) !important;
+  color: var(--vscode-editor-foreground) !important;
+}
+
+.ant-picker-calendar {
+  // Day-of-week headers (Mon/Tue/…)
+  th {
+    color: var(--vscode-descriptionForeground, var(--vscode-editor-foreground)) !important;
+  }
+
+  // In-month day cells
+  .ant-picker-cell-in-view {
+    color: var(--vscode-editor-foreground) !important;
+  }
+
+  // Adjacent-month / muted days
+  .ant-picker-cell:not(.ant-picker-cell-in-view) {
+    color: var(--vscode-disabledForeground, rgba(127, 127, 127, 0.65)) !important;
+  }
+
+  .ant-picker-calendar-date-value,
+  .ant-picker-cell-inner {
+    color: inherit !important;
+  }
+
+  // Selected day keeps contrast on the primary chip
+  .ant-picker-cell-selected .ant-picker-cell-inner,
+  .ant-picker-cell-selected .ant-picker-calendar-date-value {
+    color: var(--vscode-button-foreground, #fff) !important;
+  }
+
+  // Header selects / mode switch
+  .ant-select-selector,
+  .ant-radio-button-wrapper {
+    color: var(--vscode-foreground, var(--vscode-editor-foreground)) !important;
+    background: var(--vscode-input-background, transparent) !important;
+    border-color: var(--vscode-input-border, var(--vscode-panel-border, #444)) !important;
+  }
+
+  .ant-radio-button-wrapper-checked {
+    color: var(--vscode-button-foreground, #fff) !important;
+    background: var(--vscode-button-background, #0e639c) !important;
+    border-color: var(--vscode-button-background, #0e639c) !important;
+  }
+}
+
+.calendar {
+  color: var(--vscode-editor-foreground);
+
+  // Days without a daily journal: muted but still readable on dark themes
+  .dendron-calendar-date-empty {
+    color: var(--vscode-disabledForeground, rgba(160, 160, 160, 0.85)) !important;
+  }
+  .dendron-calendar-date-has-note {
+    color: var(--vscode-editor-foreground) !important;
+  }
 }
 
 // TODO_START: hardcoded

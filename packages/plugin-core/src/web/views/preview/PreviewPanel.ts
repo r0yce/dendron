@@ -168,6 +168,14 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
     return this.isLocked() && note?.id !== this._lockedEditorNoteId;
   }
 
+  async goBack(): Promise<void> {
+    // History not implemented for web extension preview yet
+  }
+
+  async goForward(): Promise<void> {
+    // History not implemented for web extension preview yet
+  }
+
   dispose() {
     this.unlock();
     if (this._panel) {

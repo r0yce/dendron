@@ -27,7 +27,7 @@ import rehypeStringify from "rehype-stringify";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
-import abbrPlugin from "remark-abbr";
+import { safeAbbrPlugin } from "./remark/safeAbbrPlugin";
 import frontmatterPlugin from "remark-frontmatter";
 import remarkGfm from "remark-gfm";
 import remark2rehype from "remark-rehype";
@@ -269,7 +269,7 @@ export class MDUtilsV5 {
       .use(remarkParse)
       .use(remarkGfm)
       .use(frontmatterPlugin as unknown as Plugin, ["yaml"] as any)
-      .use(abbrPlugin as unknown as Plugin)
+      .use(safeAbbrPlugin)
       .data("settings", {
         listItemIndent: "one",
         fences: true,
