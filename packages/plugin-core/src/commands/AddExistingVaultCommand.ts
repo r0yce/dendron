@@ -8,14 +8,8 @@ import {
   VaultRemoteSource,
   VaultUtils,
 } from "@dendronhq/common-all";
-import {
-  GitUtils,
-  simpleGit,
-} from "@dendronhq/common-server";
-import {
-  Git,
-  WorkspaceService,
-} from "@dendronhq/engine-server";
+import { GitUtils, simpleGit } from "@dendronhq/common-server";
+import { Git, WorkspaceService } from "@dendronhq/engine-server";
 import fs from "fs-extra";
 import _ from "lodash";
 import path from "path";
@@ -72,7 +66,7 @@ export class AddExistingVaultCommand extends BasicCommand<
     return DENDRON_REMOTE_VAULTS.map(
       ({ name: label, description, data: src }): SourceQuickPickEntry => {
         return { label, description, src };
-      }
+      },
     ).concat([
       {
         label: "custom",
@@ -85,7 +79,7 @@ export class AddExistingVaultCommand extends BasicCommand<
 
   /** A regular, non-self contained vault. */
   async gatherVaultStandard(
-    sourceType: VaultRemoteSource
+    sourceType: VaultRemoteSource,
   ): Promise<CommandOpts | undefined> {
     let sourceName: string | undefined;
     let vaultDestination: string | undefined;
@@ -176,7 +170,7 @@ export class AddExistingVaultCommand extends BasicCommand<
   }
 
   async gatherVaultSelfContained(
-    sourceType: VaultRemoteSource
+    sourceType: VaultRemoteSource,
   ): Promise<CommandOpts | undefined> {
     if (sourceType === VaultType.LOCAL) {
       const sourcePath = await this.gatherDestinationFolder();
@@ -192,7 +186,7 @@ export class AddExistingVaultCommand extends BasicCommand<
         this._ext.getDWorkspace().wsRoot,
         FOLDERS.DEPENDENCIES,
         FOLDERS.LOCAL_DEPENDENCY,
-        sourceName
+        sourceName,
       );
       await fs.copy(sourcePath, vaultDestination);
 
@@ -230,7 +224,7 @@ export class AddExistingVaultCommand extends BasicCommand<
           GitUtils.remoteUrlToDependencyPath({
             vaultName,
             url: remote,
-          })
+          }),
         ),
         pathRemote: remote,
         isSelfContained: true,
@@ -269,7 +263,7 @@ export class AddExistingVaultCommand extends BasicCommand<
   }
 
   async handleRemoteRepo(
-    opts: CommandOpts
+    opts: CommandOpts,
   ): Promise<{ vaults: DVault[]; workspace?: DWorkspace | undefined }> {
     const { vaults, workspace } = await window.withProgress(
       {
@@ -312,13 +306,13 @@ export class AddExistingVaultCommand extends BasicCommand<
           }
         }
         return { vaults, workspace };
-      }
+      },
     );
     return { vaults, workspace };
   }
 
   async handleRemoteRepoSelfContained(
-    opts: CommandOpts
+    opts: CommandOpts,
   ): Promise<{ vaults: DVault[] }> {
     return window.withProgress(
       {
@@ -401,7 +395,7 @@ export class AddExistingVaultCommand extends BasicCommand<
         }
         wsService.dispose();
         return { vaults, workspace };
-      }
+      },
     );
   }
 
@@ -426,7 +420,6 @@ export class AddExistingVaultCommand extends BasicCommand<
     return addVaultToWorkspaceHelper(vault, this._ext.getDWorkspace().wsRoot);
   }
 
-
   /**
    * Returns all vaults added
    * @param opts
@@ -434,7 +427,7 @@ export class AddExistingVaultCommand extends BasicCommand<
    */
   async execute(opts: CommandOpts) {
     const ctx = "AddExistingVaultCommand";
-    let vaults: DVault[] = [];
+    let vaults: DVault[];
     Logger.info({ ctx, msg: "enter", opts });
     if (opts.type === VaultType.REMOTE) {
       if (opts.isSelfContained) {

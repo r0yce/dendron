@@ -8,14 +8,8 @@ import {
   VaultRemoteSource,
   VaultUtils,
 } from "@dendronhq/common-all";
-import {
-  GitUtils,
-  simpleGit,
-} from "@dendronhq/common-server";
-import {
-  Git,
-  WorkspaceService,
-} from "@dendronhq/engine-server";
+import { GitUtils, simpleGit } from "@dendronhq/common-server";
+import { Git, WorkspaceService } from "@dendronhq/engine-server";
 import fs from "fs-extra";
 import _ from "lodash";
 import path from "path";
@@ -58,7 +52,7 @@ export class VaultAddCommand extends BasicCommand<CommandOpts, CommandOutput> {
     return DENDRON_REMOTE_VAULTS.map(
       ({ name: label, description, data: src }): SourceQuickPickEntry => {
         return { label, description, src };
-      }
+      },
     ).concat([
       {
         label: "custom",
@@ -71,7 +65,7 @@ export class VaultAddCommand extends BasicCommand<CommandOpts, CommandOutput> {
 
   /** A regular, non-self contained vault. */
   async gatherVaultStandard(
-    sourceType: VaultRemoteSource
+    sourceType: VaultRemoteSource,
   ): Promise<CommandOpts | undefined> {
     const localVaultPathPlaceholder = "vault2";
     let sourcePath: string;
@@ -147,7 +141,7 @@ export class VaultAddCommand extends BasicCommand<CommandOpts, CommandOutput> {
   }
 
   async gatherVaultSelfContained(
-    sourceType: VaultRemoteSource
+    sourceType: VaultRemoteSource,
   ): Promise<CommandOpts | undefined> {
     // If the vault name already exists, creating a vault with the same name would break things
 
@@ -170,7 +164,7 @@ export class VaultAddCommand extends BasicCommand<CommandOpts, CommandOutput> {
         path: path.join(
           FOLDERS.DEPENDENCIES,
           FOLDERS.LOCAL_DEPENDENCY,
-          vaultName
+          vaultName,
         ),
         isSelfContained: true,
       };
@@ -196,7 +190,7 @@ export class VaultAddCommand extends BasicCommand<CommandOpts, CommandOutput> {
           GitUtils.remoteUrlToDependencyPath({
             vaultName,
             url: remote,
-          })
+          }),
         ),
         pathRemote: remote,
         isSelfContained: true,
@@ -208,7 +202,7 @@ export class VaultAddCommand extends BasicCommand<CommandOpts, CommandOutput> {
     window.showWarningMessage(
       `This command will be deprecated in future releases. 
       Please use Dendron: Create New Vault to create a new vault and 
-      Dendron: Add Existing Vault to add an existing vault to your workspace.`
+      Dendron: Add Existing Vault to add an existing vault to your workspace.`,
     );
     const sourceTypeSelected = await VSCodeUtils.showQuickPick([
       { label: VaultType.LOCAL, picked: true },
@@ -229,7 +223,7 @@ export class VaultAddCommand extends BasicCommand<CommandOpts, CommandOutput> {
   }
 
   async handleRemoteRepo(
-    opts: CommandOpts
+    opts: CommandOpts,
   ): Promise<{ vaults: DVault[]; workspace?: DWorkspace | undefined }> {
     const { vaults, workspace } = await window.withProgress(
       {
@@ -272,13 +266,13 @@ export class VaultAddCommand extends BasicCommand<CommandOpts, CommandOutput> {
           }
         }
         return { vaults, workspace };
-      }
+      },
     );
     return { vaults, workspace };
   }
 
   async handleRemoteRepoSelfContained(
-    opts: CommandOpts
+    opts: CommandOpts,
   ): Promise<{ vaults: DVault[] }> {
     return window.withProgress(
       {
@@ -361,7 +355,7 @@ export class VaultAddCommand extends BasicCommand<CommandOpts, CommandOutput> {
         }
         wsService.dispose();
         return { vaults, workspace };
-      }
+      },
     );
   }
 
@@ -383,7 +377,6 @@ export class VaultAddCommand extends BasicCommand<CommandOpts, CommandOutput> {
     return addVaultToWorkspaceHelper(vault);
   }
 
-
   /**
    * Returns all vaults added
    * @param opts
@@ -391,7 +384,7 @@ export class VaultAddCommand extends BasicCommand<CommandOpts, CommandOutput> {
    */
   async execute(opts: CommandOpts) {
     const ctx = "VaultAdd";
-    let vaults: DVault[] = [];
+    let vaults: DVault[];
     Logger.info({ ctx, msg: "enter", opts });
     if (opts.type === VaultType.REMOTE) {
       if (opts.isSelfContained) {
