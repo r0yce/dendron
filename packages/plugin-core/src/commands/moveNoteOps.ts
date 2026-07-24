@@ -12,7 +12,6 @@ import _ from "lodash";
 import path from "path";
 import { NoteLookupProviderSuccessResp } from "../components/lookup/LookupProviderV3Interface";
 import { OldNewLocation } from "../components/lookup/utils";
-import { UNKNOWN_ERROR_MSG } from "../logger";
 
 export function isMoveNecessary(move: RenameNoteOpts): boolean {
   return (
@@ -47,7 +46,8 @@ export function getDesiredMoves(
     });
   }
   throw new DendronError({
-    message: `MoveNoteCommand: No items are selected. ${UNKNOWN_ERROR_MSG}`,
+    message:
+      "MoveNoteCommand: No items are selected. This is unexpected and we're not sure what to do about this error.",
   });
 }
 
