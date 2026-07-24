@@ -25,6 +25,8 @@
 | `schemaLookupHelpers` | lookup | Schema empty-qs, create-new row, multi-level gate |
 | `lookupProviderAccept` / `lookupProviderHistory` / `lookupProviderWire` | lookup | Shared accept, history, provide() debounce wiring |
 | `noteLookupButtons` / `noteLookupSelectionMode` / `noteLookupVault` / `noteLookupAcceptHelpers` | commands/ | NoteLookupCommand peels |
+| `noteLookupAcceptItem` / `AcceptNew` / `Existing` / `Template` / `Execute` / `Cleanup` | commands/ | Full accept + execute modularity |
+| `lookupCommandEnrichInputs` | commands/ | Shared History subscribe for note + schema lookup |
 | `pickerSentinels` / `pickerDisplay` | lookup | Create New / More Results sentinels; open doc + hide picker |
 | `lookupControllerModifiers` / `lookupControllerViewState` | lookup | Note-type/selection toggles + initial VM from buttons |
 | `providerAcceptHooks` | lookup | Rename/move on-accept location hooks |
@@ -165,13 +167,29 @@ Helpers, HTML shell, lookup selection, md modules, picker filters, activator hel
 | `SchemaPickerUtils.ts` | **~85** |
 | `lookupProviderWire.ts` | ~94 |
 
-### Wave 13 — optional next
+### Wave 13 — DONE (this push)
+
+| Item | Result |
+|------|--------|
+| Accept modularity | `noteLookupAcceptExisting` / `AcceptNew` / `AcceptTemplate` / `AcceptItem` / `PrepareStub` / types |
+| Execute / cleanup | `noteLookupExecute`, `noteLookupCleanup` |
+| Shared enrich | `lookupCommandEnrichInputs` for note + schema commands |
+| Command shells | `NoteLookupCommand` ~394 (was ~707); thin public wrappers preserve API |
+| Schema command | uses shared enrich helper |
+
+| Hotspot | ~LOC after wave 13 |
+|---------|-------------------|
+| `NoteLookupCommand.ts` | **~394** (was ~802 start of wave 12 era) |
+| `SchemaLookupCommand.ts` | **~243** |
+| Accept modules | existing / new / template / item / execute |
+
+### Wave 14 — optional next
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | Peel `acceptNewItem` / `acceptNewWithTemplateItem` body if still noisy |
+| P1 | Peel remaining `gatherInputs` (controller/provider factory) if desired |
 | P2 | Thin other large commands (`Doctor`, `MoveHeader`, vault commands) |
-| P3 | Shared enrichInputs / History subscribe pattern for schema lookup command |
+| P3 | Schema accept paths modularity (parallel to note accept modules) |
 
 ---
 

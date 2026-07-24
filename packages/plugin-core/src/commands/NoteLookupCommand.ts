@@ -1,72 +1,66 @@
+/**
+ * Note lookup command — gather inputs, wait for picker, accept selection, open notes.
+ *
+ * Modular peels (prefer importing helpers for tests / reuse):
+ * - `noteLookupButtons` / `noteLookupSelectionMode` / `noteLookupVault`
+ * - `noteLookupAcceptHelpers` / `noteLookupAcceptItem` (+ existing/new/template)
+ * - `noteLookupExecute` / `noteLookupCleanup` / `lookupCommandEnrichInputs`
+ *
+ * Dual-build: F5 loads tsc `out/src/extension.js` (not webpack `dist/`).
+ */
 import {
   ConfigUtils,
   DendronError,
-  EngagementEvents,
-  ErrorFactory,
   ERROR_STATUS,
-  getStage,
   LookupNoteType,
   LookupNoteTypeEnum,
   LookupSelectionType,
   NoteProps,
   NoteQuickInput,
-  NoteUtils,
-  PerformanceTimer,
   VSCodeEvents,
 } from "@dendronhq/common-all";
-import {
-  getDurationMilliseconds,
-  TemplateUtils,
-} from "@dendronhq/common-server";
-import { HistoryService, MetadataService } from "@dendronhq/engine-server";
+import { getDurationMilliseconds } from "@dendronhq/common-server";
 import _ from "lodash";
-import { Uri, window } from "vscode";
 import {
   LookupFilterType,
   LookupSplitType,
 } from "../components/lookup/ButtonTypes";
-import { buildNoteLookupExtraButtons } from "./noteLookupButtons";
-import { selectionModeConfigToType } from "./noteLookupSelectionMode";
-import { resolveVaultForNewNote } from "./noteLookupVault";
-import {
-  applyLookupNoteTitleOverrides,
-  getFNameForNewLookupItem,
-  getSelectedLookupItems,
-  shouldRunSelection2LinkOnTemplateCreate,
-} from "./noteLookupAcceptHelpers";
-import { CREATE_NEW_LABEL } from "../components/lookup/constants";
 import { ILookupControllerV3 } from "../components/lookup/LookupControllerV3Interface";
 import {
   ILookupProviderV3,
-  NoteLookupProviderChangeStateResp,
   NoteLookupProviderSuccessResp,
 } from "../components/lookup/LookupProviderV3Interface";
 import { NotePickerUtils } from "../components/lookup/NotePickerUtils";
-import { QuickPickTemplateSelector } from "../components/lookup/QuickPickTemplateSelector";
 import {
   DendronQuickPickerV2,
-  DendronQuickPickState,
   VaultSelectionMode,
 } from "../components/lookup/types";
-import {
-  node2Uri,
-  OldNewLocation,
-  PickerUtilsV2,
-} from "../components/lookup/utils";
+import { OldNewLocation, PickerUtilsV2 } from "../components/lookup/utils";
 import { VaultSelectionModeConfigUtils } from "../components/lookup/vaultSelectionModeConfigUtils";
 import { DendronContext, DENDRON_COMMANDS } from "../constants";
 import { ExtensionProvider } from "../ExtensionProvider";
 import { Logger } from "../logger";
 import { IEngineAPIService } from "../services/EngineAPIServiceInterface";
-import { logPerfReport } from "../utils/dev";
-import { JournalNote } from "../traits/journal";
 import { AnalyticsUtils, getAnalyticsPayload } from "../utils/analytics";
 import { AutoCompleter } from "../utils/autoCompleter";
 import { AutoCompletableRegistrar } from "../utils/registers/AutoCompletableRegistrar";
-import { toCSNoteProps, toDEngineClient } from "../utils/typeBridge";
 import { VSCodeUtils } from "../vsCodeUtils";
-import { WSUtilsV2 } from "../WSUtilsV2";
 import { BaseCommand } from "./base";
+import { enrichNoteLookupInputs } from "./lookupCommandEnrichInputs";
+import { acceptLookupItem } from "./noteLookupAcceptItem";
+import { acceptExistingLookupItem } from "./noteLookupAcceptExisting";
+import { acceptNewLookupItem } from "./noteLookupAcceptNew";
+import { acceptNewWithTemplateLookupItem } from "./noteLookupAcceptTemplate";
+import { NoteLookupAcceptReturn } from "./noteLookupAcceptTypes";
+import {
+  getFNameForNewLookupItem,
+  getSelectedLookupItems,
+} from "./noteLookupAcceptHelpers";
+import { buildNoteLookupExtraButtons } from "./noteLookupButtons";
+import { cleanupNoteLookup } from "./noteLookupCleanup";
+import { executeNoteLookupSelection } from "./noteLookupExecute";
+import { prepareStubLookupItem } from "./noteLookupPrepareStub";
+import { selectionModeConfigToType } from "./noteLookupSelectionMode";
 
 export type CommandRunOpts = {
   initialValue?: string | undefined;
@@ -110,23 +104,9 @@ export type CommandOutput = {
   provider: ILookupProviderV3;
 };
 
-type OnDidAcceptReturn = {
-  uri: Uri;
-  node: NoteProps;
-  resp?: any;
-};
+type OnDidAcceptReturn = NoteLookupAcceptReturn;
 
 export { CommandOpts as LookupCommandOptsV3 };
-
-/**
- * Note lookup command — gather inputs, accept selection, open notes.
- *
- * Peeled helpers:
- * - `noteLookupButtons` / `noteLookupSelectionMode` / `noteLookupVault`
- * - `noteLookupAcceptHelpers`
- *
- * Dual-build: F5 loads tsc `out/src/extension.js` (not webpack `dist/`).
- */
 
 export class NoteLookupCommand extends BaseCommand<
   CommandOpts,
@@ -281,73 +261,20 @@ export class NoteLookupCommand extends BaseCommand<
   async enrichInputs(
     opts: CommandGatherOutput,
   ): Promise<CommandOpts | undefined> {
-    const ctx = "NoteLookupCommand:enrichInputs";
-    let promiseResolve: (
-      value: CommandOpts | undefined,
-    ) => PromiseLike<CommandOpts | undefined>;
-    HistoryService.instance().subscribev2("lookupProvider", {
-      id: "lookup",
-      listener: async (event) => {
-        if (event.action === "done") {
-          const data =
-            event.data as NoteLookupProviderSuccessResp<OldNewLocation>;
-          if (data.cancel) {
-            this.cleanUp();
-            promiseResolve(undefined);
-          }
-          const _opts: CommandOpts = {
-            selectedItems: data.selectedItems,
-            ...opts,
-          };
-          promiseResolve(_opts);
-        } else if (event.action === "changeState") {
-          const data = event.data as NoteLookupProviderChangeStateResp;
-
-          // check if we hid the picker and there is no next picker
-          if (data.action === "hide") {
-            const { quickpick } = opts;
-            Logger.debug({
-              ctx,
-              subscribers: HistoryService.instance().subscribersv2,
-            });
-            // check if user has hidden picker
-            if (
-              !_.includes(
-                [
-                  DendronQuickPickState.PENDING_NEXT_PICK,
-                  DendronQuickPickState.FULFILLED,
-                ],
-                quickpick.state,
-              )
-            ) {
-              this.cleanUp();
-              promiseResolve(undefined);
-            }
-          }
-          // don't remove the lookup provider
-          return;
-        } else if (event.action === "error") {
-          const error = event.data.error as DendronError;
-          this.L.error({ error });
-          this.cleanUp();
-          promiseResolve(undefined);
-        } else {
-          const error = ErrorFactory.createUnexpectedEventError({ event });
-          this.L.error({ error });
-          this.cleanUp();
-        }
+    return enrichNoteLookupInputs({
+      historyId: "lookup",
+      gather: opts,
+      logCtx: "NoteLookupCommand:enrichInputs",
+      logger: this.L,
+      onCleanup: () => this.cleanUp(),
+      mapDone: (data) => {
+        const success = data as NoteLookupProviderSuccessResp<OldNewLocation>;
+        return {
+          selectedItems: success.selectedItems,
+          ...opts,
+        };
       },
     });
-    const promise = new Promise<CommandOpts | undefined>((resolve) => {
-      promiseResolve = resolve as typeof promiseResolve;
-      opts.controller.showQuickPick({
-        provider: opts.provider,
-        quickpick: opts.quickpick,
-        nonInteractive: opts.noConfirm,
-        fuzzThreshold: opts.fuzzThreshold,
-      });
-    });
-    return promise;
   }
 
   getSelected({
@@ -367,296 +294,82 @@ export class NoteLookupCommand extends BaseCommand<
    * Executed after user accepts a quickpick item
    */
   async execute(opts: CommandOpts) {
-    const ctx = "NoteLookupCommand:execute";
-    Logger.info({ ctx, msg: "enter" });
-
-    const perf = new PerformanceTimer({ timerName: "NoteLookup" });
-    perf.before("total");
-
-    try {
-      const { quickpick, selectedItems } = opts;
-      const selected = this.getSelected({ quickpick, selectedItems });
-
-      const extension = ExtensionProvider.getExtension();
-      const ws = extension.getDWorkspace();
-
-      const journalDateFormat = ConfigUtils.getJournal(ws.config).dateFormat;
-
-      const out = await Promise.all(
-        selected.map((item) => {
-          const { journalTrait } = applyLookupNoteTitleOverrides({
-            item,
-            isJournal: this.isJournalButtonPressed(),
-            journalDateFormat,
-            enableFullHierarchyNoteTitle: !!ConfigUtils.getWorkspace(ws.config)
-              .enableFullHierarchyNoteTitle,
-          });
-          if (journalTrait) {
-            const trait = new JournalNote(
-              ExtensionProvider.getDWorkspace().config,
-            );
-            if (item.traits) {
-              item.traits.push(trait.id);
-            } else {
-              item.traits = [trait.id];
-            }
-          }
-          return this.acceptItem(item);
-        }),
-      );
-      const notesToShow = out.filter(
-        (ent) => !_.isUndefined(ent),
-      ) as OnDidAcceptReturn[];
-      if (!_.isUndefined(quickpick.copyNoteLinkFunc)) {
-        await quickpick.copyNoteLinkFunc!(notesToShow.map((item) => item.node));
-      }
-      await _.reduce(
-        notesToShow,
-        async (acc, item) => {
-          await acc;
-          return quickpick.showNote!(item.uri);
-        },
-        Promise.resolve({}),
-      );
-      perf.after("showNotes");
-    } finally {
-      perf.after("total");
-
-      const shouldLogPerf =
-        getStage() === "dev" || process.env.DENDRON_PERF === "1";
-      if (shouldLogPerf) {
-        const report = perf.report();
-        Logger.info({ ctx, msg: "perf-report", report });
-        logPerfReport("NoteLookup", report);
-      }
-
-      this.cleanUp();
-      Logger.info({ ctx, msg: "exit" });
-    }
+    await executeNoteLookupSelection({
+      quickpick: opts.quickpick,
+      selectedItems: opts.selectedItems,
+      isJournal: this.isJournalButtonPressed(),
+      analyticsSource: this.key,
+      logger: this.L,
+      onCleanup: () => this.cleanUp(),
+    });
     return opts;
   }
 
   cleanUp() {
-    const ctx = "NoteLookupCommand:cleanup";
-    Logger.debug({ ctx, msg: "enter" });
-    if (this._controller) {
-      this._controller.onHide();
-    }
-    this.controller = undefined;
-    HistoryService.instance().remove("lookup", "lookupProvider");
-    VSCodeUtils.setContext(DendronContext.NOTE_LOOK_UP_ACTIVE, false);
+    cleanupNoteLookup({
+      controller: this._controller,
+      clearController: () => {
+        this.controller = undefined;
+      },
+    });
   }
 
   async acceptItem(
     item: NoteQuickInput,
   ): Promise<OnDidAcceptReturn | undefined> {
-    let result: Promise<OnDidAcceptReturn | undefined>;
-    const start = process.hrtime();
-    const isNew = PickerUtilsV2.isCreateNewNotePicked(item);
-
-    const isNewWithTemplate =
-      PickerUtilsV2.isCreateNewNoteWithTemplatePicked(item);
-    if (isNew) {
-      if (isNewWithTemplate) {
-        result = this.acceptNewWithTemplateItem(item);
-      } else {
-        result = this.acceptNewItem(item);
-      }
-    } else {
-      result = this.acceptExistingItem(item);
-    }
-    const profile = getDurationMilliseconds(start);
-    AnalyticsUtils.track(VSCodeEvents.NoteLookup_Accept, {
-      duration: profile,
-      isNew,
-      isNewWithTemplate,
+    return acceptLookupItem({
+      item,
+      picker: this.controller.quickPick,
+      fnameForNew: this.getFNameForNewItem(item),
+      analyticsSource: this.key,
+      logger: this.L,
     });
-    const metaData = MetadataService.instance().getMeta();
-    if (_.isUndefined(metaData.firstLookupTime)) {
-      MetadataService.instance().setFirstLookupTime();
-    }
-    MetadataService.instance().setLastLookupTime();
-    return result;
   }
 
   async acceptExistingItem(
     item: NoteQuickInput,
   ): Promise<OnDidAcceptReturn | undefined> {
-    const picker = this.controller.quickPick;
-    const uri = node2Uri(item);
-    const originalNoteFromItem = PickerUtilsV2.noteQuickInputToNote(item);
-    const originalNoteDeepCopy = _.cloneDeep(originalNoteFromItem);
-
-    if (picker.selectionProcessFunc !== undefined) {
-      const processedNode =
-        await picker.selectionProcessFunc(originalNoteDeepCopy);
-      if (processedNode !== undefined) {
-        if (!_.isEqual(originalNoteFromItem, processedNode)) {
-          const engine = ExtensionProvider.getEngine();
-          await engine.writeNote(processedNode);
-        }
-        return { uri, node: processedNode };
-      }
-    }
-    return { uri, node: item };
+    return acceptExistingLookupItem({
+      item,
+      picker: this.controller.quickPick,
+    });
   }
 
   /**
    * Given a selected note item that is a stub note,
    * Prepare it for accepting as a new item.
-   * This removes the `stub` frontmatter
-   * and applies schema if there is one that matches
    */
   async prepareStubItem(opts: {
     item: NoteQuickInput;
     engine: IEngineAPIService;
   }): Promise<NoteProps> {
-    const { item, engine } = opts;
-
-    const noteFromItem = PickerUtilsV2.noteQuickInputToNote(item);
-    const preparedNote = await NoteUtils.updateStubWithSchema({
-      stubNote: noteFromItem,
-      engine,
-    });
-    return preparedNote;
+    return prepareStubLookupItem(opts);
   }
 
   async acceptNewItem(
     item: NoteQuickInput,
   ): Promise<OnDidAcceptReturn | undefined> {
-    const ctx = "acceptNewItem";
-    const picker = this.controller.quickPick;
-    const fname = this.getFNameForNewItem(item);
-
-    const engine = ExtensionProvider.getEngine();
-    let nodeNew: NoteProps;
-    if (item.stub) {
-      Logger.info({ ctx, msg: "create stub" });
-      nodeNew = await this.prepareStubItem({
-        item,
-        engine,
-      });
-    } else {
-      const vault = await this.getVaultForNewNote({ fname, picker });
-      if (vault === undefined) {
-        // Vault will be undefined when user cancelled vault selection, so we
-        // are going to cancel the creation of the note.
-        return;
-      }
-      nodeNew = await NoteUtils.createWithSchema({
-        noteOpts: {
-          fname,
-          vault,
-          title: item.title,
-          traits: item.traits,
-        },
-        engine,
-      });
-      if (picker.selectionProcessFunc !== undefined) {
-        nodeNew = (await picker.selectionProcessFunc(nodeNew)) as NoteProps;
-      }
-    }
-
-    const templateAppliedResp = await TemplateUtils.findAndApplyTemplate({
-      note: toCSNoteProps(nodeNew),
-      engine: toDEngineClient(engine),
-      pickNote: (async (choices: NoteProps[]) => {
-        const resp = await WSUtilsV2.instance().promptForNoteAsync({
-          notes: choices,
-          quickpickTitle:
-            "Select which template to apply or press [ESC] to not apply a template",
-          nonStubOnly: true,
-        });
-        if (resp?.data) {
-          return { data: toCSNoteProps(resp.data) };
-        }
-        return resp;
-      }) as Parameters<
-        typeof TemplateUtils.findAndApplyTemplate
-      >[0]["pickNote"],
+    return acceptNewLookupItem({
+      item,
+      picker: this.controller.quickPick,
+      fname: this.getFNameForNewItem(item),
+      analyticsSource: this.key,
     });
-
-    if (templateAppliedResp.error) {
-      window.showWarningMessage(
-        `Warning: Problem with ${nodeNew.fname} schema. ${templateAppliedResp.error.message}`,
-      );
-    } else if (templateAppliedResp.data) {
-      AnalyticsUtils.track(EngagementEvents.TemplateApplied, {
-        source: this.key,
-        ...TemplateUtils.genTrackPayload(toCSNoteProps(nodeNew)),
-      });
-    }
-
-    if (picker.onCreate) {
-      const nodeModified = await picker.onCreate(nodeNew);
-      if (nodeModified) nodeNew = nodeModified;
-    }
-    const resp = await engine.writeNote(nodeNew);
-    if (resp.error) {
-      Logger.error({ ctx, error: resp.error });
-      return;
-    }
-
-    const uri = NoteUtils.getURI({
-      note: nodeNew,
-      wsRoot: ExtensionProvider.getDWorkspace().wsRoot,
-    });
-    return { uri, node: nodeNew, resp };
   }
 
   async acceptNewWithTemplateItem(
     item: NoteQuickInput,
   ): Promise<OnDidAcceptReturn | undefined> {
-    const ctx = "acceptNewWithTemplateItem";
-    const picker = this.controller.quickPick;
-    const fname = this.getFNameForNewItem(item);
-
-    const engine = ExtensionProvider.getEngine();
-    const vault = await this.getVaultForNewNote({ fname, picker });
-    if (vault === undefined) {
-      return;
-    }
-    let nodeNew: NoteProps = NoteUtils.create({
-      fname,
-      vault,
-      title: item.title,
+    return acceptNewWithTemplateLookupItem({
+      item,
+      picker: this.controller.quickPick,
+      fname: this.getFNameForNewItem(item),
+      logger: this.L,
     });
-    const templateNote = await this.getTemplateForNewNote();
-    if (templateNote) {
-      TemplateUtils.applyTemplate({
-        templateNote: toCSNoteProps(templateNote),
-        targetNote: toCSNoteProps(nodeNew),
-        engine: toDEngineClient(engine),
-      });
-    } else {
-      // template note is not selected. cancel note creation.
-      window.showInformationMessage(
-        `No template selected. Cancelling note creation.`,
-      );
-      return;
-    }
-
-    // only enable selection 2 link
-    if (shouldRunSelection2LinkOnTemplateCreate(picker)) {
-      nodeNew = (await picker.selectionProcessFunc!(nodeNew)) as NoteProps;
-    }
-    const resp = await engine.writeNote(nodeNew);
-    if (resp.error) {
-      Logger.error({ ctx, error: resp.error });
-      return;
-    }
-
-    const uri = NoteUtils.getURI({
-      note: nodeNew,
-      wsRoot: engine.wsRoot,
-    });
-    return { uri, node: nodeNew, resp };
   }
 
   /**
    * TODO: align note creation file name choosing for follow a single path when accepting new item.
-   *
-   * Added to quickly fix the journal names not being created properly.
    */
   private getFNameForNewItem(item: NoteQuickInput) {
     return getFNameForNewLookupItem({
@@ -664,36 +377,6 @@ export class NoteLookupCommand extends BaseCommand<
       isJournal: this.isJournalButtonPressed(),
       pickerValue: PickerUtilsV2.getValue(this.controller.quickPick),
     });
-  }
-
-  //  ^8jd6vr4qcsol
-  private async getVaultForNewNote({
-    fname,
-    picker,
-  }: {
-    fname: string;
-    picker: DendronQuickPickerV2;
-  }) {
-    return resolveVaultForNewNote({ fname, picker });
-  }
-
-  private async getTemplateForNewNote(): Promise<NoteProps | undefined> {
-    const selector = new QuickPickTemplateSelector();
-
-    const templateNote = await selector.getTemplate({
-      logger: this.L,
-      providerId: "createNewWithTemplate",
-    });
-
-    // this needs to be checked because note lookup provider
-    // assumes user selected `create new` when `selectionItems` is empty.
-    // without this, hitting enter when the template picker has nothing listed
-    // will result in note creation with an empty template applied.
-    if (templateNote && templateNote.id === CREATE_NEW_LABEL) {
-      return;
-    }
-
-    return templateNote;
   }
 
   private isJournalButtonPressed() {
