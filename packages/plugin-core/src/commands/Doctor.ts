@@ -1,8 +1,6 @@
 import {
   DendronError,
   DEngineClient,
-  DNodeUtils,
-  DVault,
   ExtensionEvents,
   extractNoteChangeEntryCounts,
   isNotUndefined,
@@ -12,9 +10,7 @@ import {
   NoteDictsUtils,
   NoteFnameDictUtils,
   NoteProps,
-  Position,
   ValidateFnameResp,
-  VaultUtils,
 } from "@dendronhq/common-all";
 import {
   DoctorService,
@@ -22,8 +18,6 @@ import {
   BackfillService,
 } from "@dendronhq/engine-server";
 import _ from "lodash";
-import _md from "markdown-it";
-import fs from "fs-extra";
 import {
   QuickInputButton,
   QuickPick,
@@ -51,18 +45,25 @@ import { AnalyticsUtils } from "../utils/analytics";
 import { IDendronExtension } from "../dendronExtensionInterface";
 import { KeybindingUtils } from "../KeybindingUtils";
 import { QuickPickHierarchySelector } from "../components/lookup/HierarchySelector";
-import { RemarkUtils } from "@dendronhq/unified";
 import { DConfig } from "@dendronhq/common-server";
+import {
+  PluginDoctorActionsEnum,
+  shouldDoctorReloadWorkspaceAfterDoctorAction,
+  shouldDoctorReloadWorkspaceBeforeDoctorAction,
+} from "./doctorActions";
+import {
+  IncompatibleExtensionInstallStatus,
+  showBrokenLinkPreview as showBrokenLinkPreviewHelper,
+  showFixInvalidFileNamePreview as showFixInvalidFileNamePreviewHelper,
+  showIncompatibleExtensionPreview as showIncompatibleExtensionPreviewHelper,
+  showMissingNotePreview as showMissingNotePreviewHelper,
+} from "./doctorPreviews";
 
-const md = _md();
+export { PluginDoctorActionsEnum } from "./doctorActions";
+
 type Finding = {
   issue: string;
   fix?: string;
-};
-
-type IncompatibleExtensionInstallStatus = {
-  id: string;
-  installed: boolean;
 };
 
 type CommandOptsData = {
@@ -100,35 +101,6 @@ type DoctorQuickInput = {
 };
 
 type DoctorQuickPickItem = QuickPick<DoctorQuickInput>;
-
-export enum PluginDoctorActionsEnum {
-  FIND_INCOMPATIBLE_EXTENSIONS = "findIncompatibleExtensions",
-  FIX_KEYBINDING_CONFLICTS = "fixKeybindingConflicts",
-}
-
-// Only reload the workspace for these commands
-//  ^2z4m76v2e2xo
-const RELOAD_BEFORE_ACTIONS: (PluginDoctorActionsEnum | DoctorActionsEnum)[] = [
-  DoctorActionsEnum.FIX_FRONTMATTER,
-  DoctorActionsEnum.CREATE_MISSING_LINKED_NOTES,
-];
-
-const RELOAD_AFTER_ACTIONS: (PluginDoctorActionsEnum | DoctorActionsEnum)[] = [
-  DoctorActionsEnum.FIX_FRONTMATTER,
-  DoctorActionsEnum.CREATE_MISSING_LINKED_NOTES,
-];
-
-function shouldDoctorReloadWorkspaceBeforeDoctorAction(
-  action: PluginDoctorActionsEnum | DoctorActionsEnum
-) {
-  return RELOAD_BEFORE_ACTIONS.includes(action);
-}
-
-function shouldDoctorReloadWorkspaceAfterDoctorAction(
-  action: PluginDoctorActionsEnum | DoctorActionsEnum
-) {
-  return RELOAD_AFTER_ACTIONS.includes(action);
-}
 
 export class DoctorCommand extends BasicCommand<CommandOpts, CommandOutput> {
   key = DENDRON_COMMANDS.DOCTOR.key;
@@ -213,24 +185,7 @@ export class DoctorCommand extends BasicCommand<CommandOpts, CommandOutput> {
   }
 
   async showMissingNotePreview(candidates: NoteProps[]) {
-    let content = [
-      "# Create Missing Linked Notes Preview",
-      "",
-      `## The following files will be created`,
-    ];
-    _.forEach(_.sortBy(candidates, ["vault.fsPath"]), (candidate) => {
-      content = content.concat(
-        `- ${candidate.vault.fsPath}/${candidate.fname}\n`
-      );
-    });
-
-    const panel = window.createWebviewPanel(
-      "doctorCreateMissingLinkedNotesPreview",
-      "Create MissingLinked Notes Preview",
-      ViewColumn.One,
-      {}
-    );
-    panel.webview.html = md.render(content.join("\n"));
+    return showMissingNotePreviewHelper(candidates);
   }
 
   async showBrokenLinkPreview(
@@ -245,94 +200,13 @@ export class DoctorCommand extends BasicCommand<CommandOpts, CommandOutput> {
     }[],
     engine: DEngineClient
   ) {
-    let content = [
-      "# Broken Links Preview",
-      "",
-      `## The following files have broken links`,
-    ];
-
-    const { vaults, wsRoot } = engine;
-    _.forEach(_.sortBy(brokenLinks, ["file"]), (ent) => {
-      content = content.concat(`${ent.file}\n`);
-      const vault = VaultUtils.getVaultByName({
-        vaults,
-        vname: ent.vault,
-      }) as DVault;
-      const fsPath = DNodeUtils.getFullPath({
-        wsRoot,
-        vault,
-        basename: ent.file + ".md",
-      });
-      const fileContent = fs.readFileSync(fsPath).toString();
-      const nodePosition = RemarkUtils.getNodePositionPastFrontmatter(
-        fileContent
-      ) as Position;
-      ent.links.forEach((link) => {
-        content = content.concat(
-          `- ${link.value} at line ${
-            link.line + nodePosition.end.line
-          } column ${link.column}\n`
-        );
-      });
-    });
-
-    const panel = window.createWebviewPanel(
-      "doctorBrokenLinksPreview",
-      "Create Broken Links Preview",
-      ViewColumn.One,
-      {}
-    );
-    panel.webview.html = md.render(content.join("\n"));
+    return showBrokenLinkPreviewHelper(brokenLinks, engine);
   }
 
   async showIncompatibleExtensionPreview(opts: {
     installStatus: IncompatibleExtensionInstallStatus[];
   }) {
-    const { installStatus } = opts;
-    const contents = [
-      "# Extensions that are incompatible with Dendron.",
-      "",
-      "The extensions listed below are known to be incompatible with Dendron.",
-      "",
-      "Neither Dendron nor the extension may function properly when installed concurrently.",
-      "",
-      "Consider disabling the incompatible extensions when in a Dendron Workspace.",
-      "  - [How to disable extensions for a specific workspace without uninstalling](https://code.visualstudio.com/docs/editor/extension-marketplace#_disable-an-extension)",
-      "",
-      "See [Incompatible Extensions](https://wiki.dendron.so/notes/9Id5LUZFfM1m9djl6KgpP) for more details.",
-      "",
-      "## Incompatible Extensions: ",
-      "",
-      "||||",
-      "|-|-|-|",
-      installStatus
-        .map((status) => {
-          const commandArgs = `"@id:${status.id}"`;
-          const commandUri = Uri.parse(
-            `command:workbench.extensions.search?${JSON.stringify(commandArgs)}`
-          );
-          const message = status.installed
-            ? `[View Extension](${commandUri})`
-            : "Not Installed";
-          return `| ${status.id} | | ${message} | `;
-        })
-        .join("\n"),
-      "",
-    ].join("\n");
-
-    const panel = window.createWebviewPanel(
-      "incompatibleExtensionsPreview",
-      "Incompatible Extensions",
-      ViewColumn.One,
-      {
-        enableCommandUris: true,
-      }
-    );
-    panel.webview.html = md.render(contents);
-    AnalyticsUtils.track(
-      ExtensionEvents.IncompatibleExtensionsPreviewDisplayed
-    );
-    return { installStatus, contents };
+    return showIncompatibleExtensionPreviewHelper(opts);
   }
 
   async showFixInvalidFileNamePreview(opts: {
@@ -349,63 +223,7 @@ export class DoctorCommand extends BasicCommand<CommandOpts, CommandOutput> {
       resp: ValidateFnameResp;
     }[];
   }) {
-    const { canRename, cantRename } = opts;
-    const canRenameContent =
-      canRename.length > 0
-        ? [
-            "These notes have invalid filenames and can be automatically fixed:",
-            "",
-            "| file name || change to | reason |",
-            "|-|-|-|-|",
-            canRename
-              .map((item) => {
-                const { note, resp, cleanedFname } = item;
-                return `| \`${note.fname}\` || __${cleanedFname}__ | ${resp.reason} |`;
-              })
-              .join("\n"),
-          ].join("\n")
-        : "";
-
-    const cantRenameContent =
-      cantRename.length > 0
-        ? [
-            "These notes have invalid filenames but cannot be automatically fixed because it will create duplicate notes with same file names.",
-            "",
-            "Please review them and rename manually:",
-            "",
-            "| file name || change to | reason |",
-            "|-|-|-|-|",
-            cantRename
-              .map((item) => {
-                const { note, resp, cleanedFname } = item;
-                return `| \`${note.fname}\`|| __${cleanedFname}__ | ${resp.reason} |`;
-              })
-              .join("\n"),
-            "",
-          ].join("\n")
-        : "";
-    const contents = [
-      "# Fix Invalid Filenames",
-      "",
-      "The notes listed below are invalid.",
-      "",
-      "Please see [Restrictions](https://wiki.dendron.so/notes/v21pacjod0eqgdhb7zo7fvw) to learn more about file name restrictions.",
-      "",
-      "***",
-      canRenameContent,
-      "",
-      cantRenameContent,
-      "",
-    ].join("\n");
-    const panel = window.createWebviewPanel(
-      "invalidFileNamesPreview",
-      "Invalid Filenames",
-      ViewColumn.One,
-      {
-        enableCommandUris: true,
-      }
-    );
-    panel.webview.html = md.render(contents);
+    return showFixInvalidFileNamePreviewHelper(opts);
   }
 
   private async reload() {

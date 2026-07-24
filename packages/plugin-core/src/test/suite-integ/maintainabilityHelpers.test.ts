@@ -50,11 +50,22 @@ import {
   getSelectedLookupItems,
 } from "../../commands/noteLookupAcceptHelpers";
 import { resolveVaultButtonPressed } from "../../commands/noteLookupGatherInputs";
+import {
+  Hierarchy,
+  determineAfterSelect,
+  hasSelected,
+  hasUnselected,
+} from "../../commands/hierarchySchemaModels";
+import {
+  shouldDoctorReloadWorkspaceBeforeDoctorAction,
+  PluginDoctorActionsEnum,
+} from "../../commands/doctorActions";
+import { DoctorActionsEnum } from "@dendronhq/engine-server";
 import { VaultSelectionMode } from "../../components/lookup/types";
 import { CREATE_NEW_NOTE_DETAIL } from "../../components/lookup/constants";
 import { Location, Range, Uri } from "vscode";
 
-describe("maintainabilityHelpers (waves 5–14)", () => {
+describe("maintainabilityHelpers (waves 5–15)", () => {
   describe("md/anchors", () => {
     it("finds frontmatter ending offset and 1-indexed line", () => {
       const body = "---\nid: abc\n---\n\n# Hello\n";

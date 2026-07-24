@@ -1,16 +1,13 @@
 import {
   asyncLoopOneAtATime,
-  DendronASTDest,
   DendronError,
   DLink,
   DNodeUtils,
   DNoteHeaderAnchor,
   DNoteLink,
-  DVault,
   ErrorUtils,
   ERROR_SEVERITY,
   extractNoteChangeEntryCounts,
-  getSlugger,
   DendronConfig,
   isNotUndefined,
   NoteChangeEntry,
@@ -22,14 +19,11 @@ import {
 import { DConfig, file2Note, vault2Path } from "@dendronhq/common-server";
 import { Heading, HistoryEvent, Node } from "@dendronhq/engine-server";
 import {
-  MDUtilsV5,
   Processor,
   DendronASTNode,
   DendronASTTypes,
   MdastUtils,
   RemarkUtils,
-  Anchor,
-  AnchorUtils,
   LinkUtils,
 } from "@dendronhq/unified";
 import _ from "lodash";
@@ -44,7 +38,6 @@ import { NoteLookupProviderSuccessResp } from "../components/lookup/LookupProvid
 import { NoteLookupProviderUtils } from "../components/lookup/NoteLookupProviderUtils";
 import { NotePickerUtils } from "../components/lookup/NotePickerUtils";
 import { DendronQuickPickerV2 } from "../components/lookup/types";
-import { PickerUtilsV2 } from "../components/lookup/utils";
 import { DendronContext, DENDRON_COMMANDS } from "../constants";
 import { ExtensionProvider } from "../ExtensionProvider";
 import { delayedUpdateDecorations } from "../features/windowDecorations";
@@ -55,6 +48,13 @@ import { ProxyMetricUtils } from "../utils/ProxyMetricUtils";
 import { AutoCompletableRegistrar } from "../utils/registers/AutoCompletableRegistrar";
 import { VSCodeUtils } from "../vsCodeUtils";
 import { BasicCommand } from "./base";
+import {
+  appendHeaderToDestination,
+  findAnchorNamesToUpdate,
+  getMoveHeaderProc,
+  prepareMoveHeaderDestination,
+  removeHeaderBlockFromOriginBody,
+} from "./moveHeaderHelpers";
 
 type CommandInput =
   | {
@@ -99,15 +99,7 @@ export class MoveHeaderCommand extends BasicCommand<
     severity: ERROR_SEVERITY.MINOR,
   });
 
-  private getProc = (engine: IEngineAPIService, note: NoteProps) => {
-    return MDUtilsV5.procRemarkFull({
-      noteToRender: note,
-      fname: note.fname,
-      vault: note.vault,
-      dest: DendronASTDest.MD_DENDRON,
-      config: DConfig.readConfigSync(engine.wsRoot),
-    });
-  };
+  private getProc = getMoveHeaderProc;
 
   /**
    * Helper for {@link MoveHeaderCommand.gatherInputs}
@@ -211,31 +203,7 @@ export class MoveHeaderCommand extends BasicCommand<
     quickpick: DendronQuickPickerV2;
     selectedItems: readonly NoteQuickInput[];
   }) {
-    const { engine, quickpick, selectedItems } = opts;
-    const vault =
-      (quickpick.vault as DVault) || PickerUtilsV2.getVaultForOpenEditor();
-    let dest: NoteProps | undefined;
-    if (_.isUndefined(selectedItems)) {
-      dest = undefined;
-    } else {
-      const selected = selectedItems[0]!;
-      const isCreateNew = PickerUtilsV2.isCreateNewNotePicked(selected);
-      if (isCreateNew) {
-        // check if we really want to create a new note.
-        // if a user selects a vault in the picker that
-        // already has the note, we should not create a new one.
-        const fname = selected.fname;
-        const maybeNote = (await engine.findNotes({ fname, vault }))[0]!;
-        if (_.isUndefined(maybeNote)) {
-          dest = NoteUtils.create({ fname, vault });
-        } else {
-          dest = maybeNote;
-        }
-      } else {
-        dest = selected as NoteProps;
-      }
-    }
-    return dest;
+    return prepareMoveHeaderDestination(opts);
   }
 
   async gatherInputs(opts: CommandInput): Promise<CommandOpts | undefined> {
@@ -318,17 +286,7 @@ export class MoveHeaderCommand extends BasicCommand<
     origin: NoteProps;
     nodesToMove: Node[];
   }): Promise<void> {
-    const { engine, dest, origin, nodesToMove } = opts;
-    // find where the extracted block starts and ends
-    const startOffset = nodesToMove[0]!.position?.start.offset;
-    const endOffset = _.last(nodesToMove)!.position?.end.offset;
-
-    const originBody = origin.body;
-    const destContentToAppend = originBody.slice(startOffset, endOffset);
-
-    // add the stringified blocks to destination note body
-    dest.body = `${dest.body}\n\n${destContentToAppend}`;
-    await engine.writeNote(dest);
+    return appendHeaderToDestination(opts);
   }
 
   /**
@@ -343,19 +301,7 @@ export class MoveHeaderCommand extends BasicCommand<
     originDeepCopy: NoteProps,
     modifiedOriginContent: string
   ): string[] {
-    const anchorsBefore = RemarkUtils.findAnchors(originDeepCopy.body);
-    const anchorsAfter = RemarkUtils.findAnchors(modifiedOriginContent);
-    const anchorsToUpdate = _.differenceWith(
-      anchorsBefore,
-      anchorsAfter,
-      RemarkUtils.hasIdenticalChildren
-    );
-    const anchorNamesToUpdate = _.map(anchorsToUpdate, (anchor: Anchor) => {
-      const slugger = getSlugger();
-      const payload = AnchorUtils.anchorNode2anchor(anchor, slugger);
-      return payload![0];
-    });
-    return anchorNamesToUpdate;
+    return findAnchorNamesToUpdate(originDeepCopy, modifiedOriginContent);
   }
 
   /**
@@ -552,21 +498,12 @@ export class MoveHeaderCommand extends BasicCommand<
     nodesToMove: Node[],
     engine: IEngineAPIService
   ) {
-    // find where the extracted block starts and ends
-    const startOffset = nodesToMove[0]!.position?.start.offset;
-    const endOffset = _.last(nodesToMove)!.position?.end.offset;
-
-    // remove extracted blocks
-    const originBody = origin.body;
-    const modifiedOriginContent = [
-      originBody.slice(0, startOffset),
-      originBody.slice(endOffset),
-    ].join("");
-
+    const modifiedOriginContent = removeHeaderBlockFromOriginBody({
+      originBody: origin.body,
+      nodesToMove,
+    });
     origin.body = modifiedOriginContent;
-
     await engine.writeNote(origin);
-
     return modifiedOriginContent;
   }
 

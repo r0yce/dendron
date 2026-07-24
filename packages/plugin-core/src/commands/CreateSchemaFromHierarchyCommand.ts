@@ -2,10 +2,7 @@ import {
   DVault,
   NotePropsMeta,
   NoteUtils,
-  SchemaCreationUtils,
-  SchemaInMaking,
   SchemaModuleProps,
-  SchemaToken,
   SchemaUtils,
 } from "@dendronhq/common-all";
 import { vault2Path } from "@dendronhq/common-server";
@@ -20,6 +17,32 @@ import { PluginSchemaUtils } from "../pluginSchemaUtils";
 import { PluginVaultUtils } from "../pluginVaultUtils";
 import { VSCodeUtils } from "../vsCodeUtils";
 import { BasicCommand } from "./base";
+import {
+  Hierarchy,
+  HierarchyLevel,
+  SchemaCandidate,
+  StopReason,
+  determineAfterSelect,
+  determineAfterUnselect,
+  hasSelected,
+  hasUnselected,
+} from "./hierarchySchemaModels";
+import { makeHierarchySchemaBody } from "./hierarchySchemaCreator";
+
+export {
+  Hierarchy,
+  HierarchyLevel,
+  StopReason,
+  createCandidatesMapByFname,
+  isDescendentOf,
+  determineAfterSelect,
+  determineAfterUnselect,
+  hasSelected,
+  hasUnselected,
+  findCheckedItem,
+  findUncheckedItem,
+} from "./hierarchySchemaModels";
+export type { SchemaCandidate } from "./hierarchySchemaModels";
 
 type CommandOpts = {
   candidates?: readonly SchemaCandidate[] | undefined;
@@ -34,112 +57,14 @@ type CommandOutput = {
   successfullyCreated: boolean;
 };
 
-/**
- * Represents the level of the file hierarchy that will have the '*' pattern.
- * */
-export class HierarchyLevel {
-  label: string;
-  hierarchyTokens: string[];
-  idx: number;
-  noteMatchRegex: RegExp;
-
-  constructor(idx: number, tokens: string[]) {
-    this.hierarchyTokens = tokens;
-    this.idx = idx;
-    // https://regex101.com/r/kmOBbq/1
-    this.noteMatchRegex = new RegExp(
-      "^" + this.hierarchyTokens.slice(0, this.idx).join(".") + "\\..*"
-    );
-    this.label =
-      [...tokens.slice(0, idx), "*", ...tokens.slice(idx + 1)].join(".") +
-      ` (${tokens[idx]})`;
-  }
-
-  /** Id of the first token of the hierarchy (will be utilized for identifying the schema) */
-  topId() {
-    return this.hierarchyTokens[0];
-  }
-
-  tokenize(fname: string): string[] {
-    const tokens = fname.split(".");
-
-    return [...tokens.slice(0, this.idx), "*", ...tokens.slice(this.idx + 1)];
-  }
-
-  isCandidateNote(fname: string): boolean {
-    return this.noteMatchRegex.test(fname);
-  }
-
-  getDefaultSchemaName() {
-    // Schema naming currently is set to be a single level deep hence
-    // we should avoid using '.' in schema names.
-    return this.hierarchyTokens.slice(0, this.idx).join("-");
-  }
-}
-
-export class Hierarchy {
-  fname: string;
-  levels: HierarchyLevel[];
-  tokens: string[];
-
-  constructor(fname: string) {
-    this.fname = fname;
-    this.tokens = fname.split(".");
-    this.levels = [];
-    for (let i = 0; i < this.tokens.length; i += 1) {
-      this.levels.push(new HierarchyLevel(i, this.tokens));
-    }
-  }
-
-  depth() {
-    return this.tokens.length;
-  }
-
-  topId() {
-    // noUnchecked: levels is populated in constructor; guard for safety per Batch 6 plan on CreateSchema residuals.
-    return this.levels.length > 0 ? this.levels[0]!.topId() : undefined; // ! after explicit length > 0 guard (only allowed form per SKILL Batch 5+/6+ debug launch sweep)
-  }
-
-  /**
-   * Levels of the hierarchy that we deem as viable options for creating a schema for.
-   * We remove the first level since having something like `*.h1.h2` with `*` at the
-   * beginning will match all hierarchies. Therefore we slice off the first level.
-   *
-   * */
-  getSchemaebleLevels() {
-    return this.levels.slice(1);
-  }
-}
-
-export type SchemaCandidate = {
-  note: NotePropsMeta;
-  label: string;
-  detail: string;
-};
-
-function isDescendentOf(
-  descendentCandidate: SchemaCandidate,
-  ancestorCandidate: SchemaCandidate
-) {
-  const isChild = descendentCandidate.note.fname.startsWith(
-    ancestorCandidate.note.fname + "."
-  );
-  return isChild;
-}
-
-function createCandidatesMapByFname(items: readonly SchemaCandidate[]) {
-  return new Map(items.map((item) => [item.note.fname, item]));
-}
-
 function getUriFromSchema(schema: SchemaModuleProps) {
   const vaultPath = vault2Path({
     vault: schema.vault,
     wsRoot: ExtensionProvider.getDWorkspace().wsRoot,
   });
-  const uri = Uri.file(
+  return Uri.file(
     SchemaUtils.getPath({ root: vaultPath, fname: schema.fname })
   );
-  return uri;
 }
 
 function getSchemaUri(vault: DVault, schemaName: string) {
@@ -147,21 +72,9 @@ function getSchemaUri(vault: DVault, schemaName: string) {
     vault,
     wsRoot: ExtensionProvider.getDWorkspace().wsRoot,
   });
-  const uri = Uri.file(
+  return Uri.file(
     SchemaUtils.getPath({ root: vaultPath, fname: schemaName })
   );
-  return uri;
-}
-
-export enum StopReason {
-  SCHEMA_WITH_TOP_ID_ALREADY_EXISTS = "SCHEMA_WITH_TOP_ID_ALREADY_EXISTS",
-  NOTE_DID_NOT_HAVE_REQUIRED_DEPTH = "NOTE_DID_NOT_HAVE_REQUIRED_DEPTH",
-  DID_NOT_PICK_HIERARCHY_LEVEL = "DID_NOT_PICK_HIERARCHY_LEVEL",
-
-  CANCELLED_PATTERN_SELECTION = "CANCELLED_PATTERN_SELECTION",
-  UNSELECTED_ALL_PATTERNS = "UNSELECTED_ALL_PATTERNS",
-
-  DID_NOT_PICK_SCHEMA_FILE_NAME = "DID_NOT_PICK_SCHEMA_FILE_NAME",
 }
 
 type HierarchyLevelRes = {
@@ -274,13 +187,13 @@ export class UserQueries {
       quickPick.onDidChangeSelection(() => {
         const currSelected = quickPick.selectedItems;
 
-        if (this.hasUnselected(prevSelected, currSelected)) {
-          quickPick.selectedItems = this.determineAfterUnselect(
+        if (hasUnselected(prevSelected, currSelected)) {
+          quickPick.selectedItems = determineAfterUnselect(
             prevSelected,
             currSelected
           );
-        } else if (this.hasSelected(prevSelected, currSelected)) {
-          quickPick.selectedItems = this.determineAfterSelect(
+        } else if (hasSelected(prevSelected, currSelected)) {
+          quickPick.selectedItems = determineAfterSelect(
             prevSelected,
             currSelected,
             labeledCandidates
@@ -314,116 +227,17 @@ export class UserQueries {
     });
   }
 
-  static determineAfterSelect(
-    prevSelected: readonly SchemaCandidate[],
-    currSelected: readonly SchemaCandidate[],
-    all: SchemaCandidate[]
-  ) {
-    // When something is selected we want to make sure its hierarchical parents are selected
-    // as well, since it makes no sense to have 'h1.h2.h3' selected without having
-    // 'h1.h2' selected (since we will still need to create a schema path for 'h1.h2'.
-    const justChecked = this.findCheckedItem(prevSelected, currSelected);
-
-    const ancestorsToCheck = all.filter((ancestorCandidate) =>
-      isDescendentOf(justChecked, ancestorCandidate)
-    );
-
-    // Create a map to avoid double counting ancestors
-    const selectedMap = createCandidatesMapByFname(currSelected);
-    ancestorsToCheck.forEach((ancestor) =>
-      selectedMap.set(ancestor.note.fname, ancestor)
-    );
-
-    return Array.from(selectedMap.values());
-  }
-
-  static determineAfterUnselect(
-    prevSelected: readonly SchemaCandidate[],
-    currSelected: readonly SchemaCandidate[]
-  ) {
-    // When something is unselected we want to unselect all hierarchical
-    // children of that note.
-    const justUnchecked = this.findUncheckedItem(prevSelected, currSelected);
-
-    const withoutUncheckedChildren = currSelected.filter(
-      (item) =>
-        justUnchecked === undefined || !isDescendentOf(item, justUnchecked)
-    );
-    return withoutUncheckedChildren;
-  }
-
-  static hasSelected(
-    prevSelected: readonly SchemaCandidate[],
-    currSelected: readonly SchemaCandidate[]
-  ) {
-    return prevSelected.length < currSelected.length;
-  }
-
-  static hasUnselected(
-    prevSelected: readonly SchemaCandidate[],
-    currSelected: readonly SchemaCandidate[]
-  ) {
-    return prevSelected.length > currSelected.length;
-  }
-
-  /** Finds the item from previously selected that is not selected anymore. */
-  static findUncheckedItem(
-    prevSelected: readonly SchemaCandidate[],
-    currSelected: readonly SchemaCandidate[]
-  ) {
-    const map = createCandidatesMapByFname(currSelected);
-
-    // The only time there will be more than one item unchecked in a single update event
-    // is when all the items are unchecked at the same time. At such case we don't need to
-    // worry about unchecking things anyway, hence we can just grab the first unchecked.
-    const uncheckedItem = prevSelected.filter(
-      (item) => !map.has(item.note.fname)
-    )[0];
-
-    return uncheckedItem;
-  }
-
-  /** Finds newly selected item.*/
-  static findCheckedItem(
-    prevSelected: readonly SchemaCandidate[],
-    currSelected: readonly SchemaCandidate[]
-  ) {
-    const map = createCandidatesMapByFname(prevSelected);
-    // The only time there will be more than checked one item in a single event
-    // is when everything got checked. In that case we don't need to worry
-    // about checking the parents anyway, hence we can just grab the first item.
-    return currSelected.filter((item) => !map.has(item.note.fname))[0]!; // ! after filter (explicit non-empty expectation in context); only allowed form per strict-mode-fixer SKILL (debug launch sweep 2026-05-31)
-  }
+  // Pure selection helpers re-exported via hierarchySchemaModels for tests.
+  static determineAfterSelect = determineAfterSelect;
+  static determineAfterUnselect = determineAfterUnselect;
+  static hasSelected = hasSelected;
+  static hasUnselected = hasUnselected;
 }
 
 /**
  * Responsible for forming the schema body from the hierarchical files that user chose. */
 export class SchemaCreator {
-  static makeSchemaBody({
-    candidates,
-    hierarchyLevel,
-  }: {
-    candidates: readonly SchemaCandidate[];
-    hierarchyLevel: HierarchyLevel;
-  }): string {
-    const tokenizedMatrix: SchemaToken[][] = candidates.map((cand) =>
-      hierarchyLevel.tokenize(cand.note.fname).map((value) => {
-        return { pattern: value };
-      })
-    );
-
-    const topLevel: SchemaInMaking = {
-      // Top level schema requires an id to function.
-      id: hierarchyLevel.topId(),
-      title: hierarchyLevel.topId(),
-      parent: "root",
-    } as SchemaInMaking; // 4-axis boundary for SchemaInMaking (local but used in residual CreateSchema constructions under exactOptional); Batch 6 debug launch sweep 2026-05-31 (per Strict-Fixer plan on CreateSchema/SchemaInMaking + user mandate to 0 + full test + Clean Host smoke + merge); see 4-axis + ADR 0001.
-
-    return SchemaCreationUtils.getBodyForTokenizedMatrix({
-      topLevel,
-      tokenizedMatrix,
-    });
-  }
+  static makeSchemaBody = makeHierarchySchemaBody;
 }
 
 export class CreateSchemaFromHierarchyCommand extends BasicCommand<

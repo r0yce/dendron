@@ -159,6 +159,9 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | NoteLookup accept/execute/gather | `noteLookupAcceptItem` (+ Existing/New/Template), `noteLookupExecute`, `noteLookupCleanup`, `noteLookupGatherInputs` |
 | SchemaLookup modular | `schemaLookupGatherInputs`, `schemaLookupAccept*`, `schemaLookupExecute` |
 | Lookup enrich (History) | `lookupCommandEnrichInputs` (note + schema) |
+| Doctor | `doctorActions`, `doctorPreviews` |
+| MoveHeader helpers | `moveHeaderHelpers` |
+| Schema-from-hierarchy pure | `hierarchySchemaModels`, `hierarchySchemaCreator` |
 | Lookup controller modifiers | `lookupControllerModifiers`, `lookupControllerViewState` |
 | Lookup sentinels / open note | `pickerSentinels`, `pickerDisplay` |
 | Lookup accept hooks (rename/move) | `providerAcceptHooks.ProviderAcceptHooks` |

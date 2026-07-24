@@ -21,6 +21,8 @@ const schemaHelpers = out("components/lookup/schemaLookupHelpers.js");
 const selMode = out("commands/noteLookupSelectionMode.js");
 const acceptHelp = out("commands/noteLookupAcceptHelpers.js");
 // noteLookupGatherInputs pulls ExtensionProvider/vscode — do not require here.
+const hierarchy = out("commands/hierarchySchemaModels.js");
+const doctorActions = out("commands/doctorActions.js");
 const constants = out("components/lookup/vaultPickerConstants.js");
 
 let failed = 0;
@@ -162,6 +164,16 @@ check(
     isJournal: true,
     pickerValue: "j.1",
   }) === "j.1"
+);
+
+// --- hierarchy / doctor pure ---
+const h = new hierarchy.Hierarchy("a.b.c");
+check("Hierarchy depth", h.depth() === 3 && h.topId() === "a");
+check(
+  "doctor reload-before frontmatter",
+  doctorActions.shouldDoctorReloadWorkspaceBeforeDoctorAction(
+    "fixFrontmatter"
+  ) === true
 );
 
 if (failed) {

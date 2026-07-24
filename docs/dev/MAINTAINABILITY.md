@@ -198,13 +198,39 @@ Helpers, HTML shell, lookup selection, md modules, picker filters, activator hel
 | `SchemaLookupCommand.ts` | **~148** (was ~243) |
 | Lookup command stack | fully modular gather → enrich → accept → execute |
 
-### Wave 15 — optional next
+### Wave 15 — DONE (this push)
+
+| Item | Result |
+|------|--------|
+| Doctor peels | `doctorActions` (reload policy + plugin enums), `doctorPreviews` (all webview previews) |
+| MoveHeader peels | `moveHeaderHelpers` (proc, anchors, append, dest prep, body slice) |
+| Schema hierarchy peels | `hierarchySchemaModels` (Hierarchy + multi-select pure), `hierarchySchemaCreator` |
+
+| Hotspot | ~LOC after wave 15 |
+|---------|-------------------|
+| `Doctor.ts` | **~541** (was ~723) |
+| `MoveHeader.ts` | **~632** (was ~695) |
+| `CreateSchemaFromHierarchyCommand.ts` | **~410** (was ~593) |
+
+### Remaining large modules (next waves)
+
+Still >400 LOC and not fully modular shells:
+
+| File | ~LOC | Notes |
+|------|------|-------|
+| `Doctor.ts` | ~541 | execute switch still fat — next peel target |
+| `MoveHeader.ts` | ~632 | link/ref update path still fat |
+| `VaultAdd` / `AddExistingVault` | ~510–550 | remote/self-contained gather |
+| `RefactorHierarchyV2` | ~547 | |
+| `_extension.ts` / `constants.ts` | large | activation + contributions (data-heavy) |
+
+### Wave 16 — optional next
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | Start modularizing other large commands (`Doctor`, `MoveHeader`, vault) |
-| P2 | Extract shared `lookupCommandState` getters if controller/provider setters still noisy |
-| P3 | Product pause — lookup modularity is largely complete |
+| P1 | Peel `DoctorCommand.execute` action switch into `doctorExecute.ts` |
+| P2 | Peel MoveHeader link/reference update path |
+| P3 | Dedup VaultAdd / AddExistingVault remote handlers |
 
 ---
 
