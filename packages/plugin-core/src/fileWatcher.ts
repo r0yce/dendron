@@ -29,6 +29,9 @@ export class FileWatcher {
    */
   public pause: boolean;
   public L = Logger;
+  /** Debounced reindex of external file changes (git, other editors). */
+  private _pendingChanges = new Set<string>();
+  private _flushChanges: (() => void) | undefined;
 
   constructor(opts: { workspaceOpts: WorkspaceOpts }) {
     const { workspaceOpts } = opts;
@@ -53,6 +56,10 @@ export class FileWatcher {
       return { vault, watcher };
     });
     this.pause = false;
+    // Coalesce rapid multi-file changes (e.g. git checkout) into one flush.
+    this._flushChanges = _.debounce(() => {
+      void this.flushPendingChanges();
+    }, 300);
   }
 
   static watcherType(opts: WorkspaceOpts): "plugin" | "engine" {
@@ -79,7 +86,92 @@ export class FileWatcher {
           sentryReportingCallback(this.onDidDelete.bind(this))
         )
       );
+      // External edits (git pull, other tools) only fire change — was never wired.
+      context.subscriptions.push(
+        watcher.onDidChange(
+          sentryReportingCallback(this.onDidChange.bind(this))
+        )
+      );
     });
+  }
+
+  /**
+   * Queue a changed note for incremental meta reindex (debounced).
+   */
+  onDidChange(fsPath: string): void {
+    const ctx = "FileWatcher:onDidChange";
+    if (this.pause) {
+      this.L.info({ ctx, fsPath, msg: "paused" });
+      return;
+    }
+    if (!fsPath.endsWith(".md")) {
+      return;
+    }
+    // Ignore engine-driven writes that already updated the index
+    const recentEvents = HistoryService.instance().lookBack();
+    if (
+      _.find(recentEvents, (event) => {
+        return _.every([
+          event?.uri?.fsPath === fsPath,
+          event.source === "engine",
+          _.includes(["create", "delete", "rename", "update"], event.action),
+        ]);
+      })
+    ) {
+      this.L.debug({ ctx, fsPath, msg: "engine event, ignoring" });
+      return;
+    }
+    this._pendingChanges.add(fsPath);
+    this._flushChanges?.();
+  }
+
+  private async flushPendingChanges(): Promise<void> {
+    const ctx = "FileWatcher:flushPendingChanges";
+    if (this.pause || this._pendingChanges.size === 0) {
+      return;
+    }
+    const paths = Array.from(this._pendingChanges);
+    this._pendingChanges.clear();
+    this.L.info({ ctx, count: paths.length, msg: "reindex changed notes" });
+    for (const fsPath of paths) {
+      try {
+        await this.reindexNoteFromDisk(fsPath);
+      } catch (err: any) {
+        this.L.info({ ctx, fsPath, msg: "reindex skip", err });
+      }
+    }
+  }
+
+  /** Same path as create: file2Note → links → writeNote metaOnly. */
+  private async reindexNoteFromDisk(fsPath: string): Promise<void> {
+    const ctx = "FileWatcher:reindexNoteFromDisk";
+    const fname = path.basename(fsPath, ".md");
+    const { vaults, engine, wsRoot } = ExtensionProvider.getDWorkspace();
+    const vault = VaultUtils.getVaultByFilePath({
+      vaults,
+      fsPath,
+      wsRoot,
+    });
+    const resp = file2Note(fsPath, vault);
+    if (ErrorUtils.isErrorResp(resp)) {
+      this.L.info({ ctx, fsPath, msg: "unreadable, skip" });
+      return;
+    }
+    let note: NoteProps = resp.data;
+    const maybeNote = (await engine.findNotesMeta({ fname, vault }))[0];
+    if (maybeNote) {
+      note = NoteUtils.hydrate({ noteRaw: note, noteHydrated: maybeNote });
+      delete note["stub"];
+      delete note["schemaStub"];
+    }
+    await EngineUtils.refreshNoteLinksAndAnchors({
+      note,
+      fmChangeOnly: false,
+      engine,
+      config: DConfig.readConfigSync(engine.wsRoot),
+    });
+    await engine.writeNote(note, { metaOnly: true });
+    this.L.debug({ ctx, fsPath, msg: "reindexed" });
   }
 
   async onDidCreate(fsPath: string): Promise<void> {
