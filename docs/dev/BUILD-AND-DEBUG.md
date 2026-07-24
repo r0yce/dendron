@@ -46,18 +46,28 @@ yarn verify:full
 
 ## Run the extension (recommended — no VSIX)
 
-The extension **runs from webpack output**, not from `tsc` alone.
+`package.json` **`main` is `./out/src/extension.js`** — F5 loads **TypeScript compile output**, not webpack `dist/`.
+
+See **[DEV-EXTENSION.md](./DEV-EXTENSION.md)** for the dual-build rules.
+
+### Recommended (tsc + F5)
+
+```bash
+yarn workspace @dendronhq/plugin-core compile
+# F5: Run Dendron Extension (Desktop, No Precompile)
+```
 
 ### Option A — Open `packages/plugin-core`
 
 1. Open `packages/plugin-core` in VS Code.
-2. **Terminal → Run Task → `watch-webpack`** (or `webpack:dev:watch`).
-3. **Run and Debug → `Run Dendron Extension (Desktop, No Precompile)`** (F5).
+2. Compile (`yarn compile` or `./scripts/dev-extension.sh`).
+3. **Optional:** `webpack:dev:watch` only if you need `dist/` packaging parity.
+4. **Run and Debug → `Run Dendron Extension (Desktop, No Precompile)`** (F5).
 
 ### Option B — Open monorepo root
 
 1. Open the repository root.
-2. Start `watch-webpack` in `packages/plugin-core`.
+2. Compile `plugin-core` (and `common-all` if shared types changed).
 3. Use **Run Dendron Extension (Desktop, No Precompile) - [open monorepo root]** from root `.vscode/launch.json`.
 
 ### Clean Host (Insiders debugging)

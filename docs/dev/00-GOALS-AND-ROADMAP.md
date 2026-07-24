@@ -1,25 +1,33 @@
 # Dendron Fork: Goals & Roadmap Index
 
 > Personal long-term maintenance fork of Dendron (local VS Code extension only).  
-> Upstream: maintenance-only / development ceased.
+> Upstream: maintenance-only / development ceased.  
+> Updated: **2026-07-24**
 
 ## Product roadmap (current)
 
 **→ [PRODUCT-ROADMAP.md](./PRODUCT-ROADMAP.md)** is the living source of truth for:
 
-- Lane strategy (one primary lane; thin parallel only when independent)
-- Sprints (active = “Feels fast + quiet”)
-- Performance, UI/UX, QoL, and flagship feature lanes
+- Completed sprints 1–5
+- Awesome wave (Task Board editor/sidebar, Hub Home, smart reload, graph/payload diet, …)
+- Optional next ideas
 
-Do **not** invent competing sprint systems in modernization trackers.
+## AI agent docs (start here for implementation)
+
+| Doc | Role |
+|-----|------|
+| [ai/README.md](../../ai/README.md) | Entry + read order |
+| [ai/references/context.md](../../ai/references/context.md) | Architecture, features, gotchas |
+| [ai/references/spec.md](../../ai/references/spec.md) | Implementation playbooks & conventions |
 
 ## Engineering / archive docs
 
 | Doc | Role |
 |-----|------|
+| [DEV-EXTENSION.md](./DEV-EXTENSION.md) | **F5 uses tsc `out/`** vs webpack `dist/` |
 | [BUILD-AND-DEBUG.md](./BUILD-AND-DEBUG.md) | Daily verify gates |
-| [BACKLOG.md](./BACKLOG.md) | Deferred **engineering** items (deps pins, ESLint notes) |
-| [06-PERFORMANCE-PLAN.md](./06-PERFORMANCE-PLAN.md) | Perf measurement philosophy (aligned to PRODUCT-ROADMAP) |
+| [BACKLOG.md](./BACKLOG.md) | Deferred **engineering** items (deps, ESLint) |
+| [06-PERFORMANCE-PLAN.md](./06-PERFORMANCE-PLAN.md) | Perf measurement philosophy |
 | [01-ARCHITECTURE-OVERVIEW.md](./01-ARCHITECTURE-OVERVIEW.md) | Mental model |
 | [MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md](./MONOREPO-PACKAGES-MODERNIZATION-TRACKER.md) | **Archive** — package modernization history |
 | [MILESTONE-2-REPORT.md](./MILESTONE-2-REPORT.md) | **Archive** — strict mode / DI wave |
@@ -42,14 +50,13 @@ Do **not** invent competing sprint systems in modernization trackers.
 
 ## Platform completed (2026)
 
-Toolchain / hygiene (not product lanes): privacy-first telemetry, health CLI, PerfRingBuffer, TypeScript 7, Babel 8, yargs 18, co-located emit cleanup, ESLint 10. See git history and archive docs above.
+Toolchain / hygiene: privacy-first telemetry, health CLI, PerfRingBuffer, TypeScript 7, Babel 8, yargs 18, co-located emit cleanup, ESLint 10, webpack 5, React 19. Product sprints 1–5 + awesome wave: see PRODUCT-ROADMAP.
 
 ## Immediate product focus
 
-**Sprint 1 — Feels fast + quiet: COMPLETE** (see PRODUCT-ROADMAP.md).
-
-**Sprint 2 — Feels modern** is next (hub, welcome, preview, backlinks, webview split).
+**Sprints 1–5 + awesome wave: COMPLETE.**  
+Pick optional next items from PRODUCT-ROADMAP or user request; update that file when shipping.
 
 ---
 
-*Older “THE CHAIN DOES NOT STOP / 100% ROADMAP COMPLETE” product narrative is superseded by PRODUCT-ROADMAP.md.*
+*Older “THE CHAIN DOES NOT STOP / 100% ROADMAP COMPLETE” modernization slogans are superseded by PRODUCT-ROADMAP.md + ai/ references.*
