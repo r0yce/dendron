@@ -630,4 +630,48 @@ describe("maintainabilityHelpers (waves 5–15)", () => {
       ).toBeFalsy();
     });
   });
+
+  describe("hierarchySchemaModels + doctorActions", () => {
+    it("Hierarchy depth and schemaable levels", () => {
+      const h = new Hierarchy("a.b.c");
+      expect(h.depth()).toEqual(3);
+      expect(h.topId()).toEqual("a");
+      expect(h.getSchemaebleLevels().length).toEqual(2);
+    });
+
+    it("hasSelected / hasUnselected track multi-select deltas", () => {
+      const a = { note: { fname: "a" }, label: "a", detail: "" } as any;
+      const b = { note: { fname: "a.b" }, label: "a.b", detail: "" } as any;
+      expect(hasSelected([a], [a, b])).toBeTruthy();
+      expect(hasUnselected([a, b], [a])).toBeTruthy();
+    });
+
+    it("determineAfterSelect checks ancestors", () => {
+      const a = { note: { fname: "a" }, label: "a", detail: "" } as any;
+      const ab = { note: { fname: "a.b" }, label: "a.b", detail: "" } as any;
+      const abc = {
+        note: { fname: "a.b.c" },
+        label: "a.b.c",
+        detail: "",
+      } as any;
+      const all = [a, ab, abc];
+      const next = determineAfterSelect([], [abc], all);
+      expect(next.some((c) => c.note.fname === "a")).toBeTruthy();
+      expect(next.some((c) => c.note.fname === "a.b")).toBeTruthy();
+      expect(next.some((c) => c.note.fname === "a.b.c")).toBeTruthy();
+    });
+
+    it("doctor reload-before includes fix frontmatter", () => {
+      expect(
+        shouldDoctorReloadWorkspaceBeforeDoctorAction(
+          DoctorActionsEnum.FIX_FRONTMATTER,
+        ),
+      ).toBeTruthy();
+      expect(
+        shouldDoctorReloadWorkspaceBeforeDoctorAction(
+          PluginDoctorActionsEnum.FIND_INCOMPATIBLE_EXTENSIONS,
+        ),
+      ).toBeFalsy();
+    });
+  });
 });

@@ -63,7 +63,7 @@ function getUriFromSchema(schema: SchemaModuleProps) {
     wsRoot: ExtensionProvider.getDWorkspace().wsRoot,
   });
   return Uri.file(
-    SchemaUtils.getPath({ root: vaultPath, fname: schema.fname })
+    SchemaUtils.getPath({ root: vaultPath, fname: schema.fname }),
   );
 }
 
@@ -72,9 +72,7 @@ function getSchemaUri(vault: DVault, schemaName: string) {
     vault,
     wsRoot: ExtensionProvider.getDWorkspace().wsRoot,
   });
-  return Uri.file(
-    SchemaUtils.getPath({ root: vaultPath, fname: schemaName })
-  );
+  return Uri.file(SchemaUtils.getPath({ root: vaultPath, fname: schemaName }));
 }
 
 type HierarchyLevelRes = {
@@ -93,13 +91,12 @@ type PatternsFromCandidateRes = {
 export class UserQueries {
   static async promptUserForSchemaFileName(
     hierarchyLevel: HierarchyLevel,
-    vault: DVault
+    vault: DVault,
   ): Promise<string | undefined> {
-    let alreadyExists = false;
     let schemaName: string | undefined;
+    let alreadyExists: boolean;
 
     do {
-      // eslint-disable-next-line no-await-in-loop
       schemaName = await VSCodeUtils.showInputBox({
         value: hierarchyLevel.getDefaultSchemaName(),
       });
@@ -112,7 +109,7 @@ export class UserQueries {
       alreadyExists = fs.existsSync(getSchemaUri(vault, schemaName).fsPath);
       if (alreadyExists) {
         vscode.window.showInformationMessage(
-          `Schema with name '${schemaName}' already exists. Please choose a different name.`
+          `Schema with name '${schemaName}' already exists. Please choose a different name.`,
         );
       }
     } while (alreadyExists);
@@ -121,7 +118,7 @@ export class UserQueries {
   }
 
   static async promptUserToSelectHierarchyLevel(
-    currDocFsPath: string
+    currDocFsPath: string,
   ): Promise<HierarchyLevelRes> {
     const hierarchy = new Hierarchy(path.basename(currDocFsPath, ".md"));
 
@@ -129,7 +126,7 @@ export class UserQueries {
       // We require some depth to the hierarchy to be able to choose a variance
       // pattern within in it. More info within Hierarchy object.
       await vscode.window.showErrorMessage(
-        `Pick a note with note depth greater than 1.`
+        `Pick a note with note depth greater than 1.`,
       );
 
       return { stopReason: StopReason.NOTE_DID_NOT_HAVE_REQUIRED_DEPTH };
@@ -144,7 +141,7 @@ export class UserQueries {
       const msgGoToSchema = "Go to schema";
       const action = await vscode.window.showErrorMessage(
         `Schema with top level id: '${topId}' already exists.`,
-        msgGoToSchema
+        msgGoToSchema,
       );
       if (action === msgGoToSchema) {
         const schema = await PluginSchemaUtils.getSchema(topId);
@@ -169,7 +166,7 @@ export class UserQueries {
   }
 
   static promptUserToPickPatternsFromCandidates(
-    labeledCandidates: SchemaCandidate[]
+    labeledCandidates: SchemaCandidate[],
   ): Promise<PatternsFromCandidateRes> {
     let hasResolved = false;
     return new Promise((resolve) => {
@@ -190,13 +187,13 @@ export class UserQueries {
         if (hasUnselected(prevSelected, currSelected)) {
           quickPick.selectedItems = determineAfterUnselect(
             prevSelected,
-            currSelected
+            currSelected,
           );
         } else if (hasSelected(prevSelected, currSelected)) {
           quickPick.selectedItems = determineAfterSelect(
             prevSelected,
             currSelected,
-            labeledCandidates
+            labeledCandidates,
           );
         }
 
@@ -212,7 +209,7 @@ export class UserQueries {
       quickPick.onDidAccept(() => {
         if (quickPick.selectedItems.length === 0) {
           vscode.window.showErrorMessage(
-            `Must select at least one pattern for schema creation.`
+            `Must select at least one pattern for schema creation.`,
           );
 
           resolve({ stopReason: StopReason.UNSELECTED_ALL_PATTERNS });
@@ -270,9 +267,8 @@ export class CreateSchemaFromHierarchyCommand extends BasicCommand<
     const vault = PluginVaultUtils.getVaultByNotePath({
       fsPath: currDocumentFSPath,
     });
-    const hierLvlOpts = await UserQueries.promptUserToSelectHierarchyLevel(
-      currDocumentFSPath
-    );
+    const hierLvlOpts =
+      await UserQueries.promptUserToSelectHierarchyLevel(currDocumentFSPath);
     if (hierLvlOpts.hierarchyLevel === undefined) {
       // User must have cancelled the command or the note was deemed not valid for
       // schema from hierarchy creation.
@@ -280,7 +276,7 @@ export class CreateSchemaFromHierarchyCommand extends BasicCommand<
     }
 
     const candidates = await this.getHierarchyCandidates(
-      hierLvlOpts.hierarchyLevel
+      hierLvlOpts.hierarchyLevel,
     );
     const patternsOpts =
       await UserQueries.promptUserToPickPatternsFromCandidates(candidates);
@@ -290,7 +286,7 @@ export class CreateSchemaFromHierarchyCommand extends BasicCommand<
 
     const schemaName = await UserQueries.promptUserForSchemaFileName(
       hierLvlOpts.hierarchyLevel,
-      vault
+      vault,
     );
     if (schemaName === undefined || schemaName.length === 0) {
       // User must have cancelled the command, get out.
@@ -313,17 +309,17 @@ export class CreateSchemaFromHierarchyCommand extends BasicCommand<
   }
 
   private async getHierarchyCandidates(
-    hierarchyLevel: HierarchyLevel
+    hierarchyLevel: HierarchyLevel,
   ): Promise<SchemaCandidate[]> {
     const { engine } = ExtensionProvider.getDWorkspace();
     const engineNotes = await engine.findNotesMeta({ excludeStub: false });
     const noteCandidates = _.filter(engineNotes, (n) =>
-      hierarchyLevel.isCandidateNote(n.fname)
+      hierarchyLevel.isCandidateNote(n.fname),
     );
 
     const candidates: SchemaCandidate[] = this.formatSchemaCandidates(
       noteCandidates,
-      hierarchyLevel
+      hierarchyLevel,
     );
 
     return this.filterDistinctLabel(candidates);
@@ -340,7 +336,7 @@ export class CreateSchemaFromHierarchyCommand extends BasicCommand<
 
   formatSchemaCandidates(
     noteCandidates: NotePropsMeta[],
-    hierarchyLevel: HierarchyLevel
+    hierarchyLevel: HierarchyLevel,
   ): SchemaCandidate[] {
     return noteCandidates
       .map((note) => {
