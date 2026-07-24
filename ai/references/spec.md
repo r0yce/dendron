@@ -152,6 +152,9 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | Create New policy / picker value (pure) | `pickerCreateNewPolicy`, `pickerValue` |
 | Pagination / enhance notes | `pickerPagination`, `notePickerEnhance` |
 | Schema lookup completions | `noteLookupSchemaCompletions` |
+| Note empty qs / create-new rows | `noteLookupEmptyQuery`, `noteLookupCreateNewItems` |
+| Schema lookup helpers | `schemaLookupHelpers` |
+| Shared provider accept/history | `lookupProviderAccept`, `lookupProviderHistory` |
 | Lookup controller modifiers | `lookupControllerModifiers`, `lookupControllerViewState` |
 | Lookup sentinels / open note | `pickerSentinels`, `pickerDisplay` |
 | Lookup accept hooks (rename/move) | `providerAcceptHooks.ProviderAcceptHooks` |

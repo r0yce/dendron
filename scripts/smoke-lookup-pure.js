@@ -17,6 +17,7 @@ const policy = out("components/lookup/pickerCreateNewPolicy.js");
 const value = out("components/lookup/pickerValue.js");
 const pagination = out("components/lookup/pickerPagination.js");
 const schemaComp = out("components/lookup/noteLookupSchemaCompletions.js");
+const schemaHelpers = out("components/lookup/schemaLookupHelpers.js");
 const constants = out("components/lookup/vaultPickerConstants.js");
 
 let failed = 0;
@@ -129,6 +130,13 @@ const selected = schemaComp.selectNewSchemaCandidates({
 check(
   "selectNewSchemaCandidates drops existing",
   selected.length === 1 && selected[0].fname === "a.c"
+);
+
+// --- schema lookup helpers ---
+check(
+  "isMultiLevelSchemaQuery",
+  schemaHelpers.isMultiLevelSchemaQuery("a.b") === true &&
+    schemaHelpers.isMultiLevelSchemaQuery("a") === false
 );
 
 if (failed) {

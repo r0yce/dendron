@@ -39,11 +39,15 @@ import {
   buildSchemaChildNoteCandidates,
   selectNewSchemaCandidates,
 } from "../../components/lookup/noteLookupSchemaCompletions";
+import {
+  appendCreateNewSchemaItem,
+  isMultiLevelSchemaQuery,
+} from "../../components/lookup/schemaLookupHelpers";
 import { VaultSelectionMode } from "../../components/lookup/types";
 import { CREATE_NEW_NOTE_DETAIL } from "../../components/lookup/constants";
 import { Location, Range, Uri } from "vscode";
 
-describe("maintainabilityHelpers (waves 5–10)", () => {
+describe("maintainabilityHelpers (waves 5–11)", () => {
   describe("md/anchors", () => {
     it("finds frontmatter ending offset and 1-indexed line", () => {
       const body = "---\nid: abc\n---\n\n# Hello\n";
@@ -508,6 +512,41 @@ describe("maintainabilityHelpers (waves 5–10)", () => {
       });
       expect(notes.length).toEqual(1);
       expect(notes[0]!.fname).toEqual("foo.bar");
+    });
+  });
+
+  describe("schemaLookupHelpers", () => {
+    it("isMultiLevelSchemaQuery detects dots", () => {
+      expect(isMultiLevelSchemaQuery("foo")).toBeFalsy();
+      expect(isMultiLevelSchemaQuery("foo.bar")).toBeTruthy();
+    });
+
+    it("appendCreateNewSchemaItem only when allowed and no perfect match", () => {
+      const base = [{ fname: "existing" }] as any[];
+      const withNew = appendCreateNewSchemaItem({
+        updatedItems: base,
+        querystring: "newschema",
+        allowNewNote: true,
+        hasPerfectMatch: false,
+      });
+      expect(withNew.length).toEqual(2);
+      expect(withNew[1]!.fname).toEqual("newschema");
+
+      const noNew = appendCreateNewSchemaItem({
+        updatedItems: base,
+        querystring: "existing",
+        allowNewNote: true,
+        hasPerfectMatch: true,
+      });
+      expect(noNew.length).toEqual(1);
+
+      const disallowed = appendCreateNewSchemaItem({
+        updatedItems: base,
+        querystring: "x",
+        allowNewNote: false,
+        hasPerfectMatch: false,
+      });
+      expect(disallowed.length).toEqual(1);
     });
   });
 });

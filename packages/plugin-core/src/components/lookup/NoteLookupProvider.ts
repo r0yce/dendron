@@ -1,5 +1,13 @@
+/**
+ * Note lookup QuickPick provider — update items, accept, hooks.
+ *
+ * Peeled helpers:
+ * - empty qs → `noteLookupEmptyQuery`
+ * - create-new rows → `noteLookupCreateNewItems` / `pickerCreateNewPolicy`
+ * - schema completions → `noteLookupSchemaCompletions`
+ * - accept vault/hooks → `lookupProviderAccept` / `lookupProviderHistory`
+ */
 import {
-  ConfigUtils,
   LookupEvents,
   NoteLookupUtils,
   NoteQuickInput,
@@ -7,12 +15,12 @@ import {
   VSCodeEvents,
 } from "@dendronhq/common-all";
 import { getDurationMilliseconds } from "@dendronhq/common-server";
-import { HistoryService } from "@dendronhq/engine-server";
 import _ from "lodash";
 import { CancellationTokenSource, window } from "vscode";
 import { IDendronExtension } from "../../dendronExtensionInterface";
 import { Logger } from "../../logger";
 import { AnalyticsUtils } from "../../utils/analytics";
+import { WorkspaceModesService } from "../../services/WorkspaceModesService";
 import { NotePickerUtils } from "./NotePickerUtils";
 import { IDendronQuickInputButton } from "./ButtonTypes";
 import {
@@ -23,23 +31,20 @@ import {
 import {
   ILookupProviderOptsV3,
   ILookupProviderV3,
-  NoteLookupProviderSuccessResp,
   OnAcceptHook,
   OnUpdatePickerItemsOpts,
 } from "./LookupProviderV3Interface";
+import {
+  maybeSelectVaultViaNextPicker,
+  runAcceptHooksAndPublish,
+  syncCreateNewFnameFromPickerValue,
+} from "./lookupProviderAccept";
 import { appendSchemaCompletions } from "./noteLookupSchemaCompletions";
-import {
-  countExactFnameMatches,
-  shouldAddCreateNewOption,
-  shouldRejectLookupItem,
-} from "./pickerCreateNewPolicy";
-import { DendronQuickPickerV2, DendronQuickPickState } from "./types";
-import {
-  OldNewLocation,
-  PickerUtilsV2,
-  shouldBubbleUpCreateNew,
-} from "./utils";
-import { WorkspaceModesService } from "../../services/WorkspaceModesService";
+import { appendCreateNewNoteItems } from "./noteLookupCreateNewItems";
+import { fetchEmptyNoteQueryItems } from "./noteLookupEmptyQuery";
+import { shouldRejectLookupItem } from "./pickerCreateNewPolicy";
+import { DendronQuickPickerV2 } from "./types";
+import { PickerUtilsV2 } from "./utils";
 
 export class NoteLookupProvider implements ILookupProviderV3 {
   private _onAcceptHooks: OnAcceptHook[];
@@ -106,15 +111,7 @@ export class NoteLookupProvider implements ILookupProviderV3 {
         });
       }
 
-      // NOTE: sometimes, even with debouncing, the value of a new item is not the same as the selectedItem. this makes sure that the value is in sync
-      if (
-        quickpick.selectedItems.length === 1 &&
-        [CREATE_NEW_LABEL, CREATE_NEW_WITH_TEMPLATE_LABEL].includes(
-          quickpick.selectedItems[0]!.label,
-        )
-      ) {
-        quickpick.selectedItems[0]!.fname = quickpick.value;
-      }
+      syncCreateNewFnameFromPickerValue(quickpick);
       this.onDidAccept({ quickpick, cancellationToken: token })();
     });
     Logger.info({ ctx, msg: "exit" });
@@ -127,8 +124,6 @@ export class NoteLookupProvider implements ILookupProviderV3 {
 
   /**
    * Takes selection and runs accept, followed by hooks.
-   * @param opts
-   * @returns
    */
   onDidAccept(opts: {
     quickpick: DendronQuickPickerV2;
@@ -186,59 +181,27 @@ export class NoteLookupProvider implements ILookupProviderV3 {
         }
       }
 
-      // when doing lookup, opening existing notes don't require vault picker
-      if (
-        PickerUtilsV2.hasNextPicker(picker, {
-          selectedItems,
-          providerId: this.id,
-        })
-      ) {
-        Logger.debug({ ctx, msg: "nextPicker:pre" });
-        picker.state = DendronQuickPickState.PENDING_NEXT_PICK;
+      const vaultOk = await maybeSelectVaultViaNextPicker({
+        picker,
+        selectedItems,
+        providerId: this.id,
+        ctx,
+      });
+      if (!vaultOk) {
+        return;
+      }
 
-        picker.vault = await picker.nextPicker!({ note: selectedItems[0]! });
-        // check if we exited from selecting a vault
-        if (_.isUndefined(picker.vault)) {
-          HistoryService.instance().add({
-            source: "lookupProvider",
-            action: "done",
-            id: this.id,
-            data: { cancel: true },
-          });
-          return;
-        }
-      }
-      // last chance to cancel
-      cancellationToken.cancel();
-
-      if (!this.opts.noHidePickerOnAccept) {
-        picker.state = DendronQuickPickState.FULFILLED;
-        picker.hide();
-      }
-      const onAcceptHookResp = await Promise.all(
-        this._onAcceptHooks.map((hook) =>
-          hook({ quickpick: picker, selectedItems }),
-        ),
-      );
-      const errors = _.filter(onAcceptHookResp, (ent) => ent.error);
-      if (!_.isEmpty(errors)) {
-        HistoryService.instance().add({
-          source: "lookupProvider",
-          action: "error",
-          id: this.id,
-          data: { error: errors[0] },
-        });
-      } else {
-        HistoryService.instance().add({
-          source: "lookupProvider",
-          action: "done",
-          id: this.id,
-          data: {
-            selectedItems,
-            onAcceptHookResp: _.map(onAcceptHookResp, (ent) => ent.data!),
-          } as NoteLookupProviderSuccessResp<OldNewLocation>,
-        });
-      }
+      await runAcceptHooksAndPublish({
+        picker,
+        selectedItems,
+        providerId: this.id,
+        onAcceptHooks: this._onAcceptHooks,
+        cancellationToken,
+        ...(this.opts.noHidePickerOnAccept !== undefined
+          ? { noHidePickerOnAccept: this.opts.noHidePickerOnAccept }
+          : {}),
+        setFulfilledState: true,
+      });
     };
   }
 
@@ -303,16 +266,10 @@ export class NoteLookupProvider implements ILookupProviderV3 {
       // if empty string, show all 1st level results
       if (transformedQuery.queryString === "") {
         Logger.debug({ ctx, msg: "empty qs" });
-        let items = await NotePickerUtils.fetchRootQuickPickResults({
+        picker.items = await fetchEmptyNoteQueryItems({
           engine,
+          extraItems: this.opts.extraItems,
         });
-        // Sprint 5: vault focus scopes lookup roots
-        items = WorkspaceModesService.filterNotesByFocus(items as any) as any;
-        const extraItems = this.opts.extraItems;
-        if (extraItems) {
-          items.unshift(...extraItems);
-        }
-        picker.items = items;
         return;
       }
 
@@ -374,61 +331,20 @@ export class NoteLookupProvider implements ILookupProviderV3 {
         updatedItems = picker.filterMiddleware(updatedItems);
       }
 
-      // if new notes are allowed and we didn't get a perfect match, append `Create New` option
-      // to picker results
+      // if new notes are allowed and we didn't get a perfect match, append Create New
       // NOTE: order matters. we always pick the first item in single select mode
       Logger.debug({ ctx, msg: "active != qs" });
-
-      // If each of the vaults in the workspace already have exact match of the file name
-      // then we should not allow create new option.
-      const numberOfExactMatches = countExactFnameMatches(
+      updatedItems = appendCreateNewNoteItems({
         updatedItems,
         queryOrig,
-      );
-      const shouldAddCreateNew = shouldAddCreateNewOption({
         allowNewNote: !!this.opts.allowNewNote,
-        queryOrig,
+        allowNewNoteWithTemplate: !!this.opts.allowNewNoteWithTemplate,
         canSelectMany: !!picker.canSelectMany,
         wasMadeFromWikiLink: !!transformedQuery.wasMadeFromWikiLink,
-        numberOfExactMatches,
         vaultCount: this.extension.getDWorkspace().engine.vaults.length,
+        onCreateDefined: picker.onCreate !== undefined,
+        config: ws.config,
       });
-
-      if (shouldAddCreateNew) {
-        const entryCreateNew = NotePickerUtils.createNoActiveItem({
-          fname: queryOrig,
-          detail: CREATE_NEW_NOTE_DETAIL,
-        });
-        const newItems = [entryCreateNew];
-
-        // should not add `Create New with Template` if the quickpick
-        // 1. has an onCreate defined (i.e. task note), or
-        const onCreateDefined = picker.onCreate !== undefined;
-
-        const shouldAddCreateNewWithTemplate =
-          this.opts.allowNewNoteWithTemplate && !onCreateDefined;
-        if (shouldAddCreateNewWithTemplate) {
-          const entryCreateNewWithTemplate =
-            NotePickerUtils.createNewWithTemplateItem({
-              fname: queryOrig,
-            });
-          newItems.push(entryCreateNewWithTemplate);
-        }
-
-        const bubbleUpCreateNew = ConfigUtils.getLookup(ws.config).note
-          .bubbleUpCreateNew;
-        if (
-          shouldBubbleUpCreateNew({
-            numberOfExactMatches,
-            querystring: queryOrig,
-            bubbleUpCreateNew,
-          })
-        ) {
-          updatedItems = newItems.concat(updatedItems);
-        } else {
-          updatedItems = updatedItems.concat(newItems);
-        }
-      }
 
       // check fuzz threshold. tune fuzzyness. currently hardcoded
       // TODO: in the future this should be done in the engine

@@ -21,6 +21,9 @@
 | `pickerFilterResults` / `pickerCreateNewPolicy` / `pickerValue` | lookup | Pure post-query filter, Create New gates, value compose |
 | `pickerPagination` / `notePickerEnhance` | lookup | Pure page slice; batch schema load + QuickInput enhance |
 | `noteLookupSchemaCompletions` | lookup | Schema child candidates + append completions |
+| `noteLookupEmptyQuery` / `noteLookupCreateNewItems` | lookup | Empty-qs roots; append Create New note rows |
+| `schemaLookupHelpers` | lookup | Schema empty-qs, create-new row, multi-level gate |
+| `lookupProviderAccept` / `lookupProviderHistory` | lookup | Shared vault next-picker + accept hooks/history |
 | `pickerSentinels` / `pickerDisplay` | lookup | Create New / More Results sentinels; open doc + hide picker |
 | `lookupControllerModifiers` / `lookupControllerViewState` | lookup | Note-type/selection toggles + initial VM from buttons |
 | `providerAcceptHooks` | lookup | Rename/move on-accept location hooks |
@@ -125,13 +128,31 @@ Helpers, HTML shell, lookup selection, md modules, picker filters, activator hel
 | `noteLookupSchemaCompletions.ts` | ~132 |
 | `notePickerEnhance.ts` / `pickerPagination.ts` | ~66 / ~28 |
 
-### Wave 11 — optional next
+### Wave 11 — DONE (this push)
+
+| Item | Result |
+|------|--------|
+| Shared accept flow | `lookupProviderAccept` + `lookupProviderHistory` — vault next-picker, hooks, cancel/done/error |
+| Note empty qs | `noteLookupEmptyQuery.fetchEmptyNoteQueryItems` |
+| Note Create New rows | `noteLookupCreateNewItems.appendCreateNewNoteItems` |
+| Schema helpers | `schemaLookupHelpers` — roots, create-new row, multi-level gate |
+| Schema provider peel | `SchemaLookupProvider` uses shared accept + helpers; catch preserves cause |
+| Tests / smoke | multi-level + create-new schema cases; smoke script extended |
+
+| Hotspot | ~LOC after wave 11 |
+|---------|-------------------|
+| `NoteLookupProvider.ts` | **~387** (was ~471 after wave 10) |
+| `SchemaLookupProvider.ts` | **~243** (was ~286) |
+| `lookupProviderAccept` / `History` | shared accept path |
+| `schemaLookupHelpers` | pure multi-level + create-new (Node-smokeable) |
+
+### Wave 12 — optional next
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | Peel remaining accept-flow / empty-qs branches from `NoteLookupProvider` if still noisy |
-| P2 | Split `SchemaLookupProvider` along same patterns as note provider |
-| P3 | Comment pass on remaining large command files |
+| P1 | Peel large command files (e.g. `NoteLookupCommand`) if still noisy |
+| P2 | Further thin `SchemaPickerUtils` / shared provide() debounce wiring |
+| P3 | Comment pass on dual-build contracts in remaining entrypoints |
 
 ---
 

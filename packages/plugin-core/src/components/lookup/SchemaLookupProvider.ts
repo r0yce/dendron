@@ -1,14 +1,17 @@
+/**
+ * Schema lookup QuickPick provider.
+ *
+ * Peeled helpers:
+ * - empty qs / create-new → `schemaLookupHelpers`
+ * - accept vault/hooks → `lookupProviderAccept` / `lookupProviderHistory`
+ */
 import {
-  DNodeUtils,
   NoteLookupUtils,
   NoteQuickInput,
   NoteUtils,
-  SchemaModuleProps,
-  SchemaUtils,
   VSCodeEvents,
 } from "@dendronhq/common-all";
 import { getDurationMilliseconds } from "@dendronhq/common-server";
-import { HistoryService } from "@dendronhq/engine-server";
 import _ from "lodash";
 import { CancellationTokenSource, window } from "vscode";
 import { NoteLookupCommand } from "../../commands/NoteLookupCommand";
@@ -17,17 +20,25 @@ import { Logger } from "../../logger";
 import { AnalyticsUtils } from "../../utils/analytics";
 import { NotePickerUtils } from "../lookup/NotePickerUtils";
 import { SchemaPickerUtils } from "../lookup/SchemaPickerUtils";
-import { CREATE_NEW_SCHEMA_DETAIL } from "./constants";
 import {
   ILookupProviderOptsV3,
   ILookupProviderV3,
   OnAcceptHook,
   OnUpdatePickerItemsOpts,
   ProvideOpts,
-  SchemaLookupProviderSuccessResp,
 } from "./LookupProviderV3Interface";
-import { DendronQuickPickerV2, DendronQuickPickState } from "./types";
-import { OldNewLocation, PickerUtilsV2 } from "./utils";
+import {
+  maybeSelectVaultViaNextPicker,
+  runAcceptHooksAndPublish,
+} from "./lookupProviderAccept";
+import { publishLookupCancel } from "./lookupProviderHistory";
+import {
+  appendCreateNewSchemaItem,
+  fetchSchemaRootPickerItems,
+  isMultiLevelSchemaQuery,
+} from "./schemaLookupHelpers";
+import { DendronQuickPickerV2 } from "./types";
+import { PickerUtilsV2 } from "./utils";
 
 export class SchemaLookupProvider implements ILookupProviderV3 {
   private _extension: IDendronExtension;
@@ -37,7 +48,7 @@ export class SchemaLookupProvider implements ILookupProviderV3 {
   constructor(
     public id: string,
     opts: ILookupProviderOptsV3,
-    extension: IDendronExtension
+    extension: IDendronExtension,
   ) {
     this._extension = extension;
     this._onAcceptHooks = [];
@@ -59,7 +70,7 @@ export class SchemaLookupProvider implements ILookupProviderV3 {
       {
         leading: true,
         maxWait: 200,
-      }
+      },
     );
     quickpick.onDidChangeValue(onUpdateDebounced);
     quickpick.onDidAccept(async () => {
@@ -81,8 +92,6 @@ export class SchemaLookupProvider implements ILookupProviderV3 {
 
   /**
    * Takes selection and runs accept, followed by hooks.
-   * @param opts
-   * @returns
    */
   onDidAccept(opts: {
     quickpick: DendronQuickPickerV2;
@@ -102,33 +111,22 @@ export class SchemaLookupProvider implements ILookupProviderV3 {
             picker,
           });
       }
-      if (
-        PickerUtilsV2.hasNextPicker(picker, {
-          selectedItems,
-          providerId: this.id,
-        })
-      ) {
-        Logger.debug({ ctx, msg: "nextPicker:pre" });
-        picker.state = DendronQuickPickState.PENDING_NEXT_PICK;
 
-        picker.vault = await picker.nextPicker!({ note: selectedItems[0]! });
-        // check if we exited from selecting a vault
-        if (_.isUndefined(picker.vault)) {
-          HistoryService.instance().add({
-            source: "lookupProvider",
-            action: "done",
-            id: this.id,
-            data: { cancel: true },
-          });
-          return;
-        }
+      const vaultOk = await maybeSelectVaultViaNextPicker({
+        picker,
+        selectedItems,
+        providerId: this.id,
+        ctx,
+      });
+      if (!vaultOk) {
+        return;
       }
-      const isMultiLevel = picker.value.split(".").length > 1;
-      if (isMultiLevel) {
+
+      if (isMultiLevelSchemaQuery(picker.value)) {
         window
           .showInformationMessage(
             "It looks like you are trying to create a multi-level [schema](https://wiki.dendron.so/notes/c5e5adde-5459-409b-b34d-a0d75cbb1052.html). This is not supported. If you are trying to create a note instead, run the `> Note Lookup` command or click on `Note Lookup`",
-            ...["Note Lookup"]
+            ...["Note Lookup"],
           )
           .then(async (selection) => {
             if (selection === "Note Lookup") {
@@ -138,43 +136,20 @@ export class SchemaLookupProvider implements ILookupProviderV3 {
             }
           });
 
-        HistoryService.instance().add({
-          source: "lookupProvider",
-          action: "done",
-          id: this.id,
-          data: { cancel: true },
-        });
+        publishLookupCancel(this.id);
         return;
       }
-      // last chance to cancel
-      cancellationToken.cancel();
-      if (!this.opts.noHidePickerOnAccept) {
-        picker.hide();
-      }
-      const onAcceptHookResp = await Promise.all(
-        this._onAcceptHooks.map((hook) =>
-          hook({ quickpick: picker, selectedItems })
-        )
-      );
-      const errors = _.filter(onAcceptHookResp, (ent) => ent.error);
-      if (!_.isEmpty(errors)) {
-        HistoryService.instance().add({
-          source: "lookupProvider",
-          action: "error",
-          id: this.id,
-          data: { error: errors[0] },
-        });
-      } else {
-        HistoryService.instance().add({
-          source: "lookupProvider",
-          action: "done",
-          id: this.id,
-          data: {
-            selectedItems,
-            onAcceptHookResp: _.map(onAcceptHookResp, (ent) => ent.data!),
-          } as SchemaLookupProviderSuccessResp<OldNewLocation>,
-        });
-      }
+
+      await runAcceptHooksAndPublish({
+        picker,
+        selectedItems,
+        providerId: this.id,
+        onAcceptHooks: this._onAcceptHooks,
+        cancellationToken,
+        ...(this.opts.noHidePickerOnAccept !== undefined
+          ? { noHidePickerOnAccept: this.opts.noHidePickerOnAccept }
+          : {}),
+      });
     };
   }
 
@@ -185,7 +160,6 @@ export class SchemaLookupProvider implements ILookupProviderV3 {
     const pickerValue = picker.value;
     const start = process.hrtime();
 
-    // get prior
     const querystring = NoteLookupUtils.slashToDot(pickerValue);
     const queryOrig = NoteLookupUtils.slashToDot(picker.value);
     const ws = this._extension.getDWorkspace();
@@ -197,24 +171,11 @@ export class SchemaLookupProvider implements ILookupProviderV3 {
       // if empty string, show all 1st level results
       if (querystring === "") {
         Logger.debug({ ctx, msg: "empty qs" });
-        const nodes = _.map(
-          _.values((await engine.querySchema("*")).data),
-          (ent: SchemaModuleProps) => {
-            return SchemaUtils.getModuleRoot(ent);
-          }
-        );
-        picker.items = await Promise.all(
-          nodes.map(async (ent) => {
-            return DNodeUtils.enhancePropForQuickInputV3({
-              wsRoot: this._extension.getDWorkspace().wsRoot,
-              props: ent,
-              schema: ent.schema
-                ? (await engine.getSchema(ent.schema.moduleId)).data
-                : undefined,
-              vaults: ws.vaults,
-            });
-          })
-        );
+        picker.items = await fetchSchemaRootPickerItems({
+          engine,
+          wsRoot: this._extension.getDWorkspace().wsRoot,
+          vaults: ws.vaults,
+        });
         return;
       }
 
@@ -246,20 +207,17 @@ export class SchemaLookupProvider implements ILookupProviderV3 {
         return;
       }
 
-      updatedItems =
-        this.opts.allowNewNote && !perfectMatch
-          ? updatedItems.concat([
-              NotePickerUtils.createNoActiveItem({
-                fname: querystring,
-                detail: CREATE_NEW_SCHEMA_DETAIL,
-              }),
-            ])
-          : updatedItems;
+      updatedItems = appendCreateNewSchemaItem({
+        updatedItems,
+        querystring,
+        allowNewNote: !!this.opts.allowNewNote,
+        hasPerfectMatch: !!perfectMatch,
+      });
 
       picker.items = updatedItems;
-    } catch (err: any) {
-      window.showErrorMessage(err);
-      throw Error(err);
+    } catch (err: unknown) {
+      window.showErrorMessage(String(err));
+      throw err instanceof Error ? err : new Error(String(err), { cause: err });
     } finally {
       profile = getDurationMilliseconds(start);
       picker.busy = false;
@@ -276,7 +234,6 @@ export class SchemaLookupProvider implements ILookupProviderV3 {
       AnalyticsUtils.track(VSCodeEvents.SchemaLookup_Update, {
         duration: profile,
       });
-      return; // eslint-disable-line no-unsafe-finally -- probably can be just removed
     }
   }
 
