@@ -65,7 +65,7 @@ import { VaultSelectionMode } from "../../components/lookup/types";
 import { CREATE_NEW_NOTE_DETAIL } from "../../components/lookup/constants";
 import { Location, Range, Uri } from "vscode";
 
-describe("maintainabilityHelpers (waves 5–15)", () => {
+describe("maintainabilityHelpers (waves 5–17)", () => {
   describe("md/anchors", () => {
     it("finds frontmatter ending offset and 1-indexed line", () => {
       const body = "---\nid: abc\n---\n\n# Hello\n";
@@ -674,4 +674,5 @@ describe("maintainabilityHelpers (waves 5–15)", () => {
       ).toBeFalsy();
     });
   });
+
 });

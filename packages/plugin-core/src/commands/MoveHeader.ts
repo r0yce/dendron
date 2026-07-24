@@ -1,35 +1,16 @@
 import {
-  asyncLoopOneAtATime,
-  DendronError,
   DLink,
   DNodeUtils,
   DNoteHeaderAnchor,
-  DNoteLink,
-  ErrorUtils,
-  ERROR_SEVERITY,
   extractNoteChangeEntryCounts,
-  DendronConfig,
-  isNotUndefined,
   NoteChangeEntry,
   NoteProps,
   NoteQuickInput,
-  NoteUtils,
-  VaultUtils,
 } from "@dendronhq/common-all";
-import { DConfig, file2Note, vault2Path } from "@dendronhq/common-server";
 import { Heading, HistoryEvent, Node } from "@dendronhq/engine-server";
-import {
-  Processor,
-  DendronASTNode,
-  DendronASTTypes,
-  MdastUtils,
-  RemarkUtils,
-  LinkUtils,
-} from "@dendronhq/unified";
+import { RemarkUtils } from "@dendronhq/unified";
 import _ from "lodash";
-import path from "path";
-import { visit } from "unist-util-visit";
-import { Disposable, Location } from "vscode";
+import { Disposable } from "vscode";
 import {
   ILookupControllerV3,
   LookupControllerV3CreateOpts,
@@ -43,7 +24,7 @@ import { ExtensionProvider } from "../ExtensionProvider";
 import { delayedUpdateDecorations } from "../features/windowDecorations";
 import { IEngineAPIService } from "../services/EngineAPIServiceInterface";
 import { AutoCompleter } from "../utils/autoCompleter";
-import { findReferences, FoundRefT, hasAnchorsToUpdate } from "../utils/md";
+import { findReferences, FoundRefT } from "../utils/md";
 import { ProxyMetricUtils } from "../utils/ProxyMetricUtils";
 import { AutoCompletableRegistrar } from "../utils/registers/AutoCompletableRegistrar";
 import { VSCodeUtils } from "../vsCodeUtils";
@@ -51,10 +32,17 @@ import { BasicCommand } from "./base";
 import {
   appendHeaderToDestination,
   findAnchorNamesToUpdate,
-  getMoveHeaderProc,
   prepareMoveHeaderDestination,
   removeHeaderBlockFromOriginBody,
 } from "./moveHeaderHelpers";
+import {
+  updateLinksInNote as updateLinksInNoteHelper,
+  updateMoveHeaderReferences,
+} from "./moveHeaderLinks";
+import {
+  moveHeaderErrors,
+  validateAndProcessMoveHeaderInput,
+} from "./moveHeaderValidate";
 
 type CommandInput =
   | {
@@ -78,90 +66,11 @@ export class MoveHeaderCommand extends BasicCommand<
 > {
   key = DENDRON_COMMANDS.MOVE_HEADER.key;
 
-  private headerNotSelectedError = new DendronError({
-    message: "You must first select the header you want to move.",
-    severity: ERROR_SEVERITY.MINOR,
-  });
+  private noNodesToMoveError = moveHeaderErrors.noNodesToMove;
+  private noDestError = moveHeaderErrors.noDest;
 
-  private noActiveNoteError = new DendronError({
-    message: "No note open.",
-    severity: ERROR_SEVERITY.MINOR,
-  });
-
-  private noNodesToMoveError = new DendronError({
-    message:
-      "There are no nodes to move. If your selection is valid, try again after reloading VSCode.",
-    severity: ERROR_SEVERITY.MINOR,
-  });
-
-  private noDestError = new DendronError({
-    message: "No destination provided.",
-    severity: ERROR_SEVERITY.MINOR,
-  });
-
-  private getProc = getMoveHeaderProc;
-
-  /**
-   * Helper for {@link MoveHeaderCommand.gatherInputs}
-   * Validates and processes inputs to be passed for further action
-   * @param engine
-   * @returns {}
-   */
-  private async validateAndProcessInput(engine: IEngineAPIService): Promise<{
-    proc: Processor;
-    origin: NoteProps;
-    targetHeader: Heading;
-    targetHeaderIndex: number;
-  }> {
-    const { editor, selection } = VSCodeUtils.getSelection();
-
-    // basic input validation
-    if (!editor) throw this.noActiveNoteError;
-    if (!selection) throw this.headerNotSelectedError;
-
-    const line = editor.document.lineAt(selection.start.line).text;
-    const maybeNote = await ExtensionProvider.getWSUtils().getNoteFromDocument(
-      editor.document
-    );
-    if (!maybeNote) {
-      throw this.noActiveNoteError;
-    }
-
-    // parse selection and get the target header node
-    const proc = this.getProc(engine, maybeNote);
-
-    // TODO: shoudl account for line number
-    const bodyAST: DendronASTNode = proc.parse(
-      maybeNote.body
-    ) as DendronASTNode;
-
-    const parsedLine = proc.parse(line);
-    let targetHeader: Heading | undefined;
-    let targetIndex: number | undefined;
-    // Find the first occurring heading node in selected line.
-    // This should be our target.
-    visit(parsedLine, [DendronASTTypes.HEADING], (heading: Heading, index) => {
-      targetHeader = heading;
-      targetIndex = index;
-      return false;
-    });
-    if (!targetHeader || _.isUndefined(targetIndex)) {
-      throw this.headerNotSelectedError;
-    }
-
-    const resp = MdastUtils.findHeader({
-      nodes: bodyAST.children,
-      match: targetHeader as Parameters<typeof MdastUtils.findHeader>[0]["match"],
-    });
-    if (!resp) {
-      throw Error("did not find header");
-    }
-    return {
-      proc,
-      origin: maybeNote,
-      targetHeader,
-      targetHeaderIndex: resp.index,
-    };
+  private async validateAndProcessInput(engine: IEngineAPIService) {
+    return validateAndProcessMoveHeaderInput({ engine });
   }
 
   /**
@@ -304,114 +213,13 @@ export class MoveHeaderCommand extends BasicCommand<
     return findAnchorNamesToUpdate(originDeepCopy, modifiedOriginContent);
   }
 
-  /**
-   * Helper for {@link MoveHeaderCommand.updateReferences}
-   * Given a {@link Location}, find the respective note.
-   * @param location
-   * @param engine
-   * @returns note
-   */
-  private async getNoteByLocation(
-    location: Location,
-    engine: IEngineAPIService
-  ): Promise<NoteProps | undefined> {
-    const fsPath = location.uri.fsPath;
-    const fname = NoteUtils.normalizeFname(path.basename(fsPath));
-
-    const vault = ExtensionProvider.getWSUtils().getVaultFromUri(location.uri);
-    return (await engine.findNotes({ fname, vault }))[0];
-  }
-
-  /**
-   * Helper for {@link MoveHeaderCommand.updateReferences}
-   * Given an note, origin note, and a list of anchor names,
-   * return all links that should be updated in {@link note},
-   * is a descending order of location offset.
-   * @param note
-   * @param engine
-   * @param origin
-   * @param anchorNamesToUpdate
-   * @returns
-   */
-  private findLinksToUpdate(
-    note: NoteProps,
-    origin: NoteProps,
-    anchorNamesToUpdate: string[],
-    config: DendronConfig
-  ) {
-    const links = LinkUtils.findLinksFromBody({
-      note,
-      config,
-    }).filter((link) => {
-      return (
-        link.to?.fname?.toLowerCase() === origin.fname.toLowerCase() &&
-        link.to?.anchorHeader &&
-        anchorNamesToUpdate.includes(link.to.anchorHeader)
-      );
-    });
-
-    // modify it from the bottom
-    // to avoid dealing with offsetting locations
-    const linksToUpdate = _.orderBy(
-      links,
-      (link: DLink) => {
-        return link.position?.start.offset;
-      },
-      "desc"
-    );
-
-    return linksToUpdate;
-  }
-
-  /**
-   * Helper for {@link MoveHeaderCommand.updateReferences}
-   * Given a note that has links to update, and a list of links,
-   * modify the note's body to have updated links.
-   * @param note Note that has links to update
-   * @param linksToUpdate list of links to update
-   * @param dest Note that was the destination of move header commnad
-   * @returns
-   */
   async updateLinksInNote(opts: {
     note: NoteProps;
     engine: IEngineAPIService;
     linksToUpdate: DLink[];
     dest: NoteProps;
   }) {
-    const { note, engine, linksToUpdate, dest } = opts;
-    const notesWithSameName = await engine.findNotesMeta({ fname: dest.fname });
-    return _.reduce(
-      linksToUpdate,
-      (note: NoteProps, linkToUpdate: DLink) => {
-        const oldLink = LinkUtils.dlink2DNoteLink(linkToUpdate);
-
-        // original link had vault prefix?
-        //   keep it
-        // original link didn't have vault prefix?
-        //   add vault prefix if there are notes with same name in other vaults.
-        //   don't add otherwise.
-        const isXVault = oldLink.data.xvault || notesWithSameName.length > 1;
-        const newLink = {
-          ...oldLink,
-          from: {
-            ...oldLink.from,
-            fname: dest.fname,
-            vaultName: VaultUtils.getName(dest.vault),
-          },
-          data: {
-            xvault: isXVault,
-          },
-        } as DNoteLink;
-        const newBody = LinkUtils.updateLink({
-          note: note!,
-          oldLink,
-          newLink,
-        });
-        note.body = newBody;
-        return note;
-      },
-      note
-    );
+    return updateLinksInNoteHelper(opts);
   }
 
   /**
@@ -432,55 +240,15 @@ export class MoveHeaderCommand extends BasicCommand<
     origin: NoteProps,
     dest: NoteProps
   ): Promise<NoteChangeEntry[]> {
-    let noteChangeEntries: NoteChangeEntry[] = [];
-    const ctx = `${this.key}:updateReferences`;
-    const refsToProcess = (
-      await Promise.all(
-        foundReferences
-          .filter((ref) => !ref.isCandidate)
-          .filter((ref) => hasAnchorsToUpdate(ref, anchorNamesToUpdate))
-          .map((ref) => this.getNoteByLocation(ref.location, engine))
-      )
-    ).filter(isNotUndefined);
-    const config = DConfig.readConfigSync(engine.wsRoot);
-
-    await asyncLoopOneAtATime(refsToProcess, async (note) => {
-      try {
-        const vaultPath = vault2Path({
-          vault: note.vault,
-          wsRoot: engine.wsRoot,
-        });
-        const resp = file2Note(
-          path.join(vaultPath, note.fname + ".md"),
-          note!.vault
-        );
-        if (ErrorUtils.isErrorResp(resp)) {
-          throw new Error();
-        }
-        const _note = resp.data;
-        const linksToUpdate = this.findLinksToUpdate(
-          _note,
-          origin,
-          anchorNamesToUpdate,
-          config
-        );
-        const modifiedNote = await this.updateLinksInNote({
-          note: _note,
-          engine,
-          linksToUpdate,
-          dest,
-        });
-        note.body = modifiedNote.body;
-        const writeResp = await engine.writeNote(note);
-        if (writeResp.data) {
-          noteChangeEntries = noteChangeEntries.concat(writeResp.data);
-        }
-      } catch (error) {
-        // TODO: should notify which one we failed during update.
-        this.L.error({ ctx, error });
-      }
+    return updateMoveHeaderReferences({
+      foundReferences,
+      anchorNamesToUpdate,
+      engine,
+      origin,
+      dest,
+      logCtx: `${this.key}:updateReferences`,
+      logger: this.L,
     });
-    return noteChangeEntries;
   }
 
   /**

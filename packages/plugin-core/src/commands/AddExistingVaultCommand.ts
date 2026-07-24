@@ -1,7 +1,5 @@
 import {
   asyncLoopOneAtATime,
-  ConfigUtils,
-  CONSTANTS,
   DendronError,
   DVault,
   DWorkspace,
@@ -9,19 +7,14 @@ import {
   SelfContainedVault,
   VaultRemoteSource,
   VaultUtils,
-  WorkspaceEvents,
-  DendronConfig,
 } from "@dendronhq/common-all";
 import {
-  DConfig,
   GitUtils,
-  pathForVaultRoot,
   simpleGit,
 } from "@dendronhq/common-server";
 import {
   Git,
   WorkspaceService,
-  WorkspaceUtils,
 } from "@dendronhq/engine-server";
 import fs from "fs-extra";
 import _ from "lodash";
@@ -38,10 +31,13 @@ import { PickerUtilsV2 } from "../components/lookup/utils";
 import { DENDRON_COMMANDS, DENDRON_REMOTE_VAULTS } from "../constants";
 import { IDendronExtension } from "../dendronExtensionInterface";
 import { Logger } from "../logger";
-import { AnalyticsUtils } from "../utils/analytics";
-import { PluginFileUtils } from "../utils/files";
-import { MessageSeverity, VSCodeUtils } from "../vsCodeUtils";
+import { VSCodeUtils } from "../vsCodeUtils";
 import { BasicCommand } from "./base";
+import {
+  addVaultToWorkspace as addVaultToWorkspaceHelper,
+  addWorkspaceToWorkspace as addWorkspaceToWorkspaceHelper,
+  checkAndWarnTransitiveDeps as checkAndWarnTransitiveDepsHelper,
+} from "./vaultWorkspaceHelpers";
 
 type CommandOpts = {
   type: VaultRemoteSource;
@@ -409,93 +405,27 @@ export class AddExistingVaultCommand extends BasicCommand<
     );
   }
 
-  /** If a self contained vault contains transitive dependencies, warn the user
-   * that they won't be accessible.
-   *
-   * Adding transitive deps is not supported yet, this check can be removed once
-   * support is added.
-   */
   async checkAndWarnTransitiveDeps(opts: {
     vault: SelfContainedVault;
     wsRoot: string;
   }) {
-    const vaultRootPath = pathForVaultRoot(opts);
-    try {
-      if (
-        await fs.pathExists(
-          path.join(vaultRootPath, CONSTANTS.DENDRON_CONFIG_FILE)
-        )
-      ) {
-        const vaultConfig = DConfig.getRaw(vaultRootPath) as DendronConfig;
-        if (ConfigUtils.getVaults(vaultConfig)?.length > 1) {
-          await AnalyticsUtils.trackForNextRun(
-            WorkspaceEvents.TransitiveDepsWarningShow
-          );
-          // Wait for the user to accept the prompt, otherwise window will
-          // reload before they see the warning
-          const openDocsOption = "Open documentation & continue";
-          const select = await VSCodeUtils.showMessage(
-            MessageSeverity.WARN,
-            "The vault you added depends on other vaults, which is not supported.",
-            {
-              modal: true,
-              detail:
-                "You may be unable to access these transitive vaults. The vault itself should continue to work. Please see for [details]()",
-            },
-            {
-              title: "Continue",
-              isCloseAffordance: true,
-            },
-            { title: openDocsOption }
-          );
-          if (select?.title === openDocsOption) {
-            // Open a page in the default browser that describes what transitive
-            // dependencies are, and how to add them.
-            await PluginFileUtils.openWithDefaultApp(
-              "https://wiki.dendron.so/notes/q9yo0y7czv8mxlkbnw1ugj1"
-            );
-          }
-        }
-      }
-    } catch (err) {
-      // If anything does fail, ignore the error. This check is not crucial to
-      // adding a vault, it's better if we let the user keep adding.
-      Logger.warn({
-        ctx: "VaultAddCommand.handleRemoteRepoSelfContained",
-        err,
-      });
-    }
+    return checkAndWarnTransitiveDepsHelper({
+      ...opts,
+      logCtx: "AddExistingVaultCommand.handleRemoteRepoSelfContained",
+    });
   }
 
   async addWorkspaceToWorkspace(workspace: DWorkspace) {
-    const wsRoot = this._ext.getDWorkspace().wsRoot;
-    const vaults = workspace.vaults;
-    // Some things, like updating workspace file, can't be parallelized so needs to be done one at a time
-    for (const vault of vaults) {
-      // eslint-disable-next-line no-await-in-loop
-      await this.addVaultToWorkspace(vault);
-    }
-    // add to gitignore
-    await GitUtils.addToGitignore({
-      addPath: workspace.name,
-      root: wsRoot,
-      noCreateIfMissing: true,
-    });
-
-    const workspaceDir = path.join(wsRoot, workspace.name);
-    await fs.ensureDir(workspaceDir);
-    await GitUtils.addToGitignore({
-      addPath: ".dendron.cache.*",
-      root: workspaceDir,
+    return addWorkspaceToWorkspaceHelper({
+      workspace,
+      wsRoot: this._ext.getDWorkspace().wsRoot,
     });
   }
 
   async addVaultToWorkspace(vault: DVault) {
-    return WorkspaceUtils.addVaultToWorkspace({
-      vault,
-      wsRoot: this._ext.getDWorkspace().wsRoot,
-    });
+    return addVaultToWorkspaceHelper(vault, this._ext.getDWorkspace().wsRoot);
   }
+
 
   /**
    * Returns all vaults added

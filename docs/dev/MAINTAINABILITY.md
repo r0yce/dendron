@@ -235,13 +235,26 @@ Still >400 LOC and not fully modular shells:
 | `Doctor.ts` | **~280** (was ~723 start; ~541 after wave 15) |
 | `doctorExecute.ts` | ~336 |
 
-### Wave 17 — optional next
+### Wave 17 — DONE (this push)
+
+| Item | Result |
+|------|--------|
+| MoveHeader peels | `moveHeaderValidate`, `moveHeaderLinks` (find/update links + refs); shell ~400 |
+| Vault shared helpers | `vaultWorkspaceHelpers` — transitive deps warn, add vault/workspace (VaultAdd + AddExisting) |
+
+| Hotspot | ~LOC after wave 17 |
+|---------|-------------------|
+| `MoveHeader.ts` | **~400** (was ~695 / ~632) |
+| `VaultAddCommand.ts` | **~437** (was ~510) |
+| `AddExistingVaultCommand.ts` | **~480** (was ~550) |
+
+### Wave 18 — optional next
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | Peel MoveHeader link/reference update path |
-| P2 | Dedup VaultAdd / AddExistingVault remote handlers |
-| P3 | RefactorHierarchyV2 / MergeNote / GotoNote peels |
+| P1 | Peel VaultAdd/AddExisting `handleRemoteRepo*` into shared remote vault module |
+| P2 | RefactorHierarchyV2 / MoveNote / MergeNote / GotoNote |
+| P3 | Continue until no command ≥400 LOC |
 
 ---
 

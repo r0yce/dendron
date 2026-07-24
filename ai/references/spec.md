@@ -160,7 +160,8 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | SchemaLookup modular | `schemaLookupGatherInputs`, `schemaLookupAccept*`, `schemaLookupExecute` |
 | Lookup enrich (History) | `lookupCommandEnrichInputs` (note + schema) |
 | Doctor | `doctorActions`, `doctorPreviews`, `doctorExecute` |
-| MoveHeader helpers | `moveHeaderHelpers` |
+| MoveHeader helpers | `moveHeaderHelpers`, `moveHeaderLinks`, `moveHeaderValidate` |
+| Vault add shared | `vaultWorkspaceHelpers` |
 | Schema-from-hierarchy pure | `hierarchySchemaModels`, `hierarchySchemaCreator` |
 | Lookup controller modifiers | `lookupControllerModifiers`, `lookupControllerViewState` |
 | Lookup sentinels / open note | `pickerSentinels`, `pickerDisplay` |
