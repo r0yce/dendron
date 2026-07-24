@@ -35,7 +35,6 @@ import {
   findExistingRefactorTargets,
   getRefactorRenamePathOps,
 } from "./refactorHierarchyOps";
-import { Uri } from "vscode";
 
 const md = _md();
 

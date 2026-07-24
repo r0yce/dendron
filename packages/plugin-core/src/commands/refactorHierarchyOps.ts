@@ -66,9 +66,9 @@ export function getRefactorRenamePathOps(opts: {
 }
 
 /** True if any destination path already exists on disk. */
-export function findExistingRefactorTargets(
-  operations: { newPath?: string; newUri?: { fsPath: string } }[]
-): typeof operations {
+export function findExistingRefactorTargets<
+  T extends { newPath?: string; newUri?: { fsPath: string } },
+>(operations: T[]): T[] {
   return _.filter(operations, (op) => {
     const p = op.newPath ?? op.newUri?.fsPath;
     return p ? fs.pathExistsSync(p) : false;
@@ -77,7 +77,12 @@ export function findExistingRefactorTargets(
 
 /** Markdown error preview body for overwrite conflicts. */
 export function buildRefactorOverwriteErrorMarkdown(
-  operations: { oldUri?: { fsPath: string }; oldPath?: string; newUri?: { fsPath: string }; newPath?: string }[]
+  operations: {
+    oldUri?: { fsPath: string };
+    oldPath?: string;
+    newUri?: { fsPath: string };
+    newPath?: string;
+  }[],
 ): string {
   return [
     "# Error - Refactoring would overwrite files",
@@ -90,7 +95,7 @@ export function buildRefactorOverwriteErrorMarkdown(
         const oldP = op.oldPath ?? op.oldUri!.fsPath;
         const newP = op.newPath ?? op.newUri!.fsPath;
         return `| ${path.basename(oldP)} |-->| ${path.basename(newP)} |`;
-      })
+      }),
     )
     .join("\n");
 }
