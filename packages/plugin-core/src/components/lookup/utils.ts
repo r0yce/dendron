@@ -1,36 +1,20 @@
 /**
- * Lookup picker utilities (PickerUtilsV2 + free helpers).
+ * Lookup picker utilities (PickerUtilsV2 + re-exports).
  *
  * Peeled modules (import from here or directly):
  * - `pickerCreateNew` / `pickerSort` / `pickerFilters` / `pickerVault`
- * - `pickerQuickPick` / `pickerEditorContext`
+ * - `pickerQuickPick` / `pickerEditorContext` / `pickerFilterResults`
+ * - `pickerSentinels` / `pickerDisplay` / `providerAcceptHooks`
  */
 /* eslint-disable no-dupe-class-members */
 import {
   DEngineClient,
-  DNodeProps,
   DNodePropsQuickInputV2,
-  DNodeUtils,
   DVault,
   NoteProps,
   NoteQuickInput,
-  OrderedMatcher,
-  TransformedQueryString,
-  VaultUtils,
 } from "@dendronhq/common-all";
-import { vault2Path } from "@dendronhq/common-server";
-import _, { orderBy } from "lodash";
-import path from "path";
-import { QuickPickItem, Uri, ViewColumn, window } from "vscode";
-import { ExtensionProvider } from "../../ExtensionProvider";
-import { Logger } from "../../logger";
-import { DendronBtn, getButtonCategory } from "./ButtonTypes";
-import {
-  CREATE_NEW_LABEL,
-  CREATE_NEW_NOTE_DETAIL,
-  MORE_RESULTS_LABEL,
-} from "./constants";
-import { DendronQuickPickerV2, VaultSelectionMode } from "./types";
+import _ from "lodash";
 import {
   filterByDepth,
   filterCreateNewItem,
@@ -58,7 +42,10 @@ import {
   getOrPromptVaultForNewNote,
   getVaultRecommendations,
   promptVault,
+  VaultPickerItem,
+  isDVaultArray,
 } from "./pickerVault";
+import { DendronQuickPickerV2, VaultSelectionMode } from "./types";
 
 export const UPDATET_SOURCE = {
   UPDATE_PICKER_FILTER: "UPDATE_PICKER_FILTER",
@@ -71,90 +58,16 @@ export {
   HIERARCHY_MATCH_DETAIL,
 } from "./vaultPickerConstants";
 
-export type VaultPickerItem = { vault: DVault; label: string } & Partial<
-  Omit<QuickPickItem, "label">
->;
+export type { VaultPickerItem };
+export { isDVaultArray };
 
-export function isDVaultArray(
-  overrides?: VaultPickerItem[] | DVault[],
-): overrides is DVault[] {
-  return _.some(
-    overrides,
-    (item) => (item as VaultPickerItem).vault === undefined,
-  );
-}
-
-export function createNoActiveItem(vault: DVault): DNodePropsQuickInputV2 {
-  const props = DNodeUtils.create({
-    fname: CREATE_NEW_LABEL,
-    type: "note",
-    vault,
-  });
-  return {
-    ...props,
-    label: CREATE_NEW_LABEL,
-    detail: CREATE_NEW_NOTE_DETAIL,
-    alwaysShow: true,
-  };
-}
-
-export function createMoreResults(): DNodePropsQuickInputV2 {
-  // Sentinel "more results" partial for lookup UI (intentionally incomplete vs full DNodePropsQuickInputV2). Cast documented per final burn (2026-06-01); no bare @ts. (Legacy pattern shared with NotePickerUtils sentinels.)
-  return {
-    label: MORE_RESULTS_LABEL,
-    detail: "",
-    alwaysShow: true,
-  } as DNodePropsQuickInputV2;
-}
-
-export function node2Uri(node: DNodeProps): Uri {
-  const ext = node.type === "note" ? ".md" : ".yml";
-  const nodePath = node.fname + ext;
-  const { wsRoot } = ExtensionProvider.getDWorkspace();
-  const vault = node.vault;
-  const vpath = vault2Path({ wsRoot, vault });
-  return Uri.file(path.join(vpath, nodePath));
-}
-
-export async function showDocAndHidePicker(
-  uris: Uri[],
-  picker: DendronQuickPickerV2,
-) {
-  const ctx = "showDocAndHidePicker";
-  const maybeSplitSelection = _.find(picker.buttons, (ent: DendronBtn) => {
-    return getButtonCategory(ent) === "split" && ent.pressed;
-  });
-  let viewColumn = ViewColumn.Active;
-  if (maybeSplitSelection) {
-    const splitType = (maybeSplitSelection as DendronBtn).type;
-    if (splitType === "horizontal") {
-      viewColumn = ViewColumn.Beside;
-    } else {
-      // TODO: close current button
-      // await commands.executeCommand("workbench.action.splitEditorDown");
-    }
-  }
-
-  await Promise.all(
-    uris.map(async (uri) => {
-      return window.showTextDocument(uri, { viewColumn }).then(
-        () => {
-          Logger.info({ ctx, msg: "showTextDocument", fsPath: uri.fsPath });
-          picker.hide();
-          return;
-        },
-        (err) => {
-          Logger.error({ ctx, error: err, msg: "exit" });
-          throw err;
-        },
-      );
-    }),
-  );
-  return uris;
-}
-
+export { createNoActiveItem, createMoreResults } from "./pickerSentinels";
+export { node2Uri, showDocAndHidePicker } from "./pickerDisplay";
+export { filterPickerResults } from "./pickerFilterResults";
 export type { OldNewLocation, NewLocation } from "./providerAcceptHooks";
 export { ProviderAcceptHooks } from "./providerAcceptHooks";
+export { shouldBubbleUpCreateNew } from "./pickerCreateNew";
+export { sortBySimilarity } from "./pickerSort";
 
 export class PickerUtilsV2 {
   static createDendronQuickPick = createDendronQuickPick;
@@ -244,123 +157,3 @@ export class PickerUtilsV2 {
     return props;
   }
 }
-
-function countDots(subStr: string) {
-  return Array.from(subStr).filter((ch) => ch === ".").length;
-}
-
-function sortForQueryEndingWithDot(
-  transformedQuery: TransformedQueryString,
-  itemsToFilter: NoteProps[],
-) {
-  const lowercaseQuery = transformedQuery.originalQuery.toLowerCase();
-
-  // If the user enters the query 'data.' we want to keep items that have 'data.'
-  // and sort the results in the along the following order:
-  //
-  // ```
-  // data.driven                  (data. has clean-match, grandchild-free, 1st in hierarchy)
-  // level1.level2.data.integer   (data. has clean-match, grandchild-free, 3rd in hierarchy)
-  // l1.l2.l3.data.bool           (data. has clean-match, grandchild-free, 4th in hierarchy)
-  // l1.with-data.and-child       (data. has partial match 2nd level)
-  // l1.l2.with-data.and-child    (data. has partial match 3rd level)
-  // level1.level2.data.integer.has-grandchild
-  // l1.l2.with-data.and-child.has-grandchild
-  // data.stub (Stub notes come at the end).
-  // ```
-
-  const itemsWithMetadata = itemsToFilter
-    .map((item) => {
-      // Firstly pre-process the items in attempt to find the match.
-      const lowercaseFName = item.fname.toLowerCase();
-      const matchIndex = lowercaseFName.indexOf(lowercaseQuery);
-      return { matchIndex, item };
-    })
-    // Filter out items without a match.
-    .filter((item) => item.matchIndex !== -1)
-    // Filter out items where the match is at the end (match does not have children)
-    .filter(
-      (item) =>
-        !(item.matchIndex + lowercaseQuery.length === item.item.fname.length),
-    )
-    .map((item) => {
-      // Meaning the match takes up entire level of the hierarchy.
-      // 'one.two-hi.three'->'two-hi.' is clean match while 'o-hi.' is a
-      // match but not a clean one.
-      const isCleanMatch =
-        item.matchIndex === 0 ||
-        item.item.fname.charAt(item.matchIndex - 1) === ".";
-
-      const dotsBeforeMatch = countDots(
-        item.item.fname.substring(0, item.matchIndex),
-      );
-      const dotsAfterMatch = countDots(
-        item.item.fname.substring(item.matchIndex + lowercaseQuery.length),
-      );
-      const isStub = item.item.stub;
-      const zeroGrandchildren = dotsAfterMatch === 0;
-      return {
-        isStub,
-        dotsBeforeMatch,
-        dotsAfterMatch,
-        zeroGrandchildren,
-        isCleanMatch,
-        ...item,
-      };
-    });
-
-  const sortOrder: { fieldName: string; order: "asc" | "desc" }[] = [
-    { fieldName: "isStub", order: "desc" },
-    { fieldName: "zeroGrandchildren", order: "desc" },
-    { fieldName: "isCleanMatch", order: "desc" },
-    { fieldName: "dotsAfterMatch", order: "asc" },
-    { fieldName: "dotsBeforeMatch", order: "asc" },
-  ];
-
-  return orderBy(
-    itemsWithMetadata,
-    sortOrder.map((it) => it.fieldName),
-    sortOrder.map((it) => it.order),
-  ).map((item) => item.item);
-}
-
-export const filterPickerResults = ({
-  itemsToFilter,
-  transformedQuery,
-}: {
-  itemsToFilter: NoteProps[];
-  transformedQuery: TransformedQueryString;
-}): NoteProps[] => {
-  // If we have specific vault name within the query then keep only those results
-  // that match the specific vault name.
-  if (transformedQuery.vaultName) {
-    itemsToFilter = itemsToFilter.filter(
-      (item) => VaultUtils.getName(item.vault) === transformedQuery.vaultName,
-    );
-  }
-
-  // Ending the query with a dot adds special processing of showing matched descendents.
-  if (transformedQuery.originalQuery.endsWith(".")) {
-    itemsToFilter = sortForQueryEndingWithDot(transformedQuery, itemsToFilter);
-  }
-
-  if (transformedQuery.splitByDots && transformedQuery.splitByDots.length > 0) {
-    const matcher = new OrderedMatcher(transformedQuery.splitByDots);
-
-    itemsToFilter = itemsToFilter.filter((item) => matcher.isMatch(item.fname));
-  }
-
-  if (transformedQuery.wasMadeFromWikiLink) {
-    // If we are dealing with a wiki link we want to show only the exact matches
-    // for the link instead some fuzzy/partial matches.
-    itemsToFilter = itemsToFilter.filter(
-      (item) => item.fname === transformedQuery.queryString,
-    );
-  }
-
-  return itemsToFilter;
-};
-
-// Re-export peeled helpers (stable import path: components/lookup/utils)
-export { shouldBubbleUpCreateNew } from "./pickerCreateNew";
-export { sortBySimilarity } from "./pickerSort";

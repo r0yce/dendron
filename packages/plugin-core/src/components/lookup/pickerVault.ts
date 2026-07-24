@@ -4,14 +4,27 @@
  */
 import { DEngineClient, DVault, VaultUtils } from "@dendronhq/common-all";
 import _ from "lodash";
+import { QuickPickItem } from "vscode";
 import { ExtensionProvider } from "../../ExtensionProvider";
 import { VSCodeUtils } from "../../vsCodeUtils";
-import { VaultPickerItem, isDVaultArray } from "./utils";
 import { VaultSelectionMode } from "./types";
 import {
   rankVaultSuggestions,
   resolveVaultSelectionMode,
 } from "./pickerVaultRank";
+
+export type VaultPickerItem = { vault: DVault; label: string } & Partial<
+  Omit<QuickPickItem, "label">
+>;
+
+export function isDVaultArray(
+  overrides?: VaultPickerItem[] | DVault[],
+): overrides is DVault[] {
+  return _.some(
+    overrides,
+    (item) => (item as VaultPickerItem).vault === undefined,
+  );
+}
 
 export async function getOrPromptVaultForNewNote({
   vault,

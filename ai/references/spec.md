@@ -148,6 +148,8 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | Create New ranking | `shouldBubbleUpCreateNew` / `sortBySimilarity` |
 | Vault pick for new notes | `pickerVault` / `PickerUtilsV2.getVaultRecommendations` |
 | Vault rank + selection mode (pure) | `rankVaultSuggestions` / `resolveVaultSelectionMode` in `pickerVaultRank` |
+| Lookup result filter (pure) | `filterPickerResults` in `pickerFilterResults` |
+| Lookup sentinels / open note | `pickerSentinels`, `pickerDisplay` |
 | Lookup accept hooks (rename/move) | `providerAcceptHooks.ProviderAcceptHooks` |
 | HTML side panels register | `registerHtmlSidePanels` |
 | Backlinks / graph panel setup | `workspace/setupBacklinks`, `setupGraphPanel` |
@@ -157,7 +159,7 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | QuickPick factory | `pickerQuickPick` / `PickerUtilsV2.createDendronQuickPick` |
 | Activation helpers | `workspace/activatorHelpers` |
 | Reload / engine port | `workspace/activatorReload` |
-| Lifecycle / tree view | `workspace/activatorLifecycle`, `activatorTreeView` |
+| Lifecycle / tree / server | `activatorLifecycle`, `activatorTreeView`, `activatorServer` |
 
 **Extract when:** same logic appears in ≥2 commands/views. Prefer pure functions + thin commands.
 

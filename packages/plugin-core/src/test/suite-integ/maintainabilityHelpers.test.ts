@@ -27,10 +27,11 @@ import {
   rankVaultSuggestions,
   resolveVaultSelectionMode,
 } from "../../components/lookup/pickerVaultRank";
+import { filterPickerResults } from "../../components/lookup/pickerFilterResults";
 import { VaultSelectionMode } from "../../components/lookup/types";
 import { Location, Range, Uri } from "vscode";
 
-describe("maintainabilityHelpers (waves 5–7)", () => {
+describe("maintainabilityHelpers (waves 5–8)", () => {
   describe("md/anchors", () => {
     it("finds frontmatter ending offset and 1-indexed line", () => {
       const body = "---\nid: abc\n---\n\n# Hello\n";
@@ -286,6 +287,60 @@ describe("maintainabilityHelpers (waves 5–7)", () => {
         vaultSelectionMode: "smart",
       });
       expect("vault" in rSmart && rSmart.vault?.fsPath).toEqual("vault1");
+    });
+  });
+
+  describe("filterPickerResults (pure)", () => {
+    const note = (fname: string, vaultName = "vault1") =>
+      ({
+        fname,
+        vault: { fsPath: vaultName, name: vaultName },
+      }) as any;
+
+    it("filters by vaultName when set on transformed query", () => {
+      const results = filterPickerResults({
+        itemsToFilter: [note("a", "vault1"), note("b", "vault2")],
+        transformedQuery: {
+          originalQuery: "a",
+          queryString: "a",
+          wasMadeFromWikiLink: false,
+          vaultName: "vault2",
+        },
+      });
+      expect(results.map((n) => n.fname)).toEqual(["b"]);
+    });
+
+    it("wiki-link mode keeps only exact fname matches", () => {
+      const results = filterPickerResults({
+        itemsToFilter: [note("foo"), note("foo.bar"), note("bar")],
+        transformedQuery: {
+          originalQuery: "foo",
+          queryString: "foo",
+          wasMadeFromWikiLink: true,
+        },
+      });
+      expect(results.map((n) => n.fname)).toEqual(["foo"]);
+    });
+
+    it("query ending with dot keeps hierarchical descendants of match", () => {
+      const results = filterPickerResults({
+        itemsToFilter: [
+          note("data"),
+          note("data.driven"),
+          note("data.driven.x"),
+          note("other"),
+        ],
+        transformedQuery: {
+          originalQuery: "data.",
+          queryString: "data.",
+          wasMadeFromWikiLink: false,
+        },
+      });
+      // exact leaf "data" is excluded (match at end has no children)
+      expect(results.some((n) => n.fname === "data")).toBeFalsy();
+      expect(results.some((n) => n.fname === "other")).toBeFalsy();
+      expect(results.some((n) => n.fname === "data.driven")).toBeTruthy();
+      expect(results.some((n) => n.fname === "data.driven.x")).toBeTruthy();
     });
   });
 });

@@ -1,12 +1,10 @@
 import "reflect-metadata";
-import { SubProcessExitType } from "@dendronhq/api-server";
 import * as Sentry from "@sentry/node";
 import {
   DWorkspaceV2,
   ErrorFactory,
   getStage,
   RespV3,
-  VSCodeEvents,
   WorkspaceType,
 } from "@dendronhq/common-all";
 import { getDurationMilliseconds } from "@dendronhq/common-server";
@@ -24,7 +22,6 @@ import { Logger } from "../logger";
 import { EngineAPIService } from "../services/EngineAPIService";
 import { StateService } from "../services/stateService";
 import { TextDocumentServiceFactory } from "../services/TextDocumentServiceFactory";
-import { AnalyticsUtils } from "../utils/analytics";
 import { ExtensionUtils } from "../utils/ExtensionUtils";
 import { StartupUtils } from "../utils/StartupUtils";
 import { VSCodeUtils } from "../vsCodeUtils";
@@ -44,6 +41,7 @@ import {
   analyzeWorkspace,
   getAndCleanPreviousWSVersion,
 } from "./activatorLifecycle";
+import { verifyOrStartServerProcess } from "./activatorServer";
 import { DendronCodeWorkspace } from "./codeWorkspace";
 import { DendronNativeWorkspace } from "./nativeWorkspace";
 import { WorkspaceInitFactory } from "./WorkspaceInitFactory";
@@ -219,7 +217,7 @@ export class WorkspaceActivator {
     wsService.writeMeta({ version: DendronExtension.version() });
 
     // setup engine
-    const port = await this.verifyOrStartServerProcess({ ext, wsService });
+    const port = await verifyOrStartServerProcess({ ext, wsService });
     Logger.info({ ctx: `${ctx}:verifyOrStartServerProcess`, port });
     const engine = updateEngineAPI(port, ext);
     Logger.info({ ctx: `${ctx}:exit` });
@@ -366,46 +364,5 @@ export class WorkspaceActivator {
     } else {
       return path.dirname(DendronExtension.workspaceFile().fsPath);
     }
-  }
-
-  /**
-   * Return true if we started a server process
-   * @returns
-   */
-  async verifyOrStartServerProcess({
-    ext,
-    wsService,
-  }: {
-    ext: IDendronExtension;
-    wsService: WorkspaceService;
-  }): Promise<number> {
-    const context = ext.context;
-    const start = process.hrtime();
-    if (ext.port) {
-      return ext.port;
-    }
-
-    const { port, subprocess } = await ExtensionUtils.startServerProcess({
-      context,
-      start,
-      wsService,
-      onExit: (type: SubProcessExitType) => {
-        const txt = "Restart Dendron";
-        vscode.window
-          .showErrorMessage("Dendron engine encountered an error", txt)
-          .then(async (resp) => {
-            if (resp === txt) {
-              AnalyticsUtils.track(VSCodeEvents.ServerCrashed, {
-                code: type,
-              });
-              await ExtensionUtils.activate();
-            }
-          });
-      },
-    });
-    ext.port = _.toInteger(port);
-    ext.serverProcess =
-      subprocess as any /* TODO: exactOptional + execa childprocess | undef interop on IDendronExtension.serverProcess (d.ts widened); Batch 5 debug launch sweep 2026-05-31 (per Strict-Fixer plan on _extension/activator/Partial opts + user mandate to 0 + full test + Clean Host smoke + merge); see 4-axis + prior M2 cast notes */;
-    return ext.port;
   }
 }

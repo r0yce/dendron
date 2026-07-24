@@ -18,11 +18,13 @@
 | `selectionProcessing` | lookup | selectionExtract / selection2link |
 | `pickerCreateNew` / `pickerSort` / `pickerFilters` | lookup | Ranking + filters |
 | `pickerVault` / `pickerVaultRank` / `vaultPickerConstants` | lookup | Vault recommendations (pure rank + selection-mode, Node-testable) |
+| `pickerFilterResults` | lookup | Pure post-query filter/rank (`filterPickerResults`) |
+| `pickerSentinels` / `pickerDisplay` | lookup | Create New / More Results sentinels; open doc + hide picker |
 | `providerAcceptHooks` | lookup | Rename/move on-accept location hooks |
 | `pickerQuickPick` / `pickerEditorContext` | lookup | QuickPick factory + open-editor vault/fname |
 | `utils/md/*` | plugin-core | paths, anchors, markdownUtils, getReferenceAtPosition, findReferences |
 | `registerHtmlSidePanels` / `setupBacklinks` / `setupGraphPanel` / `setupTipOfTheDay` | workspace/ | Side panels |
-| `activatorHelpers` / `activatorReload` / `activatorLifecycle` / `activatorTreeView` | workspace/ | Activation, reload, lifecycle analytics, tree view |
+| `activatorHelpers` / `activatorReload` / `activatorLifecycle` / `activatorTreeView` / `activatorServer` | workspace/ | Activation, reload, lifecycle, tree view, engine server process |
 | `extension/setupCommands` / `setupLanguageFeatures` | extension/ | Activation registration |
 
 **Rule:** same 5+ lines twice → extract. Pure logic → no vscode imports when possible.
@@ -62,13 +64,33 @@ Helpers, HTML shell, lookup selection, md modules, picker filters, activator hel
 | `pickerVaultRank.ts` | ~159 (rank + selection-mode pure) |
 | `activatorLifecycle.ts` / `activatorTreeView.ts` | ~67 / ~83 |
 
-### Wave 8 — optional next
+### Wave 8 — DONE (this push)
+
+| Item | Result |
+|------|--------|
+| Pure filter peel | `pickerFilterResults.ts` (`filterPickerResults` + query-ending-dot sort) |
+| Sentinels peel | `pickerSentinels.ts` (`createNoActiveItem`, `createMoreResults`) |
+| Display peel | `pickerDisplay.ts` (`node2Uri`, `showDocAndHidePicker`) |
+| Vault picker types | `VaultPickerItem` + `isDVaultArray` owned by `pickerVault.ts` |
+| Activator server peel | `activatorServer.ts` (`verifyOrStartServerProcess`) |
+| Facade | `lookup/utils.ts` is re-exports + `PickerUtilsV2` thin wrappers only |
+| Tests | pure `filterPickerResults` cases in `maintainabilityHelpers.test.ts` |
+
+| Hotspot | ~LOC after wave 8 |
+|---------|-------------------|
+| `lookup/utils.ts` | **~159** (was ~834 at start; ~369 after wave 7) |
+| `workspaceActivator.ts` | **~369** orchestration shell |
+| `pickerFilterResults.ts` | ~135 pure |
+| `pickerSentinels` / `pickerDisplay` | ~36 / ~58 |
+| `activatorServer.ts` | ~51 |
+
+### Wave 9 — optional next
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | Further thin `utils.ts` (remaining PickerUtilsV2 wrappers only if still noisy) |
-| P2 | More activator free-fn peels if any large helpers remain on the class |
-| P3 | Optional: Node-only pure tests for selection-mode outside VS Code test host |
+| P1 | Further split `NoteLookupProvider` / `LookupControllerV3` if still noisy |
+| P2 | Optional pure Node smoke script in CI for `pickerFilterResults` + vault rank |
+| P3 | Comment pass on remaining dual-build / activation contracts |
 
 ---
 
@@ -76,5 +98,5 @@ Helpers, HTML shell, lookup selection, md modules, picker filters, activator hel
 
 ```bash
 yarn workspace @dendronhq/plugin-core compile
-node -e "require('./packages/plugin-core/out/src/components/lookup/pickerVaultRank.js')"
+node -e "require('./packages/plugin-core/out/src/components/lookup/pickerFilterResults.js'); require('./packages/plugin-core/out/src/components/lookup/pickerVaultRank.js')"
 ```
