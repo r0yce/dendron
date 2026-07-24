@@ -2,21 +2,16 @@
  * Vault selection / recommendation for lookup create-new flows.
  * Extracted from PickerUtilsV2 for maintainability.
  */
-import {
-  DEngineClient,
-  DVault,
-  VaultUtils,
-} from "@dendronhq/common-all";
+import { DEngineClient, DVault, VaultUtils } from "@dendronhq/common-all";
 import _ from "lodash";
 import { ExtensionProvider } from "../../ExtensionProvider";
 import { VSCodeUtils } from "../../vsCodeUtils";
 import { VaultPickerItem, isDVaultArray } from "./utils";
 import { VaultSelectionMode } from "./types";
-import { rankVaultSuggestions } from "./pickerVaultRank";
 import {
-  CONTEXT_DETAIL,
-  FULL_MATCH_DETAIL,
-} from "./vaultPickerConstants";
+  rankVaultSuggestions,
+  resolveVaultSelectionMode,
+} from "./pickerVaultRank";
 
 export async function getOrPromptVaultForNewNote({
   vault,
@@ -27,73 +22,61 @@ export async function getOrPromptVaultForNewNote({
   fname: string;
   vaultSelectionMode?: VaultSelectionMode;
 }): Promise<DVault | undefined> {
-    const engine = ExtensionProvider.getEngine();
-    const vaultSuggestions = await getVaultRecommendations({
-      vault,
-      vaults: engine.vaults,
-      engine,
-      fname,
-    });
+  const engine = ExtensionProvider.getEngine();
+  const vaultSuggestions = await getVaultRecommendations({
+    vault,
+    vaults: engine.vaults,
+    engine,
+    fname,
+  });
 
-    if (
-      vaultSuggestions?.length === 1 ||
-      vaultSelectionMode === VaultSelectionMode.auto
-    ) {
-      return vaultSuggestions[0]!.vault;
-    }
-
-    // Auto select for the user if either the hierarchy pattern matches in the
-    // current vault context, or if there are no hierarchy matches
-    if (vaultSelectionMode === VaultSelectionMode.smart) {
-      const topSuggestion = vaultSuggestions[0]!;
-      if (
-        topSuggestion.detail === FULL_MATCH_DETAIL ||
-        topSuggestion.detail === CONTEXT_DETAIL
-      ) {
-        return topSuggestion.vault;
-      }
-    }
-
+  const resolved = resolveVaultSelectionMode({
+    vaultSuggestions,
+    vaultSelectionMode,
+  });
+  if ("prompt" in resolved) {
     return promptVault(vaultSuggestions);
   }
+  return resolved.vault;
+}
 
 export function promptVault(overrides?: DVault[]): Promise<DVault | undefined>;
 export function promptVault(
-  overrides?: VaultPickerItem[]
+  overrides?: VaultPickerItem[],
 ): Promise<DVault | undefined>;
 export async function promptVault(
-  overrides?: VaultPickerItem[] | DVault[]
+  overrides?: VaultPickerItem[] | DVault[],
 ): Promise<DVault | undefined> {
-    const { vaults: wsVaults } = ExtensionProvider.getDWorkspace();
-    const pickerOverrides = isDVaultArray(overrides)
-      ? overrides.map((value) => {
-          return { vault: value, label: VaultUtils.getName(value) };
-        })
-      : overrides;
+  const { vaults: wsVaults } = ExtensionProvider.getDWorkspace();
+  const pickerOverrides = isDVaultArray(overrides)
+    ? overrides.map((value) => {
+        return { vault: value, label: VaultUtils.getName(value) };
+      })
+    : overrides;
 
-    const vaults: VaultPickerItem[] =
-      pickerOverrides ??
-      wsVaults.map((vault) => {
-        return { vault, label: VaultUtils.getName(vault) };
-      });
-
-    const items = vaults.map((ent) => ({
-      ...ent,
-      label: ent.label ? ent.label : ent.vault.fsPath,
-    }));
-    const resp = await VSCodeUtils.showQuickPick(items, {
-      title: "Select Vault",
+  const vaults: VaultPickerItem[] =
+    pickerOverrides ??
+    wsVaults.map((vault) => {
+      return { vault, label: VaultUtils.getName(vault) };
     });
 
-    return resp ? resp.vault : undefined;
-  }
+  const items = vaults.map((ent) => ({
+    ...ent,
+    label: ent.label ? ent.label : ent.vault.fsPath,
+  }));
+  const resp = await VSCodeUtils.showQuickPick(items, {
+    title: "Select Vault",
+  });
 
-  /**
-   * Determine which vault(s) are the most appropriate to create this note in.
-   * Vaults determined as better matches appear earlier in the returned array
-   * @param
-   * @returns
-   */
+  return resp ? resp.vault : undefined;
+}
+
+/**
+ * Determine which vault(s) are the most appropriate to create this note in.
+ * Vaults determined as better matches appear earlier in the returned array
+ * @param
+ * @returns
+ */
 export async function getVaultRecommendations({
   vault,
   vaults,
@@ -128,4 +111,3 @@ export async function getVaultRecommendations({
     hierarchyMatchVaults,
   });
 }
-

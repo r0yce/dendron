@@ -23,10 +23,14 @@ import {
   FULL_MATCH_DETAIL,
   HIERARCHY_MATCH_DETAIL,
 } from "../../components/lookup/vaultPickerConstants";
-import { rankVaultSuggestions } from "../../components/lookup/pickerVaultRank";
+import {
+  rankVaultSuggestions,
+  resolveVaultSelectionMode,
+} from "../../components/lookup/pickerVaultRank";
+import { VaultSelectionMode } from "../../components/lookup/types";
 import { Location, Range, Uri } from "vscode";
 
-describe("maintainabilityHelpers (waves 5–6)", () => {
+describe("maintainabilityHelpers (waves 5–7)", () => {
   describe("md/anchors", () => {
     it("finds frontmatter ending offset and 1-indexed line", () => {
       const body = "---\nid: abc\n---\n\n# Hello\n";
@@ -40,10 +44,10 @@ describe("maintainabilityHelpers (waves 5–6)", () => {
 
     it("returns undefined without frontmatter end marker", () => {
       expect(getFrontmatterEndingOffsetPosition("# no fm\n")).toEqual(
-        undefined
+        undefined,
       );
       expect(getOneIndexedFrontmatterEndingLineNumber("# no fm\n")).toEqual(
-        undefined
+        undefined,
       );
     });
 
@@ -94,7 +98,7 @@ describe("maintainabilityHelpers (waves 5–6)", () => {
           label: "x",
           detail: "Note does not exist. Create?",
           stub: false,
-        } as any)
+        } as any),
       ).toBeTruthy();
       expect(
         isCreateNewNotePicked({
@@ -102,7 +106,7 @@ describe("maintainabilityHelpers (waves 5–6)", () => {
           detail: "",
           stub: false,
           schemaStub: false,
-        } as any)
+        } as any),
       ).toBeFalsy();
     });
   });
@@ -113,13 +117,13 @@ describe("maintainabilityHelpers (waves 5–6)", () => {
         shouldBubbleUpCreateNew({
           numberOfExactMatches: 0,
           querystring: "hello",
-        })
+        }),
       ).toBeTruthy();
       expect(
         shouldBubbleUpCreateNew({
           numberOfExactMatches: 1,
           querystring: "hello",
-        })
+        }),
       ).toBeFalsy();
     });
 
@@ -158,7 +162,9 @@ describe("maintainabilityHelpers (waves 5–6)", () => {
       });
       expect(ranked[0]!.detail).toEqual(FULL_MATCH_DETAIL);
       expect(ranked[0]!.vault.fsPath).toEqual("vault1");
-      expect(ranked.some((r) => r.detail === HIERARCHY_MATCH_DETAIL)).toBeTruthy();
+      expect(
+        ranked.some((r) => r.detail === HIERARCHY_MATCH_DETAIL),
+      ).toBeTruthy();
     });
 
     it("hierarchy-only matches come before context when context not in hierarchy", () => {
@@ -173,5 +179,113 @@ describe("maintainabilityHelpers (waves 5–6)", () => {
       expect(ctx?.detail).toEqual(CONTEXT_DETAIL);
     });
   });
-});
 
+  describe("resolveVaultSelectionMode", () => {
+    const v1 = { fsPath: "vault1", name: "vault1" };
+    const v2 = { fsPath: "vault2", name: "vault2" };
+    const multiWithHierarchyTop = [
+      {
+        vault: v1 as any,
+        label: "vault1",
+        detail: HIERARCHY_MATCH_DETAIL,
+      },
+      { vault: v2 as any, label: "vault2", detail: CONTEXT_DETAIL },
+    ];
+    const multiWithFullMatchTop = [
+      {
+        vault: v1 as any,
+        label: "vault1",
+        detail: FULL_MATCH_DETAIL,
+      },
+      { vault: v2 as any, label: "vault2" },
+    ];
+    const multiWithContextTop = [
+      {
+        vault: v2 as any,
+        label: "vault2",
+        detail: CONTEXT_DETAIL,
+      },
+      { vault: v1 as any, label: "vault1" },
+    ];
+
+    it("returns undefined vault when suggestions are empty", () => {
+      const r = resolveVaultSelectionMode({
+        vaultSuggestions: [],
+        vaultSelectionMode: VaultSelectionMode.smart,
+      });
+      expect(r).toEqual({ vault: undefined });
+    });
+
+    it("auto mode picks first vault even with ambiguity", () => {
+      const r = resolveVaultSelectionMode({
+        vaultSuggestions: multiWithHierarchyTop,
+        vaultSelectionMode: VaultSelectionMode.auto,
+      });
+      expect("vault" in r && r.vault?.fsPath).toEqual("vault1");
+      expect("prompt" in r).toBeFalsy();
+    });
+
+    it("single suggestion always picks that vault (any mode)", () => {
+      const single = [
+        { vault: v2 as any, label: "vault2", detail: HIERARCHY_MATCH_DETAIL },
+      ];
+      for (const mode of [
+        VaultSelectionMode.auto,
+        VaultSelectionMode.smart,
+        VaultSelectionMode.alwaysPrompt,
+      ]) {
+        const r = resolveVaultSelectionMode({
+          vaultSuggestions: single,
+          vaultSelectionMode: mode,
+        });
+        expect("vault" in r && r.vault?.fsPath).toEqual("vault2");
+      }
+    });
+
+    it("smart + FULL_MATCH top picks vault without prompt", () => {
+      const r = resolveVaultSelectionMode({
+        vaultSuggestions: multiWithFullMatchTop,
+        vaultSelectionMode: VaultSelectionMode.smart,
+      });
+      expect("vault" in r && r.vault?.fsPath).toEqual("vault1");
+    });
+
+    it("smart + CONTEXT top picks vault without prompt", () => {
+      const r = resolveVaultSelectionMode({
+        vaultSuggestions: multiWithContextTop,
+        vaultSelectionMode: VaultSelectionMode.smart,
+      });
+      expect("vault" in r && r.vault?.fsPath).toEqual("vault2");
+    });
+
+    it("smart + hierarchy-only top prompts (ambiguous)", () => {
+      const r = resolveVaultSelectionMode({
+        vaultSuggestions: multiWithHierarchyTop,
+        vaultSelectionMode: VaultSelectionMode.smart,
+      });
+      expect(r).toEqual({ prompt: true });
+    });
+
+    it("alwaysPrompt with multiple suggestions always prompts", () => {
+      const r = resolveVaultSelectionMode({
+        vaultSuggestions: multiWithFullMatchTop,
+        vaultSelectionMode: VaultSelectionMode.alwaysPrompt,
+      });
+      expect(r).toEqual({ prompt: true });
+    });
+
+    it("accepts string mode values (not only enum)", () => {
+      const rAuto = resolveVaultSelectionMode({
+        vaultSuggestions: multiWithHierarchyTop,
+        vaultSelectionMode: "auto",
+      });
+      expect("vault" in rAuto && rAuto.vault?.fsPath).toEqual("vault1");
+
+      const rSmart = resolveVaultSelectionMode({
+        vaultSuggestions: multiWithFullMatchTop,
+        vaultSelectionMode: "smart",
+      });
+      expect("vault" in rSmart && rSmart.vault?.fsPath).toEqual("vault1");
+    });
+  });
+});

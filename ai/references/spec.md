@@ -147,15 +147,17 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | Lookup selection extract | `selectionProcessing.selectionToNoteProps` |
 | Create New ranking | `shouldBubbleUpCreateNew` / `sortBySimilarity` |
 | Vault pick for new notes | `pickerVault` / `PickerUtilsV2.getVaultRecommendations` |
+| Vault rank + selection mode (pure) | `rankVaultSuggestions` / `resolveVaultSelectionMode` in `pickerVaultRank` |
+| Lookup accept hooks (rename/move) | `providerAcceptHooks.ProviderAcceptHooks` |
 | HTML side panels register | `registerHtmlSidePanels` |
 | Backlinks / graph panel setup | `workspace/setupBacklinks`, `setupGraphPanel` |
 | Command / language registration | `extension/setupCommands`, `setupLanguageFeatures` |
 | Markdown refs / anchors | `utils/md` (`paths`, `anchors`, `getReferenceAtPosition`, `findReferences`, `markdownUtils`) |
 | Lookup item filters | `pickerFilters` (also on `PickerUtilsV2` wrappers) |
 | QuickPick factory | `pickerQuickPick` / `PickerUtilsV2.createDendronQuickPick` |
-| Vault ranking (pure) | `rankVaultSuggestions` in `pickerVaultRank` |
 | Activation helpers | `workspace/activatorHelpers` |
 | Reload / engine port | `workspace/activatorReload` |
+| Lifecycle / tree view | `workspace/activatorLifecycle`, `activatorTreeView` |
 
 **Extract when:** same logic appears in ≥2 commands/views. Prefer pure functions + thin commands.
 

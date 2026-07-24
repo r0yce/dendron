@@ -26,6 +26,36 @@ export type VaultPickerItem = {
  * 3. CONTEXT_DETAIL (active vault, no hierarchy match)
  * 4. remaining vaults alphabetically by fsPath
  */
+/**
+ * Given ranked suggestions and a vault selection mode, either return a vault
+ * immediately or signal that the user should be prompted.
+ *
+ * - auto / single suggestion → first vault
+ * - smart + top is FULL_MATCH or CONTEXT → top vault
+ * - otherwise → "prompt"
+ */
+export function resolveVaultSelectionMode(opts: {
+  vaultSuggestions: VaultPickerItem[];
+  /** VaultSelectionMode enum value or string "auto" | "smart" */
+  vaultSelectionMode: string | number;
+}): { vault: DVault } | { prompt: true } | { vault: undefined } {
+  const { vaultSuggestions } = opts;
+  const mode = String(opts.vaultSelectionMode);
+  if (!vaultSuggestions.length) {
+    return { vault: undefined };
+  }
+  if (vaultSuggestions.length === 1 || mode === "auto") {
+    return { vault: vaultSuggestions[0]!.vault };
+  }
+  if (mode === "smart") {
+    const top = vaultSuggestions[0]!;
+    if (top.detail === FULL_MATCH_DETAIL || top.detail === CONTEXT_DETAIL) {
+      return { vault: top.vault };
+    }
+  }
+  return { prompt: true };
+}
+
 export function rankVaultSuggestions(opts: {
   contextVault: DVault;
   allVaults: DVault[];
@@ -33,7 +63,7 @@ export function rankVaultSuggestions(opts: {
 }): VaultPickerItem[] {
   const { contextVault, hierarchyMatchVaults } = opts;
   let allVaults = [...opts.allVaults].sort((a, b) =>
-    a.fsPath <= b.fsPath ? -1 : 1
+    a.fsPath <= b.fsPath ? -1 : 1,
   );
   const hierarchyItems: VaultPickerItem[] = hierarchyMatchVaults
     .slice()
@@ -46,7 +76,7 @@ export function rankVaultSuggestions(opts: {
 
   let vaultSuggestions: VaultPickerItem[] = [];
   const contextInHierarchy = hierarchyItems.find(
-    (value) => value.vault.fsPath === contextVault.fsPath
+    (value) => value.vault.fsPath === contextVault.fsPath,
   );
 
   if (hierarchyItems.length === 0) {
@@ -72,14 +102,11 @@ export function rankVaultSuggestions(opts: {
       detail: FULL_MATCH_DETAIL,
       label: VaultUtils.getName(contextVault),
     });
-    allVaults = _.filter(
-      allVaults,
-      (v) => v.fsPath !== contextVault.fsPath
-    );
+    allVaults = _.filter(allVaults, (v) => v.fsPath !== contextVault.fsPath);
     hierarchyItems.forEach((ent) => {
       if (
         !vaultSuggestions.find(
-          (suggestion) => suggestion.vault.fsPath === ent.vault.fsPath
+          (suggestion) => suggestion.vault.fsPath === ent.vault.fsPath,
         )
       ) {
         vaultSuggestions.push({
@@ -87,10 +114,7 @@ export function rankVaultSuggestions(opts: {
           detail: HIERARCHY_MATCH_DETAIL,
           label: VaultUtils.getName(ent.vault),
         });
-        allVaults = _.filter(
-          allVaults,
-          (v) => v.fsPath !== ent.vault.fsPath
-        );
+        allVaults = _.filter(allVaults, (v) => v.fsPath !== ent.vault.fsPath);
       }
     });
     allVaults.forEach((wsVault) => {
@@ -113,7 +137,7 @@ export function rankVaultSuggestions(opts: {
     allVaults,
     (v) =>
       v.fsPath !== contextVault.fsPath &&
-      !hierarchyItems.find((h) => h.vault.fsPath === v.fsPath)
+      !hierarchyItems.find((h) => h.vault.fsPath === v.fsPath),
   );
   allVaults.forEach((wsVault) => {
     vaultSuggestions.push({
@@ -123,4 +147,3 @@ export function rankVaultSuggestions(opts: {
   });
   return vaultSuggestions;
 }
-

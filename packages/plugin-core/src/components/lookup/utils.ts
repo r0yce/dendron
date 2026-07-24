@@ -7,39 +7,30 @@
  */
 /* eslint-disable no-dupe-class-members */
 import {
-  DendronError,
   DEngineClient,
   DNodeProps,
   DNodePropsQuickInputV2,
   DNodeUtils,
-  DNoteLoc,
   DVault,
   NoteProps,
   NoteQuickInput,
   OrderedMatcher,
-  RenameNoteOpts,
-  RespV2,
   TransformedQueryString,
   VaultUtils,
 } from "@dendronhq/common-all";
 import { vault2Path } from "@dendronhq/common-server";
 import _, { orderBy } from "lodash";
 import path from "path";
-import { QuickPickItem, TextEditor, Uri, ViewColumn, window } from "vscode";
+import { QuickPickItem, Uri, ViewColumn, window } from "vscode";
 import { ExtensionProvider } from "../../ExtensionProvider";
 import { Logger } from "../../logger";
-import { VSCodeUtils } from "../../vsCodeUtils";
 import { DendronBtn, getButtonCategory } from "./ButtonTypes";
 import {
   CREATE_NEW_LABEL,
   CREATE_NEW_NOTE_DETAIL,
   MORE_RESULTS_LABEL,
 } from "./constants";
-import { OnAcceptHook } from "./LookupProviderV3Interface";
-import {
-  DendronQuickPickerV2,
-  VaultSelectionMode,
-} from "./types";
+import { DendronQuickPickerV2, VaultSelectionMode } from "./types";
 import {
   filterByDepth,
   filterCreateNewItem,
@@ -85,11 +76,11 @@ export type VaultPickerItem = { vault: DVault; label: string } & Partial<
 >;
 
 export function isDVaultArray(
-  overrides?: VaultPickerItem[] | DVault[]
+  overrides?: VaultPickerItem[] | DVault[],
 ): overrides is DVault[] {
   return _.some(
     overrides,
-    (item) => (item as VaultPickerItem).vault === undefined
+    (item) => (item as VaultPickerItem).vault === undefined,
   );
 }
 
@@ -127,7 +118,7 @@ export function node2Uri(node: DNodeProps): Uri {
 
 export async function showDocAndHidePicker(
   uris: Uri[],
-  picker: DendronQuickPickerV2
+  picker: DendronQuickPickerV2,
 ) {
   const ctx = "showDocAndHidePicker";
   const maybeSplitSelection = _.find(picker.buttons, (ent: DendronBtn) => {
@@ -155,92 +146,21 @@ export async function showDocAndHidePicker(
         (err) => {
           Logger.error({ ctx, error: err, msg: "exit" });
           throw err;
-        }
+        },
       );
-    })
+    }),
   );
   return uris;
 }
 
-export type OldNewLocation = {
-  oldLoc: DNoteLoc;
-  newLoc: DNoteLoc & { note?: NoteProps };
-};
-
-export type NewLocation = {
-  newLoc: DNoteLoc & { note?: NoteProps };
-};
-
-export class ProviderAcceptHooks {
-  /**
-   * Returns current location and new location for note
-   * @param param0
-   * @returns
-   */
-  static oldNewLocationHook: OnAcceptHook = async ({
-    quickpick,
-    selectedItems,
-  }): Promise<RespV2<OldNewLocation>> => {
-    // setup vars
-    const oldVault = PickerUtilsV2.getVaultForOpenEditor();
-    const newVault = quickpick.vault ? quickpick.vault : oldVault;
-    const engine = ExtensionProvider.getEngine();
-
-    // get old note
-    const editor = VSCodeUtils.getActiveTextEditor() as TextEditor;
-    const oldUri: Uri = editor.document.uri;
-    const oldFname = DNodeUtils.fname(oldUri.fsPath);
-
-    const selectedItem = selectedItems[0]!;
-    const fname = PickerUtilsV2.isCreateNewNotePickedForSingle(selectedItem)
-      ? quickpick.value
-      : selectedItem.fname;
-
-    // get new note
-    const newNote = (await engine.findNotesMeta({ fname, vault: newVault }))[0];
-    const isStub = newNote?.stub;
-    if (newNote && !isStub) {
-      const vaultName = VaultUtils.getName(newVault);
-      const errMsg = `${vaultName}/${quickpick.value} exists`;
-      window.showErrorMessage(errMsg);
-      return {
-        error: new DendronError({ message: errMsg }),
-      };
-    }
-    const data: RenameNoteOpts = {
-      oldLoc: {
-        fname: oldFname,
-        vaultName: VaultUtils.getName(oldVault),
-      },
-      newLoc: {
-        fname: quickpick.value,
-        vaultName: VaultUtils.getName(newVault),
-      },
-    };
-    return { data, error: null };
-  };
-
-  static NewLocationHook: OnAcceptHook = async ({
-    quickpick,
-  }): Promise<RespV2<NewLocation>> => {
-    const activeEditorVault = PickerUtilsV2.getVaultForOpenEditor();
-    const newVault = quickpick.vault ? quickpick.vault : activeEditorVault;
-
-    const data = {
-      newLoc: {
-        fname: quickpick.value,
-        vaultName: VaultUtils.getName(newVault),
-      },
-    };
-
-    return { data, error: null };
-  };
-}
+export type { OldNewLocation, NewLocation } from "./providerAcceptHooks";
+export { ProviderAcceptHooks } from "./providerAcceptHooks";
 
 export class PickerUtilsV2 {
   static createDendronQuickPick = createDendronQuickPick;
   static createDendronQuickPickItem = createDendronQuickPickItem;
-  static createDendronQuickPickItemFromNote = createDendronQuickPickItemFromNote;
+  static createDendronQuickPickItemFromNote =
+    createDendronQuickPickItemFromNote;
   static getValue = getPickerValue;
   static getSelection = getPickerSelection;
 
@@ -269,7 +189,7 @@ export class PickerUtilsV2 {
     opts: {
       selectedItems: readonly DNodePropsQuickInputV2[];
       providerId: string;
-    }
+    },
   ): quickpick is Required<DendronQuickPickerV2> => {
     const { selectedItems, providerId } = opts;
     const nextPicker = quickpick.nextPicker;
@@ -296,10 +216,10 @@ export class PickerUtilsV2 {
 
   public static promptVault(overrides?: DVault[]): Promise<DVault | undefined>;
   public static promptVault(
-    overrides?: VaultPickerItem[]
+    overrides?: VaultPickerItem[],
   ): Promise<DVault | undefined>;
   public static async promptVault(
-    overrides?: VaultPickerItem[] | DVault[]
+    overrides?: VaultPickerItem[] | DVault[],
   ): Promise<DVault | undefined> {
     return promptVault(overrides as any);
   }
@@ -331,7 +251,7 @@ function countDots(subStr: string) {
 
 function sortForQueryEndingWithDot(
   transformedQuery: TransformedQueryString,
-  itemsToFilter: NoteProps[]
+  itemsToFilter: NoteProps[],
 ) {
   const lowercaseQuery = transformedQuery.originalQuery.toLowerCase();
 
@@ -361,7 +281,7 @@ function sortForQueryEndingWithDot(
     // Filter out items where the match is at the end (match does not have children)
     .filter(
       (item) =>
-        !(item.matchIndex + lowercaseQuery.length === item.item.fname.length)
+        !(item.matchIndex + lowercaseQuery.length === item.item.fname.length),
     )
     .map((item) => {
       // Meaning the match takes up entire level of the hierarchy.
@@ -372,10 +292,10 @@ function sortForQueryEndingWithDot(
         item.item.fname.charAt(item.matchIndex - 1) === ".";
 
       const dotsBeforeMatch = countDots(
-        item.item.fname.substring(0, item.matchIndex)
+        item.item.fname.substring(0, item.matchIndex),
       );
       const dotsAfterMatch = countDots(
-        item.item.fname.substring(item.matchIndex + lowercaseQuery.length)
+        item.item.fname.substring(item.matchIndex + lowercaseQuery.length),
       );
       const isStub = item.item.stub;
       const zeroGrandchildren = dotsAfterMatch === 0;
@@ -400,7 +320,7 @@ function sortForQueryEndingWithDot(
   return orderBy(
     itemsWithMetadata,
     sortOrder.map((it) => it.fieldName),
-    sortOrder.map((it) => it.order)
+    sortOrder.map((it) => it.order),
   ).map((item) => item.item);
 }
 
@@ -415,7 +335,7 @@ export const filterPickerResults = ({
   // that match the specific vault name.
   if (transformedQuery.vaultName) {
     itemsToFilter = itemsToFilter.filter(
-      (item) => VaultUtils.getName(item.vault) === transformedQuery.vaultName
+      (item) => VaultUtils.getName(item.vault) === transformedQuery.vaultName,
     );
   }
 
@@ -434,7 +354,7 @@ export const filterPickerResults = ({
     // If we are dealing with a wiki link we want to show only the exact matches
     // for the link instead some fuzzy/partial matches.
     itemsToFilter = itemsToFilter.filter(
-      (item) => item.fname === transformedQuery.queryString
+      (item) => item.fname === transformedQuery.queryString,
     );
   }
 
@@ -444,4 +364,3 @@ export const filterPickerResults = ({
 // Re-export peeled helpers (stable import path: components/lookup/utils)
 export { shouldBubbleUpCreateNew } from "./pickerCreateNew";
 export { sortBySimilarity } from "./pickerSort";
-

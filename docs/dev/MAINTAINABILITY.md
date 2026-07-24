@@ -17,11 +17,12 @@
 | `WorkspaceModesService` | plugin-core | Vault focus / workmodes |
 | `selectionProcessing` | lookup | selectionExtract / selection2link |
 | `pickerCreateNew` / `pickerSort` / `pickerFilters` | lookup | Ranking + filters |
-| `pickerVault` / `pickerVaultRank` / `vaultPickerConstants` | lookup | Vault recommendations (pure rank testable in Node) |
+| `pickerVault` / `pickerVaultRank` / `vaultPickerConstants` | lookup | Vault recommendations (pure rank + selection-mode, Node-testable) |
+| `providerAcceptHooks` | lookup | Rename/move on-accept location hooks |
 | `pickerQuickPick` / `pickerEditorContext` | lookup | QuickPick factory + open-editor vault/fname |
 | `utils/md/*` | plugin-core | paths, anchors, markdownUtils, getReferenceAtPosition, findReferences |
 | `registerHtmlSidePanels` / `setupBacklinks` / `setupGraphPanel` / `setupTipOfTheDay` | workspace/ | Side panels |
-| `activatorHelpers` / `activatorReload` | workspace/ | Activation + reload/engine API |
+| `activatorHelpers` / `activatorReload` / `activatorLifecycle` / `activatorTreeView` | workspace/ | Activation, reload, lifecycle analytics, tree view |
 | `extension/setupCommands` / `setupLanguageFeatures` | extension/ | Activation registration |
 
 **Rule:** same 5+ lines twice → extract. Pure logic → no vscode imports when possible.
@@ -33,7 +34,7 @@
 ### Waves 1–5 — DONE
 Helpers, HTML shell, lookup selection, md modules, picker filters, activator helpers, tests.
 
-### Wave 6 — DONE (this push)
+### Wave 6 — DONE
 
 | Item | Result |
 |------|--------|
@@ -43,19 +44,31 @@ Helpers, HTML shell, lookup selection, md modules, picker filters, activator hel
 | Activator reload peel | `activatorReload.ts` (reload, postReload, updateEngineAPI, toggle context) |
 | Tests | vault ranking cases in `maintainabilityHelpers.test.ts` + Node smoke |
 
-| Hotspot | ~LOC after wave 6 |
-|---------|-------------------|
-| `lookup/utils.ts` | **~447** (was ~834 at start) |
-| `workspaceActivator.ts` | **~551** (was ~738) |
-| `activatorReload.ts` | ~141 |
+### Wave 7 — DONE (this push)
 
-### Wave 7 — optional next
+| Item | Result |
+|------|--------|
+| Provider accept hooks peel | `providerAcceptHooks.ts` (`ProviderAcceptHooks`, `OldNewLocation` / `NewLocation`; re-exported from `utils.ts`) |
+| Vault selection-mode pure helper | `resolveVaultSelectionMode` in `pickerVaultRank.ts`; wired from `pickerVault.getOrPromptVaultForNewNote` |
+| Activator lifecycle peel | `activatorLifecycle.ts` (`analyzeWorkspace`, `getAndCleanPreviousWSVersion`) |
+| Activator tree view peel | `activatorTreeView.ts` (`initTreeView`, tree label/create commands) |
+| Tests | `resolveVaultSelectionMode` cases (auto / smart FULL+CONTEXT / prompt / alwaysPrompt / string mode) in `maintainabilityHelpers.test.ts` |
+
+| Hotspot | ~LOC after wave 7 |
+|---------|-------------------|
+| `lookup/utils.ts` | **~369** (was ~834 at start; ~447 after wave 6) |
+| `workspaceActivator.ts` | **~429** (was ~738; ~551 after wave 6) |
+| `providerAcceptHooks.ts` | ~89 |
+| `pickerVaultRank.ts` | ~159 (rank + selection-mode pure) |
+| `activatorLifecycle.ts` / `activatorTreeView.ts` | ~67 / ~83 |
+
+### Wave 8 — optional next
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | Peel ProviderAcceptHooks / rename location hooks from utils.ts |
-| P2 | Split remaining free functions in activator (`analyzeWorkspace`, `initTreeView`) |
-| P3 | More integration coverage for vault selection modes |
+| P1 | Further thin `utils.ts` (remaining PickerUtilsV2 wrappers only if still noisy) |
+| P2 | More activator free-fn peels if any large helpers remain on the class |
+| P3 | Optional: Node-only pure tests for selection-mode outside VS Code test host |
 
 ---
 

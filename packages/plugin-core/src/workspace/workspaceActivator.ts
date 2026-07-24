@@ -5,9 +5,7 @@ import {
   DWorkspaceV2,
   ErrorFactory,
   getStage,
-  GitEvents,
   RespV3,
-  TreeViewItemLabelTypeEnum,
   VSCodeEvents,
   WorkspaceType,
 } from "@dendronhq/common-all";
@@ -20,15 +18,13 @@ import {
 } from "@dendronhq/engine-server";
 import _ from "lodash";
 import path from "path";
-import semver from "semver";
 import * as vscode from "vscode";
-import { DENDRON_COMMANDS } from "../constants";
 import { IDendronExtension } from "../dendronExtensionInterface";
 import { Logger } from "../logger";
 import { EngineAPIService } from "../services/EngineAPIService";
 import { StateService } from "../services/stateService";
 import { TextDocumentServiceFactory } from "../services/TextDocumentServiceFactory";
-import { AnalyticsUtils, sentryReportingCallback } from "../utils/analytics";
+import { AnalyticsUtils } from "../utils/analytics";
 import { ExtensionUtils } from "../utils/ExtensionUtils";
 import { StartupUtils } from "../utils/StartupUtils";
 import { VSCodeUtils } from "../vsCodeUtils";
@@ -37,164 +33,25 @@ import { WSUtils } from "../WSUtils";
 import {
   checkNoDuplicateVaultNames,
   getOrPromptWSRoot,
-  trackTopLevelRepoFound,
 } from "./activatorHelpers";
 import {
   reloadWorkspace,
   togglePluginActiveContext,
   updateEngineAPI,
 } from "./activatorReload";
+import { initTreeView } from "./activatorTreeView";
+import {
+  analyzeWorkspace,
+  getAndCleanPreviousWSVersion,
+} from "./activatorLifecycle";
 import { DendronCodeWorkspace } from "./codeWorkspace";
 import { DendronNativeWorkspace } from "./nativeWorkspace";
 import { WorkspaceInitFactory } from "./WorkspaceInitFactory";
 import { WorkspaceInitializer } from "./workspaceInitializer";
-import { CreateNoteCommand } from "../commands/CreateNoteCommand";
-import { container } from "../di/inject";
-import { NativeTreeView } from "../views/common/treeview/NativeTreeView";
-
-function _setupTreeViewCommands(
-  treeView: NativeTreeView,
-  existingCommands: string[]
-) {
-  if (
-    !existingCommands.includes(DENDRON_COMMANDS.TREEVIEW_LABEL_BY_TITLE.key)
-  ) {
-    vscode.commands.registerCommand(
-      DENDRON_COMMANDS.TREEVIEW_LABEL_BY_TITLE.key,
-      sentryReportingCallback(() => {
-        treeView.updateLabelType({
-          labelType: TreeViewItemLabelTypeEnum.title,
-        });
-      })
-    );
-  }
-
-  if (
-    !existingCommands.includes(DENDRON_COMMANDS.TREEVIEW_LABEL_BY_FILENAME.key)
-  ) {
-    vscode.commands.registerCommand(
-      DENDRON_COMMANDS.TREEVIEW_LABEL_BY_FILENAME.key,
-      sentryReportingCallback(() => {
-        treeView.updateLabelType({
-          labelType: TreeViewItemLabelTypeEnum.filename,
-        });
-      })
-    );
-  }
-
-  if (!existingCommands.includes(DENDRON_COMMANDS.TREEVIEW_CREATE_NOTE.key)) {
-    vscode.commands.registerCommand(
-      DENDRON_COMMANDS.TREEVIEW_CREATE_NOTE.key,
-      sentryReportingCallback(async (opts) => {
-        await new CreateNoteCommand().run(opts);
-      })
-    );
-  }
-
-  /**
-   * This is a little flaky right now, but it works most of the time.
-   * Leaving this for dev / debug purposes.
-   * Enablement is set to be DendronContext.DEV_MODE
-   *
-   * TODO: fix tree item register issue and flip the dev mode flag.
-   */
-  if (!existingCommands.includes(DENDRON_COMMANDS.TREEVIEW_EXPAND_ALL.key)) {
-    vscode.commands.registerCommand(
-      DENDRON_COMMANDS.TREEVIEW_EXPAND_ALL.key,
-      sentryReportingCallback(async () => {
-        await treeView.expandAll();
-      })
-    );
-  }
-
-  if (!existingCommands.includes(DENDRON_COMMANDS.TREEVIEW_EXPAND_STUB.key)) {
-    vscode.commands.registerCommand(
-      DENDRON_COMMANDS.TREEVIEW_EXPAND_STUB.key,
-      sentryReportingCallback(async (id) => {
-        await treeView.expandTreeItem(id);
-      })
-    );
-  }
-}
-
-
-
-function analyzeWorkspace({ wsService }: { wsService: WorkspaceService }) {
-  // Track contributors to repositories, but do so in the background so
-  // initialization isn't delayed.
-  const startGetAllReposNumContributors = process.hrtime();
-  wsService
-    .getAllReposNumContributors()
-    .then((numContributors) => {
-      AnalyticsUtils.track(GitEvents.ContributorsFound, {
-        maxNumContributors: _.max(numContributors),
-        duration: getDurationMilliseconds(startGetAllReposNumContributors),
-      });
-    })
-    .catch((err) => {
-      Sentry.captureException(err);
-    });
-  trackTopLevelRepoFound({ wsService });
-}
-
-
 
 /**
  * Get version of Dendron when workspace was last activated
  */
-async function getAndCleanPreviousWSVersion({
-  wsService,
-  stateService,
-  ext,
-}: {
-  stateService: StateService;
-  wsService: WorkspaceService;
-  ext: IDendronExtension;
-}) {
-  let previousWorkspaceVersionFromWSService = wsService.getMeta().version;
-
-  // Fix a temporary issue where CLI was writing an invalid version number
-  // to .dendron.ws:
-  if (previousWorkspaceVersionFromWSService === "dendron-cli") {
-    previousWorkspaceVersionFromWSService = "0.91.0";
-  }
-  if (ext.type === WorkspaceType.NATIVE) {
-    return previousWorkspaceVersionFromWSService;
-  }
-
-  // Code workspace specific code
-  // Migration code: we used to store verion history in state vs metadata
-  const previousWorkspaceVersionFromState = stateService.getWorkspaceVersion();
-  if (
-    !semver.valid(previousWorkspaceVersionFromWSService) ||
-    semver.gt(
-      previousWorkspaceVersionFromState,
-      previousWorkspaceVersionFromWSService
-    )
-  ) {
-    previousWorkspaceVersionFromWSService = previousWorkspaceVersionFromState;
-    wsService.writeMeta({ version: previousWorkspaceVersionFromState });
-  }
-  return previousWorkspaceVersionFromWSService;
-}
-
-
-
-async function initTreeView({ context }: { context: vscode.ExtensionContext }) {
-  const existingCommands = await vscode.commands.getCommands();
-  const treeView = container.resolve(NativeTreeView);
-  treeView.show();
-  _setupTreeViewCommands(treeView, existingCommands);
-  context.subscriptions.push(treeView);
-}
-
-
-
-
-
-
-
-
 
 type WorkspaceActivatorValidateOpts = {
   ext: IDendronExtension;
@@ -209,25 +66,27 @@ type WorkspaceActivatorOpts = {
 };
 
 type WorkspaceActivatorSkipOpts = {
-  opts?: Partial<{
-    /**
-     * Skip setting up language features (eg. code action providesr)
-     */
-    skipLanguageFeatures: boolean | undefined;
-    /**
-     * Skip automatic migrations on start
-     */
-    skipMigrations: boolean | undefined;
-    /**
-     * Skip surfacing dialogues on startup
-     */
-    skipInteractiveElements: boolean | undefined;
+  opts?:
+    | Partial<{
+        /**
+         * Skip setting up language features (eg. code action providesr)
+         */
+        skipLanguageFeatures: boolean | undefined;
+        /**
+         * Skip automatic migrations on start
+         */
+        skipMigrations: boolean | undefined;
+        /**
+         * Skip surfacing dialogues on startup
+         */
+        skipInteractiveElements: boolean | undefined;
 
-    /**
-     * Skip showing tree view
-     */
-    skipTreeView: boolean | undefined;
-  }> | undefined;
+        /**
+         * Skip showing tree view
+         */
+        skipTreeView: boolean | undefined;
+      }>
+    | undefined;
 };
 export class WorkspaceActivator {
   /**
@@ -326,12 +185,12 @@ export class WorkspaceActivator {
     const didClone = await wsService.initialize({
       onSyncVaultsProgress: () => {
         vscode.window.showInformationMessage(
-          "found empty remote vaults that need initializing"
+          "found empty remote vaults that need initializing",
         );
       },
       onSyncVaultsEnd: () => {
         vscode.window.showInformationMessage(
-          "finish initializing remote vaults. reloading workspace"
+          "finish initializing remote vaults. reloading workspace",
         );
         // TODO: remove
         setTimeout(VSCodeUtils.reloadWindow, 200);
@@ -494,7 +353,7 @@ export class WorkspaceActivator {
     if (ext.type === WorkspaceType.NATIVE) {
       const workspaceFolders =
         await WorkspaceUtils.findWSRootsInWorkspaceFolders(
-          DendronExtension.workspaceFolders()!
+          DendronExtension.workspaceFolders()!,
         );
       if (!workspaceFolders) {
         return;
@@ -545,7 +404,8 @@ export class WorkspaceActivator {
       },
     });
     ext.port = _.toInteger(port);
-    ext.serverProcess = subprocess as any /* TODO: exactOptional + execa childprocess | undef interop on IDendronExtension.serverProcess (d.ts widened); Batch 5 debug launch sweep 2026-05-31 (per Strict-Fixer plan on _extension/activator/Partial opts + user mandate to 0 + full test + Clean Host smoke + merge); see 4-axis + prior M2 cast notes */;
+    ext.serverProcess =
+      subprocess as any /* TODO: exactOptional + execa childprocess | undef interop on IDendronExtension.serverProcess (d.ts widened); Batch 5 debug launch sweep 2026-05-31 (per Strict-Fixer plan on _extension/activator/Partial opts + user mandate to 0 + full test + Clean Host smoke + merge); see 4-axis + prior M2 cast notes */;
     return ext.port;
   }
 }
