@@ -21,10 +21,7 @@ import { paragraph, text } from "mdast-builder";
 import Unified, { Processor, Transformer } from "unified";
 import { Node, Parent } from "unist";
 import { u } from "unist-builder";
-// Modern unist-util-visit-parents is named-export only (no default). Default
-// import + __importDefault yields undefined → "visitParents is not a function"
-// during note preview render.
-import { visitParents as visitParentsFn } from "unist-util-visit-parents";
+import { visitParents as visitParentsFn } from "../compat/unist";
 
 const visitParents = visitParentsFn as unknown as (
   tree: Node,

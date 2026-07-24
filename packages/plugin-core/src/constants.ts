@@ -1079,6 +1079,24 @@ export const DENDRON_COMMANDS = {
     icon: `$(replace-all)`,
     when: `${DendronContext.PLUGIN_ACTIVE} && shellExecutionSupported`,
   },
+  PROCESS_INBOX: {
+    key: "dendron.processInbox",
+    title: `${CMD_PREFIX} Process Inbox`,
+    icon: `$(inbox)`,
+    when: `${DendronContext.PLUGIN_ACTIVE} && shellExecutionSupported`,
+  },
+  WORKSPACE_HEALTH: {
+    key: "dendron.workspaceHealth",
+    title: `${CMD_PREFIX} Workspace Health`,
+    icon: `$(heart)`,
+    when: `${DendronContext.PLUGIN_ACTIVE} && shellExecutionSupported`,
+  },
+  EXTRACT_TASKS_FROM_NOTE: {
+    key: "dendron.extractTasksFromNote",
+    title: `${CMD_PREFIX} Extract Tasks from Note`,
+    icon: `$(checklist)`,
+    when: `${DendronContext.PLUGIN_ACTIVE} && shellExecutionSupported`,
+  },
   PASTE_FILE: {
     key: "dendron.pasteFile",
     title: `${CMD_PREFIX} Paste File`,

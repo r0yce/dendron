@@ -11,6 +11,7 @@ import { EngineNoteProvider } from "./EngineNoteProvider";
 import { TreeNote } from "./TreeNote";
 import * as vscode from "vscode";
 import { WSUtilsWeb } from "../../../web/utils/WSUtils";
+import { WorkspaceModesService } from "../../../services/WorkspaceModesService";
 /**
  * Class managing the vscode native version of the Dendron tree view - this is
  * the side panel UI that gives a tree view of the Dendron note hierarchy
@@ -19,6 +20,7 @@ import { WSUtilsWeb } from "../../../web/utils/WSUtils";
 export class NativeTreeView implements Disposable {
   private treeView: TreeView<string> | undefined;
   private _handler: Disposable | undefined;
+  private _focusHandler: Disposable | undefined;
   private _updateLabelTypeHandler:
     | ((opts: {
         labelType: TreeViewItemLabelTypeEnum;
@@ -36,6 +38,10 @@ export class NativeTreeView implements Disposable {
     if (this._handler) {
       this._handler.dispose();
       this._handler = undefined;
+    }
+    if (this._focusHandler) {
+      this._focusHandler.dispose();
+      this._focusHandler = undefined;
     }
 
     if (this.treeView) {
@@ -68,6 +74,11 @@ export class NativeTreeView implements Disposable {
       this.onOpenTextDocument,
       this
     );
+
+    // Sprint 5: re-root tree when vault focus changes
+    this._focusHandler = WorkspaceModesService.onFocusChange(() => {
+      this._provider.refreshAll();
+    });
   }
 
   public updateLabelType(opts: { labelType: TreeViewItemLabelTypeEnum }) {

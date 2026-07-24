@@ -4,6 +4,7 @@ import {
   NotePropsMeta,
   TAGS_HIERARCHY_BASE,
   TreeViewItemLabelTypeEnum,
+  VaultUtils,
 } from "@dendronhq/common-all";
 import _ from "lodash";
 import { inject, injectable } from "../../../di/inject";
@@ -20,6 +21,7 @@ import {
 } from "vscode";
 import { URI } from "vscode-uri";
 import { ICONS } from "../../../constants";
+import { WorkspaceModesService } from "../../../services/WorkspaceModesService";
 import { type ITreeViewConfig } from "./ITreeViewConfig";
 import { TreeNote } from "./TreeNote";
 
@@ -161,8 +163,13 @@ export class EngineNoteProvider
         return;
       } else {
         this.engine.findNotesMeta({ fname: "root" }).then((values) => {
+          // Sprint 5: vault focus shows only the focused vault's root
+          const focused = WorkspaceModesService.getFocusedVault();
+          const scoped = focused
+            ? values.filter((n) => VaultUtils.isEqualV2(n.vault, focused))
+            : values;
           const all = Promise.all(
-            values.map(async (noteProps) => {
+            scoped.map(async (noteProps) => {
               this._tree[noteProps.id] = await this.createTreeNoteFromProps(
                 noteProps
               );
@@ -176,6 +183,11 @@ export class EngineNoteProvider
         });
       }
     });
+  }
+
+  /** Call when vault focus changes so the tree re-queries roots. */
+  public refreshAll(): void {
+    this._onDidChangeTreeDataEmitter.fire();
   }
 
   getTreeItem(noteProps: string): TreeItem {

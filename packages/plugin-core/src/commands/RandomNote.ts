@@ -3,6 +3,7 @@ import _ from "lodash";
 import { Uri, window } from "vscode";
 import { DENDRON_COMMANDS } from "../constants";
 import { IDendronExtension } from "../dendronExtensionInterface";
+import { WorkspaceModesService } from "../services/WorkspaceModesService";
 import { VSCodeUtils } from "../vsCodeUtils";
 import { BasicCommand } from "./base";
 
@@ -61,7 +62,8 @@ export class RandomNoteCommand extends BasicCommand<
       return isMatch;
     };
     // TODO: Potentially expensive call. Consider deferring to engine
-    const notesToPick = await engine.findNotesMeta({ excludeStub: true });
+    let notesToPick = await engine.findNotesMeta({ excludeStub: true });
+    notesToPick = WorkspaceModesService.filterNotesByFocus(notesToPick);
     const noteSet = _.filter(notesToPick, (ent) => searchPredicate(ent));
 
     const noteCount = noteSet.length;

@@ -36,6 +36,7 @@ import { VSCodeUtils } from "../../vsCodeUtils";
 import { WSUtilsV2 } from "../../WSUtilsV2";
 import { IPreviewLinkHandler } from "./IPreviewLinkHandler";
 import { PreviewProxy } from "./PreviewProxy";
+import { NoteHistoryService } from "../../services/NoteHistoryService";
 
 /**
  * This is the default implementation of PreviewProxy. It contains a singleton
@@ -218,11 +219,21 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
     this._history.push(noteId);
     if (this._history.length > PreviewPanel.MAX_HISTORY) {
       this._history.shift();
-    } else {
-      this._historyIndex = this._history.length - 1;
-      return;
     }
     this._historyIndex = this._history.length - 1;
+
+    // Unified history: also push into editor note history when we know the note
+    this._ext
+      .getEngine()
+      .getNoteMeta(noteId)
+      .then((resp) => {
+        if (resp.data) {
+          NoteHistoryService.push(resp.data);
+        }
+      })
+      .catch(() => {
+        /* ignore */
+      });
   }
 
   private async showNoteById(noteId: string): Promise<void> {

@@ -17,6 +17,27 @@ export type Workmode = {
  */
 export class WorkspaceModesService {
   private static _statusBar: vscode.StatusBarItem | undefined;
+  private static _focusListeners: Array<() => void> = [];
+
+  /** Subscribe to vault-focus changes (tree view refresh, etc.). */
+  static onFocusChange(listener: () => void): vscode.Disposable {
+    this._focusListeners.push(listener);
+    return {
+      dispose: () => {
+        this._focusListeners = this._focusListeners.filter((l) => l !== listener);
+      },
+    };
+  }
+
+  private static notifyFocusChange(): void {
+    for (const l of this._focusListeners) {
+      try {
+        l();
+      } catch {
+        // ignore listener errors
+      }
+    }
+  }
 
   private static wsState(): vscode.Memento | undefined {
     try {
@@ -62,6 +83,7 @@ export class WorkspaceModesService {
       vaultName || ""
     );
     this.refreshStatusBar();
+    this.notifyFocusChange();
   }
 
   static listWorkmodes(): Workmode[] {

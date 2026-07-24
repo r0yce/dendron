@@ -611,6 +611,21 @@
         "icon": "$(replace-all)"
       },
       {
+        "command": "dendron.processInbox",
+        "title": "Dendron: Process Inbox",
+        "icon": "$(inbox)"
+      },
+      {
+        "command": "dendron.workspaceHealth",
+        "title": "Dendron: Workspace Health",
+        "icon": "$(heart)"
+      },
+      {
+        "command": "dendron.extractTasksFromNote",
+        "title": "Dendron: Extract Tasks from Note",
+        "icon": "$(checklist)"
+      },
+      {
         "command": "dendron.pasteFile",
         "title": "Dendron: Paste File"
       },
@@ -1079,6 +1094,18 @@
         },
         {
           "command": "dendron.safeBulkRename",
+          "when": "dendron:pluginActive && shellExecutionSupported"
+        },
+        {
+          "command": "dendron.processInbox",
+          "when": "dendron:pluginActive && shellExecutionSupported"
+        },
+        {
+          "command": "dendron.workspaceHealth",
+          "when": "dendron:pluginActive && shellExecutionSupported"
+        },
+        {
+          "command": "dendron.extractTasksFromNote",
           "when": "dendron:pluginActive && shellExecutionSupported"
         },
         {

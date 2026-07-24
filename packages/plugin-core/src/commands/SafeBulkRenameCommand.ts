@@ -1,4 +1,4 @@
-import { NotePropsMeta, NoteUtils, VaultUtils } from "@dendronhq/common-all";
+import { NoteUtils } from "@dendronhq/common-all";
 import path from "path";
 import {
   ProgressLocation,
@@ -9,6 +9,7 @@ import {
 } from "vscode";
 import { DENDRON_COMMANDS } from "../constants";
 import { IDendronExtension } from "../dendronExtensionInterface";
+import { planBulkRename } from "../services/safeBulkRenamePlan";
 import { WorkspaceModesService } from "../services/WorkspaceModesService";
 import { BasicCommand } from "./base";
 import { RenameNoteV2aCommand } from "./RenameNoteV2a";
@@ -19,13 +20,6 @@ type CommandOpts = {
 };
 
 type CommandOutput = { applied: number; planned: number };
-
-type PlanRow = {
-  oldFname: string;
-  newFname: string;
-  vaultName: string;
-  note: NotePropsMeta;
-};
 
 /**
  * Sprint 4: safe bulk rename — dry-run preview of hierarchy renames, then apply.
@@ -74,30 +68,16 @@ export class SafeBulkRenameCommand extends BasicCommand<
     let notes = await engine.findNotesMeta({ excludeStub: true });
     notes = WorkspaceModesService.filterNotesByFocus(notes);
 
-    const re = new RegExp(opts.match);
-    const plan: PlanRow[] = [];
-    for (const note of notes) {
-      if (!re.test(note.fname)) continue;
-      const newFname = note.fname.replace(re, opts.replace);
-      if (newFname === note.fname) continue;
-      if (!newFname.trim()) continue;
-      plan.push({
-        oldFname: note.fname,
-        newFname,
-        vaultName: VaultUtils.getName(note.vault),
-        note,
-      });
-    }
+    const { plan, conflicts } = planBulkRename({
+      notes,
+      match: opts.match,
+      replace: opts.replace,
+    });
 
     if (plan.length === 0) {
       window.showInformationMessage("No notes matched that rename pattern.");
       return { applied: 0, planned: 0 };
     }
-
-    const existing = new Set(notes.map((n) => `${n.vault.fsPath}::${n.fname}`));
-    const conflicts = plan.filter((p) =>
-      existing.has(`${p.note.vault.fsPath}::${p.newFname}`)
-    );
 
     const focus = WorkspaceModesService.getFocusedVaultName();
     const preview = [

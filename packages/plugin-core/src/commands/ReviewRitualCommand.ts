@@ -136,6 +136,21 @@ export class ReviewRitualCommand extends BasicCommand<
         qs: picked.note.fname,
         vault: picked.note.vault,
       });
+      // Mark last-reviewed for compounding review quality
+      try {
+        const full = (await this._ext.getEngine().getNote(picked.note.id)).data;
+        if (full) {
+          await this._ext.getEngine().writeNote({
+            ...full,
+            custom: {
+              ...(full.custom || {}),
+              lastReviewed: Time.now().toSeconds(),
+            },
+          });
+        }
+      } catch {
+        // non-fatal
+      }
     }
   }
 

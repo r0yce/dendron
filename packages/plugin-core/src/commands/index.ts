@@ -88,6 +88,9 @@ import {
   NoteHistoryForwardCommand,
 } from "./NoteHistoryCommand";
 import { SafeBulkRenameCommand } from "./SafeBulkRenameCommand";
+import { ProcessInboxCommand } from "./ProcessInboxCommand";
+import { WorkspaceHealthCommand } from "./WorkspaceHealthCommand";
+import { ExtractTasksFromNoteCommand } from "./ExtractTasksFromNoteCommand";
 import { SignInCommand } from "./SignIn";
 import { SignUpCommand } from "./SignUp";
 import { SnapshotVaultCommand } from "./SnapshotVault";
@@ -186,6 +189,9 @@ const ALL_COMMANDS = [
   NoteHistoryBackCommand,
   NoteHistoryForwardCommand,
   SafeBulkRenameCommand,
+  ProcessInboxCommand,
+  WorkspaceHealthCommand,
+  ExtractTasksFromNoteCommand,
   SignInCommand,
   SignUpCommand,
   PublishExportCommand,

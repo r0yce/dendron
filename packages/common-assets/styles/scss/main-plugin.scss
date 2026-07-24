@@ -15,16 +15,17 @@ hr {
 }
 
 // ---------------------------------------------------------------------------
-// Note preview (and other webviews): force VS Code theme colors.
-//
-// index.styles.css bakes light Just-the-Docs colors (body #5c5962, headings
-// #27262b). antd Layout also defaults to light-theme text. We only used to
-// override backgrounds, so dark mode became black text on a dark editor bg.
+// UNIFIED WEBVIEW THEME LAYER (Sprint 5)
+// Single source of VS Code chrome tokens for all Dendron webviews:
+// preview, calendar, configure, graph chrome, portals.
 // ---------------------------------------------------------------------------
 html,
 body,
 .ant-layout,
 .ant-layout-content,
+.ant-layout-header,
+.ant-layout-footer,
+.ant-layout-sider,
 #root,
 #main-content-wrap,
 #main-content,
@@ -32,6 +33,16 @@ body,
 .main-content {
   background-color: var(--vscode-editor-background) !important;
   color: var(--vscode-editor-foreground) !important;
+}
+
+// Ant Design inputs / selects used across panels
+.ant-input,
+.ant-select-selector,
+.ant-select-dropdown,
+.ant-btn-default {
+  background-color: var(--vscode-input-background, transparent) !important;
+  color: var(--vscode-input-foreground, var(--vscode-editor-foreground)) !important;
+  border-color: var(--vscode-input-border, var(--vscode-panel-border, #444)) !important;
 }
 
 .main-content,

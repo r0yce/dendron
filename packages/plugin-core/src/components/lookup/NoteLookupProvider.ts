@@ -38,6 +38,7 @@ import {
   shouldBubbleUpCreateNew,
   sortBySimilarity,
 } from "./utils";
+import { WorkspaceModesService } from "../../services/WorkspaceModesService";
 
 export class NoteLookupProvider implements ILookupProviderV3 {
   private _onAcceptHooks: OnAcceptHook[];
@@ -322,9 +323,11 @@ export class NoteLookupProvider implements ILookupProviderV3 {
       // if empty string, show all 1st level results
       if (transformedQuery.queryString === "") {
         Logger.debug({ ctx, msg: "empty qs" });
-        const items = await NotePickerUtils.fetchRootQuickPickResults({
+        let items = await NotePickerUtils.fetchRootQuickPickResults({
           engine,
         });
+        // Sprint 5: vault focus scopes lookup roots
+        items = WorkspaceModesService.filterNotesByFocus(items as any) as any;
         const extraItems = this.opts.extraItems;
         if (extraItems) {
           items.unshift(...extraItems);
@@ -345,6 +348,20 @@ export class NoteLookupProvider implements ILookupProviderV3 {
         transformedQuery,
         originalQS: queryOrig,
       });
+
+      // Sprint 5: vault focus scopes lookup results (create-new rows keep vault from picker)
+      const focusedVault = WorkspaceModesService.getFocusedVault();
+      if (focusedVault) {
+        updatedItems = updatedItems.filter((item) => {
+          if (!item.vault) return true;
+          return (
+            item.vault.fsPath === focusedVault.fsPath ||
+            (item as any).label === CREATE_NEW_LABEL ||
+            (item as any).detail === CREATE_NEW_NOTE_DETAIL ||
+            String((item as any).label || "").includes("Create New")
+          );
+        });
+      }
 
       if (token?.isCancellationRequested) {
         return;

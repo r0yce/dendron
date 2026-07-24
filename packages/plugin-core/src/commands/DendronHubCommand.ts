@@ -40,6 +40,11 @@ export class DendronHubCommand extends BasicCommand<
         command: DENDRON_COMMANDS.CAPTURE_INBOX.key,
       },
       {
+        label: "$(inbox) Process Inbox",
+        description: "Triage inbox → notes / tasks / journal",
+        command: DENDRON_COMMANDS.PROCESS_INBOX.key,
+      },
+      {
         label: "$(book) Review Ritual",
         description: "Daily or weekly review of recent notes",
         command: DENDRON_COMMANDS.REVIEW_RITUAL.key,
@@ -50,9 +55,19 @@ export class DendronHubCommand extends BasicCommand<
         command: DENDRON_COMMANDS.TASK_BOARD.key,
       },
       {
+        label: "$(checklist) Extract Tasks from Note",
+        description: "Bullets → task notes (offline)",
+        command: DENDRON_COMMANDS.EXTRACT_TASKS_FROM_NOTE.key,
+      },
+      {
         label: "$(sparkle) Local AI Assist",
         description: "Opt-in local AI scaffold / endpoint",
         command: DENDRON_COMMANDS.LOCAL_AI_ASSIST.key,
+      },
+      {
+        label: "$(heart) Workspace Health",
+        description: "Inbox / tasks / stale / activation",
+        command: DENDRON_COMMANDS.WORKSPACE_HEALTH.key,
       },
       {
         label: "$(folder) Vault Focus",
