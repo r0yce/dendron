@@ -154,7 +154,8 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | Schema lookup completions | `noteLookupSchemaCompletions` |
 | Note empty qs / create-new rows | `noteLookupEmptyQuery`, `noteLookupCreateNewItems` |
 | Schema lookup helpers | `schemaLookupHelpers` |
-| Shared provider accept/history | `lookupProviderAccept`, `lookupProviderHistory` |
+| Shared provider accept/history/wire | `lookupProviderAccept`, `lookupProviderHistory`, `lookupProviderWire` |
+| NoteLookupCommand peels | `noteLookupButtons`, `noteLookupSelectionMode`, `noteLookupVault`, `noteLookupAcceptHelpers` |
 | Lookup controller modifiers | `lookupControllerModifiers`, `lookupControllerViewState` |
 | Lookup sentinels / open note | `pickerSentinels`, `pickerDisplay` |
 | Lookup accept hooks (rename/move) | `providerAcceptHooks.ProviderAcceptHooks` |

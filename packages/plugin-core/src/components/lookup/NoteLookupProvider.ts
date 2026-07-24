@@ -39,6 +39,7 @@ import {
   runAcceptHooksAndPublish,
   syncCreateNewFnameFromPickerValue,
 } from "./lookupProviderAccept";
+import { wireLookupProvide } from "./lookupProviderWire";
 import { appendSchemaCompletions } from "./noteLookupSchemaCompletions";
 import { appendCreateNewNoteItems } from "./noteLookupCreateNewItems";
 import { fetchEmptyNoteQueryItems } from "./noteLookupEmptyQuery";
@@ -70,49 +71,17 @@ export class NoteLookupProvider implements ILookupProviderV3 {
     Logger.info({ ctx, msg: "enter" });
 
     const { quickpick, token } = opts;
-    const onUpdatePickerItems = _.bind(this.onUpdatePickerItems, this);
-    const onUpdateDebounced = _.debounce(
-      () => {
-        const ctx = "NoteLookupProvider.onUpdateDebounced";
-        Logger.debug({ ctx, msg: "enter" });
-        const out = onUpdatePickerItems({
-          picker: quickpick,
-          token: token.token,
-        } as OnUpdatePickerItemsOpts);
-        Logger.debug({ ctx, msg: "exit" });
-        return out;
-      },
-      100,
-      {
-        // Use trailing to make sure we get the latest letters typed by the user
-        // before accepting.
-        leading: false,
-      },
-    );
-    quickpick.onDidChangeValue(onUpdateDebounced);
-
-    quickpick.onDidAccept(async () => {
-      const ctx = "quickpick:onDidAccept";
-      Logger.info({
-        ctx,
-        msg: "enter",
-        quickpick: quickpick.value,
-      });
-      await onUpdateDebounced.flush();
-      if (_.isEmpty(quickpick.selectedItems)) {
-        Logger.debug({
-          ctx,
-          msg: "no selected items",
-          quickpick: quickpick.value,
-        });
-        await onUpdatePickerItems({
-          picker: quickpick,
-          token: new CancellationTokenSource().token,
-        });
-      }
-
-      syncCreateNewFnameFromPickerValue(quickpick);
-      this.onDidAccept({ quickpick, cancellationToken: token })();
+    // Trailing debounce so we get the latest letters before accept.
+    wireLookupProvide({
+      quickpick,
+      token,
+      onUpdatePickerItems: _.bind(this.onUpdatePickerItems, this),
+      onAccept: () =>
+        this.onDidAccept({ quickpick, cancellationToken: token })(),
+      debounce: { leading: false },
+      onAcceptDebounce: "flush",
+      beforeAccept: syncCreateNewFnameFromPickerValue,
+      logCtx: ctx,
     });
     Logger.info({ ctx, msg: "exit" });
     return;

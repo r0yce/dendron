@@ -23,7 +23,8 @@
 | `noteLookupSchemaCompletions` | lookup | Schema child candidates + append completions |
 | `noteLookupEmptyQuery` / `noteLookupCreateNewItems` | lookup | Empty-qs roots; append Create New note rows |
 | `schemaLookupHelpers` | lookup | Schema empty-qs, create-new row, multi-level gate |
-| `lookupProviderAccept` / `lookupProviderHistory` | lookup | Shared vault next-picker + accept hooks/history |
+| `lookupProviderAccept` / `lookupProviderHistory` / `lookupProviderWire` | lookup | Shared accept, history, provide() debounce wiring |
+| `noteLookupButtons` / `noteLookupSelectionMode` / `noteLookupVault` / `noteLookupAcceptHelpers` | commands/ | NoteLookupCommand peels |
 | `pickerSentinels` / `pickerDisplay` | lookup | Create New / More Results sentinels; open doc + hide picker |
 | `lookupControllerModifiers` / `lookupControllerViewState` | lookup | Note-type/selection toggles + initial VM from buttons |
 | `providerAcceptHooks` | lookup | Rename/move on-accept location hooks |
@@ -146,13 +147,31 @@ Helpers, HTML shell, lookup selection, md modules, picker filters, activator hel
 | `lookupProviderAccept` / `History` | shared accept path |
 | `schemaLookupHelpers` | pure multi-level + create-new (Node-smokeable) |
 
-### Wave 12 — optional next
+### Wave 12 — DONE (this push)
+
+| Item | Result |
+|------|--------|
+| Shared provide wire | `lookupProviderWire.wireLookupProvide` — note (flush/trailing) + schema (cancel/leading) |
+| NoteLookupCommand peels | buttons, selectionMode, vault resolve, accept helpers (selected items, titles, fname) |
+| SchemaPickerUtils | uses `sliceForPaginationLimit` + `enhanceNotesForQuickInput` |
+| Dual-build comments | `_extension.ts` + `NoteLookupCommand` headers |
+| Tests / smoke | selection mode, multi-select, journal fname, title override |
+
+| Hotspot | ~LOC after wave 12 |
+|---------|-------------------|
+| `NoteLookupCommand.ts` | **~706** (was ~802) |
+| `NoteLookupProvider.ts` | **~356** (was ~387) |
+| `SchemaLookupProvider.ts` | **~224** (was ~243) |
+| `SchemaPickerUtils.ts` | **~85** |
+| `lookupProviderWire.ts` | ~94 |
+
+### Wave 13 — optional next
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | Peel large command files (e.g. `NoteLookupCommand`) if still noisy |
-| P2 | Further thin `SchemaPickerUtils` / shared provide() debounce wiring |
-| P3 | Comment pass on dual-build contracts in remaining entrypoints |
+| P1 | Peel `acceptNewItem` / `acceptNewWithTemplateItem` body if still noisy |
+| P2 | Thin other large commands (`Doctor`, `MoveHeader`, vault commands) |
+| P3 | Shared enrichInputs / History subscribe pattern for schema lookup command |
 
 ---
 

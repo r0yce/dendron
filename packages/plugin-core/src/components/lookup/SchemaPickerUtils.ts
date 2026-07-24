@@ -1,9 +1,14 @@
+/**
+ * Schema QuickPick result fetch helpers.
+ */
 import { DNodeUtils, SchemaProps, SchemaUtils } from "@dendronhq/common-all";
 import { getDurationMilliseconds } from "@dendronhq/common-server";
 import { ExtensionProvider } from "../../ExtensionProvider";
 import { Logger } from "../../logger";
 import { CREATE_NEW_SCHEMA_DETAIL } from "./constants";
 import { NotePickerUtils, PAGINATE_LIMIT } from "./NotePickerUtils";
+import { enhanceNotesForQuickInput } from "./notePickerEnhance";
+import { sliceForPaginationLimit } from "./pickerPagination";
 import { DendronQuickPickerV2 } from "./types";
 import { PickerUtilsV2 } from "./utils";
 
@@ -53,29 +58,26 @@ export class SchemaPickerUtils {
       nodes = resp.data.map((ent) => SchemaUtils.getModuleRoot(ent));
     }
 
-    if (nodes.length > PAGINATE_LIMIT) {
-      picker.allResults = nodes;
-      picker.offset = PAGINATE_LIMIT;
+    const pageSlice = sliceForPaginationLimit(nodes, PAGINATE_LIMIT);
+    if (pageSlice.hasMore && pageSlice.allResults) {
+      picker.allResults = pageSlice.allResults;
+      picker.offset = pageSlice.offset;
       picker.moreResults = true;
-      nodes = nodes.slice(0, PAGINATE_LIMIT);
+      nodes = pageSlice.page;
     } else {
       PickerUtilsV2.resetPaginationOpts(picker);
+      nodes = pageSlice.page;
     }
-    const updatedItems = await Promise.all(
-      nodes.map(async (ent) =>
-        DNodeUtils.enhancePropForQuickInputV3({
-          wsRoot,
-          props: ent,
-          schema: ent.schema
-            ? (
-                await engine.getSchema(ent.schema.moduleId)
-              ).data
-            : undefined,
-          vaults,
-          alwaysShow: picker.alwaysShowAll,
-        })
-      )
-    );
+
+    const updatedItems = await enhanceNotesForQuickInput({
+      nodes,
+      engine,
+      wsRoot,
+      vaults,
+      ...(picker.alwaysShowAll !== undefined
+        ? { alwaysShow: picker.alwaysShowAll }
+        : {}),
+    });
     const profile = getDurationMilliseconds(start);
     Logger.info({ ctx, msg: "engine.querySchema", profile });
     return updatedItems;

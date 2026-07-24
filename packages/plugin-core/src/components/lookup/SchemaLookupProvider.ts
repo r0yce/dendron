@@ -32,6 +32,7 @@ import {
   runAcceptHooksAndPublish,
 } from "./lookupProviderAccept";
 import { publishLookupCancel } from "./lookupProviderHistory";
+import { wireLookupProvide } from "./lookupProviderWire";
 import {
   appendCreateNewSchemaItem,
   fetchSchemaRootPickerItems,
@@ -57,35 +58,15 @@ export class SchemaLookupProvider implements ILookupProviderV3 {
 
   async provide(opts: ProvideOpts) {
     const { quickpick, token } = opts;
-
-    const onUpdatePickerItems = _.bind(this.onUpdatePickerItems, this);
-    const onUpdateDebounced = _.debounce(
-      () => {
-        onUpdatePickerItems({
-          picker: quickpick,
-          token: token.token,
-        } as OnUpdatePickerItemsOpts);
-      },
-      100,
-      {
-        leading: true,
-        maxWait: 200,
-      },
-    );
-    quickpick.onDidChangeValue(onUpdateDebounced);
-    quickpick.onDidAccept(async () => {
-      Logger.info({
-        ctx: "SchemaLookupProvider:onDidAccept",
-        quickpick: quickpick.value,
-      });
-      onUpdateDebounced.cancel();
-      if (_.isEmpty(quickpick.selectedItems)) {
-        await onUpdatePickerItems({
-          picker: quickpick,
-          token: new CancellationTokenSource().token,
-        });
-      }
-      this.onDidAccept({ quickpick, cancellationToken: token })();
+    wireLookupProvide({
+      quickpick,
+      token,
+      onUpdatePickerItems: _.bind(this.onUpdatePickerItems, this),
+      onAccept: () =>
+        this.onDidAccept({ quickpick, cancellationToken: token })(),
+      debounce: { leading: true, maxWait: 200 },
+      onAcceptDebounce: "cancel",
+      logCtx: "SchemaLookupProvider",
     });
     return;
   }

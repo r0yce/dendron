@@ -18,6 +18,8 @@ const value = out("components/lookup/pickerValue.js");
 const pagination = out("components/lookup/pickerPagination.js");
 const schemaComp = out("components/lookup/noteLookupSchemaCompletions.js");
 const schemaHelpers = out("components/lookup/schemaLookupHelpers.js");
+const selMode = out("commands/noteLookupSelectionMode.js");
+const acceptHelp = out("commands/noteLookupAcceptHelpers.js");
 const constants = out("components/lookup/vaultPickerConstants.js");
 
 let failed = 0;
@@ -137,6 +139,28 @@ check(
   "isMultiLevelSchemaQuery",
   schemaHelpers.isMultiLevelSchemaQuery("a.b") === true &&
     schemaHelpers.isMultiLevelSchemaQuery("a") === false
+);
+
+// --- note lookup command pure helpers ---
+check(
+  "selectionModeConfigToType",
+  selMode.selectionModeConfigToType("link") === "selection2link" &&
+    selMode.selectionModeConfigToType("none") === "none"
+);
+check(
+  "getSelectedLookupItems",
+  acceptHelp.getSelectedLookupItems({
+    canSelectMany: false,
+    selectedItems: [{ fname: "a" }, { fname: "b" }],
+  }).length === 1
+);
+check(
+  "getFNameForNewLookupItem journal",
+  acceptHelp.getFNameForNewLookupItem({
+    item: { fname: "x" },
+    isJournal: true,
+    pickerValue: "j.1",
+  }) === "j.1"
 );
 
 if (failed) {

@@ -1,17 +1,13 @@
 import {
   ConfigUtils,
   DendronError,
-  DVault,
   EngagementEvents,
   ErrorFactory,
-  ErrorMessages,
   ERROR_STATUS,
-  getJournalTitle,
   getStage,
   LookupNoteType,
   LookupNoteTypeEnum,
   LookupSelectionType,
-  LookupSelectionTypeEnum,
   NoteProps,
   NoteQuickInput,
   NoteUtils,
@@ -26,22 +22,18 @@ import { HistoryService, MetadataService } from "@dendronhq/engine-server";
 import _ from "lodash";
 import { Uri, window } from "vscode";
 import {
-  CopyNoteLinkBtn,
-  DirectChildFilterBtn,
-  HorizontalSplitBtn,
-  JournalBtn,
-  MultiSelectBtn,
-  ScratchBtn,
-  Selection2ItemsBtn,
-  Selection2LinkBtn,
-  SelectionExtractBtn,
-  TaskBtn,
-} from "../components/lookup/buttons";
-import {
   LookupFilterType,
   LookupSplitType,
-  LookupSplitTypeEnum,
 } from "../components/lookup/ButtonTypes";
+import { buildNoteLookupExtraButtons } from "./noteLookupButtons";
+import { selectionModeConfigToType } from "./noteLookupSelectionMode";
+import { resolveVaultForNewNote } from "./noteLookupVault";
+import {
+  applyLookupNoteTitleOverrides,
+  getFNameForNewLookupItem,
+  getSelectedLookupItems,
+  shouldRunSelection2LinkOnTemplateCreate,
+} from "./noteLookupAcceptHelpers";
 import { CREATE_NEW_LABEL } from "../components/lookup/constants";
 import { ILookupControllerV3 } from "../components/lookup/LookupControllerV3Interface";
 import {
@@ -127,8 +119,14 @@ type OnDidAcceptReturn = {
 export { CommandOpts as LookupCommandOptsV3 };
 
 /**
- * Note look up command instance that is used by the UI.
- * */
+ * Note lookup command — gather inputs, accept selection, open notes.
+ *
+ * Peeled helpers:
+ * - `noteLookupButtons` / `noteLookupSelectionMode` / `noteLookupVault`
+ * - `noteLookupAcceptHelpers`
+ *
+ * Dual-build: F5 loads tsc `out/src/extension.js` (not webpack `dist/`).
+ */
 
 export class NoteLookupCommand extends BaseCommand<
   CommandOpts,
@@ -202,22 +200,9 @@ export class NoteLookupCommand extends BaseCommand<
     const ws = extension.getDWorkspace();
     const lookupConfig = ConfigUtils.getCommands(ws.config).lookup;
     const noteLookupConfig = lookupConfig.note;
-    let selectionType;
-    switch (noteLookupConfig.selectionMode) {
-      case "link": {
-        selectionType = "selection2link";
-        break;
-      }
-      case "none": {
-        selectionType = "none";
-        break;
-      }
-      case "extract":
-      default: {
-        selectionType = "selectionExtract";
-        break;
-      }
-    }
+    const selectionType = selectionModeConfigToType(
+      noteLookupConfig.selectionMode
+    );
 
     const confirmVaultOnCreate = noteLookupConfig.confirmVaultOnCreate;
 
@@ -246,34 +231,7 @@ export class NoteLookupCommand extends BaseCommand<
         nodeType: "note",
         disableVaultSelection,
         vaultButtonPressed,
-        extraButtons: [
-          MultiSelectBtn.create({ pressed: copts.multiSelect }),
-          CopyNoteLinkBtn.create(copts.copyNoteLink),
-          DirectChildFilterBtn.create(
-            copts.filterMiddleware?.includes("directChildOnly")
-          ),
-          SelectionExtractBtn.create({
-            pressed:
-              copts.selectionType === LookupSelectionTypeEnum.selectionExtract,
-          }),
-          Selection2LinkBtn.create(
-            copts.selectionType === LookupSelectionTypeEnum.selection2link
-          ),
-          Selection2ItemsBtn.create({
-            pressed:
-              copts.selectionType === LookupSelectionTypeEnum.selection2Items,
-          }),
-          JournalBtn.create({
-            pressed: copts.noteType === LookupNoteTypeEnum.journal,
-          }),
-          ScratchBtn.create({
-            pressed: copts.noteType === LookupNoteTypeEnum.scratch,
-          }),
-          TaskBtn.create(copts.noteType === LookupNoteTypeEnum.task),
-          HorizontalSplitBtn.create(
-            copts.splitType === LookupSplitTypeEnum.horizontal
-          ),
-        ],
+        extraButtons: buildNoteLookupExtraButtons(copts),
         enableLookupView: true,
       });
     }
@@ -399,8 +357,10 @@ export class NoteLookupCommand extends BaseCommand<
     CommandOpts,
     "selectedItems" | "quickpick"
   >): readonly NoteQuickInput[] {
-    const { canSelectMany } = quickpick;
-    return canSelectMany ? selectedItems : selectedItems.slice(0, 1);
+    return getSelectedLookupItems({
+      canSelectMany: quickpick.canSelectMany,
+      selectedItems,
+    });
   }
 
   /**
@@ -424,34 +384,22 @@ export class NoteLookupCommand extends BaseCommand<
 
       const out = await Promise.all(
         selected.map((item) => {
-          // If we're in journal mode, then apply title and trait overrides
-          if (this.isJournalButtonPressed()) {
-            /**
-             * this is a hacky title override for journal notes.
-             * TODO: remove this once we implement a more general way to override note titles.
-             * this is a hacky title override for journal notes.
-             */
-            const journalModifiedTitle = getJournalTitle(
-              item.fname,
-              journalDateFormat
+          const { journalTrait } = applyLookupNoteTitleOverrides({
+            item,
+            isJournal: this.isJournalButtonPressed(),
+            journalDateFormat,
+            enableFullHierarchyNoteTitle: !!ConfigUtils.getWorkspace(ws.config)
+              .enableFullHierarchyNoteTitle,
+          });
+          if (journalTrait) {
+            const trait = new JournalNote(
+              ExtensionProvider.getDWorkspace().config
             );
-
-            if (journalModifiedTitle) {
-              item.title = journalModifiedTitle;
-
-              const journalTrait = new JournalNote(
-                ExtensionProvider.getDWorkspace().config
-              );
-              if (item.traits) {
-                item.traits.push(journalTrait.id);
-              } else {
-                item.traits = [journalTrait.id];
-              }
+            if (item.traits) {
+              item.traits.push(trait.id);
+            } else {
+              item.traits = [trait.id];
             }
-          } else if (
-            ConfigUtils.getWorkspace(ws.config).enableFullHierarchyNoteTitle
-          ) {
-            item.title = NoteUtils.genTitleFromFullFname(item.fname);
           }
           return this.acceptItem(item);
         })
@@ -688,11 +636,8 @@ export class NoteLookupCommand extends BaseCommand<
     }
 
     // only enable selection 2 link
-    if (
-      picker.selectionProcessFunc !== undefined &&
-      picker.selectionProcessFunc.name === "selection2link"
-    ) {
-      nodeNew = (await picker.selectionProcessFunc(nodeNew)) as NoteProps;
+    if (shouldRunSelection2LinkOnTemplateCreate(picker)) {
+      nodeNew = (await picker.selectionProcessFunc!(nodeNew)) as NoteProps;
     }
     const resp = await engine.writeNote(nodeNew);
     if (resp.error) {
@@ -713,11 +658,11 @@ export class NoteLookupCommand extends BaseCommand<
    * Added to quickly fix the journal names not being created properly.
    */
   private getFNameForNewItem(item: NoteQuickInput) {
-    if (this.isJournalButtonPressed()) {
-      return PickerUtilsV2.getValue(this.controller.quickPick);
-    } else {
-      return item.fname;
-    }
+    return getFNameForNewLookupItem({
+      item,
+      isJournal: this.isJournalButtonPressed(),
+      pickerValue: PickerUtilsV2.getValue(this.controller.quickPick),
+    });
   }
 
   //  ^8jd6vr4qcsol
@@ -728,48 +673,7 @@ export class NoteLookupCommand extends BaseCommand<
     fname: string;
     picker: DendronQuickPickerV2;
   }) {
-    const engine = ExtensionProvider.getEngine();
-
-    const vaultsWithMatchingFile = new Set(
-      (await engine.findNotesMeta({ fname })).map((n) => n.vault.fsPath)
-    );
-
-    // Try to get the default vault value.
-    let vault: DVault | undefined = picker.vault
-      ? picker.vault
-      : PickerUtilsV2.getVaultForOpenEditor();
-
-    // If our current context does not have vault or if our current context vault
-    // already has a matching file name we want to ask the user for a different vault.
-    if (vault === undefined || vaultsWithMatchingFile.has(vault.fsPath)) {
-      // Available vaults are vaults that do not have the desired file name.
-      const availVaults = engine.vaults.filter(
-        (v) => !vaultsWithMatchingFile.has(v.fsPath)
-      );
-
-      if (availVaults.length > 1) {
-        const promptedVault = await PickerUtilsV2.promptVault(availVaults);
-        if (promptedVault === undefined) {
-          // User must have cancelled vault selection.
-          vault = undefined;
-        } else {
-          vault = promptedVault;
-        }
-      } else if (availVaults.length === 1) {
-        // There is only a single vault that is available so we dont have to ask the user.
-        vault = availVaults[0];
-      } else {
-        // We should never reach this as "Create New" should not be available as option
-        // to the user when there are no available vaults.
-        throw ErrorFactory.createInvalidStateError({
-          message: ErrorMessages.formatShouldNeverOccurMsg(
-            `No available vaults for file name.`
-          ),
-        });
-      }
-    }
-
-    return vault;
+    return resolveVaultForNewNote({ fname, picker });
   }
 
   private async getTemplateForNewNote(): Promise<NoteProps | undefined> {

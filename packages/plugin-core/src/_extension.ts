@@ -1,6 +1,12 @@
 import "reflect-metadata"; // This needs to be the topmost import for tsyringe to work
 
 /**
+ * Extension host entry (activate / deactivate).
+ *
+ * Dual-build note: local F5 / debug loads tsc output `out/src/extension.js`.
+ * Production packaging uses webpack `dist/`. Stale `out/` is a common false
+ * alarm when debugging — recompile plugin-core before reloading the window.
+ *
  * TypeScript 5.5+ Upgrade Note:
  * Legacy decorators + tsyringe now require // @ts-expect-error on many @inject sites
  * due to stricter decorator signature checking.

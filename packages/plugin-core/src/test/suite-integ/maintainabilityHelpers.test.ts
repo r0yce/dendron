@@ -43,11 +43,17 @@ import {
   appendCreateNewSchemaItem,
   isMultiLevelSchemaQuery,
 } from "../../components/lookup/schemaLookupHelpers";
+import { selectionModeConfigToType } from "../../commands/noteLookupSelectionMode";
+import {
+  applyLookupNoteTitleOverrides,
+  getFNameForNewLookupItem,
+  getSelectedLookupItems,
+} from "../../commands/noteLookupAcceptHelpers";
 import { VaultSelectionMode } from "../../components/lookup/types";
 import { CREATE_NEW_NOTE_DETAIL } from "../../components/lookup/constants";
 import { Location, Range, Uri } from "vscode";
 
-describe("maintainabilityHelpers (waves 5–11)", () => {
+describe("maintainabilityHelpers (waves 5–12)", () => {
   describe("md/anchors", () => {
     it("finds frontmatter ending offset and 1-indexed line", () => {
       const body = "---\nid: abc\n---\n\n# Hello\n";
@@ -547,6 +553,56 @@ describe("maintainabilityHelpers (waves 5–11)", () => {
         hasPerfectMatch: false,
       });
       expect(disallowed.length).toEqual(1);
+    });
+  });
+
+  describe("noteLookup command helpers", () => {
+    it("selectionModeConfigToType maps config strings", () => {
+      expect(selectionModeConfigToType("link")).toEqual("selection2link");
+      expect(selectionModeConfigToType("none")).toEqual("none");
+      expect(selectionModeConfigToType("extract")).toEqual("selectionExtract");
+      expect(selectionModeConfigToType(undefined)).toEqual("selectionExtract");
+    });
+
+    it("getSelectedLookupItems respects multi-select", () => {
+      const items = [{ fname: "a" }, { fname: "b" }] as any[];
+      expect(
+        getSelectedLookupItems({ canSelectMany: false, selectedItems: items })
+          .length
+      ).toEqual(1);
+      expect(
+        getSelectedLookupItems({ canSelectMany: true, selectedItems: items })
+          .length
+      ).toEqual(2);
+    });
+
+    it("getFNameForNewLookupItem uses picker value in journal mode", () => {
+      const item = { fname: "item.fname" } as any;
+      expect(
+        getFNameForNewLookupItem({
+          item,
+          isJournal: true,
+          pickerValue: "journal.2026.07.24",
+        })
+      ).toEqual("journal.2026.07.24");
+      expect(
+        getFNameForNewLookupItem({
+          item,
+          isJournal: false,
+          pickerValue: "ignored",
+        })
+      ).toEqual("item.fname");
+    });
+
+    it("applyLookupNoteTitleOverrides sets full hierarchy title when enabled", () => {
+      const item = { fname: "a.b.c", title: "old" } as any;
+      applyLookupNoteTitleOverrides({
+        item,
+        isJournal: false,
+        journalDateFormat: "y.MM.dd",
+        enableFullHierarchyNoteTitle: true,
+      });
+      expect(item.title).toEqual("A B C");
     });
   });
 });
