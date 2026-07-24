@@ -224,13 +224,24 @@ Still >400 LOC and not fully modular shells:
 | `RefactorHierarchyV2` | ~547 | |
 | `_extension.ts` / `constants.ts` | large | activation + contributions (data-heavy) |
 
-### Wave 16 — optional next
+### Wave 16 — DONE (this push)
+
+| Item | Result |
+|------|--------|
+| Doctor execute peel | `doctorExecute.ts` — full action switch; `Doctor.ts` ~280 shell |
+
+| Hotspot | ~LOC after wave 16 |
+|---------|-------------------|
+| `Doctor.ts` | **~280** (was ~723 start; ~541 after wave 15) |
+| `doctorExecute.ts` | ~336 |
+
+### Wave 17 — optional next
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | Peel `DoctorCommand.execute` action switch into `doctorExecute.ts` |
-| P2 | Peel MoveHeader link/reference update path |
-| P3 | Dedup VaultAdd / AddExistingVault remote handlers |
+| P1 | Peel MoveHeader link/reference update path |
+| P2 | Dedup VaultAdd / AddExistingVault remote handlers |
+| P3 | RefactorHierarchyV2 / MergeNote / GotoNote peels |
 
 ---
 
