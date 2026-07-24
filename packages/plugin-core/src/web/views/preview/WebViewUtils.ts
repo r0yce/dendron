@@ -21,8 +21,14 @@ type WebViewThemeMap = {
 };
 
 /**
- * Forked version of WebViewUtils that works in the web ext.
- * TODO: Consolidate back
+ * Web-extension WebViewUtils (browser/webworker host).
+ *
+ * Desktop uses `plugin-core/src/views/utils.ts` → `WebViewCommonUtils.genVSCodeHTMLIndex`
+ * in common-server. This file still embeds a private `genVSCodeHTMLIndex` copy because
+ * the webworker bundle cannot safely import full common-server (node: fs, etc.).
+ *
+ * Maintainability next step: move pure HTML template to common-all (no node deps)
+ * and call it from both desktop and web. See docs/dev/MAINTAINABILITY.md.
  */
 @injectable()
 export class WebViewUtils {

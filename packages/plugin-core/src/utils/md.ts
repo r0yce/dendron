@@ -1,3 +1,17 @@
+/**
+ * Markdown / wiki-link reference helpers used by language features and lookup.
+ *
+ * Major areas in this ~700 LOC module:
+ * - findReferences / findReferencesById — reverse link index queries
+ * - getReferenceAtPosition — link under cursor
+ * - hasAnchorsToUpdate / frontmatter line helpers — selection extract edge cases
+ * - MarkdownUtils — misc markdown UI helpers
+ *
+ * Prefer splitting into utils/md/* when touching a single area heavily.
+ * Frontmatter line helpers are **1-indexed** to match remark/VS Code hybrid
+ * call sites; check callers before changing.
+ */
+
 import {
   ConfigUtils,
   DLink,

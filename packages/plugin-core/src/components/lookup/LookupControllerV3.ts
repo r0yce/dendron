@@ -1,3 +1,12 @@
+/**
+ * Lookup controller V3 — wires QuickPick UI to note/schema providers.
+ *
+ * Large file (~900 LOC). Owns button/modifier state, selection→note transforms
+ * (selection2link, extract), and backlink anchor rewrites when selection moves.
+ * Prefer extracting pure selection/backlink logic before growing this further.
+ * See docs/dev/MAINTAINABILITY.md.
+ */
+
 import {
   assertUnreachable,
   asyncLoop,

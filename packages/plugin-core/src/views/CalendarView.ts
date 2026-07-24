@@ -3,10 +3,8 @@ import {
   CalendarViewMessageType,
   DendronTreeViewKey,
   DMessage,
-  DMessageEnum,
   NoteProps,
   NoteUtils,
-  OnDidChangeActiveTextEditorMsg,
 } from "@dendronhq/common-all";
 import { WorkspaceUtils } from "@dendronhq/engine-server";
 import _ from "lodash";
@@ -16,7 +14,7 @@ import { GotoNoteCommand } from "../commands/GotoNote";
 import { IDendronExtension } from "../dendronExtensionInterface";
 import { Logger } from "../logger";
 import { VSCodeUtils } from "../vsCodeUtils";
-import { toWebviewNoteMeta } from "../utils/webviewNoteMeta";
+import { buildActiveEditorMsg } from "../utils/webviewMessages";
 import { WebViewUtils } from "./utils";
 
 export class CalendarView implements vscode.WebviewViewProvider {
@@ -143,18 +141,14 @@ export class CalendarView implements vscode.WebviewViewProvider {
       if (note) {
         this._view.show?.(true);
       }
-      // Payload diet: calendar needs id/fname/date, not full body on every focus.
-      this._view.webview.postMessage({
-        type: DMessageEnum.ON_DID_CHANGE_ACTIVE_TEXT_EDITOR,
-        data: {
-          note: toWebviewNoteMeta(note),
+      this._view.webview.postMessage(
+        buildActiveEditorMsg({
+          note,
+          activeNote:
+            (await this._extension.wsUtils.getActiveNote()) || undefined,
           syncChangedNote: true,
-          activeNote: toWebviewNoteMeta(
-            (await this._extension.wsUtils.getActiveNote()) || undefined
-          ),
-        },
-        source: "vscode",
-      } as OnDidChangeActiveTextEditorMsg);
+        })
+      );
     }
   }
 }

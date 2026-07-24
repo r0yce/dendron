@@ -1,17 +1,9 @@
-import {
-  NoteProps,
-  NoteUtils,
-  TaskNoteUtils,
-  Time,
-} from "@dendronhq/common-all";
 import { window } from "vscode";
 import { DENDRON_COMMANDS } from "../constants";
 import { IDendronExtension } from "../dendronExtensionInterface";
 import { WorkspaceModesService } from "../services/WorkspaceModesService";
-import {
-  extractOpenBullets,
-  slugifyTaskTitle,
-} from "../utils/noteBodyUtils";
+import { extractOpenBullets } from "../utils/noteBodyUtils";
+import { createTaskNoteFromTitle } from "../utils/taskNoteFactory";
 import { BasicCommand } from "./base";
 
 type CommandOpts = {};
@@ -69,37 +61,19 @@ export class ExtractTasksFromNoteCommand extends BasicCommand<
 
     const vault =
       WorkspaceModesService.resolveWriteVault() || note.vault;
-    const engine = this._ext.getEngine();
     let created = 0;
 
     for (const text of bullets) {
-      const slug = slugifyTaskTitle(text);
-      const fname = `task.${Time.now().toFormat("y.MM.dd")}.${slug || "item"}`;
-      const base = NoteUtils.create({
-        fname,
+      await createTaskNoteFromTitle(this._ext, {
+        title: text,
         vault,
-        title: text.slice(0, 80),
         body: [
           `# ${text}`,
           ``,
           `_Extracted from [[${note.title}|${note.fname}]]_`,
           ``,
         ].join("\n"),
-      }) as NoteProps;
-      const taskProps = TaskNoteUtils.genDefaultTaskNoteProps(base, {
-        name: "task",
-        dateFormat: "y.MM.dd",
-        addBehavior: "asOwnDomain" as any,
-        statusSymbols: { "": " ", wip: "w", done: "x" },
-        taskCompleteStatus: ["done", "x"],
-        prioritySymbols: {},
-        todoIntegration: false,
-        createTaskSelectionType: "selection2link" as any,
       });
-      await engine.writeNote({
-        ...base,
-        custom: { ...taskProps.custom, status: "" },
-      } as NoteProps);
       created += 1;
     }
 

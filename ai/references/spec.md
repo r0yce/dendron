@@ -136,10 +136,14 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | Need | Use |
 |------|-----|
 | Task open/done/column | `TaskNoteUtils.isOpenTaskNote` / `getBoardColumn` |
+| Create task note | `createTaskNoteFromTitle` (workspace task config) |
 | Inbox/open bullets | `noteBodyUtils` (`extractOpenBullets`, `parseOpenBulletLines`, `countOpenInboxBullets`) |
 | HTML escape in webviews | `htmlEscape.escapeHtml` / `escapeAttr` |
 | Strip body for postMessage | `toWebviewNoteMeta` |
+| Active editor → webview msg | `buildActiveEditorMsg` |
+| Open note from webview | `gotoNoteByVaultName` |
 | Vault scope | `WorkspaceModesService.filterNotesByFocus` |
+| Lookup focus + create-new | `WorkspaceModesService.filterQuickPickItemsByFocus` |
 
 **Extract when:** same logic appears in ≥2 commands/views. Prefer pure functions + thin commands.
 

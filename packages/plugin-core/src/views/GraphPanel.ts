@@ -9,7 +9,6 @@ import {
   GraphViewMessageEnum,
   NoteProps,
   NoteUtils,
-  OnDidChangeActiveTextEditorMsg,
   PerformanceTimer,
 } from "@dendronhq/common-all";
 import { logPerfReport } from "../utils/dev";
@@ -24,7 +23,7 @@ import { GraphStyleService } from "../styles";
 import { AnalyticsUtils } from "../utils/analytics";
 import { VSCodeUtils } from "../vsCodeUtils";
 import { WorkspaceModesService } from "../services/WorkspaceModesService";
-import { toWebviewNoteMeta } from "../utils/webviewNoteMeta";
+import { buildActiveEditorMsg } from "../utils/webviewMessages";
 import { WebViewUtils } from "./utils";
 
 export class GraphPanel implements vscode.WebviewViewProvider {
@@ -354,16 +353,13 @@ export class GraphPanel implements vscode.WebviewViewProvider {
         note?.stub && !createStub
           ? note
           : await this._ext.wsUtils.getActiveNote();
-      // Payload diet: meta-only postMessage (no bodies). Single-note sync still OK.
-      this._view.webview.postMessage({
-        type: DMessageEnum.ON_DID_CHANGE_ACTIVE_TEXT_EDITOR,
-        data: {
-          note: toWebviewNoteMeta(note),
+      this._view.webview.postMessage(
+        buildActiveEditorMsg({
+          note,
+          activeNote: active || undefined,
           syncChangedNote: true,
-          activeNote: toWebviewNoteMeta(active || undefined),
-        },
-        source: "vscode",
-      } as OnDidChangeActiveTextEditorMsg);
+        })
+      );
     }
 
     perf.after("total");

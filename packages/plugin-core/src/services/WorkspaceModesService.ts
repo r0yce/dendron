@@ -169,4 +169,43 @@ export class WorkspaceModesService {
     if (!focused) return notes;
     return notes.filter((n) => VaultUtils.isEqualV2(n.vault, focused));
   }
+
+  /**
+   * Filter lookup QuickPick rows by vault focus while **keeping create-new rows**.
+   * Create-new items often carry a picker vault that may not equal the focused vault;
+   * they must remain visible so users can still create notes under focus.
+   */
+  static filterQuickPickItemsByFocus<
+    T extends { vault?: DVault; label?: string; detail?: string }
+  >(
+    items: T[],
+    opts?: {
+      /** Labels that always pass (defaults cover "Create New" variants). */
+      alwaysKeepLabels?: string[];
+      /** Detail strings that always pass (create-new note detail). */
+      alwaysKeepDetails?: string[];
+    }
+  ): T[] {
+    const focused = this.getFocusedVault();
+    if (!focused) return items;
+
+    const keepLabels = new Set(
+      opts?.alwaysKeepLabels ?? ["Create New", "Create New with Template"]
+    );
+    const keepDetails = new Set(opts?.alwaysKeepDetails ?? []);
+
+    return items.filter((item) => {
+      const label = String(item.label || "");
+      if (keepLabels.has(label) || label.includes("Create New")) {
+        return true;
+      }
+      if (item.detail && keepDetails.has(item.detail)) {
+        return true;
+      }
+      if (!item.vault) {
+        return true;
+      }
+      return VaultUtils.isEqualV2(item.vault, focused);
+    });
+  }
 }

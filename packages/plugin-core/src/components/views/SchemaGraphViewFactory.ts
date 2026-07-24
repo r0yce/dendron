@@ -1,10 +1,8 @@
 import {
   DendronEditorViewKey,
-  DMessageEnum,
   getWebEditorViewEntry,
   GraphViewMessage,
   GraphViewMessageEnum,
-  OnDidChangeActiveTextEditorMsg,
   VaultUtils,
 } from "@dendronhq/common-all";
 import _ from "lodash";
@@ -13,7 +11,7 @@ import * as vscode from "vscode";
 import { Uri, ViewColumn, window } from "vscode";
 import { Logger } from "../../logger";
 import { sentryReportingCallback } from "../../utils/analytics";
-import { toWebviewNoteMeta } from "../../utils/webviewNoteMeta";
+import { buildActiveEditorMsg } from "../../utils/webviewMessages";
 import { WebViewUtils } from "../../views/utils";
 import { VSCodeUtils } from "../../vsCodeUtils";
 import { DendronExtension } from "../../workspace";
@@ -117,17 +115,14 @@ export class SchemaGraphViewFactory {
 
           const note = await ext.wsUtils.getNoteFromDocument(editor.document);
 
-          // Payload diet: do NOT full workspace sync on every editor change.
-          // Engine already initialized via useEngine on mount; only push active note meta.
-          SchemaGraphViewFactory._panel.webview.postMessage({
-            type: DMessageEnum.ON_DID_CHANGE_ACTIVE_TEXT_EDITOR,
-            data: {
-              note: toWebviewNoteMeta(note || undefined),
+          // No full workspace sync on focus (useEngine already inited on mount).
+          SchemaGraphViewFactory._panel.webview.postMessage(
+            buildActiveEditorMsg({
+              note: note || undefined,
               sync: false,
               syncChangedNote: false,
-            },
-            source: "vscode",
-          } as OnDidChangeActiveTextEditorMsg);
+            })
+          );
         }
       })
     );

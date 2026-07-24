@@ -12,7 +12,6 @@ import {
   GraphViewMessageEnum,
   NoteProps,
   NoteUtils,
-  OnDidChangeActiveTextEditorMsg,
 } from "@dendronhq/common-all";
 import { MetadataService, WorkspaceUtils } from "@dendronhq/engine-server";
 import _ from "lodash";
@@ -29,7 +28,7 @@ import { VSCodeUtils } from "../../vsCodeUtils";
 import { DendronExtension } from "../../workspace";
 import { ConfigureGraphStylesCommand } from "../../commands/ConfigureGraphStyles";
 import { WorkspaceModesService } from "../../services/WorkspaceModesService";
-import { toWebviewNoteMeta } from "../../utils/webviewNoteMeta";
+import { buildActiveEditorMsg } from "../../utils/webviewMessages";
 
 export class NoteGraphPanelFactory {
   private static _panel: vscode.WebviewPanel | undefined = undefined;
@@ -252,17 +251,14 @@ export class NoteGraphPanelFactory {
         note.stub && !createStub
           ? note
           : await this._ext.wsUtils.getActiveNote();
-      // Payload diet: strip bodies from postMessage (bodies dominate size).
-      // Keep syncChangedNote so graph engine state picks up renames/creates via single-note fetch.
-      this._panel.webview.postMessage({
-        type: DMessageEnum.ON_DID_CHANGE_ACTIVE_TEXT_EDITOR,
-        data: {
-          note: toWebviewNoteMeta(note),
+      this._panel.webview.postMessage(
+        buildActiveEditorMsg({
+          note,
+          activeNote: active || undefined,
           syncChangedNote: true,
-          activeNote: toWebviewNoteMeta(active || undefined),
-        },
-        source: DMessageSource.vscode,
-      } as OnDidChangeActiveTextEditorMsg);
+          source: DMessageSource.vscode,
+        })
+      );
     }
   }
   /**

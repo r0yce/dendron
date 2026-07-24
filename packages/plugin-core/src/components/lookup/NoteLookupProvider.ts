@@ -349,19 +349,14 @@ export class NoteLookupProvider implements ILookupProviderV3 {
         originalQS: queryOrig,
       });
 
-      // Sprint 5: vault focus scopes lookup results (create-new rows keep vault from picker)
-      const focusedVault = WorkspaceModesService.getFocusedVault();
-      if (focusedVault) {
-        updatedItems = updatedItems.filter((item) => {
-          if (!item.vault) return true;
-          return (
-            item.vault.fsPath === focusedVault.fsPath ||
-            (item as any).label === CREATE_NEW_LABEL ||
-            (item as any).detail === CREATE_NEW_NOTE_DETAIL ||
-            String((item as any).label || "").includes("Create New")
-          );
-        });
-      }
+      // Vault focus scopes results; create-new rows always kept (see filterQuickPickItemsByFocus).
+      updatedItems = WorkspaceModesService.filterQuickPickItemsByFocus(
+        updatedItems,
+        {
+          alwaysKeepLabels: [CREATE_NEW_LABEL, CREATE_NEW_WITH_TEMPLATE_LABEL],
+          alwaysKeepDetails: [CREATE_NEW_NOTE_DETAIL],
+        }
+      );
 
       if (token?.isCancellationRequested) {
         return;

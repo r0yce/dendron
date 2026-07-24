@@ -20,6 +20,7 @@ import { type PreviewProxy } from "../../../components/views/PreviewProxy";
 import { type ITextDocumentService } from "../../../services/ITextDocumentService";
 import { type INoteRenderer } from "../../engine/INoteRenderer";
 import { WSUtilsWeb } from "../../utils/WSUtils";
+import { toWebviewNoteMeta } from "../../../utils/webviewNoteMeta";
 import { type IPreviewPanelConfig } from "./IPreviewPanelConfig";
 import { WebViewUtils } from "./WebViewUtils";
 
@@ -386,7 +387,7 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
 
       // Payload diet: HTML already has rendered content; strip body from note meta.
       const data: OnUpdatePreviewHTMLData = {
-        note: { ...note, body: "" },
+        note: toWebviewNoteMeta(note) || note,
         html,
       };
 

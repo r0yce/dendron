@@ -1,9 +1,4 @@
-import {
-  NoteProps,
-  NoteUtils,
-  TaskNoteUtils,
-  Time,
-} from "@dendronhq/common-all";
+import { NoteProps, NoteUtils, Time } from "@dendronhq/common-all";
 import { QuickPickItem, window } from "vscode";
 import { DENDRON_COMMANDS } from "../constants";
 import { IDendronExtension } from "../dendronExtensionInterface";
@@ -14,6 +9,7 @@ import {
   OpenBulletLine,
   slugifyTaskTitle,
 } from "../utils/noteBodyUtils";
+import { createTaskNoteFromTitle } from "../utils/taskNoteFactory";
 import { BasicCommand } from "./base";
 import { GotoNoteCommand } from "./GotoNote";
 
@@ -127,32 +123,13 @@ export class ProcessInboxCommand extends BasicCommand<
         }) as NoteProps;
         await engine.writeNote(note);
       } else if (action.id === "task") {
-        const fname = `task.${this.slugify(bullet.text).slice(0, 60)}`;
-        const base = NoteUtils.create({
-          fname,
+        const slug = this.slugify(bullet.text).slice(0, 60);
+        await createTaskNoteFromTitle(this._ext, {
+          title: bullet.text,
           vault,
-          title: bullet.text.slice(0, 80),
+          fname: `task.${slug || "item"}`,
           body: `# ${bullet.text}\n\n_From inbox_\n`,
-        }) as NoteProps;
-        const taskProps = TaskNoteUtils.genDefaultTaskNoteProps(
-          base,
-          // use engine config defaults
-          {
-            name: "task",
-            dateFormat: "y.MM.dd",
-            addBehavior: "asOwnDomain" as any,
-            statusSymbols: { "": " ", wip: "w", done: "x" },
-            taskCompleteStatus: ["done", "x"],
-            prioritySymbols: {},
-            todoIntegration: false,
-            createTaskSelectionType: "selection2link" as any,
-          }
-        );
-        const note = {
-          ...base,
-          custom: { ...taskProps.custom, status: "" },
-        } as NoteProps;
-        await engine.writeNote(note);
+        });
       } else if (action.id === "journal") {
         const journalFname = `daily.journal.${Time.now().toFormat("y.MM.dd")}`;
         let journal = (
