@@ -9,32 +9,28 @@ import {
 } from "@dendronhq/common-all";
 import _ from "lodash";
 import _md from "markdown-it";
-import { HistoryEvent } from "@dendronhq/engine-server";
-import path from "path";
-import { Disposable, ProgressLocation, Uri, ViewColumn, window } from "vscode";
-import { LookupControllerV3CreateOpts } from "../components/lookup/LookupControllerV3Interface";
-import { NoteLookupProviderUtils } from "../components/lookup/NoteLookupProviderUtils";
-import { DendronContext, DENDRON_COMMANDS } from "../constants";
-import { VSCodeUtils } from "../vsCodeUtils";
-import { WSUtils } from "../WSUtils";
+import { ProgressLocation, Uri, ViewColumn, window } from "vscode";
+import { DENDRON_COMMANDS } from "../constants";
 import { BasicCommand } from "./base";
 import { RenameNoteOutputV2a, RenameNoteV2aCommand } from "./RenameNoteV2a";
-import {
-  MultiSelectBtn,
-  Selection2ItemsBtn,
-} from "../components/lookup/buttons";
 import { ExtensionProvider } from "../ExtensionProvider";
 import { NoteLookupProviderSuccessResp } from "../components/lookup/LookupProviderV3Interface";
 import { ProxyMetricUtils } from "../utils/ProxyMetricUtils";
-import { LinkUtils } from "@dendronhq/unified";
-import { AutoCompleter } from "../utils/autoCompleter";
-import { AutoCompletableRegistrar } from "../utils/registers/AutoCompletableRegistrar";
 import {
   buildRefactorOverwriteErrorMarkdown,
   filterCapturedNotesForRefactor,
   findExistingRefactorTargets,
   getRefactorRenamePathOps,
 } from "./refactorHierarchyOps";
+import {
+  announceRefactorScope,
+  buildRefactorSuccessPreviewMarkdown,
+  promptRefactorConfirmation,
+  promptRefactorMatchText,
+  promptRefactorReplaceText,
+  showRefactorPreviewPanel,
+} from "./refactorHierarchyPrompts";
+import { promptRefactorScope } from "./refactorHierarchyScope";
 
 const md = _md();
 
@@ -75,121 +71,19 @@ export class RefactorHierarchyCommandV2 extends BasicCommand<
   } as DNodePropsQuickInputV2;
 
   async promptScope(): Promise<NoteLookupProviderSuccessResp | undefined> {
-    // see if we have a selection that contains wikilinks
-    const { text } = VSCodeUtils.getSelection();
-    const wikiLinks = text ? LinkUtils.extractWikiLinks(text) : [];
-    const shouldUseSelection = wikiLinks.length > 0;
-
-    // if we have a selection w/ wikilinks, selection2Items
-    if (!shouldUseSelection) {
-      return {
-        selectedItems: [this.entireWorkspaceQuickPickItem],
-        onAcceptHookResp: [],
-      };
-    }
-
-    const lcOpts: LookupControllerV3CreateOpts = {
-      nodeType: "note",
-      disableVaultSelection: true,
-      vaultSelectCanToggle: false,
-      extraButtons: [
-        Selection2ItemsBtn.create({ pressed: true, canToggle: false }),
-        MultiSelectBtn.create({ pressed: true, canToggle: false }),
-      ],
-    };
-    const extension = ExtensionProvider.getExtension();
-    const lc = extension.lookupControllerFactory.create(lcOpts);
-
-    const provider = extension.noteLookupProviderFactory.create(this.key, {
-      allowNewNote: false,
-      noHidePickerOnAccept: false,
-    });
-    return new Promise((resolve) => {
-      let disposable: Disposable;
-      NoteLookupProviderUtils.subscribe({
-        id: this.key,
-        controller: lc,
-        logger: this.L,
-        onDone: (event: HistoryEvent) => {
-          const data = event.data as NoteLookupProviderSuccessResp;
-          if (data.cancel) {
-            resolve(undefined);
-          }
-          resolve(data);
-          disposable?.dispose();
-          VSCodeUtils.setContext(DendronContext.NOTE_LOOK_UP_ACTIVE, false);
-        },
-        onHide: () => {
-          resolve(undefined);
-          disposable?.dispose();
-          VSCodeUtils.setContext(DendronContext.NOTE_LOOK_UP_ACTIVE, false);
-        },
-      });
-      lc.show({
-        title: "Decide the scope of refactor",
-        placeholder: "Query for scope.",
-        provider,
-        selectAll: true,
-      });
-
-      VSCodeUtils.setContext(DendronContext.NOTE_LOOK_UP_ACTIVE, true);
-
-      disposable = AutoCompletableRegistrar.OnAutoComplete(() => {
-        if (lc.quickPick) {
-          lc.quickPick.value = AutoCompleter.getAutoCompletedValue(
-            lc.quickPick,
-          );
-
-          lc.provider.onUpdatePickerItems({
-            picker: lc.quickPick,
-          });
-        }
-      });
+    return promptRefactorScope({
+      commandKey: this.key,
+      entireWorkspaceItem: this.entireWorkspaceQuickPickItem,
+      logger: this.L,
     });
   }
 
   async promptMatchText() {
-    const editor = VSCodeUtils.getActiveTextEditor();
-    const value = editor?.document
-      ? (await WSUtils.getNoteFromDocument(editor.document))?.fname
-      : "";
-    const match = await VSCodeUtils.showInputBox({
-      title: "Enter match text",
-      prompt:
-        "The matched portion of the file name will be the part that gets modified. The rest will remain unchanged. This supports full range of regular expression. Leave blank to capture entire file name",
-      ...(value !== undefined ? { value } : {}),
-    });
-
-    if (match === undefined) {
-      // immediately return if user cancels.
-      return;
-    } else if (match.trim() === "") {
-      return "(.*)";
-    }
-    return match;
+    return promptRefactorMatchText();
   }
 
   async promptReplaceText() {
-    let done = false;
-    let replace: string | undefined;
-    do {
-      // eslint-disable-next-line no-await-in-loop
-      replace = await VSCodeUtils.showInputBox({
-        title: "Enter replace text",
-        prompt:
-          "This will replace the matched portion of the file name. If the matched text from previous step has named / unnamed captured groups, they are available here.",
-      });
-
-      if (replace === undefined) {
-        return;
-      } else if (replace.trim() === "") {
-        window.showWarningMessage("Please provide a replace text.");
-      } else {
-        done = true;
-      }
-    } while (!done);
-
-    return replace;
+    return promptRefactorReplaceText();
   }
 
   async gatherInputs(): Promise<CommandOpts | undefined> {
@@ -197,32 +91,25 @@ export class RefactorHierarchyCommandV2 extends BasicCommand<
     if (_.isUndefined(scope)) {
       window.showInformationMessage("No scope provided.");
       return;
-    } else if (
-      scope.selectedItems &&
-      scope.selectedItems[0] === this.entireWorkspaceQuickPickItem
-    ) {
-      window.showInformationMessage("Refactor scoped to all notes.");
-    } else {
-      window.showInformationMessage(
-        `Refactor scoped to ${scope.selectedItems.length} selected note(s).`,
-      );
     }
+    announceRefactorScope({
+      entireWorkspaceItem: this.entireWorkspaceQuickPickItem,
+      selectedItems: scope.selectedItems,
+    });
 
     const match = await this.promptMatchText();
     if (_.isUndefined(match)) {
       window.showErrorMessage("No match text provided.");
       return;
-    } else {
-      window.showInformationMessage(`Matching: ${match}`);
     }
+    window.showInformationMessage(`Matching: ${match}`);
 
     const replace = await this.promptReplaceText();
     if (_.isUndefined(replace) || replace.trim() === "") {
       window.showErrorMessage("No replace text provided.");
       return;
-    } else {
-      window.showInformationMessage(`Replacing with: ${replace}`);
     }
+    window.showInformationMessage(`Replacing with: ${replace}`);
 
     return {
       scope,
@@ -232,35 +119,13 @@ export class RefactorHierarchyCommandV2 extends BasicCommand<
   }
 
   showPreview(operations: RenameOperation[]) {
-    let content = [
-      "# Refactor Preview",
-      "",
-      "## The following files will be renamed",
-    ];
-    content = content.concat(
-      _.map(
-        _.groupBy(operations, "vault.fsPath"),
-        (ops: RenameOperation[], k: string) => {
-          const out = [`${k}`].concat("\n||||\n|-|-|-|"); //create table of changes
-          return out
-            .concat(
-              ops.map(({ oldUri, newUri }) => {
-                return `| ${path.basename(oldUri.fsPath)} |-->| ${path.basename(
-                  newUri.fsPath,
-                )} |`;
-              }),
-            )
-            .join("\n");
-        },
-      ),
-    );
-    const panel = window.createWebviewPanel(
-      "refactorPreview", // Identifies the type of the webview. Used internally
-      "Refactor Preview", // Title of the panel displayed to the user
-      { viewColumn: ViewColumn.One, preserveFocus: true }, // Editor column to show the new webview panel in.
-      {}, // Webview options. More on these later.
-    );
-    panel.webview.html = md.render(content.join("\n"));
+    const content = buildRefactorSuccessPreviewMarkdown(operations);
+    showRefactorPreviewPanel({
+      viewType: "refactorPreview",
+      title: "Refactor Preview",
+      markdown: md.render(content),
+      preserveFocus: true,
+    });
   }
 
   async showError(operations: RenameOperation[]) {
@@ -358,14 +223,7 @@ export class RefactorHierarchyCommandV2 extends BasicCommand<
   }
 
   async promptConfirmation(noConfirm?: boolean) {
-    if (noConfirm) return true;
-    const options = ["Proceed", "Cancel"];
-    const resp = await VSCodeUtils.showQuickPick(options, {
-      title: "Proceed with Refactor?",
-      placeHolder: "Proceed",
-      ignoreFocusOut: true,
-    });
-    return resp === "Proceed";
+    return promptRefactorConfirmation(noConfirm);
   }
 
   prepareProxyMetricPayload(capturedNotes: DNodeProps[]) {

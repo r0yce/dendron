@@ -1,13 +1,10 @@
 import {
   DLink,
-  DNodeUtils,
-  DNoteHeaderAnchor,
-  extractNoteChangeEntryCounts,
   NoteChangeEntry,
   NoteProps,
   NoteQuickInput,
 } from "@dendronhq/common-all";
-import { Heading, HistoryEvent, Node } from "@dendronhq/engine-server";
+import { HistoryEvent, Node } from "@dendronhq/engine-server";
 import { RemarkUtils } from "@dendronhq/unified";
 import _ from "lodash";
 import { Disposable } from "vscode";
@@ -25,7 +22,6 @@ import { delayedUpdateDecorations } from "../features/windowDecorations";
 import { IEngineAPIService } from "../services/EngineAPIServiceInterface";
 import { AutoCompleter } from "../utils/autoCompleter";
 import { findReferences, FoundRefT } from "../utils/md";
-import { ProxyMetricUtils } from "../utils/ProxyMetricUtils";
 import { AutoCompletableRegistrar } from "../utils/registers/AutoCompletableRegistrar";
 import { VSCodeUtils } from "../vsCodeUtils";
 import { BasicCommand } from "./base";
@@ -43,6 +39,7 @@ import {
   moveHeaderErrors,
   validateAndProcessMoveHeaderInput,
 } from "./moveHeaderValidate";
+import { trackMoveHeaderProxyMetrics } from "./moveHeaderMetrics";
 
 type CommandInput =
   | {
@@ -81,7 +78,7 @@ export class MoveHeaderCommand extends BasicCommand<
    */
   private promptForDestination(
     lookupController: ILookupControllerV3,
-    opts: CommandInput
+    opts: CommandInput,
   ) {
     const extension = ExtensionProvider.getExtension();
     const lookupProvider = extension.noteLookupProviderFactory.create(
@@ -89,7 +86,7 @@ export class MoveHeaderCommand extends BasicCommand<
       {
         allowNewNote: true,
         noHidePickerOnAccept: false,
-      }
+      },
     );
 
     lookupController.show({
@@ -126,7 +123,7 @@ export class MoveHeaderCommand extends BasicCommand<
     const nodesToMove = RemarkUtils.extractHeaderBlock(
       originTree,
       targetHeader.depth,
-      targetHeaderIndex
+      targetHeaderIndex,
     );
 
     if (nodesToMove.length === 0) {
@@ -171,7 +168,7 @@ export class MoveHeaderCommand extends BasicCommand<
       disposable = AutoCompletableRegistrar.OnAutoComplete(() => {
         if (lc.quickPick) {
           lc.quickPick.value = AutoCompleter.getAutoCompletedValue(
-            lc.quickPick
+            lc.quickPick,
           );
 
           lc.provider.onUpdatePickerItems({
@@ -208,7 +205,7 @@ export class MoveHeaderCommand extends BasicCommand<
    */
   private findAnchorNamesToUpdate(
     originDeepCopy: NoteProps,
-    modifiedOriginContent: string
+    modifiedOriginContent: string,
   ): string[] {
     return findAnchorNamesToUpdate(originDeepCopy, modifiedOriginContent);
   }
@@ -238,7 +235,7 @@ export class MoveHeaderCommand extends BasicCommand<
     anchorNamesToUpdate: string[],
     engine: IEngineAPIService,
     origin: NoteProps,
-    dest: NoteProps
+    dest: NoteProps,
   ): Promise<NoteChangeEntry[]> {
     return updateMoveHeaderReferences({
       foundReferences,
@@ -264,7 +261,7 @@ export class MoveHeaderCommand extends BasicCommand<
   async removeBlocksFromOrigin(
     origin: NoteProps,
     nodesToMove: Node[],
-    engine: IEngineAPIService
+    engine: IEngineAPIService,
   ) {
     const modifiedOriginContent = removeHeaderBlockFromOriginBody({
       originBody: origin.body,
@@ -293,7 +290,7 @@ export class MoveHeaderCommand extends BasicCommand<
     const modifiedOriginContent = await this.removeBlocksFromOrigin(
       origin,
       nodesToMove,
-      engine
+      engine,
     );
 
     // append header to destination
@@ -309,7 +306,7 @@ export class MoveHeaderCommand extends BasicCommand<
     // update all references to old block
     const anchorNamesToUpdate = this.findAnchorNamesToUpdate(
       originDeepCopy,
-      modifiedOriginContent
+      modifiedOriginContent,
     );
     const foundReferences = await findReferences(origin.fname);
     const updated = await this.updateReferences(
@@ -317,84 +314,27 @@ export class MoveHeaderCommand extends BasicCommand<
       anchorNamesToUpdate,
       engine,
       origin,
-      dest
+      dest,
     );
 
     return { ...opts, changed: updated };
   }
 
-  trackProxyMetrics({
-    out,
-    noteChangeEntryCounts,
-  }: {
-    out: CommandOutput;
-    noteChangeEntryCounts: {
-      createdCount: number;
-      deletedCount: number;
-      updatedCount: number;
-    };
-  }) {
-    const extension = ExtensionProvider.getExtension();
-    const engine = extension.getEngine();
-    const { vaults } = engine;
-
-    // only look at origin note
-    const { origin } = out;
-
-    const headers = _.toArray(origin.anchors).filter((anchor) => {
-      return anchor !== undefined && anchor.type === "header";
-    }) as DNoteHeaderAnchor[];
-
-    const numOriginHeaders = headers.length;
-    const originHeaderDepths = headers.map((header) => header.depth);
-    const maxOriginHeaderDepth = _.max(originHeaderDepths);
-    const meanOriginHeaderDepth = _.mean(originHeaderDepths);
-    const movedHeaders = out.nodesToMove.filter((node) => {
-      return node.type === "heading";
-    }) as Heading[];
-    const numMovedHeaders = movedHeaders.length;
-    const movedHeaderDepths = movedHeaders.map((header) => header.depth);
-    const maxMovedHeaderDepth = _.max(movedHeaderDepths);
-    const meanMovedHeaderDepth = _.mean(movedHeaderDepths);
-
-    ProxyMetricUtils.trackRefactoringProxyMetric({
-      props: {
-        command: this.key,
-        numVaults: vaults.length,
-        traits: origin.traits || [],
-        numChildren: origin.children.length,
-        numLinks: origin.links.length,
-        numChars: origin.body.length,
-        noteDepth: DNodeUtils.getDepth(origin),
-      },
-      extra: {
-        ...noteChangeEntryCounts,
-        numOriginHeaders,
-        maxOriginHeaderDepth,
-        meanOriginHeaderDepth,
-        numMovedHeaders,
-        maxMovedHeaderDepth,
-        meanMovedHeaderDepth,
-      },
-    });
-  }
-
   addAnalyticsPayload(_opts: CommandOpts, out: CommandOutput) {
-    const noteChangeEntryCounts =
-      out !== undefined
-        ? { ...extractNoteChangeEntryCounts(out.changed) }
-        : {
-            createdCount: 0,
-            updatedCount: 0,
-            deletedCount: 0,
-          };
-
     try {
-      this.trackProxyMetrics({ out, noteChangeEntryCounts });
+      return trackMoveHeaderProxyMetrics({
+        commandKey: this.key,
+        origin: out.origin,
+        nodesToMove: out.nodesToMove,
+        changed: out.changed,
+      });
     } catch (error) {
       this.L.error({ error });
+      return {
+        createdCount: 0,
+        updatedCount: 0,
+        deletedCount: 0,
+      };
     }
-
-    return noteChangeEntryCounts;
   }
 }

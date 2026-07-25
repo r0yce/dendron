@@ -263,13 +263,37 @@ Still >400 LOC and not fully modular shells:
 | `MoveNoteCommand.ts` | **~396** (was ~484) |
 | `RefactorHierarchyV2.ts` | **~508** (was ~547; still >400 — prompts/UI remain) |
 
-### Wave 19 — optional next
+### Wave 19 — DONE (this push)
+
+| Item | Result |
+|------|--------|
+| Merge note ops | `mergeNoteOps` — append body, backlinks, delete |
+| Refactor prompts/scope | `refactorHierarchyPrompts`, `refactorHierarchyScope` |
+| Goto note inputs | `gotoNoteProcessInputs` |
+| Export scope | `pods/baseExportScope` |
+| Schema user queries | `schemaHierarchyUserQueries` |
+| Move header metrics | `moveHeaderMetrics` |
+
+**Milestone: zero `commands/**` files ≥ 400 LOC** (largest ~397).
+
+| Hotspot | ~LOC after wave 19 |
+|---------|-------------------|
+| CreateNoteWithTrait | ~397 |
+| MoveNote | ~394 |
+| BaseExportPod | ~390 |
+| ConvertLink | ~386 |
+| RefactorHierarchy | ~371 |
+| MergeNote | ~356 |
+| MoveHeader | ~340 |
+| GotoNote | ~273 |
+
+### Wave 20 — optional (beyond command threshold)
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | Peel RefactorHierarchy prompts + execute further; MergeNote / GotoNote |
-| P2 | BaseExportPodCommand + remaining ≥400 commands |
-| P3 | Continue until no command ≥400 LOC |
+| P1 | Thin remaining 300–399 shells further if desired |
+| P2 | Non-command hotspots (`_extension`, watchers, completion, survey) |
+| P3 | Product work — command modularity goal met |
 
 ---
 

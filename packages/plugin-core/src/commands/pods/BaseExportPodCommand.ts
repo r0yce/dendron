@@ -9,7 +9,6 @@ import {
   NoteChangeEntry,
   NoteProps,
   NoteUtils,
-  VaultUtils,
 } from "@dendronhq/common-all";
 import {
   ExportPodFactory,
@@ -20,7 +19,13 @@ import {
   RunnablePodConfigV2,
 } from "@dendronhq/pods-core";
 import _ from "lodash";
-import path from "path";
+import {
+  applySelectionToNotePayload,
+  getPropsForHierarchyScope as getHierarchyNotes,
+  getPropsForNoteScope as getNoteScopeNotes,
+  getPropsForVaultScope as getVaultScopeNotes,
+  getPropsForWorkspaceScope as getWorkspaceScopeNotes,
+} from "./baseExportScope";
 import * as vscode from "vscode";
 import { HierarchySelector } from "../../components/lookup/HierarchySelector";
 import { PodUIControls } from "../../components/pods/PodControls";
@@ -38,9 +43,9 @@ import { BaseCommand } from "../base";
  * @template R - the return type of the export() operation
  */
 export abstract class BaseExportPodCommand<
-    Config extends RunnablePodConfigV2,
-    R
-  >
+  Config extends RunnablePodConfigV2,
+  R,
+>
   extends BaseCommand<
     { config: Config; payload: NoteProps[] },
     any,
@@ -61,7 +66,7 @@ export abstract class BaseExportPodCommand<
    */
   constructor(
     hierarchySelector: HierarchySelector,
-    extension: IDendronExtension
+    extension: IDendronExtension,
   ) {
     super();
     this.hierarchySelector = hierarchySelector;
@@ -112,7 +117,7 @@ export abstract class BaseExportPodCommand<
    * @returns
    */
   async enrichInputs(
-    inputs: Config
+    inputs: Config,
   ): Promise<{ config: Config; payload: NoteProps[] } | undefined> {
     let payload: NoteProps[] | undefined;
 
@@ -231,7 +236,7 @@ export abstract class BaseExportPodCommand<
           default:
             assertUnreachable(opts.config.exportScope);
         }
-      }
+      },
     );
   }
   /**
@@ -259,11 +264,11 @@ export abstract class BaseExportPodCommand<
         return undefined;
       }
       const { hierarchy, vault } = selection;
-      const notes = await this.extension
-        .getEngine()
-        .findNotes({ excludeStub: true, vault });
-
-      return notes.filter((value) => value.fname.startsWith(hierarchy));
+      return getHierarchyNotes({
+        extension: this.extension,
+        hierarchy,
+        vault,
+      });
     });
   }
 
@@ -283,7 +288,8 @@ export abstract class BaseExportPodCommand<
         .engineEventEmitter.onEngineNoteStateChanged(
           async (noteChangeEntries: NoteChangeEntry[]) => {
             const updateNoteEntries = noteChangeEntries.filter(
-              (entry) => entry.note.fname === fname && entry.status === "update"
+              (entry) =>
+                entry.note.fname === fname && entry.status === "update",
             );
             // Received event from engine about successful save
             if (updateNoteEntries.length > 0) {
@@ -291,12 +297,12 @@ export abstract class BaseExportPodCommand<
               const savedNote = updateNoteEntries[0]!.note;
               // Remove notes that match saved note as they contain old content
               const filteredPayload = opts.payload.filter(
-                (note) => note.fname !== savedNote.fname
+                (note) => note.fname !== savedNote.fname,
               );
               // if export scope is selection, export only the selection
               if (opts.config.exportScope === PodExportScope.Selection) {
                 const selectionPayload = await this.getPropsForSelectionScope(
-                  filteredPayload.concat(savedNote)
+                  filteredPayload.concat(savedNote),
                 );
                 if (selectionPayload) {
                   opts.payload = selectionPayload;
@@ -306,14 +312,14 @@ export abstract class BaseExportPodCommand<
                 await this.executeExportNotes(opts);
               }
             }
-          }
+          },
         );
       await editor.document.save();
       // Dispose of listener after 3 sec (if not already disposed) in case engine events never arrive
       setTimeout(() => {
         if (this._onEngineNoteStateChangedDisposable) {
           vscode.window.showErrorMessage(
-            `Unable to run export. Please save file and try again.`
+            `Unable to run export. Please save file and try again.`,
           );
         }
         this.dispose();
@@ -332,7 +338,7 @@ export abstract class BaseExportPodCommand<
       config: Config;
       payload: NoteProps[];
     },
-    progress?: IProgress<IProgressStep>
+    progress?: IProgress<IProgressStep>,
   ): Promise<string | void> {
     const pod = this.createPod(opts.config);
     const result = await pod.exportNotes(opts.payload, progress);
@@ -344,32 +350,7 @@ export abstract class BaseExportPodCommand<
   }
 
   private async getPropsForNoteScope(): Promise<DNodeProps[] | undefined> {
-    //TODO: Switch this to a lookup controller, allow multiselect
-    const fsPath = VSCodeUtils.getActiveTextEditor()?.document.uri.fsPath;
-    if (!fsPath) {
-      vscode.window.showErrorMessage(
-        "you must have a note open to execute this command"
-      );
-      return;
-    }
-
-    const { vaults, engine, wsRoot } = this.extension.getDWorkspace();
-
-    const vault = VaultUtils.getVaultByFilePath({
-      vaults,
-      wsRoot,
-      fsPath,
-    });
-
-    const fname = path.basename(fsPath, ".md");
-
-    const maybeNote = (await engine.findNotes({ fname, vault }))[0];
-
-    if (!maybeNote) {
-      vscode.window.showErrorMessage("couldn't find the note somehow");
-      return;
-    }
-    return [maybeNote];
+    return getNoteScopeNotes(this.extension);
   }
 
   /**
@@ -377,8 +358,7 @@ export abstract class BaseExportPodCommand<
    * @returns all notes in the workspace
    */
   private async getPropsForWorkspaceScope(): Promise<DNodeProps[]> {
-    const engine = this.extension.getEngine();
-    return engine.findNotes({ excludeStub: true });
+    return getWorkspaceScopeNotes(this.extension);
   }
 
   /**
@@ -386,8 +366,7 @@ export abstract class BaseExportPodCommand<
    * @returns all notes in the vault
    */
   private async getPropsForVaultScope(vault: DVault): Promise<DNodeProps[]> {
-    const engine = this.extension.getEngine();
-    return engine.findNotes({ excludeStub: true, vault });
+    return getVaultScopeNotes(this.extension, vault);
   }
 
   addAnalyticsPayload(opts: { config: Config; payload: NoteProps[] }) {
@@ -402,17 +381,6 @@ export abstract class BaseExportPodCommand<
     if (!noteProps) {
       return;
     }
-    // if selection, only export the selection.
-    const activeRange = await VSCodeUtils.extractRangeFromActiveEditor();
-    const { document, range } = activeRange || {};
-    const selectedText = document ? document.getText(range).trim() : "";
-    if (!selectedText) {
-      vscode.window.showWarningMessage(
-        "Please select the text in note to export"
-      );
-      return;
-    }
-    noteProps[0]!.body = selectedText;
-    return noteProps;
+    return applySelectionToNotePayload(noteProps);
   }
 }

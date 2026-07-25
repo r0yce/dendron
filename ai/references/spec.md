@@ -162,8 +162,11 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | Doctor | `doctorActions`, `doctorPreviews`, `doctorExecute` |
 | MoveHeader helpers | `moveHeaderHelpers`, `moveHeaderLinks`, `moveHeaderValidate` |
 | Vault add shared | `vaultWorkspaceHelpers`, `vaultRemoteHandlers` |
-| Refactor hierarchy ops | `refactorHierarchyOps` |
+| Refactor hierarchy ops | `refactorHierarchyOps`, `refactorHierarchyPrompts`, `refactorHierarchyScope` |
 | Move note ops | `moveNoteOps` |
+| Merge note ops | `mergeNoteOps` |
+| Goto note inputs | `gotoNoteProcessInputs` |
+| Export scope | `pods/baseExportScope` |
 | Schema-from-hierarchy pure | `hierarchySchemaModels`, `hierarchySchemaCreator` |
 | Lookup controller modifiers | `lookupControllerModifiers`, `lookupControllerViewState` |
 | Lookup sentinels / open note | `pickerSentinels`, `pickerDisplay` |

@@ -1,5 +1,4 @@
 import {
-  asyncLoop,
   extractNoteChangeEntryCounts,
   NoteChangeEntry,
   NoteProps,
@@ -20,11 +19,15 @@ import { NoteLookupProviderUtils } from "../components/lookup/NoteLookupProvider
 import { DendronContext, DENDRON_COMMANDS } from "../constants";
 import { IDendronExtension } from "../dendronExtensionInterface";
 import { BasicCommand, SanityCheckResults } from "./base";
+import {
+  appendNoteToDest,
+  deleteSourceNote,
+  updateBacklinksForMerge,
+} from "./mergeNoteOps";
 import * as vscode from "vscode";
 import _ from "lodash";
 import { ProxyMetricUtils } from "../utils/ProxyMetricUtils";
 import { VSCodeUtils } from "../vsCodeUtils";
-import { LinkUtils } from "@dendronhq/unified";
 import { AutoCompleter } from "../utils/autoCompleter";
 import { AutoCompletableRegistrar } from "../utils/registers/AutoCompletableRegistrar";
 
@@ -81,7 +84,7 @@ export class MergeNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
           });
           if (maybeActiveNoteItem) {
             vscode.window.showErrorMessage(
-              "You cannot merge a note to itself."
+              "You cannot merge a note to itself.",
             );
           }
           return !maybeActiveNoteItem;
@@ -146,7 +149,7 @@ export class MergeNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
       disposable = AutoCompletableRegistrar.OnAutoComplete(() => {
         if (lc.quickPick) {
           lc.quickPick.value = AutoCompleter.getAutoCompletedValue(
-            lc.quickPick
+            lc.quickPick,
           );
 
           lc.provider.onUpdatePickerItems({
@@ -217,21 +220,11 @@ export class MergeNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
     sourceNote: NoteProps;
     destNote: NoteProps;
   }) {
-    const { sourceNote, destNote } = opts;
-    // grab body from current active note
-    const appendPayload = sourceNote.body;
-
-    // append to end
-    const destBody = destNote.body;
-    const newBody = `${destBody}\n---\n\n# ${sourceNote.title}\n\n${appendPayload}`;
-    destNote.body = newBody;
-    const writeResp = await this.extension.getEngine().writeNote(destNote);
-    if (!writeResp.error) {
-      return writeResp.data || [];
-    } else {
-      this.L.error(writeResp.error);
-      return [];
-    }
+    return appendNoteToDest({
+      ...opts,
+      engine: this.extension.getEngine(),
+      logger: this.L,
+    });
   }
 
   /**
@@ -241,48 +234,6 @@ export class MergeNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
    * and update it to point to dest instead.
    * @param opts
    */
-  private async updateLinkInNote(opts: {
-    id: string;
-    sourceNote: NoteProps;
-    destNote: NoteProps;
-  }) {
-    const ctx = `${this.key}:updateLinkInNote`;
-    const { id, sourceNote, destNote } = opts;
-    const engine = this.extension.getEngine();
-    const getNoteResp = await engine.getNote(id);
-    if (getNoteResp.error) {
-      throw getNoteResp.error;
-    }
-    const noteToUpdate = getNoteResp.data;
-    if (noteToUpdate !== undefined) {
-      const linksToUpdate = noteToUpdate.links
-        .filter((link) => link.value === sourceNote.fname)
-        .map((link) => LinkUtils.dlink2DNoteLink(link));
-
-      const resp = await LinkUtils.updateLinksInNote({
-        linksToUpdate,
-        note: noteToUpdate,
-        destNote,
-        engine,
-      });
-
-      if (resp.data) {
-        return resp.data;
-      } else {
-        // We specifically filtered for notes that do have some links to update,
-        // so this is very unlikely to be reached.
-        // Gracefully handle and log error
-        this.L.error({ ctx, message: "No links found to update" });
-        return [];
-      }
-    }
-    // Note to update wasn't found
-    // this will likely never happen given a sound engine state.
-    // Log this as a canary for the engine state, and gracefully return.
-    this.L.error({ ctx, message: "No note found" });
-    return [];
-  }
-
   /**
    * Given a source note and dest note,
    * Look at all the backlinks source note has, and update them
@@ -294,40 +245,12 @@ export class MergeNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
     sourceNote: NoteProps;
     destNote: NoteProps;
   }) {
-    const ctx = "MergeNoteCommand:updateBacklinks";
-    const { sourceNote, destNote } = opts;
-
-    // grab all backlinks from source note
-    const sourceBacklinks = sourceNote.links.filter((link) => {
-      return link.type === "backlink";
+    return updateBacklinksForMerge({
+      ...opts,
+      engine: this.extension.getEngine(),
+      logCtx: "MergeNoteCommand:updateBacklinks",
+      logger: this.L,
     });
-
-    // scrub through the backlinks and all notes that need to be updated
-    const noteIDsToUpdate = Array.from(
-      new Set(
-        sourceBacklinks
-          .map((backlink) => backlink.from.id)
-          .filter((ent): ent is string => ent !== undefined)
-      )
-    );
-
-    // for each note that needs to be updated,
-    // find all links that need to be updated from end to front.
-    // then update them.
-    let noteChangeEntries: NoteChangeEntry[] = [];
-    await asyncLoop(noteIDsToUpdate, async (id) => {
-      try {
-        const changed = await this.updateLinkInNote({
-          sourceNote,
-          destNote,
-          id,
-        });
-        noteChangeEntries = noteChangeEntries.concat(changed);
-      } catch (error) {
-        this.L.error({ ctx, error });
-      }
-    });
-    return noteChangeEntries;
   }
 
   /**
@@ -335,23 +258,12 @@ export class MergeNoteCommand extends BasicCommand<CommandOpts, CommandOutput> {
    * @param sourceNote source note
    */
   private async deleteSource(opts: { sourceNote: NoteProps }) {
-    const ctx = `${this.key}:deleteSource`;
-    const { sourceNote } = opts;
-    try {
-      const deleteResp = await this.extension
-        .getEngine()
-        .deleteNote(sourceNote.id);
-      if (deleteResp.data) {
-        return deleteResp.data;
-      } else {
-        // This is very unlikely given a sound engine state.
-        // log it and gracefully return
-        return [];
-      }
-    } catch (error) {
-      this.L.error({ ctx, error });
-      return [];
-    }
+    return deleteSourceNote({
+      sourceNote: opts.sourceNote,
+      engine: this.extension.getEngine(),
+      logCtx: `${this.key}:deleteSource`,
+      logger: this.L,
+    });
   }
 
   async execute(opts: CommandOpts): Promise<CommandOutput> {
