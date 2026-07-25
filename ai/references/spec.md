@@ -177,6 +177,10 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | Command / language registration | `extension/setupCommands`, `setupLanguageFeatures` |
 | Markdown refs / anchors | `utils/md` (`paths`, `anchors`, `getReferenceAtPosition`, `findReferences`, `markdownUtils`) |
 | Lookup item filters | `pickerFilters` (also on `PickerUtilsV2` wrappers) |
+| Survey peels | `surveyBase`, `surveyInitialSteps`, `surveyLapsedSteps` (`survey` orchestrates) |
+| Completion peels | pure `completionHelpers`; `completionNoteProvider`, `completionBlockProvider` |
+| Window decorations peels | `windowDecorationTypes`, `windowDecorationMappers` |
+| Keybinding pure helpers | `keybindingConflictHelpers` |
 | QuickPick factory | `pickerQuickPick` / `PickerUtilsV2.createDendronQuickPick` |
 | Activation helpers | `workspace/activatorHelpers` |
 | Reload / engine port | `workspace/activatorReload` |

@@ -26,6 +26,8 @@ const doctorActions = out("commands/doctorActions.js");
 const moveNoteOps = out("commands/moveNoteOps.js");
 const refactorOps = out("commands/refactorHierarchyOps.js");
 const constants = out("components/lookup/vaultPickerConstants.js");
+const completionHelpers = out("features/completionHelpers.js");
+const keybindingHelpers = out("keybindingConflictHelpers.js");
 
 let failed = 0;
 function check(name, cond) {
@@ -203,6 +205,96 @@ check(
       wsRoot: "/tmp/ws",
     });
     return ops.length === 1 && ops[0].newPath.includes("baz.bar");
+  })()
+);
+
+// --- completion pure helpers (wave 20) ---
+check(
+  "padWithZero",
+  completionHelpers.padWithZero(3) === "003" &&
+    completionHelpers.padWithZero(12) === "012" &&
+    completionHelpers.padWithZero(100) === "100"
+);
+check(
+  "findMatchAtCharacter wikilink",
+  (() => {
+    const line = "see [[foo.bar]] now";
+    const m = completionHelpers.findMatchAtCharacter(
+      line,
+      line.indexOf("foo") + 1,
+      completionHelpers.NOTE_AUTOCOMPLETEABLE_REGEX
+    );
+    return m && m.groups && m.groups.note === "foo.bar";
+  })()
+);
+check(
+  "computeNoteCompletionRange",
+  (() => {
+    const r = completionHelpers.computeNoteCompletionRange({
+      foundIndex: 4,
+      groups: { beforeNote: "[[", note: "abc" },
+    });
+    return r.start === 6 && r.end === 9;
+  })()
+);
+check(
+  "computeBlockCompletionRange after hash",
+  (() => {
+    const r = completionHelpers.computeBlockCompletionRange({
+      foundIndex: 0,
+      groups: { beforeAnchor: "#", afterAnchor: "hdr" },
+    });
+    // start after [[ + beforeAnchor
+    return r.start === 3 && r.end === 6;
+  })()
+);
+
+// --- keybinding pure helpers (wave 20) ---
+check(
+  "generateKeybindingBlockForCopy disable",
+  keybindingHelpers
+    .generateKeybindingBlockForCopy({
+      entry: { key: "ctrl+j", command: "ext.cmd" },
+      disable: true,
+    })
+    .includes('"command": "-ext.cmd"')
+);
+check(
+  "filterConflictsByInstallAndOS",
+  (() => {
+    const conflicts = keybindingHelpers.filterConflictsByInstallAndOS({
+      knownConflicts: [
+        {
+          extensionId: "vscodevim.vim",
+          commandId: "extension.vim_escape",
+          conflictsWith: "dendron.lookup",
+        },
+        {
+          extensionId: "other.ext",
+          commandId: "other.cmd",
+          conflictsWith: "dendron.x",
+        },
+      ],
+      installedExtensionIds: ["vscodevim.vim"],
+      osType: "Darwin",
+    });
+    return conflicts.length === 1 && conflicts[0].extensionId === "vscodevim.vim";
+  })()
+);
+check(
+  "filterResolvedKeybindingConflicts",
+  (() => {
+    const remaining = keybindingHelpers.filterResolvedKeybindingConflicts({
+      conflicts: [
+        {
+          extensionId: "vscodevim.vim",
+          commandId: "extension.vim_escape",
+          conflictsWith: "dendron.lookup",
+        },
+      ],
+      userKeybindings: [{ command: "-extension.vim_escape" }],
+    });
+    return remaining.length === 0;
   })()
 );
 

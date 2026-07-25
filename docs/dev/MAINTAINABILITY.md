@@ -36,6 +36,10 @@
 | `registerHtmlSidePanels` / `setupBacklinks` / `setupGraphPanel` / `setupTipOfTheDay` | workspace/ | Side panels |
 | `activatorHelpers` / `activatorReload` / `activatorLifecycle` / `activatorTreeView` / `activatorServer` | workspace/ | Activation, reload, lifecycle, tree view, engine server process |
 | `extension/setupCommands` / `setupLanguageFeatures` | extension/ | Activation registration |
+| `surveyBase` / `surveyInitialSteps` / `surveyLapsedSteps` | plugin-core | Survey UI bases + step classes; `survey` orchestrates |
+| `completionHelpers` / `completionNoteProvider` / `completionBlockProvider` | features/ | Pure regex/range; note+tag completions; block-anchor completions |
+| `windowDecorationTypes` / `windowDecorationMappers` | features/ | Decoration type registry; engine→VSCode map |
+| `keybindingConflictHelpers` | plugin-core | Pure conflict filter + keybinding JSON block gen |
 
 **Rule:** same 5+ lines twice → extract. Pure logic → no vscode imports when possible.
 
@@ -287,13 +291,33 @@ Still >400 LOC and not fully modular shells:
 | MoveHeader | ~340 |
 | GotoNote | ~273 |
 
-### Wave 20 — optional (beyond command threshold)
+### Wave 20 — DONE (this push) — non-command peels
+
+| Item | Result |
+|------|--------|
+| Survey | `surveyBase`, `surveyInitialSteps`, `surveyLapsedSteps`; shell ~241 (was ~674) |
+| Completion | pure `completionHelpers` + `completionNoteProvider` + `completionBlockProvider`; shell ~50 (was ~644) |
+| Window decorations | `windowDecorationTypes` + `windowDecorationMappers`; shell ~366 (was ~551) |
+| Keybindings | pure `keybindingConflictHelpers`; shell ~346 (was ~382) |
+| Smoke | padWithZero / match-at-char / range compute / keybinding conflict filters |
+
+| Hotspot | ~LOC after wave 20 |
+|---------|-------------------|
+| `survey.ts` | **~241** (was ~674) |
+| `completionProvider.ts` | **~50** (was ~644) |
+| `windowDecorations.ts` | **~366** (was ~551) |
+| `KeybindingUtils.ts` | **~346** (was ~382) |
+| `completionNoteProvider.ts` | ~330 |
+| `completionBlockProvider.ts` | ~195 |
+
+### Wave 21 — optional (remaining non-command)
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | Thin remaining 300–399 shells further if desired |
-| P2 | Non-command hotspots (`_extension`, watchers, completion, survey) |
-| P3 | Product work — command modularity goal met |
+| P1 | `StartupUtils` / `ExtensionUtils` (~564–568) |
+| P2 | `BacklinksTreeDataProvider`, `PodControls`, `WorkspaceWatcher`, `vsCodeUtils`, `workspace` |
+| P3 | `_extension.ts` bootstrap thin; `constants.ts` data split |
+| P4 | Remaining command shells 300–399 if desired |
 
 ---
 

@@ -62,7 +62,8 @@ function updateKeybindings() {
         let configProps = keyEnt.keybindings;
         const key = keyEnt["key"];
         // sanity, if command depends on plugin being active, add same when clause to keybinding
-        if (keyEnt.when === constants_1.DendronContext.PLUGIN_ACTIVE &&
+        if ("when" in keyEnt &&
+            keyEnt.when === constants_1.DendronContext.PLUGIN_ACTIVE &&
             !configProps?.when?.includes(constants_1.DendronContext.PLUGIN_ACTIVE)) {
             const when = configProps?.when
                 ? configProps.when + ` && ${constants_1.DendronContext.PLUGIN_ACTIVE}`

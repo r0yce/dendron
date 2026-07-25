@@ -1,9 +1,10 @@
+/**
+ * Editor decoration update + inline note-ref threads.
+ * Types: windowDecorationTypes; mappers: windowDecorationMappers.
+ */
 import {
   ConfigUtils,
-  DateTime,
   debounceAsyncUntilComplete,
-  Decoration,
-  DendronASTDest,
   DEngineClient,
   fromPromise,
   groupBy,
@@ -13,107 +14,39 @@ import {
   NotePropsMeta,
   NoteUtils,
   ProcFlavor,
+  DendronASTDest,
 } from "@dendronhq/common-all";
 import { DConfig } from "@dendronhq/common-server";
-import {
-  DecorationHashTag,
-  DecorationTaskNote,
-  DecorationTimestamp,
-  DecorationWikilink,
-  DECORATION_TYPES,
-  isDecorationHashTag,
-  NoteRefDecorator,
-  NoteRefUtils,
-} from "@dendronhq/unified";
+import { NoteRefDecorator, NoteRefUtils } from "@dendronhq/unified";
 import * as Sentry from "@sentry/node";
 import _ from "lodash";
 import {
-  DecorationOptions,
-  DecorationRangeBehavior,
   Diagnostic,
   Range,
   TextDocument,
   TextEditor,
   TextEditorDecorationType,
-  ThemeColor,
-  window,
+  DecorationOptions,
 } from "vscode";
 import { ExtensionProvider } from "../ExtensionProvider";
 import { Logger } from "../logger";
-import { CodeConfigKeys, DateTimeFormat } from "../types";
 import { delayedFrontmatterWarning } from "../utils/frontmatter";
 import { VSCodeUtils } from "../vsCodeUtils";
 import { NoteRefComment } from "./NoteRefComment";
+import { mapDecoration } from "./windowDecorationMappers";
+import {
+  DECORATION_UPDATE_DELAY,
+  DendronDecoration,
+  EDITOR_DECORATION_TYPES,
+  VISIBLE_RANGE_MARGIN,
+} from "./windowDecorationTypes";
 
-/** Wait this long in miliseconds before trying to update decorations when a command forces a decoration update. */
-const DECORATION_UPDATE_DELAY = 100;
-
-/** Decorators only decorate what's visible on the screen. To avoid the user
- * seeing undecorated text if they scroll too quickly, we decorate some of the
- * text surrounding what's visible on the screen. This number determines how
- * many lines (above top and below bottom) surrounding the visible text should
- * be decorated. */
-const VISIBLE_RANGE_MARGIN = 20;
-
-/** Color used to highlight the decorator text portions ([x], priority:high etc.) of task notes. */
-const TASK_NOTE_DECORATION_COLOR = new ThemeColor(
-  "editorLink.activeForeground"
-);
-
-/** Color used for the border of the colored square of hashtags. */
-const HASHTAG_BORDER_COLOR = new ThemeColor("foreground");
-
-export const EDITOR_DECORATION_TYPES: {
-  [key in keyof typeof DECORATION_TYPES]: TextEditorDecorationType;
-} = {
-  timestamp: window.createTextEditorDecorationType({}),
-  blockAnchor: window.createTextEditorDecorationType({
-    opacity: "40%",
-    rangeBehavior: DecorationRangeBehavior.ClosedOpen,
-  }),
-  /** Decoration for wikilinks that point to valid notes. */
-  wikiLink: window.createTextEditorDecorationType({
-    color: new ThemeColor("editorLink.activeForeground"),
-    rangeBehavior: DecorationRangeBehavior.ClosedClosed,
-  }),
-  /** Decoration for wikilinks that do *not* point to valid notes (e.g. broken). */
-  brokenWikilink: window.createTextEditorDecorationType({
-    color: new ThemeColor("editorWarning.foreground"),
-    backgroundColor: new ThemeColor("editorWarning.background"),
-    rangeBehavior: DecorationRangeBehavior.ClosedClosed,
-  }),
-  /** Decoration for the alias part of wikilinks. */
-  alias: window.createTextEditorDecorationType({
-    fontStyle: "italic",
-  }),
-  noteRef: window.createTextEditorDecorationType({
-    color: new ThemeColor("editorLink.activeForeground"),
-    rangeBehavior: DecorationRangeBehavior.ClosedClosed,
-  }),
-  brokenNoteRef: window.createTextEditorDecorationType({
-    color: new ThemeColor("editorWarning.foreground"),
-    backgroundColor: new ThemeColor("editorWarning.background"),
-    rangeBehavior: DecorationRangeBehavior.ClosedClosed,
-  }),
-  taskNote: window.createTextEditorDecorationType({
-    rangeBehavior: DecorationRangeBehavior.ClosedClosed,
-  }),
-};
-
-export type DendronDecoration<T = any> = {
-  /**
-   * type: mapping of {@link: DECORATION_TYPES} -> {@link: TextEditorDecorationType}
-   */
-  type: TextEditorDecorationType;
-  /**
-   * VSCode DecorationOptions
-   */
-  decoration: DecorationOptions;
-  /**
-   * Specific to type of decoration
-   */
-  data?: T;
-};
+export {
+  DECORATION_UPDATE_DELAY,
+  DendronDecoration,
+  EDITOR_DECORATION_TYPES,
+  VISIBLE_RANGE_MARGIN,
+} from "./windowDecorationTypes";
 
 type DendronNoteRefDecoration = Required<
   DendronDecoration<NoteRefDecorator["data"]>
@@ -148,7 +81,7 @@ function renderNoteRef({
 }
 
 export function delayedUpdateDecorations(
-  updateDelay: number = DECORATION_UPDATE_DELAY
+  updateDelay: number = DECORATION_UPDATE_DELAY,
 ) {
   const beforeTimerPath =
     VSCodeUtils.getActiveTextEditor()?.document.uri.fsPath;
@@ -246,7 +179,7 @@ async function addInlineNoteRefs(opts: {
             note: ent.data.noteMeta,
             engine,
           }),
-          (err) => err
+          (err) => err,
         );
         if (renderResult.isErr()) {
           return;
@@ -256,13 +189,13 @@ async function addInlineNoteRefs(opts: {
         const thread = noteRefCommentController.createCommentThread(
           opts.document.uri,
           ent.decoration.range,
-          [new NoteRefComment(renderResp)]
+          [new NoteRefComment(renderResp)],
         );
         thread.canReply = false;
         thread.label = ent.data.noteMeta.title;
         newNoteRefThreadMap.set(key, thread);
       }
-    })
+    }),
   );
   Logger.debug({
     ctx,
@@ -296,8 +229,8 @@ export async function updateDecorations(editor: TextEditor): Promise<{
             range,
             padding: VISIBLE_RANGE_MARGIN,
             zeroCharacter: true,
-          })
-        )
+          }),
+        ),
       );
 
       return inputRanges.map((range) => {
@@ -319,7 +252,7 @@ export async function updateDecorations(editor: TextEditor): Promise<{
       // come in.
       return (
         debouncedUpdateDecorations.states.get(
-          updateDecorationsKeyFunction(editor)
+          updateDecorationsKeyFunction(editor),
         ) === "trailing"
       );
     };
@@ -328,7 +261,7 @@ export async function updateDecorations(editor: TextEditor): Promise<{
     let note: NoteProps | undefined;
     try {
       note = await ExtensionProvider.getWSUtils().getNoteFromDocument(
-        editor.document
+        editor.document,
       );
       if (_.isUndefined(note)) return {};
     } catch (error) {
@@ -374,7 +307,7 @@ export async function updateDecorations(editor: TextEditor): Promise<{
     // NOTE: we group decorations so we can use `editor.setDecorations(type, decorations)` to apply values in bulk
     const activeDecorations = mapValues(
       groupBy(vscodeDecorations, (decoration) => decoration.type),
-      (decorations) => decorations.map((item) => item.decoration)
+      (decorations) => decorations.map((item) => item.decoration),
     );
     for (const [type, payload] of activeDecorations.entries()) {
       editor.setDecorations(type, payload);
@@ -412,7 +345,7 @@ export async function updateDecorations(editor: TextEditor): Promise<{
         const diagnosticObject = new Diagnostic(
           VSCodeUtils.toRangeObject(diagnostic.range),
           diagnostic.message,
-          diagnostic.severity
+          diagnostic.severity,
         );
         if (diagnostic.code !== undefined) {
           diagnosticObject.code = diagnostic.code;
@@ -429,123 +362,4 @@ export async function updateDecorations(editor: TextEditor): Promise<{
     Sentry.captureException(err);
     throw err;
   }
-}
-
-function mapDecoration(decoration: Decoration): DendronDecoration | undefined {
-  switch (decoration.type) {
-    // Some decoration types require special processing to add per-decoration data
-    case DECORATION_TYPES.timestamp:
-      return mapTimestamp(decoration as DecorationTimestamp);
-    case DECORATION_TYPES.brokenNoteRef:
-    case DECORATION_TYPES.noteRef:
-      return mapNoteRefLink(decoration as NoteRefDecorator);
-    case DECORATION_TYPES.brokenWikilink: // fallthrough deliberate
-    case DECORATION_TYPES.wikiLink:
-      return mapWikilink(decoration as DecorationWikilink); // some wikilinks are hashtags and need the color squares
-    case DECORATION_TYPES.taskNote:
-      return mapTaskNote(decoration as DecorationTaskNote);
-    default:
-      // For all other types, just their basic options in `EDITOR_DECORATION_TYPES` is enough.
-      return mapBasicDecoration(decoration);
-  }
-}
-
-function mapBasicDecoration(
-  decoration: Decoration
-): DendronDecoration | undefined {
-  const type = EDITOR_DECORATION_TYPES[decoration.type];
-  if (!type) return undefined;
-
-  return {
-    type,
-    decoration: {
-      range: VSCodeUtils.toRangeObject(decoration.range),
-    },
-    data: decoration.data,
-  };
-}
-
-function mapTimestamp(decoration: DecorationTimestamp): DendronDecoration {
-  const tsConfig = ExtensionProvider.getWorkspaceConfig().get(
-    CodeConfigKeys.DEFAULT_TIMESTAMP_DECORATION_FORMAT
-  ) as DateTimeFormat;
-  const formatOption = DateTime[tsConfig];
-  const timestamp = DateTime.fromMillis(decoration.timestamp);
-  return {
-    type: EDITOR_DECORATION_TYPES.timestamp,
-    decoration: {
-      range: VSCodeUtils.toRangeObject(decoration.range),
-      renderOptions: {
-        after: {
-          contentText: `  (${timestamp.toLocaleString(formatOption)})`,
-        },
-      },
-    },
-  };
-}
-
-function mapNoteRefLink(
-  decoration: NoteRefDecorator
-): DendronNoteRefDecoration | undefined {
-  return mapBasicDecoration(decoration) as DendronNoteRefDecoration;
-}
-
-function mapWikilink(
-  decoration: DecorationWikilink | DecorationHashTag
-): DendronDecoration | undefined {
-  if (isDecorationHashTag(decoration)) {
-    const type = EDITOR_DECORATION_TYPES[decoration.type];
-    if (!type) return undefined;
-    return {
-      type,
-      decoration: {
-        range: VSCodeUtils.toRangeObject(decoration.range),
-        renderOptions: {
-          before: {
-            contentText: " ",
-            width: "0.8rem",
-            height: "0.8rem",
-            margin: "auto 0.2rem",
-            border: "1px solid",
-            borderColor: HASHTAG_BORDER_COLOR,
-            ...(decoration.color !== undefined
-              ? { backgroundColor: decoration.color }
-              : {}),
-          },
-        },
-      },
-    };
-  }
-  return mapBasicDecoration(decoration);
-}
-
-function mapTaskNote(
-  decoration: DecorationTaskNote
-): DendronDecoration | undefined {
-  return {
-    type: EDITOR_DECORATION_TYPES.taskNote,
-    decoration: {
-      range: VSCodeUtils.toRangeObject(decoration.range),
-      renderOptions: {
-        ...(decoration.beforeText !== undefined
-          ? {
-              before: {
-                contentText: decoration.beforeText,
-                color: TASK_NOTE_DECORATION_COLOR,
-                fontWeight: "200",
-              },
-            }
-          : {}),
-        ...(decoration.afterText !== undefined
-          ? {
-              after: {
-                contentText: decoration.afterText,
-                color: TASK_NOTE_DECORATION_COLOR,
-                fontWeight: "200",
-              },
-            }
-          : {}),
-      },
-    },
-  };
 }

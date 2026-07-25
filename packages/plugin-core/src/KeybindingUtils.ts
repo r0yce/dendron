@@ -1,3 +1,7 @@
+/**
+ * VS Code keybinding conflict detection + UI.
+ * Pure helpers: keybindingConflictHelpers.
+ */
 import {
   DendronError,
   ERROR_SEVERITY,
@@ -11,10 +15,8 @@ import {
 import { CommentArray, parse } from "comment-json";
 import _md from "markdown-it";
 import fs from "fs-extra";
-import _ from "lodash";
 import {
   DENDRON_COMMANDS,
-  isOSType,
   KeybindingConflict,
   KNOWN_KEYBINDING_CONFLICTS,
   KNOWN_CONFLICTING_EXTENSIONS,
@@ -28,12 +30,20 @@ import {
   CopyToClipboardSourceEnum,
 } from "./commands/CopyToClipboardCommand";
 import { AnalyticsUtils } from "./utils/analytics";
+import {
+  checkKeybindingsExist,
+  filterConflictsByInstallAndOS,
+  filterResolvedKeybindingConflicts,
+  findSingleKeybindingKey,
+  generateKeybindingBlockForCopy,
+  getMultipleKeybindingsMsgFormat,
+} from "./keybindingConflictHelpers";
 
 type Keybindings = Record<string, string>;
 export class KeybindingUtils {
   static async openDefaultKeybindingFileAndGetJSON(opts: { close?: boolean }) {
     await vscode.commands.executeCommand(
-      "workbench.action.openDefaultKeybindingsFile"
+      "workbench.action.openDefaultKeybindingsFile",
     );
     const editor = VSCodeUtils.getActiveTextEditor();
     const defaultKeybindingText = editor?.document.getText();
@@ -49,7 +59,7 @@ export class KeybindingUtils {
 
   static async openGlobalKeybindingFileAndGetJSON(opts: { close?: boolean }) {
     await vscode.commands.executeCommand(
-      "workbench.action.openGlobalKeybindingsFile"
+      "workbench.action.openGlobalKeybindingsFile",
     );
     const editor = VSCodeUtils.getActiveTextEditor();
     const globalKeybindingText = editor?.document.getText();
@@ -82,12 +92,10 @@ export class KeybindingUtils {
       .filter((status) => status.installed)
       .map((status) => status.id);
 
-    const conflicts = knownConflicts.filter((conflict) => {
-      const isInstalled = installed.includes(conflict.extensionId);
-      const osType = os.type();
-      const conflictOSType = conflict.os || ["Darwin", "Linux", "Windows_NT"];
-      const matchesOS = isOSType(osType) && conflictOSType.includes(osType);
-      return isInstalled && matchesOS;
+    const conflicts = filterConflictsByInstallAndOS({
+      knownConflicts,
+      installedExtensionIds: installed,
+      osType: os.type(),
     });
 
     // for each of the found conflicts, see if the user has them disabled in keybinding.json
@@ -100,53 +108,16 @@ export class KeybindingUtils {
     }
 
     const userKeybindingConfig = readJSONWithCommentsSync(
-      keybindingConfigPath
+      keybindingConfigPath,
     ) as CommentArray<Keybindings>;
 
-    const alreadyResolved: KeybindingConflict[] = [];
-
-    userKeybindingConfig.forEach((keybinding) => {
-      // we only recognize disabling of the conflicting keybinding as resolution
-      // remapping of either the conflicting / dendron command's keybinding
-      // or disabling the dendron command's keybinding is not considered a resolution.
-      if (keybinding.command && keybinding.command.startsWith("-")) {
-        const command = keybinding.command.substring(1);
-        const resolvedConflict = conflicts.find(
-          (conflict) => conflict.commandId === command
-        );
-        if (resolvedConflict) {
-          alreadyResolved.push(resolvedConflict);
-        }
-      }
+    return filterResolvedKeybindingConflicts({
+      conflicts,
+      userKeybindings: userKeybindingConfig as Array<{ command?: string }>,
     });
-
-    return _.differenceBy(conflicts, alreadyResolved);
   }
 
-  static generateKeybindingBlockForCopy(opts: {
-    entry: Keybindings;
-    disable?: boolean;
-  }) {
-    const { entry, disable } = opts;
-    const whenClause = entry.when ? `  "when": "${entry.when}",` : undefined;
-
-    const args = entry.args
-      ? `  "args": ${JSON.stringify(entry.args)},`
-      : undefined;
-
-    const block = [
-      "{",
-      `  "key": "${disable ? entry.key : ""}",`,
-      `  "command": "${disable ? "-" : ""}${entry.command}",`,
-      whenClause,
-      args,
-      "}",
-      "",
-    ]
-      .filter((line) => line !== undefined)
-      .join("\n");
-    return block;
-  }
+  static generateKeybindingBlockForCopy = generateKeybindingBlockForCopy;
 
   static async showKeybindingConflictPreview(opts: {
     conflicts: KeybindingConflict[];
@@ -197,12 +168,12 @@ export class KeybindingUtils {
           const conflictKeybindingEntry = defaultKeybindingJSON.find(
             (keybinding) => {
               return keybinding.command === conflict.commandId;
-            }
+            },
           );
           const dendronKeybindingEntry = defaultKeybindingJSON.find(
             (keybinding) => {
               return keybinding.command === conflict.conflictsWith;
-            }
+            },
           );
           if (conflictKeybindingEntry === undefined) {
             return undefined;
@@ -218,7 +189,7 @@ export class KeybindingUtils {
 
           const copyCommandUri = (args: CopyToClipboardCommandOpts) =>
             `command:dendron.copyToClipboard?${encodeURIComponent(
-              JSON.stringify(args)
+              JSON.stringify(args),
             )}`;
 
           const out = [
@@ -249,7 +220,7 @@ export class KeybindingUtils {
       vscode.ViewColumn.Beside,
       {
         enableCommandUris: true,
-      }
+      },
     );
     panel.webview.html = md.render(contents);
   }
@@ -287,7 +258,7 @@ export class KeybindingUtils {
   }
 
   static checkKeybindingsExist(val: CommentJSONValue): boolean {
-    return Array.isArray(val);
+    return checkKeybindingsExist(val);
   }
 
   /**
@@ -328,21 +299,18 @@ export class KeybindingUtils {
       return undefined;
     }
 
-    const result = (keybindings as Keybindings[]).filter(
-      (item: Keybindings) =>
-        item.command &&
-        item.command === DENDRON_COMMANDS.EXPORT_POD_V2.key &&
-        item.args === podId
-    );
-
-    if (result.length === 1 && result[0]!.key) {
-      return result[0]!.key;
-    } else if (result.length > 1) {
+    try {
+      return findSingleKeybindingKey({
+        keybindings: keybindings as Keybindings[],
+        command: DENDRON_COMMANDS.EXPORT_POD_V2.key,
+        args: podId,
+        multiMsgCmd: "pod",
+      });
+    } catch (err) {
       throw new DendronError({
-        message: this.getMultipleKeybindingsMsgFormat("pod"),
+        message: getMultipleKeybindingsMsgFormat("pod"),
       });
     }
-    return undefined;
   }
 
   static getKeybindingsForCopyAsIfExists(format: string): string | undefined {
@@ -358,25 +326,21 @@ export class KeybindingUtils {
       return undefined;
     }
 
-    const result = (keybindings as Keybindings[]).filter((item: Keybindings) => {
-      return (
-        item.command &&
-        item.command === DENDRON_COMMANDS.COPY_AS.key &&
-        item.args === format
-      );
-    });
-
-    if (result.length === 1 && result[0]!.key) {
-      return result[0]!.key;
-    } else if (result.length > 1) {
+    try {
+      return findSingleKeybindingKey({
+        keybindings: keybindings as Keybindings[],
+        command: DENDRON_COMMANDS.COPY_AS.key,
+        args: format,
+        multiMsgCmd: "copy as",
+      });
+    } catch (err) {
       throw new DendronError({
-        message: this.getMultipleKeybindingsMsgFormat("copy as"),
+        message: getMultipleKeybindingsMsgFormat("copy as"),
       });
     }
-    return undefined;
   }
 
   static getMultipleKeybindingsMsgFormat(cmd: string) {
-    return `Multiple keybindings found for ${cmd} command shortcut.`;
+    return getMultipleKeybindingsMsgFormat(cmd);
   }
 }
