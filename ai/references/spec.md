@@ -181,6 +181,9 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | Completion peels | pure `completionHelpers`; `completionNoteProvider`, `completionBlockProvider` |
 | Window decorations peels | `windowDecorationTypes`, `windowDecorationMappers` |
 | Keybinding pure helpers | `keybindingConflictHelpers` |
+| Startup peels | pure `startupGates`; `startupConfigMessages`; `startupUserPrompts` |
+| Extension peels | `extensionServerProcess`; `extensionTelemetry` |
+| Pod UI descriptions (pure) | `podControlDescriptions` |
 | QuickPick factory | `pickerQuickPick` / `PickerUtilsV2.createDendronQuickPick` |
 | Activation helpers | `workspace/activatorHelpers` |
 | Reload / engine port | `workspace/activatorReload` |

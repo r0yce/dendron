@@ -27,6 +27,10 @@ import { MultiSelectBtn, Selection2ItemsBtn } from "../lookup/buttons";
 import { LookupControllerV3CreateOpts } from "../lookup/LookupControllerV3Interface";
 import { NoteLookupProviderSuccessResp } from "../lookup/LookupProviderV3Interface";
 import { NoteLookupProviderUtils } from "../lookup/NoteLookupProviderUtils";
+import {
+  getDescriptionForPodType,
+  getDescriptionForScope,
+} from "./podControlDescriptions";
 
 /**
  * Contains VSCode UI controls for common Pod UI operations
@@ -78,9 +82,7 @@ export class PodUIControls {
         .map<QuickPickItem>((value) => {
           return {
             label: value,
-            detail: PodUIControls.getDescriptionForScope(
-              value as PodExportScope
-            ),
+            detail: getDescriptionForScope(value as PodExportScope),
           };
         });
 
@@ -88,7 +90,7 @@ export class PodUIControls {
         resolve(
           PodExportScope[
             qp.selectedItems[0]!.label as keyof typeof PodExportScope
-          ]
+          ],
         );
         qp.dispose();
       });
@@ -170,7 +172,7 @@ export class PodUIControls {
       .map<QuickPickItem>((value) => {
         return {
           label: value,
-          detail: PodUIControls.getDescriptionForPodType(value as PodV2Types),
+          detail: getDescriptionForPodType(value as PodV2Types),
         };
       });
     const picked = await vscode.window.showQuickPick(newConnectionOptions, {
@@ -213,7 +215,7 @@ export class PodUIControls {
    * @returns
    */
   public static async promptForExternalServiceConnectionOrNew<
-    T extends ExternalTarget
+    T extends ExternalTarget,
   >(connectionType: ExternalService): Promise<undefined | T> {
     const { wsRoot } = ExtensionProvider.getDWorkspace();
     const mngr = new ExternalConnectionManager(PodUtils.getPodDir({ wsRoot }));
@@ -231,7 +233,7 @@ export class PodUIControls {
 
     const selectedServiceOption = await vscode.window.showQuickPick(
       items.concat(newConnectionOption),
-      { title: "Pick the service connection for export", ignoreFocusOut: true }
+      { title: "Pick the service connection for export", ignoreFocusOut: true },
     );
 
     if (!selectedServiceOption) {
@@ -246,7 +248,7 @@ export class PodUIControls {
 
       if (!config) {
         vscode.window.showErrorMessage(
-          `Couldn't find service config with ID ${selectedServiceOption.label}.`
+          `Couldn't find service config with ID ${selectedServiceOption.label}.`,
         );
         return;
       }
@@ -259,18 +261,18 @@ export class PodUIControls {
     switch (connectionType) {
       case ExternalService.GoogleDocs: {
         const id = await this.promptToCreateNewServiceConfig(
-          ExternalService.GoogleDocs
+          ExternalService.GoogleDocs,
         );
         await launchGoogleOAuthFlow(id);
         vscode.window.showInformationMessage(
-          "Google OAuth is a beta feature. Please contact us at support@dendron.so or on Discord to first gain access. Then, try again and authenticate with Google on your browser to continue."
+          "Google OAuth is a beta feature. Please contact us at support@dendron.so or on Discord to first gain access. Then, try again and authenticate with Google on your browser to continue.",
         );
         break;
       }
       case ExternalService.Notion: {
         await this.promptToCreateNewServiceConfig(ExternalService.Notion);
         vscode.window.showInformationMessage(
-          `First setup a new ${connectionType} connection and then re-run the pod command.`
+          `First setup a new ${connectionType} connection and then re-run the pod command.`,
         );
         break;
       }
@@ -286,10 +288,10 @@ export class PodUIControls {
    * @returns
    */
   public static async promptToCreateNewServiceConfig(
-    serviceType: ExternalService
+    serviceType: ExternalService,
   ) {
     const mngr = new ExternalConnectionManager(
-      ExtensionProvider.getExtension().podsDir
+      ExtensionProvider.getExtension().podsDir,
     );
 
     const id = await this.promptForGenericId();
@@ -321,7 +323,7 @@ export class PodUIControls {
     ];
     if (fromSelection) {
       extraButtons.push(
-        Selection2ItemsBtn.create({ pressed: true, canToggle: false })
+        Selection2ItemsBtn.create({ pressed: true, canToggle: false }),
       );
     }
     const lcOpts: LookupControllerV3CreateOpts = {
@@ -371,7 +373,7 @@ export class PodUIControls {
       disposable = AutoCompletableRegistrar.OnAutoComplete(() => {
         if (lc.quickPick) {
           lc.quickPick.value = AutoCompleter.getAutoCompletedValue(
-            lc.quickPick
+            lc.quickPick,
           );
 
           lc.provider.onUpdatePickerItems({
@@ -399,7 +401,7 @@ export class PodUIControls {
       })),
       {
         placeHolder: "Select the vault to export",
-      }
+      },
     );
     return vaultQuickPick?.data;
   }
@@ -414,7 +416,7 @@ export class PodUIControls {
     const items: QuickPickItem[] = [];
 
     const configs = PodV2ConfigManager.getAllPodConfigs(
-      path.join(ExtensionProvider.getExtension().podsDir, "custom")
+      path.join(ExtensionProvider.getExtension().podsDir, "custom"),
     );
 
     configs.forEach((config) => {
@@ -426,7 +428,7 @@ export class PodUIControls {
         if (
           e.message &&
           e.message.includes(
-            KeybindingUtils.getMultipleKeybindingsMsgFormat("pod")
+            KeybindingUtils.getMultipleKeybindingsMsgFormat("pod"),
           )
         ) {
           keybinding = "Multiple Keybindings";
@@ -464,7 +466,7 @@ export class PodUIControls {
    */
   public static async promptUserForDestination(
     exportScope: PodExportScope,
-    options: vscode.OpenDialogOptions
+    options: vscode.OpenDialogOptions,
   ): Promise<"clipboard" | string | undefined> {
     const items: vscode.QuickPickItem[] = [
       {
@@ -504,68 +506,12 @@ export class PodUIControls {
   }
 
   /**
-   * Small helper method to get descriptions for {@link promptForExportScope}
-   * @param scope
-   * @returns
-   */
-  private static getDescriptionForScope(scope: PodExportScope): string {
-    switch (scope) {
-      case PodExportScope.Lookup:
-        return "Prompts user to select note(s) for export";
-
-      case PodExportScope.LinksInSelection:
-        return "Exports all notes in wikilinks of current selected portion of text in the open note editor";
-
-      case PodExportScope.Note:
-        return "Exports the currently opened note";
-
-      case PodExportScope.Hierarchy:
-        return "Exports all notes that fall under a hierarchy";
-
-      case PodExportScope.Vault:
-        return "Exports all notes within a vault";
-
-      case PodExportScope.Workspace:
-        return "Exports all notes in the Dendron workspace";
-
-      case PodExportScope.Selection:
-        return "Export the selected text from currently opened note";
-
-      default:
-        assertUnreachable(scope);
-    }
-  }
-
-  /**
-   * Small helper method to get descriptions for {@link promptForExportScope}
-   * @param type
-   * @returns
-   */
-  private static getDescriptionForPodType(type: PodV2Types): string {
-    switch (type) {
-      case PodV2Types.MarkdownExportV2:
-        return "Formats Dendron markdown and exports it to the clipboard or local file system";
-
-      case PodV2Types.GoogleDocsExportV2:
-        return "Formats Dendron note to google doc";
-
-      case PodV2Types.NotionExportV2:
-        return "Exports notes to Notion";
-      case PodV2Types.JSONExportV2:
-        return "Formats notes to JSON and exports it to clipboard or local file system";
-
-      default:
-        assertUnreachable(type);
-    }
-  }
-
-  /**
    * Prompt user to select custom pod Id
    */
   public static async promptToSelectCustomPodId(): Promise<string | undefined> {
     const { wsRoot } = ExtensionProvider.getDWorkspace();
     const configs = PodV2ConfigManager.getAllPodConfigs(
-      path.join(PodUtils.getPodDir({ wsRoot }), "custom")
+      path.join(PodUtils.getPodDir({ wsRoot }), "custom"),
     );
     const items = configs.map<QuickPickItem>((value) => {
       return { label: value.podId, description: value.podType };
@@ -593,7 +539,7 @@ export class PodUIControls {
         if (
           e.message &&
           e.message.includes(
-            KeybindingUtils.getMultipleKeybindingsMsgFormat("copy as")
+            KeybindingUtils.getMultipleKeybindingsMsgFormat("copy as"),
           )
         ) {
           keybinding = "Multiple Keybindings";

@@ -28,6 +28,8 @@ const refactorOps = out("commands/refactorHierarchyOps.js");
 const constants = out("components/lookup/vaultPickerConstants.js");
 const completionHelpers = out("features/completionHelpers.js");
 const keybindingHelpers = out("keybindingConflictHelpers.js");
+const startupGates = out("utils/startupGates.js");
+const podDescriptions = out("components/pods/podControlDescriptions.js");
 
 let failed = 0;
 function check(name, cond) {
@@ -296,6 +298,40 @@ check(
     });
     return remaining.length === 0;
   })()
+);
+
+// --- startup gates pure (wave 21) ---
+check(
+  "shouldShowManualUpgradeMessage legacy upgrade",
+  startupGates.shouldShowManualUpgradeMessage({
+    previousWorkspaceVersion: "0.50.0",
+    workspaceInstallStatus: "UPGRADED",
+  }) === true
+);
+check(
+  "shouldShowManualUpgradeMessage modern no",
+  startupGates.shouldShowManualUpgradeMessage({
+    previousWorkspaceVersion: "0.100.0",
+    workspaceInstallStatus: "UPGRADED",
+  }) === false
+);
+check(
+  "decideInactiveUserSurvey submitted never",
+  startupGates.decideInactiveUserSurvey({
+    meta: { inactiveUserMsgStatus: "submitted" },
+    currentTimeSeconds: 1e12,
+  }).shouldSend === false
+);
+check(
+  "getDescriptionForScope Note",
+  podDescriptions.getDescriptionForScope("Note").includes("currently opened")
+);
+check(
+  "getDescriptionForPodType Markdown",
+  podDescriptions
+    .getDescriptionForPodType("MarkdownExportV2")
+    .toLowerCase()
+    .includes("markdown")
 );
 
 if (failed) {

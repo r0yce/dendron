@@ -40,6 +40,9 @@
 | `completionHelpers` / `completionNoteProvider` / `completionBlockProvider` | features/ | Pure regex/range; note+tag completions; block-anchor completions |
 | `windowDecorationTypes` / `windowDecorationMappers` | features/ | Decoration type registry; engine→VSCode map |
 | `keybindingConflictHelpers` | plugin-core | Pure conflict filter + keybinding JSON block gen |
+| `startupGates` / `startupConfigMessages` / `startupUserPrompts` | utils/ | Pure startup gates; config toasters; survey/compat prompts |
+| `extensionServerProcess` / `extensionTelemetry` | utils/ | Engine server spawn; install + workspace-init analytics |
+| `podControlDescriptions` | pods/ | Pure export-scope / pod-type quick-pick copy |
 
 **Rule:** same 5+ lines twice → extract. Pure logic → no vscode imports when possible.
 
@@ -310,12 +313,29 @@ Still >400 LOC and not fully modular shells:
 | `completionNoteProvider.ts` | ~330 |
 | `completionBlockProvider.ts` | ~195 |
 
-### Wave 21 — optional (remaining non-command)
+### Wave 21 — DONE (this push)
+
+| Item | Result |
+|------|--------|
+| StartupUtils | pure `startupGates` + `startupConfigMessages` + `startupUserPrompts`; shell **~183** (was ~568) |
+| ExtensionUtils | `extensionServerProcess` + `extensionTelemetry`; shell **~126** (was ~564) |
+| PodControls | pure `podControlDescriptions`; shell **~564** (was ~616) |
+| Smoke | manual-upgrade gate, inactive survey decision, pod description strings |
+
+| Hotspot | ~LOC after wave 21 |
+|---------|-------------------|
+| `StartupUtils.ts` | **~183** |
+| `ExtensionUtils.ts` | **~126** |
+| `extensionTelemetry.ts` | ~358 |
+| `PodControls.ts` | **~564** |
+| `startupConfigMessages.ts` | ~219 |
+
+### Wave 22 — optional (remaining non-command)
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | `StartupUtils` / `ExtensionUtils` (~564–568) |
-| P2 | `BacklinksTreeDataProvider`, `PodControls`, `WorkspaceWatcher`, `vsCodeUtils`, `workspace` |
+| P1 | `BacklinksTreeDataProvider`, `WorkspaceWatcher`, `vsCodeUtils`, `workspace` |
+| P2 | Further PodControls prompt peels; `PreviewPanel` |
 | P3 | `_extension.ts` bootstrap thin; `constants.ts` data split |
 | P4 | Remaining command shells 300–399 if desired |
 
