@@ -1,16 +1,11 @@
 import {
   ConfigUtils,
-  ContextualUIEvents,
-  DNodeUtils,
-  ErrorUtils,
-  NoteProps,
   NoteUtils,
   SchemaUtils,
   Time,
   VaultUtils,
   Wrap,
 } from "@dendronhq/common-all";
-import { file2Note, vault2Path } from "@dendronhq/common-server";
 import { WorkspaceUtils } from "@dendronhq/engine-server";
 import { RemarkUtils } from "@dendronhq/unified";
 import * as Sentry from "@sentry/node";
@@ -37,9 +32,13 @@ import { IDendronExtension } from "./dendronExtensionInterface";
 import { Logger } from "./logger";
 import { TextDocumentService } from "./services/node/TextDocumentService";
 import { ISchemaSyncService } from "./services/SchemaSyncServiceInterface";
-import { AnalyticsUtils, sentryReportingCallback } from "./utils/analytics";
+import { sentryReportingCallback } from "./utils/analytics";
 import { VSCodeUtils } from "./vsCodeUtils";
 import { WindowWatcher } from "./windowWatcher";
+import {
+  onDidRenameFilesForWorkspace,
+  onWillRenameFilesForWorkspace,
+} from "./workspaceWatcherRename";
 
 const MOVE_CURSOR_PAST_FRONTMATTER_DELAY = 50; /* ms */
 
@@ -102,7 +101,7 @@ export class WorkspaceWatcher {
     this._openedDocuments = new Map();
     this._quickDebouncedOnDidChangeTextDocument = _.debounce(
       this.quickOnDidChangeTextDocument,
-      50
+      50,
     );
     this._extension = extension;
     this._windowWatcher = windowWatcher;
@@ -120,16 +119,16 @@ export class WorkspaceWatcher {
       workspace.onWillSaveTextDocument(
         this.onWillSaveTextDocument,
         this,
-        context.subscriptions
-      )
+        context.subscriptions,
+      ),
     );
 
     this._extension.addDisposable(
       workspace.onDidSaveTextDocument(
         this.onDidSaveTextDocument,
         this,
-        context.subscriptions
-      )
+        context.subscriptions,
+      ),
     );
 
     // NOTE: currently, this is only used for logging purposes
@@ -138,8 +137,8 @@ export class WorkspaceWatcher {
         workspace.onDidOpenTextDocument(
           this.onDidOpenTextDocument,
           this,
-          context.subscriptions
-        )
+          context.subscriptions,
+        ),
       );
     }
 
@@ -147,16 +146,16 @@ export class WorkspaceWatcher {
       workspace.onWillRenameFiles(
         this.onWillRenameFiles,
         this,
-        context.subscriptions
-      )
+        context.subscriptions,
+      ),
     );
 
     this._extension.addDisposable(
       workspace.onDidRenameFiles(
         this.onDidRenameFiles,
         this,
-        context.subscriptions
-      )
+        context.subscriptions,
+      ),
     );
 
     this._extension.addDisposable(
@@ -170,8 +169,8 @@ export class WorkspaceWatcher {
           }
         }),
         this,
-        context.subscriptions
-      )
+        context.subscriptions,
+      ),
     );
 
     if (this._extension.getDWorkspace().config.workspace.enablePerfMode) {
@@ -182,8 +181,8 @@ export class WorkspaceWatcher {
       workspace.onDidChangeTextDocument(
         this._quickDebouncedOnDidChangeTextDocument,
         this,
-        context.subscriptions
-      )
+        context.subscriptions,
+      ),
     );
   }
 
@@ -246,7 +245,7 @@ export class WorkspaceWatcher {
       });
       DoctorUtils.findDuplicateNoteAndPromptIfNecessary(
         document,
-        "onDidOpenTextDocument"
+        "onDidOpenTextDocument",
       );
       DoctorUtils.validateFilenameFromDocumentAndPromptIfNecessary(document);
     } catch (error) {
@@ -359,7 +358,7 @@ export class WorkspaceWatcher {
     // check and prompt duplicate warning.
     await DoctorUtils.findDuplicateNoteAndPromptIfNecessary(
       document,
-      "onDidSaveNote"
+      "onDidSaveNote",
     );
 
     const fname = path.basename(document.uri.fsPath, ".md");
@@ -367,7 +366,7 @@ export class WorkspaceWatcher {
     const config = this._extension.getDWorkspace().config;
     const { enablePersistentHistory, mainVault } = ConfigUtils.getProp(
       config,
-      "workspace"
+      "workspace",
     );
 
     if (
@@ -381,7 +380,7 @@ export class WorkspaceWatcher {
       // check if file exists
       // format line
       const maybeVault = engine.vaults.find(
-        (vault) => VaultUtils.getName(vault) === mainVault
+        (vault) => VaultUtils.getName(vault) === mainVault,
       );
       if (!maybeVault) {
         Logger.error({
@@ -439,53 +438,7 @@ export class WorkspaceWatcher {
    * It updates all the references to the oldUri
    */
   onWillRenameFiles(args: FileWillRenameEvent) {
-    // No-op if we're not in a Dendron Workspace
-    if (!this._extension.isActive()) {
-      return;
-    }
-    try {
-      const files = args.files[0];
-      if (!files) return;
-      const { vaults, wsRoot } = this._extension.getDWorkspace();
-      const { oldUri, newUri } = files;
-
-      // No-op if we are not dealing with a Dendron note.
-      if (!NoteUtils.isNote(oldUri)) {
-        return;
-      }
-
-      const oldVault = VaultUtils.getVaultByFilePath({
-        vaults,
-        wsRoot,
-        fsPath: oldUri.fsPath,
-      });
-      const oldFname = DNodeUtils.fname(oldUri.fsPath);
-
-      const newVault = VaultUtils.getVaultByFilePath({
-        vaults,
-        wsRoot,
-        fsPath: newUri.fsPath,
-      });
-      const newFname = DNodeUtils.fname(newUri.fsPath);
-      const opts = {
-        oldLoc: {
-          fname: oldFname,
-          vaultName: VaultUtils.getName(oldVault),
-        },
-        newLoc: {
-          fname: newFname,
-          vaultName: VaultUtils.getName(newVault),
-        },
-        metaOnly: true,
-      };
-      AnalyticsUtils.track(ContextualUIEvents.ContextualUIRename);
-      const engine = this._extension.getEngine();
-      const updateNoteReferences = engine.renameNote(opts);
-      args.waitUntil(updateNoteReferences);
-    } catch (error: any) {
-      Sentry.captureException(error);
-      throw error;
-    }
+    onWillRenameFilesForWorkspace(args, this._extension);
   }
 
   /**
@@ -493,48 +446,7 @@ export class WorkspaceWatcher {
    * It updates the title of the note wrt the new fname and refreshes tree view
    */
   async onDidRenameFiles(args: FileRenameEvent) {
-    // No-op if we're not in a Dendron Workspace
-    if (!this._extension.isActive()) {
-      return;
-    }
-    try {
-      const files = args.files[0];
-      if (!files) return;
-      const { newUri } = files;
-      const fname = DNodeUtils.fname(newUri.fsPath);
-      const engine = this._extension.getEngine();
-      const { vaults, wsRoot } = this._extension.getDWorkspace();
-
-      // No-op if we are not dealing with a Dendron note.
-      if (!NoteUtils.isNote(newUri)) {
-        return;
-      }
-
-      const newVault = VaultUtils.getVaultByFilePath({
-        vaults,
-        wsRoot,
-        fsPath: newUri.fsPath,
-      });
-      const vpath = vault2Path({ wsRoot, vault: newVault });
-      const newLocPath = path.join(vpath, fname + ".md");
-      const resp = file2Note(newLocPath, newVault);
-      if (ErrorUtils.isErrorResp(resp)) {
-        throw resp.error;
-      }
-      let newNote: NoteProps = resp.data as NoteProps;
-      const noteHydrated = await engine.getNote(newNote.id);
-      if (noteHydrated.data) {
-        newNote = NoteUtils.hydrate({
-          noteRaw: newNote,
-          noteHydrated: noteHydrated.data as NoteProps,
-        }) as NoteProps;
-      }
-      newNote.title = NoteUtils.genTitle(fname);
-      await engine.writeNote(newNote);
-    } catch (error: any) {
-      Sentry.captureException(error);
-      throw error;
-    }
+    await onDidRenameFilesForWorkspace(args, this._extension);
   }
 
   /**
@@ -572,7 +484,7 @@ export class WorkspaceWatcher {
   static moveCursorPastFrontmatter(editor: TextEditor) {
     const ctx = "moveCursorPastFrontmatter";
     const nodePosition = RemarkUtils.getNodePositionPastFrontmatter(
-      editor.document.getText()
+      editor.document.getText(),
     );
     const startFsPath = editor.document.uri.fsPath;
     if (!_.isUndefined(nodePosition)) {

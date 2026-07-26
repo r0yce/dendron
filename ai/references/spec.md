@@ -184,6 +184,9 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | Startup peels | pure `startupGates`; `startupConfigMessages`; `startupUserPrompts` |
 | Extension peels | `extensionServerProcess`; `extensionTelemetry` |
 | Pod UI descriptions (pure) | `podControlDescriptions` |
+| VS Code pure helpers | `vsCodeInstallStatus`, `vsCodeRangeHelpers`, `vsCodeUserConfigDir` |
+| Backlinks tree pure | `backlinksTreeHelpers` |
+| Workspace rename handlers | `workspaceWatcherRename` |
 | QuickPick factory | `pickerQuickPick` / `PickerUtilsV2.createDendronQuickPick` |
 | Activation helpers | `workspace/activatorHelpers` |
 | Reload / engine port | `workspace/activatorReload` |

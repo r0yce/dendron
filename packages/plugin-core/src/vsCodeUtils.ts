@@ -1,10 +1,7 @@
 import {
   assertUnreachable,
-  CONSTANTS,
   DendronError,
   getStage,
-  InstallStatus,
-  newRange,
   Point,
   Position,
   VSRange,
@@ -18,10 +15,22 @@ import * as vscode from "vscode";
 import { CancellationTokenSource } from "vscode";
 import { DendronContext, GLOBAL_STATE } from "./constants";
 import { FileItem } from "./external/fileutils/FileItem";
+import {
+  getInstallStatusForExtension as getInstallStatusForExtensionPure,
+  getInstallStatusForWorkspace as getInstallStatusForWorkspacePure,
+} from "./utils/vsCodeInstallStatus";
+import {
+  mergeOverlappingPlainRanges,
+  padPlainRange,
+  plainRangeToVSRange,
+  PointOffset,
+  pointToZeroIndexed,
+  positionToPlainRange,
+  vsRangeToPlain,
+} from "./utils/vsCodeRangeHelpers";
+import { resolveCodeUserConfigDir } from "./utils/vsCodeUserConfigDir";
 // NOTE: This file should NOT have a dependency on getDWorkspace()/getExtension()
 // If you would like to introduce a utility for workspace add it to IWSUtilsV2/WSUtilsV2.
-
-type PointOffset = { line?: number; column?: number };
 
 // NOTE: used for tests
 let _MOCK_CONTEXT: undefined | vscode.ExtensionContext;
@@ -62,10 +71,10 @@ export class VSCodeUtils {
 
   static closeAllEditors() {
     const closeEditorsCmd = vscode.commands.executeCommand(
-      "workbench.action.closeAllEditors"
+      "workbench.action.closeAllEditors",
     );
     const closeGroupsCmd = vscode.commands.executeCommand(
-      "workbench.action.closeAllGroups"
+      "workbench.action.closeAllGroups",
     );
 
     return Promise.all([closeEditorsCmd, closeGroupsCmd]);
@@ -84,7 +93,7 @@ export class VSCodeUtils {
 
   static extractRangeFromActiveEditor = async (
     documentParam?: vscode.TextDocument,
-    rangeParam?: vscode.Range
+    rangeParam?: vscode.Range,
   ) => {
     const document = documentParam || vscode.window.activeTextEditor?.document;
 
@@ -102,7 +111,7 @@ export class VSCodeUtils {
 
   static deleteRange = async (
     document: vscode.TextDocument,
-    range: vscode.Range
+    range: vscode.Range,
   ) => {
     const editor = await vscode.window.showTextDocument(document);
     await editor.edit((edit) => edit.delete(range));
@@ -111,7 +120,7 @@ export class VSCodeUtils {
   /** Wraps the selected range with comment symbols using builtin VSCode command. */
   static async makeBlockComment(
     editor: vscode.TextEditor,
-    range?: vscode.Range
+    range?: vscode.Range,
   ) {
     // The command doesn't accept any arguments, it uses the current selection.
     // So save then restore the selection.
@@ -143,48 +152,13 @@ export class VSCodeUtils {
    * Check if we upgraded, initialized for the first time or no change was detected
    * @returns {@link InstallStatus}
    */
-  static getInstallStatusForWorkspace({
-    previousWorkspaceVersion,
-    currentVersion,
-  }: {
-    previousWorkspaceVersion?: string;
-    currentVersion: string;
-  }): InstallStatus {
-    if (
-      _.isUndefined(previousWorkspaceVersion) ||
-      previousWorkspaceVersion === CONSTANTS.DENDRON_INIT_VERSION
-    ) {
-      return InstallStatus.INITIAL_INSTALL;
-    }
-    if (previousWorkspaceVersion !== currentVersion) {
-      return InstallStatus.UPGRADED;
-    }
-    return InstallStatus.NO_CHANGE;
-  }
+  static getInstallStatusForWorkspace = getInstallStatusForWorkspacePure;
 
   /**
    * Get {@link InstallStatus}
    * ^pubko8e3tu7i
    */
-  static getInstallStatusForExtension({
-    previousGlobalVersion,
-    currentVersion,
-  }: {
-    previousGlobalVersion?: string;
-    currentVersion: string;
-  }): InstallStatus {
-    // if there is no global version set, then its a new install
-    if (
-      _.isUndefined(previousGlobalVersion) ||
-      previousGlobalVersion === CONSTANTS.DENDRON_INIT_VERSION
-    ) {
-      return InstallStatus.INITIAL_INSTALL;
-    }
-    if (previousGlobalVersion !== currentVersion) {
-      return InstallStatus.UPGRADED;
-    }
-    return InstallStatus.NO_CHANGE;
-  }
+  static getInstallStatusForExtension = getInstallStatusForExtensionPure;
 
   static getSelection():
     | { text: undefined; selection: undefined; editor: undefined }
@@ -263,7 +237,7 @@ export class VSCodeUtils {
     fileItemOrURI: FileItem | vscode.Uri,
     opts?: Partial<{
       column: vscode.ViewColumn | undefined;
-    }>
+    }>,
   ): Promise<vscode.TextEditor | undefined> {
     let textDocument;
     if (fileItemOrURI instanceof FileItem) {
@@ -272,7 +246,7 @@ export class VSCodeUtils {
       }
 
       textDocument = await vscode.workspace.openTextDocument(
-        fileItemOrURI.path
+        fileItemOrURI.path,
       );
     } else {
       textDocument = await vscode.workspace.openTextDocument(fileItemOrURI);
@@ -303,7 +277,7 @@ export class VSCodeUtils {
   static async openWS(wsFile: string) {
     return vscode.commands.executeCommand(
       "vscode.openFolder",
-      vscode.Uri.file(wsFile)
+      vscode.Uri.file(wsFile),
     );
   }
 
@@ -402,14 +376,14 @@ export class VSCodeUtils {
       _.kebabCase(title),
       title, // Title of the panel displayed to the user
       vscode.ViewColumn.One, // Editor column to show the new webview panel in.
-      {} // Webview options. More on these later.
+      {}, // Webview options. More on these later.
     );
     panel.webview.html = rawHTML ? content : _md().render(content);
   };
 
   static showMessage(
     severity: MessageSeverity,
-    ...opts: Parameters<typeof vscode.window["showInformationMessage"]>
+    ...opts: Parameters<(typeof vscode.window)["showInformationMessage"]>
   ) {
     switch (severity) {
       case MessageSeverity.INFO:
@@ -430,11 +404,8 @@ export class VSCodeUtils {
    * @returns The converted Position, shifted by `offset` if provided.
    */
   static point2VSCodePosition(point: Point, offset?: PointOffset) {
-    return new vscode.Position(
-      // remark Point's are 0 indexed
-      point.line - 1 + (offset?.line || 0),
-      point.column - 1 + (offset?.column || 0)
-    );
+    const p = pointToZeroIndexed(point, offset);
+    return new vscode.Position(p.line, p.character);
   }
 
   /** Convert a `Position` from a parsed remark node to a `vscode.Range`
@@ -443,10 +414,12 @@ export class VSCodeUtils {
    * @returns The converted Range.
    */
   static position2VSCodeRange(position: Position, offset?: PointOffset) {
+    const r = positionToPlainRange(position, offset);
     return new vscode.Range(
-      // remark Point's are 0 indexed
-      this.point2VSCodePosition(position.start, offset),
-      this.point2VSCodePosition(position.end, offset)
+      r.start.line,
+      r.start.character,
+      r.end.line,
+      r.end.character,
     );
   }
 
@@ -462,47 +435,30 @@ export class VSCodeUtils {
     padding: number;
     zeroCharacter?: boolean;
   }): vscode.Range {
-    const { range, padding, zeroCharacter } = opts;
+    const padded = padPlainRange({
+      range: vsRangeToPlain(opts.range),
+      padding: opts.padding,
+      zeroCharacter: opts.zeroCharacter,
+    });
     return new vscode.Range(
-      new vscode.Position(
-        Math.max(range.start.line - padding, 0),
-        zeroCharacter ? 0 : range.start.character
-      ),
-      new vscode.Position(
-        range.end.line + padding,
-        zeroCharacter ? 0 : range.end.character
-      )
+      padded.start.line,
+      padded.start.character,
+      padded.end.line,
+      padded.end.character,
     );
   }
 
   /** Given a list of ranges, return a set of ranges where any overlapping ranges have been merged together. No two returned range will overlap. */
   static mergeOverlappingRanges(ranges: vscode.Range[]): vscode.Range[] {
-    const out: vscode.Range[] = [];
-    ranges = _.sortBy(
-      ranges,
-      (range) => range.start.line,
-      (range) => range.start.character
+    return mergeOverlappingPlainRanges(ranges.map(vsRangeToPlain)).map(
+      (r) =>
+        new vscode.Range(
+          r.start.line,
+          r.start.character,
+          r.end.line,
+          r.end.character,
+        ),
     );
-    // Reverse them so `.pop()` gives us the earliest list element.
-    ranges.reverse();
-
-    while (ranges.length > 0) {
-      // Get the earliest range
-      let earliest = ranges.pop();
-      if (!earliest) break;
-      while (ranges.length > 0) {
-        // If the next range overlaps...
-        const next = ranges[ranges.length - 1]!; // what pop would have returned
-        if (earliest.intersection(next) === undefined) break; // no overlap
-        // Then extend this range
-        earliest = earliest.union(next);
-        // And remove the next range because it's now part of the current one
-        ranges.pop();
-        // Continue until we get to a non-overlapping range
-      }
-      out.push(earliest);
-    }
-    return out;
   }
 
   /** Converts any range similar to a VSCode range into an actual VSCode range, which is needed for VSCode APIs. */
@@ -511,18 +467,13 @@ export class VSCodeUtils {
       range.start.line,
       range.start.character,
       range.end.line,
-      range.end.character
+      range.end.character,
     );
   }
 
   /** Opposite of `toRangeObject`, which is required to call Dendron APIs. */
   static toPlainRange(range: vscode.Range): VSRange {
-    return newRange(
-      range.start.line,
-      range.start.character,
-      range.end.line,
-      range.end.character
-    );
+    return plainRangeToVSRange(vsRangeToPlain(range));
   }
 
   /** Fold the foldable region at the given line for the active editor.
@@ -542,58 +493,22 @@ export class VSCodeUtils {
   }
 
   static getCodeUserConfigDir() {
-    const CODE_RELEASE_MAP = {
-      VSCodium: "VSCodium",
-      "Visual Studio Code - Insiders": "Code - Insiders",
-    };
-    const vscodeRelease = vscode.env.appName;
-    const name = _.get(CODE_RELEASE_MAP, vscodeRelease, "Code");
-
-    const osName = os.type();
-    let delimiter = "/";
-    let userConfigDir;
-
-    switch (osName) {
-      case "Darwin": {
-        userConfigDir =
-          process.env.HOME + "/Library/Application Support/" + name + "/User/";
-        break;
-      }
-      case "Linux": {
-        userConfigDir = process.env.HOME + "/.config/" + name + "/User/";
-        break;
-      }
-      case "Windows_NT": {
-        userConfigDir = process.env.APPDATA + "\\" + name + "\\User\\";
-        delimiter = "\\";
-        break;
-      }
-      default: {
-        userConfigDir = process.env.HOME + "/.config/" + name + "/User/";
-        break;
-      }
-    }
-
-    // if vscode is in portable mode, we need to handle it differently
-    // there is also a case where the user opens vscode with a custom `--user-data-dir` args through the CLI,
-    // but there is no reliable way for the extension authors to identify that through the node env or vscode API
-    const portableDir = process.env["VSCODE_PORTABLE"];
-    if (portableDir) {
-      userConfigDir = path.join(portableDir, "user-data", "User");
-    }
-
-    return {
-      userConfigDir,
-      delimiter,
-      osName,
-    };
+    return resolveCodeUserConfigDir({
+      appName: vscode.env.appName,
+      osType: os.type(),
+      env: {
+        HOME: process.env.HOME,
+        APPDATA: process.env.APPDATA,
+        VSCODE_PORTABLE: process.env["VSCODE_PORTABLE"],
+      },
+    });
   }
 
   static getWorkspaceConfig = vscode.workspace.getConfiguration;
   static setWorkspaceConfig(
     section: string,
     value: any,
-    configurationTarget?: vscode.ConfigurationTarget | boolean | null
+    configurationTarget?: vscode.ConfigurationTarget | boolean | null,
   ) {
     const config = vscode.workspace.getConfiguration();
     config.update(section, value, configurationTarget);

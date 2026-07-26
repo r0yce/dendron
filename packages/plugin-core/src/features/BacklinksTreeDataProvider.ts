@@ -39,6 +39,13 @@ import { findReferencesById, FoundRefT, sortPaths } from "../utils/md";
 import { VSCodeUtils } from "../vsCodeUtils";
 import { WSUtilsV2 } from "../WSUtilsV2";
 import { Backlink, BacklinkTreeItemType } from "./Backlink";
+import {
+  formatNoteLevelBacklinkDescription,
+  formatOneLineSnippet,
+  formatRefLevelDescription,
+  linesOfContextForRefCount,
+  sortPathsByLastUpdated,
+} from "./backlinksTreeHelpers";
 
 /**
  * Provides the data to support the backlinks tree view panel
@@ -113,7 +120,7 @@ export default class BacklinksTreeDataProvider
 
       VSCodeUtils.setContextStringValue(
         DendronContext.BACKLINKS_SORT_ORDER,
-        sortOrder
+        sortOrder,
       );
 
       this.refreshBacklinks();
@@ -159,7 +166,7 @@ export default class BacklinksTreeDataProvider
         return this.getAllBacklinkedNotes(
           activeNote.id,
           this._isLinkCandidateEnabled,
-          this._sortOrder!
+          this._sortOrder!,
         );
       } else {
         // 2nd-level children, which contains line-level references belonging to
@@ -172,7 +179,7 @@ export default class BacklinksTreeDataProvider
         return this.getAllBacklinksInNoteFromRefs(
           refs,
           activeNote.fname,
-          element
+          element,
         );
       }
     } catch (error) {
@@ -193,7 +200,7 @@ export default class BacklinksTreeDataProvider
   public resolveTreeItem(
     _item: TreeItem,
     element: Backlink,
-    _token: CancellationToken
+    _token: CancellationToken,
   ): ProviderResult<TreeItem> {
     // This method implies that an item was hovered over
     AnalyticsUtils.track(VSCodeEvents.BacklinksPanelUsed, {
@@ -217,13 +224,13 @@ export default class BacklinksTreeDataProvider
         if (element.singleRef?.isFrontmatterTag) {
           resolve({
             tooltip: new MarkdownString(
-              this.FRONTMATTER_TAG_CONTEXT_PLACEHOLDER
+              this.FRONTMATTER_TAG_CONTEXT_PLACEHOLDER,
             ),
           });
         }
         this.getSurroundingContextForRef(
           element.singleRef!,
-          this.MAX_LINES_OF_CONTEX̣T
+          this.MAX_LINES_OF_CONTEX̣T,
         ).then((value) => {
           const tooltip = new MarkdownString();
           tooltip.appendMarkdown(value);
@@ -282,7 +289,8 @@ export default class BacklinksTreeDataProvider
     // Note: actual heavy work happens in getChildren / getAllBacklinkedNotes
     // For now we time the trigger; deeper instrumentation can be added in getChildren
     perf.after("total");
-    const shouldLog = process.env.DENDRON_PERF === "1" || process.env.LOG_LEVEL === "debug";
+    const shouldLog =
+      process.env.DENDRON_PERF === "1" || process.env.LOG_LEVEL === "debug";
     if (shouldLog) {
       const report = perf.report();
       logPerfReport("Backlinks", report);
@@ -300,7 +308,7 @@ export default class BacklinksTreeDataProvider
   private getAllBacklinksInNoteFromRefs = (
     refs: FoundRefT[],
     fsPath: string,
-    parent: Backlink
+    parent: Backlink,
   ) => {
     return refs.map((ref) => {
       const lineNum = ref.location.range.start.line;
@@ -312,9 +320,7 @@ export default class BacklinksTreeDataProvider
       backlink.parentBacklink = parent;
       // Sprint 2: surface a one-line context snippet inline (not only on hover)
       const snippet = this.getOneLineSnippet(ref);
-      backlink.description = snippet
-        ? `L${lineNum + 1} · ${snippet}`
-        : `on line ${lineNum + 1}`;
+      backlink.description = formatRefLevelDescription({ lineNum, snippet });
 
       backlink.command = {
         command: DENDRON_COMMANDS.GOTO_BACKLINK.key,
@@ -356,8 +362,7 @@ export default class BacklinksTreeDataProvider
       });
       const lines = fs.readFileSync(fullPath, "utf8").split("\n");
       const line = lines[ref.location.range.start.line] ?? "";
-      // Collapse whitespace and cap length for the tree description column
-      return line.replace(/\s+/g, " ").trim().slice(0, 72);
+      return formatOneLineSnippet(line);
     } catch {
       return "";
     }
@@ -374,7 +379,7 @@ export default class BacklinksTreeDataProvider
   private async getAllBacklinkedNotes(
     noteId: string,
     isLinkCandidateEnabled: boolean | undefined,
-    sortOrder: BacklinkPanelSortOrder
+    sortOrder: BacklinkPanelSortOrder,
   ): Promise<Backlink[]> {
     const perf = new PerformanceTimer({ timerName: "GetBacklinks" });
     perf.before("total");
@@ -388,33 +393,28 @@ export default class BacklinksTreeDataProvider
     const referencesByPath = _.groupBy(
       // Exclude self-references:
       _.filter(references, (ref) => ref.note?.id !== noteId),
-      ({ location }) => location.uri.fsPath
+      ({ location }) => location.uri.fsPath,
     );
 
     let pathsSorted: string[];
     if (sortOrder === BacklinkPanelSortOrder.PathNames) {
-      pathsSorted = this.shallowFirstPathSort(referencesByPath as any /* legacy lodash groupBy result vs Dictionary<tuple> strict mismatch; internal method; 4-axis style TODO per strict-mode-fixer Batch 6+ (final @ts burn 2026-06-01); never bare. Real type audit of ref shape would remove. */);
+      pathsSorted = this.shallowFirstPathSort(
+        referencesByPath as any /* legacy lodash groupBy result vs Dictionary<tuple> strict mismatch; internal method; 4-axis style TODO per strict-mode-fixer Batch 6+ (final @ts burn 2026-06-01); never bare. Real type audit of ref shape would remove. */,
+      );
     } else if (sortOrder === BacklinkPanelSortOrder.LastUpdated) {
-      pathsSorted = Object.keys(referencesByPath).sort((p1, p2) => {
-        const ref1 = referencesByPath[p1];
-        const ref2 = referencesByPath[p2];
-
-        if (!ref1 || !ref2 || ref1.length === 0 || ref2.length === 0 || ref1[0]!.note === undefined || ref2[0]!.note === undefined) {
-          Logger.error({
-            msg: "Missing info for well formed backlink sort by last updated.",
-          });
-          return 0;
-        }
-
-        // noUncheckedIndexedAccess guard: explicit length + note checks above guarantee non-null; ! is safe post-invariant (Batch 5+/6+ + debug launch sweep pattern)
-        const r1 = ref1!;
-        const r2 = ref2!;
-        const ref2Updated = r2[0]!.note.updated;
-        const ref1Updated = r1[0]!.note.updated;
-
-        // We want to sort in descending order by last updated
-        return ref2Updated - ref1Updated;
-      });
+      pathsSorted = sortPathsByLastUpdated(
+        Object.keys(referencesByPath),
+        (p) => {
+          const refs = referencesByPath[p];
+          if (!refs || refs.length === 0 || refs[0]!.note === undefined) {
+            Logger.error({
+              msg: "Missing info for well formed backlink sort by last updated.",
+            });
+            return undefined;
+          }
+          return refs[0]!.note.updated;
+        },
+      );
     } else assertUnreachable(sortOrder);
 
     if (!pathsSorted.length) {
@@ -426,7 +426,7 @@ export default class BacklinksTreeDataProvider
 
       const backlink = Backlink.createNoteLevelBacklink(
         path.basename(pathParam, path.extname(pathParam)),
-        references
+        references,
       );
 
       const totalCount = references.length;
@@ -441,28 +441,10 @@ export default class BacklinksTreeDataProvider
 
       if (backlinkCount === 0) return undefined;
 
-      let linkCountDescription;
-
-      if (linkCount === 1) {
-        linkCountDescription = "1 link";
-      } else if (linkCount > 1) {
-        linkCountDescription = `${linkCount} links`;
-      }
-
-      let candidateCountDescription;
-
-      if (candidateCount === 1) {
-        candidateCountDescription = "1 candidate";
-      } else if (candidateCount > 1) {
-        candidateCountDescription = `${candidateCountDescription} candidates`;
-      }
-
-      const description = _.compact([
-        linkCountDescription,
-        candidateCountDescription,
-      ]).join(", ");
-
-      backlink.description = description;
+      backlink.description = formatNoteLevelBacklinkDescription({
+        linkCount,
+        candidateCount,
+      });
 
       backlink.command = {
         command: DENDRON_COMMANDS.GOTO_BACKLINK.key,
@@ -478,7 +460,8 @@ export default class BacklinksTreeDataProvider
     });
     perf.after("total");
 
-    const shouldLog = process.env.DENDRON_PERF === "1" || process.env.LOG_LEVEL === "debug";
+    const shouldLog =
+      process.env.DENDRON_PERF === "1" || process.env.LOG_LEVEL === "debug";
     if (shouldLog) {
       logPerfReport("BacklinksComputation", perf.report());
     }
@@ -487,7 +470,7 @@ export default class BacklinksTreeDataProvider
   }
 
   private shallowFirstPathSort(
-    referencesByPath: Dictionary<[unknown, ...unknown[]]>
+    referencesByPath: Dictionary<[unknown, ...unknown[]]>,
   ) {
     return sortPaths(Object.keys(referencesByPath), {
       shallowFirst: true,
@@ -503,31 +486,16 @@ export default class BacklinksTreeDataProvider
    * @returns
    */
   private async getTooltipForNoteLevelTreeItem(
-    references: FoundRefT[]
+    references: FoundRefT[],
   ): Promise<MarkdownString> {
     // Shoot for around a max of 40 lines to render in the hover, otherwise,
     // it's a bit too long. Note, this doesn't take into account note reference
     // length, so those can potentially blow up the size of the context.
     // Factoring in note ref length can be a later enhancement
-    let linesOfContext = 0;
-
-    switch (references.length) {
-      case 1: {
-        linesOfContext = this.MAX_LINES_OF_CONTEX̣T;
-        break;
-      }
-      case 2: {
-        linesOfContext = 7;
-        break;
-      }
-      case 3: {
-        linesOfContext = 5;
-        break;
-      }
-      default:
-        linesOfContext = 3;
-        break;
-    }
+    const linesOfContext = linesOfContextForRefCount(
+      references.length,
+      this.MAX_LINES_OF_CONTEX̣T,
+    );
 
     const markdownBlocks = await Promise.all(
       references.map(async (foundRef) => {
@@ -543,11 +511,11 @@ export default class BacklinksTreeDataProvider
         return {
           content: (await this.getSurroundingContextForRef(
             foundRef,
-            linesOfContext
+            linesOfContext,
           ))!,
           isCandidate: foundRef.isCandidate,
         };
-      })
+      }),
     );
 
     const tooltip = new MarkdownString();
@@ -561,7 +529,7 @@ export default class BacklinksTreeDataProvider
       tooltip.appendMarkdown(
         `## ${noteProps.title}
 _created: ${DateFormatUtil.formatDate(noteProps.created)}_<br>
-_updated: ${DateFormatUtil.formatDate(noteProps.updated)}_`
+_updated: ${DateFormatUtil.formatDate(noteProps.updated)}_`,
       );
       tooltip.appendMarkdown("<hr/>");
     }
@@ -589,7 +557,7 @@ _updated: ${DateFormatUtil.formatDate(noteProps.updated)}_`
 
   private async getSurroundingContextForRef(
     ref: FoundRefT,
-    linesOfContext: number
+    linesOfContext: number,
   ): Promise<string> {
     const proc = MDUtilsV5.procRemarkFull(
       {
@@ -612,12 +580,12 @@ _updated: ${DateFormatUtil.formatDate(noteProps.updated)}_`
         },
         config: DConfig.readConfigSync(
           ExtensionProvider.getDWorkspace().wsRoot,
-          true
+          true,
         ),
       },
       {
         flavor: ProcFlavor.BACKLINKS_PANEL_HOVER,
-      }
+      },
     );
 
     const note = ref.note!;

@@ -43,6 +43,9 @@
 | `startupGates` / `startupConfigMessages` / `startupUserPrompts` | utils/ | Pure startup gates; config toasters; survey/compat prompts |
 | `extensionServerProcess` / `extensionTelemetry` | utils/ | Engine server spawn; install + workspace-init analytics |
 | `podControlDescriptions` | pods/ | Pure export-scope / pod-type quick-pick copy |
+| `vsCodeInstallStatus` / `vsCodeRangeHelpers` / `vsCodeUserConfigDir` | utils/ | Pure install gates, range math, user config paths |
+| `backlinksTreeHelpers` | features/ | Pure backlinks tree sort/description/snippet |
+| `workspaceWatcherRename` | plugin-core | Will/did rename note handlers |
 
 **Rule:** same 5+ lines twice → extract. Pure logic → no vscode imports when possible.
 
@@ -330,12 +333,28 @@ Still >400 LOC and not fully modular shells:
 | `PodControls.ts` | **~564** |
 | `startupConfigMessages.ts` | ~219 |
 
-### Wave 22 — optional (remaining non-command)
+### Wave 22 — DONE (this push)
+
+| Item | Result |
+|------|--------|
+| vsCodeUtils | pure `vsCodeInstallStatus`, `vsCodeRangeHelpers`, `vsCodeUserConfigDir`; shell **~528** (was ~613) |
+| BacklinksTreeDataProvider | pure `backlinksTreeHelpers` (sort/desc/snippet/context lines); **~602** (was ~634) |
+| WorkspaceWatcher | `workspaceWatcherRename` will/did rename; **~527** (was ~615) |
+| Smoke | install status, range pad/merge, config dir, backlink strings |
+
+| Hotspot | ~LOC after wave 22 |
+|---------|-------------------|
+| `vsCodeUtils.ts` | **~528** |
+| `BacklinksTreeDataProvider.ts` | **~602** |
+| `WorkspaceWatcher.ts` | **~527** |
+| `workspace.ts` | still ~610 (class shell; next wave) |
+
+### Wave 23 — optional (remaining non-command)
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | `BacklinksTreeDataProvider`, `WorkspaceWatcher`, `vsCodeUtils`, `workspace` |
-| P2 | Further PodControls prompt peels; `PreviewPanel` |
+| P1 | `workspace.ts` DendronExtension peels; further Backlinks/Watcher |
+| P2 | `PodControls` prompt peels; `PreviewPanel` |
 | P3 | `_extension.ts` bootstrap thin; `constants.ts` data split |
 | P4 | Remaining command shells 300–399 if desired |
 

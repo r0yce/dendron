@@ -30,6 +30,10 @@ const completionHelpers = out("features/completionHelpers.js");
 const keybindingHelpers = out("keybindingConflictHelpers.js");
 const startupGates = out("utils/startupGates.js");
 const podDescriptions = out("components/pods/podControlDescriptions.js");
+const installStatus = out("utils/vsCodeInstallStatus.js");
+const rangeHelpers = out("utils/vsCodeRangeHelpers.js");
+const userConfigDir = out("utils/vsCodeUserConfigDir.js");
+const backlinksHelpers = out("features/backlinksTreeHelpers.js");
 
 let failed = 0;
 function check(name, cond) {
@@ -332,6 +336,89 @@ check(
     .getDescriptionForPodType("MarkdownExportV2")
     .toLowerCase()
     .includes("markdown")
+);
+
+// --- vsCode / backlinks pure (wave 22) ---
+check(
+  "getInstallStatusForWorkspace upgraded",
+  installStatus.getInstallStatusForWorkspace({
+    previousWorkspaceVersion: "0.1.0",
+    currentVersion: "0.2.0",
+  }) === "UPGRADED"
+);
+check(
+  "getInstallStatusForExtension initial",
+  installStatus.getInstallStatusForExtension({
+    previousGlobalVersion: undefined,
+    currentVersion: "0.2.0",
+  }) === "INITIAL_INSTALL"
+);
+check(
+  "pointToZeroIndexed",
+  (() => {
+    const p = rangeHelpers.pointToZeroIndexed({ line: 2, column: 3 });
+    return p.line === 1 && p.character === 2;
+  })()
+);
+check(
+  "padPlainRange zeroCharacter",
+  (() => {
+    const r = rangeHelpers.padPlainRange({
+      range: {
+        start: { line: 5, character: 4 },
+        end: { line: 6, character: 2 },
+      },
+      padding: 2,
+      zeroCharacter: true,
+    });
+    return r.start.line === 3 && r.start.character === 0 && r.end.line === 8;
+  })()
+);
+check(
+  "mergeOverlappingPlainRanges",
+  (() => {
+    const merged = rangeHelpers.mergeOverlappingPlainRanges([
+      {
+        start: { line: 0, character: 0 },
+        end: { line: 2, character: 0 },
+      },
+      {
+        start: { line: 1, character: 0 },
+        end: { line: 3, character: 0 },
+      },
+    ]);
+    return (
+      merged.length === 1 &&
+      merged[0].start.line === 0 &&
+      merged[0].end.line === 3
+    );
+  })()
+);
+check(
+  "resolveCodeUserConfigDir Darwin",
+  userConfigDir
+    .resolveCodeUserConfigDir({
+      appName: "Visual Studio Code",
+      osType: "Darwin",
+      env: { HOME: "/Users/test" },
+    })
+    .userConfigDir.includes("Library/Application Support/Code/User")
+);
+check(
+  "formatOneLineSnippet collapses whitespace",
+  backlinksHelpers.formatOneLineSnippet("  foo   bar  ") === "foo bar"
+);
+check(
+  "formatNoteLevelBacklinkDescription",
+  backlinksHelpers.formatNoteLevelBacklinkDescription({
+    linkCount: 2,
+    candidateCount: 1,
+  }) === "2 links, 1 candidate"
+);
+check(
+  "linesOfContextForRefCount",
+  backlinksHelpers.linesOfContextForRefCount(1, 10) === 10 &&
+    backlinksHelpers.linesOfContextForRefCount(4, 10) === 3
 );
 
 if (failed) {
