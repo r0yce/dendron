@@ -37,6 +37,15 @@ import { WSUtilsV2 } from "../../WSUtilsV2";
 import { IPreviewLinkHandler } from "./IPreviewLinkHandler";
 import { PreviewProxy } from "./PreviewProxy";
 import { NoteHistoryService } from "../../services/NoteHistoryService";
+import {
+  clearPreviewHistory,
+  createPreviewHistoryState,
+  goBackPreviewHistory,
+  goForwardPreviewHistory,
+  PREVIEW_HISTORY_MAX,
+  PreviewHistoryState,
+  pushPreviewHistory,
+} from "./previewHistory";
 
 /**
  * This is the default implementation of PreviewProxy. It contains a singleton
@@ -55,10 +64,8 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
   private _linkHandler: IPreviewLinkHandler;
   private _lockedEditorNoteId: string | undefined;
   /** Preview navigation history (note ids). Sprint 2. */
-  private _history: string[] = [];
-  private _historyIndex = -1;
+  private _historyState: PreviewHistoryState = createPreviewHistoryState();
   private _navigatingHistory = false;
-  private static readonly MAX_HISTORY = 50;
 
   /**
    *
@@ -206,21 +213,10 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
 
   /** Push note onto history unless we are walking history with back/forward. */
   private pushHistory(noteId: string) {
-    if (this._navigatingHistory) {
-      return;
-    }
-    if (this._historyIndex >= 0 && this._history[this._historyIndex] === noteId) {
-      return;
-    }
-    // Drop any forward stack when navigating to a new note
-    if (this._historyIndex < this._history.length - 1) {
-      this._history = this._history.slice(0, this._historyIndex + 1);
-    }
-    this._history.push(noteId);
-    if (this._history.length > PreviewPanel.MAX_HISTORY) {
-      this._history.shift();
-    }
-    this._historyIndex = this._history.length - 1;
+    this._historyState = pushPreviewHistory(this._historyState, noteId, {
+      navigatingHistory: this._navigatingHistory,
+      max: PREVIEW_HISTORY_MAX,
+    });
 
     // Unified history: also push into editor note history when we know the note
     this._ext
@@ -259,24 +255,18 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
   }
 
   async goBack(): Promise<void> {
-    if (this._historyIndex <= 0) {
-      return;
-    }
-    this._historyIndex -= 1;
-    const noteId = this._history[this._historyIndex];
-    if (noteId) {
-      await this.showNoteById(noteId);
+    const result = goBackPreviewHistory(this._historyState);
+    this._historyState = result.state;
+    if (result.noteId) {
+      await this.showNoteById(result.noteId);
     }
   }
 
   async goForward(): Promise<void> {
-    if (this._historyIndex >= this._history.length - 1) {
-      return;
-    }
-    this._historyIndex += 1;
-    const noteId = this._history[this._historyIndex];
-    if (noteId) {
-      await this.showNoteById(noteId);
+    const result = goForwardPreviewHistory(this._historyState);
+    this._historyState = result.state;
+    if (result.noteId) {
+      await this.showNoteById(result.noteId);
     }
   }
 
@@ -286,8 +276,7 @@ export class PreviewPanel implements PreviewProxy, vscode.Disposable {
       this._panel.dispose();
       this._panel = undefined;
     }
-    this._history = [];
-    this._historyIndex = -1;
+    this._historyState = clearPreviewHistory();
   }
 
   private setupCallbacks(): void {

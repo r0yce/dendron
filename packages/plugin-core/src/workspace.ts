@@ -5,14 +5,12 @@ import {
   DendronError,
   DWorkspaceV2,
   ERROR_STATUS,
-  getStage,
   WorkspaceSettings,
   WorkspaceType,
   DefaultMap,
 } from "@dendronhq/common-all";
 import { resolvePath } from "@dendronhq/common-server";
 import {
-  HistoryService,
   WorkspaceService,
   WorkspaceUtils,
 } from "@dendronhq/engine-server";
@@ -33,7 +31,6 @@ import {
   INoteLookupProviderFactory,
   ISchemaLookupProviderFactory,
 } from "./components/lookup/LookupProviderV3Interface";
-import { PreviewPanelFactory } from "./components/views/PreviewViewFactory";
 import { GLOBAL_STATE } from "./constants";
 import {
   DendronWorkspaceSettings,
@@ -53,11 +50,8 @@ import { DisposableStore } from "./utils";
 import { VersionProvider } from "./versionProvider";
 import { VSCodeUtils } from "./vsCodeUtils";
 import { WindowWatcher } from "./windowWatcher";
-import { WorkspaceWatcher } from "./WorkspaceWatcher";
-import { registerHtmlSidePanels } from "./workspace/registerSidePanels";
-import { setupBacklinkTreeView } from "./workspace/setupBacklinks";
-import { setupGraphPanel } from "./workspace/setupGraphPanel";
-import { setupTipOfTheDayView } from "./workspace/setupTipOfTheDay";
+import { activateWatchersForExtension } from "./workspaceActivateWatchers";
+import { setupViewsForExtension } from "./workspaceSetupViews";
 import { WSUtilsV2 } from "./WSUtilsV2";
 import { IWSUtilsV2 } from "./WSUtilsV2Interface";
 
@@ -517,36 +511,8 @@ export class DendronExtension implements IDendronExtension {
   }
 
   async setupViews(context: vscode.ExtensionContext) {
-    const ctx = "setupViews";
-    HistoryService.instance().subscribe("extension", async (event) => {
-      if (event.action === "initialized") {
-        Logger.info({ ctx, msg: "init:treeViewV2" });
-
-        // IMPORTANT: register WebviewViewProviders in the same turn as
-        // "initialized". Deferring with setTimeout leaves calendar/graph
-        // empty — VS Code resolves visible sidebar views when the provider
-        // is registered; a delayed register can miss resolveWebviewView.
-        // (Sprint 1 lazy-activation lesson; keep deferred work elsewhere.)
-
-        registerHtmlSidePanels(this, context);
-
-        // backlinks / tip-of-day / graph still need instance methods below
-        const backlinkTreeView = setupBacklinkTreeView(this);
-        const tipOfDayView = setupTipOfTheDayView();
-        const graphPanel = setupGraphPanel(this);
-
-        context.subscriptions.push(backlinkTreeView);
-        context.subscriptions.push(tipOfDayView);
-        context.subscriptions.push(graphPanel);
-      }
-    });
+    await setupViewsForExtension(this, context);
   }
-
-
-
-
-
-
 
   addDisposable(disposable: vscode.Disposable) {
     // handle all disposables
@@ -559,47 +525,7 @@ export class DendronExtension implements IDendronExtension {
    * - activate workspacespace watchers
    */
   async activateWatchers() {
-    const ctx = "activateWorkspace";
-    const stage = getStage();
-    this.L.info({ ctx, stage, msg: "enter" });
-    const { wsRoot, vaults } = ExtensionProvider.getDWorkspace();
-    if (!wsRoot) {
-      throw new Error(`rootDir not set when activating Watcher`);
-    }
-
-    const windowWatcher = new WindowWatcher({
-      extension: this,
-      previewProxy: PreviewPanelFactory.create(this),
-    });
-
-    windowWatcher.activate();
-    for (const editor of vscode.window.visibleTextEditors) {
-      windowWatcher.triggerUpdateDecorations(editor);
-    }
-    this.windowWatcher = windowWatcher;
-    const workspaceWatcher = new WorkspaceWatcher({
-      schemaSyncService: this.schemaSyncService,
-      extension: this,
-      windowWatcher,
-    });
-    workspaceWatcher.activate(this.context);
-
-    const wsFolders = DendronExtension.workspaceFolders();
-    if (_.isUndefined(wsFolders) || _.isEmpty(wsFolders)) {
-      this.L.info({
-        ctx,
-        msg: "no folders set for workspace",
-      });
-    }
-    const fileWatcher = new FileWatcher({
-      workspaceOpts: {
-        wsRoot,
-        vaults,
-      },
-    });
-
-    fileWatcher.activate(ExtensionProvider.getExtension().context);
-    this.fileWatcher = fileWatcher;
+    await activateWatchersForExtension(this);
   }
 
   async deactivate() {

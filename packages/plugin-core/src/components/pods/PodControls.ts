@@ -7,7 +7,6 @@ import {
   ExternalConnectionManager,
   ExternalService,
   ExternalTarget,
-  getAllCopyAsFormat,
   PodExportScope,
   PodUtils,
   PodV2ConfigManager,
@@ -27,10 +26,14 @@ import { MultiSelectBtn, Selection2ItemsBtn } from "../lookup/buttons";
 import { LookupControllerV3CreateOpts } from "../lookup/LookupControllerV3Interface";
 import { NoteLookupProviderSuccessResp } from "../lookup/LookupProviderV3Interface";
 import { NoteLookupProviderUtils } from "../lookup/NoteLookupProviderUtils";
+import { getDescriptionForPodType } from "./podControlDescriptions";
 import {
-  getDescriptionForPodType,
-  getDescriptionForScope,
-} from "./podControlDescriptions";
+  buildCopyAsFormatBaseItems,
+  buildDestinationQuickPickItems,
+  buildExportScopeQuickPickItems,
+  buildSaveAsNewConfigItems,
+  destinationAllowsClipboard,
+} from "./podControlQuickPickItems";
 
 /**
  * Contains VSCode UI controls for common Pod UI operations
@@ -77,14 +80,7 @@ export class PodUIControls {
       const qp = vscode.window.createQuickPick();
       qp.ignoreFocusOut = true;
       qp.title = "Select the Export Scope";
-      qp.items = Object.keys(PodExportScope)
-        .filter((key) => Number.isNaN(Number(key)))
-        .map<QuickPickItem>((value) => {
-          return {
-            label: value,
-            detail: getDescriptionForScope(value as PodExportScope),
-          };
-        });
+      qp.items = buildExportScopeQuickPickItems();
 
       qp.onDidAccept(() => {
         resolve(
@@ -108,17 +104,7 @@ export class PodUIControls {
   public static async promptToSaveInputChoicesAsNewConfig(): Promise<
     false | string | undefined
   > {
-    const items: vscode.QuickPickItem[] = [
-      {
-        label: "Yes",
-        detail:
-          "Select this option if you anticipate running this pod multiple-times",
-      },
-      {
-        label: "No",
-        detail: "Run this pod now",
-      },
-    ];
+    const items: vscode.QuickPickItem[] = buildSaveAsNewConfigItems();
     const picked = await vscode.window.showQuickPick(items, {
       title: "Would you like to save this configuration?",
       ignoreFocusOut: true,
@@ -468,21 +454,9 @@ export class PodUIControls {
     exportScope: PodExportScope,
     options: vscode.OpenDialogOptions,
   ): Promise<"clipboard" | string | undefined> {
-    const items: vscode.QuickPickItem[] = [
-      {
-        label: "clipboard",
-        detail: "Puts the contents of the export into your clipboard",
-      },
-      {
-        label: "local filesystem",
-        detail: "Exports the contents to a local directory",
-      },
-    ];
+    const items: vscode.QuickPickItem[] = buildDestinationQuickPickItems();
     // Cannot have clipboard be the destination on a multi-note export
-    if (
-      exportScope === PodExportScope.Note ||
-      exportScope === PodExportScope.Selection
-    ) {
+    if (destinationAllowsClipboard(exportScope)) {
       const picked = await vscode.window.showQuickPick(items);
 
       if (!picked) {
@@ -529,12 +503,12 @@ export class PodUIControls {
   public static async promptToSelectCopyAsFormat(): Promise<
     CopyAsFormat | undefined
   > {
-    const items = getAllCopyAsFormat().map<QuickPickItem>((value) => {
+    const items = buildCopyAsFormatBaseItems().map<QuickPickItem>((base) => {
       let keybinding;
 
       try {
         keybinding =
-          KeybindingUtils.getKeybindingsForCopyAsIfExists(value) || "";
+          KeybindingUtils.getKeybindingsForCopyAsIfExists(base.label) || "";
       } catch (e: any) {
         if (
           e.message &&
@@ -546,11 +520,11 @@ export class PodUIControls {
         }
       }
       return {
-        label: value,
+        label: base.label,
         ...(keybinding !== undefined && keybinding !== ""
           ? { description: keybinding }
           : {}),
-        detail: `Format Dendron note to ${value} and copy it to the clipboard`,
+        detail: base.detail,
       };
     });
     const formatQuickPick = await VSCodeUtils.showQuickPick(items, {

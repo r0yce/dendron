@@ -34,6 +34,9 @@ const installStatus = out("utils/vsCodeInstallStatus.js");
 const rangeHelpers = out("utils/vsCodeRangeHelpers.js");
 const userConfigDir = out("utils/vsCodeUserConfigDir.js");
 const backlinksHelpers = out("features/backlinksTreeHelpers.js");
+const previewHistory = out("components/views/previewHistory.js");
+const watcherSaveHelpers = out("workspaceWatcherSaveHelpers.js");
+const podQuickPick = out("components/pods/podControlQuickPickItems.js");
 
 let failed = 0;
 function check(name, cond) {
@@ -419,6 +422,74 @@ check(
   "linesOfContextForRefCount",
   backlinksHelpers.linesOfContextForRefCount(1, 10) === 10 &&
     backlinksHelpers.linesOfContextForRefCount(4, 10) === 3
+);
+
+// --- preview history + watcher save + pod QP pure (wave 23) ---
+check(
+  "pushPreviewHistory and goBack",
+  (() => {
+    let s = previewHistory.createPreviewHistoryState();
+    s = previewHistory.pushPreviewHistory(s, "a");
+    s = previewHistory.pushPreviewHistory(s, "b");
+    s = previewHistory.pushPreviewHistory(s, "c");
+    const back = previewHistory.goBackPreviewHistory(s);
+    return back.noteId === "b" && back.state.historyIndex === 1;
+  })()
+);
+check(
+  "pushPreviewHistory drops forward stack",
+  (() => {
+    let s = previewHistory.createPreviewHistoryState();
+    s = previewHistory.pushPreviewHistory(s, "a");
+    s = previewHistory.pushPreviewHistory(s, "b");
+    s = previewHistory.pushPreviewHistory(s, "c");
+    s = previewHistory.goBackPreviewHistory(s).state;
+    s = previewHistory.pushPreviewHistory(s, "d");
+    return s.history.join(",") === "a,b,d" && s.historyIndex === 2;
+  })()
+);
+check(
+  "planFrontmatterUpdatedReplace",
+  (() => {
+    const content = "---\nid: x\nupdated: 1\n---\nbody";
+    const plan = watcherSaveHelpers.planFrontmatterUpdatedReplace({
+      content,
+      nowMillis: 99,
+      contentChanged: true,
+    });
+    return plan && plan.replaceText === "updated: 99";
+  })()
+);
+check(
+  "shouldWritePersistentHistory skips hist notes",
+  watcherSaveHelpers.shouldWritePersistentHistory({
+    enablePersistentHistory: true,
+    mainVault: "v1",
+    fname: "dendron.hist.2026.01.01",
+  }) === false &&
+    watcherSaveHelpers.shouldWritePersistentHistory({
+      enablePersistentHistory: true,
+      mainVault: "v1",
+      fname: "foo",
+    }) === true
+);
+check(
+  "buildPersistentHistoryLine",
+  watcherSaveHelpers.buildPersistentHistoryLine({
+    minuteAndSecond: "01-01-2026 12:00",
+    fname: "foo",
+  }) === "- 01-01-2026 12:00 : [[foo]]"
+);
+check(
+  "buildExportScopeQuickPickItems has Note",
+  podQuickPick
+    .buildExportScopeQuickPickItems()
+    .some((i) => i.label === "Note")
+);
+check(
+  "destinationAllowsClipboard",
+  podQuickPick.destinationAllowsClipboard("Note") === true &&
+    podQuickPick.destinationAllowsClipboard("Workspace") === false
 );
 
 if (failed) {

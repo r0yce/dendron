@@ -46,6 +46,10 @@
 | `vsCodeInstallStatus` / `vsCodeRangeHelpers` / `vsCodeUserConfigDir` | utils/ | Pure install gates, range math, user config paths |
 | `backlinksTreeHelpers` | features/ | Pure backlinks tree sort/description/snippet |
 | `workspaceWatcherRename` | plugin-core | Will/did rename note handlers |
+| `workspaceWatcherSave` / `workspaceWatcherSaveHelpers` | plugin-core | Will/did save note + pure FM/history helpers |
+| `workspaceActivateWatchers` / `workspaceSetupViews` | plugin-core | Watcher activation; sidebar view registration |
+| `previewHistory` | views/ | Pure preview nav history stack |
+| `podControlQuickPickItems` | pods/ | Pure pod quick-pick item builders |
 
 **Rule:** same 5+ lines twice → extract. Pure logic → no vscode imports when possible.
 
@@ -349,12 +353,29 @@ Still >400 LOC and not fully modular shells:
 | `WorkspaceWatcher.ts` | **~527** |
 | `workspace.ts` | still ~610 (class shell; next wave) |
 
-### Wave 23 — optional (remaining non-command)
+### Wave 23 — DONE (this push)
+
+| Item | Result |
+|------|--------|
+| workspace.ts | `workspaceSetupViews` + `workspaceActivateWatchers`; **~536** (was ~610) |
+| WorkspaceWatcher | save → `workspaceWatcherSave` + pure helpers; **~370** (was ~527) |
+| PreviewPanel | pure `previewHistory`; **~561** (was ~572) |
+| PodControls | pure `podControlQuickPickItems`; **~536** (was ~562) |
+| Smoke | preview history, FM updated plan, persistent history, pod QP items |
+
+| Hotspot | ~LOC after wave 23 |
+|---------|-------------------|
+| `workspace.ts` | **~536** |
+| `WorkspaceWatcher.ts` | **~370** |
+| `PreviewPanel.ts` | **~561** |
+| `PodControls.ts` | **~536** |
+
+### Wave 24 — optional (remaining non-command)
 
 | Priority | Opportunity |
 |----------|-------------|
-| P1 | `workspace.ts` DendronExtension peels; further Backlinks/Watcher |
-| P2 | `PodControls` prompt peels; `PreviewPanel` |
+| P1 | Further `workspace.ts` statics; Backlinks provider core |
+| P2 | PreviewPanel message/rewrite peels; more PodControls prompts |
 | P3 | `_extension.ts` bootstrap thin; `constants.ts` data split |
 | P4 | Remaining command shells 300–399 if desired |
 

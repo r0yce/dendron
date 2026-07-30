@@ -187,6 +187,10 @@ See also [docs/dev/MAINTAINABILITY.md](../../docs/dev/MAINTAINABILITY.md).
 | VS Code pure helpers | `vsCodeInstallStatus`, `vsCodeRangeHelpers`, `vsCodeUserConfigDir` |
 | Backlinks tree pure | `backlinksTreeHelpers` |
 | Workspace rename handlers | `workspaceWatcherRename` |
+| Workspace save helpers | `workspaceWatcherSave`, pure `workspaceWatcherSaveHelpers` |
+| Workspace activate/setup | `workspaceActivateWatchers`, `workspaceSetupViews` |
+| Preview history (pure) | `previewHistory` |
+| Pod quick-pick items (pure) | `podControlQuickPickItems` |
 | QuickPick factory | `pickerQuickPick` / `PickerUtilsV2.createDendronQuickPick` |
 | Activation helpers | `workspace/activatorHelpers` |
 | Reload / engine port | `workspace/activatorReload` |

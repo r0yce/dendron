@@ -1,28 +1,16 @@
-import {
-  ConfigUtils,
-  NoteUtils,
-  SchemaUtils,
-  Time,
-  VaultUtils,
-  Wrap,
-} from "@dendronhq/common-all";
+import { ConfigUtils, NoteUtils, SchemaUtils, Wrap } from "@dendronhq/common-all";
 import { WorkspaceUtils } from "@dendronhq/engine-server";
 import { RemarkUtils } from "@dendronhq/unified";
 import * as Sentry from "@sentry/node";
-import fs from "fs";
 import _ from "lodash";
-import path from "path";
 import {
   ExtensionContext,
   FileRenameEvent,
   FileWillRenameEvent,
-  Range,
   Selection,
   TextDocument,
   TextDocumentChangeEvent,
-  TextDocumentSaveReason,
   TextDocumentWillSaveEvent,
-  TextEdit,
   TextEditor,
   window,
   workspace,
@@ -30,7 +18,6 @@ import {
 import { DoctorUtils } from "./components/doctor/utils";
 import { IDendronExtension } from "./dendronExtensionInterface";
 import { Logger } from "./logger";
-import { TextDocumentService } from "./services/node/TextDocumentService";
 import { ISchemaSyncService } from "./services/SchemaSyncServiceInterface";
 import { sentryReportingCallback } from "./utils/analytics";
 import { VSCodeUtils } from "./vsCodeUtils";
@@ -39,6 +26,10 @@ import {
   onDidRenameFilesForWorkspace,
   onWillRenameFilesForWorkspace,
 } from "./workspaceWatcherRename";
+import {
+  onDidSaveNoteForWorkspace,
+  onWillSaveTextDocumentForWorkspace,
+} from "./workspaceWatcherSave";
 
 const MOVE_CURSOR_PAST_FRONTMATTER_DELAY = 50; /* ms */
 
@@ -192,7 +183,7 @@ export class WorkspaceWatcher {
         document,
       });
     } else {
-      await this.onDidSaveNote(document);
+      await onDidSaveNoteForWorkspace(document, this._extension);
     }
   }
 
@@ -255,158 +246,10 @@ export class WorkspaceWatcher {
   }
 
   /**
-   * If note is in workspace, execute {@link onWillSaveNote}
-   * @param event
-   * @returns
+   * If note is in workspace, update frontmatter / bookkeeping on will-save.
    */
   onWillSaveTextDocument(event: TextDocumentWillSaveEvent) {
-    try {
-      const ctx = "WorkspaceWatcher:onWillSaveTextDocument";
-      const uri = event.document.uri;
-      Logger.info({
-        ctx,
-        url: uri.fsPath,
-        reason: TextDocumentSaveReason[event.reason],
-        msg: "enter",
-      });
-      const { wsRoot, vaults } = this._extension.getDWorkspace();
-      if (
-        !WorkspaceUtils.isPathInWorkspace({ fpath: uri.fsPath, wsRoot, vaults })
-      ) {
-        Logger.debug({
-          ctx,
-          uri: uri.fsPath,
-          msg: "not in workspace, ignoring.",
-        });
-        return { changes: [] };
-      }
-
-      if (uri.fsPath.endsWith(".md")) {
-        return this.onWillSaveNote(event);
-      } else {
-        Logger.debug({
-          ctx,
-          uri: uri.fsPath,
-          msg: "File type is not registered for updates. ignoring.",
-        });
-        return { changes: [] };
-      }
-    } catch (error) {
-      Sentry.captureException(error);
-      throw error;
-    }
-  }
-
-  /**
-   * When saving a note, do some book keeping
-   * - update the `updated` time in frontmatter
-   * - update the note metadata in the engine
-   *
-   * this method needs to be sync since event.WaitUntil can be called
-   * in an asynchronous manner.
-   * @param event
-   * @returns
-   */
-  private onWillSaveNote(event: TextDocumentWillSaveEvent) {
-    const ctx = "WorkspaceWatcher:onWillSaveNote";
-    const uri = event.document.uri;
-    const engine = this._extension.getEngine();
-    const fname = path.basename(uri.fsPath, ".md");
-    const now = Time.now().toMillis();
-    let changes: TextEdit[] = [];
-    // eslint-disable-next-line  no-async-promise-executor
-    const promise = new Promise(async (resolve) => {
-      const note = (
-        await engine.findNotes({
-          fname,
-          vault: this._extension.wsUtils.getVaultFromUri(uri),
-        })
-      )[0];
-      // If we can't find the note, don't do anything
-      if (!note) {
-        // Log at info level and not error level for now to reduce Sentry noise
-        Logger.info({
-          ctx,
-          msg: `Note with fname ${fname} not found in engine! Skipping updated field FM modification.`,
-        });
-        return;
-      }
-
-      // Return undefined if document is missing frontmatter
-      if (!TextDocumentService.containsFrontmatter(event.document)) {
-        return;
-      }
-      const content = event.document.getText();
-      const match = NoteUtils.RE_FM_UPDATED.exec(content);
-      // update the `updated` time in frontmatter if it exists and content has changed
-      if (match && WorkspaceUtils.noteContentChanged({ content, note })) {
-        Logger.info({ ctx, match, msg: "update activeText editor" });
-        const startPos = event.document.positionAt(match.index);
-        const endPos = event.document.positionAt(match.index + match[0].length);
-        changes = [
-          TextEdit.replace(new Range(startPos, endPos), `updated: ${now}`),
-        ];
-      }
-      return resolve(changes);
-    });
-    event.waitUntil(promise);
-
-    return { changes };
-  }
-
-  private async onDidSaveNote(document: TextDocument) {
-    // check and prompt duplicate warning.
-    await DoctorUtils.findDuplicateNoteAndPromptIfNecessary(
-      document,
-      "onDidSaveNote",
-    );
-
-    const fname = path.basename(document.uri.fsPath, ".md");
-    const engine = this._extension.getEngine();
-    const config = this._extension.getDWorkspace().config;
-    const { enablePersistentHistory, mainVault } = ConfigUtils.getProp(
-      config,
-      "workspace",
-    );
-
-    if (
-      enablePersistentHistory &&
-      mainVault &&
-      !fname.startsWith("dendron.hist")
-    ) {
-      const date = Time.now().toFormat("y.MM.dd");
-      const historyFile = `dendron.hist.${date}`;
-      const minuteAndSecond = Time.now().toFormat("MM-dd-y HH:mm");
-      // check if file exists
-      // format line
-      const maybeVault = engine.vaults.find(
-        (vault) => VaultUtils.getName(vault) === mainVault,
-      );
-      if (!maybeVault) {
-        Logger.error({
-          ctx: "onWillSaveNote",
-          msg: `could not find vault for history file. vault: ${mainVault}`,
-        });
-      } else {
-        const line = `- ${minuteAndSecond} : [[${fname}]]`;
-        const base = maybeVault.fsPath;
-        const fpath = path.join(engine.wsRoot, base, historyFile);
-        Logger.info({
-          ctx: "onDidSaveNote",
-          fpath,
-          line,
-          msg: "writing to history file",
-        });
-        if (!fs.existsSync(fpath)) {
-          const note = NoteUtils.create({
-            fname: historyFile,
-            vault: maybeVault,
-          });
-          await engine.writeNote(note, { runHooks: false });
-        }
-        fs.appendFileSync(fpath + ".md", "\n" + line);
-      }
-    }
+    return onWillSaveTextDocumentForWorkspace(event, this._extension);
   }
 
   /** Do not use this function, please go to `WindowWatcher.onFirstOpen() instead.`
